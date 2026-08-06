@@ -1,0 +1,1030 @@
+<title>AguaVigía CTG — Plan del proyecto</title>
+<style>
+  :root {
+    --bg:        #EEF3F3;
+    --surface:   #FFFFFF;
+    --surface-2: #E2ECEB;
+    --ink:       #0B1F26;
+    --ink-2:     #3E585F;
+    --ink-3:     #6E878D;
+    --line:      #C9D9D8;
+    --line-soft: #DEE9E8;
+    --accent:    #0A6C78;
+    --accent-2:  #0E8A98;
+    --accent-soft:#D2E8EA;
+    --st-ok:     #1C7F55;
+    --st-out:    #AE3428;
+    --st-low:    #A87310;
+    --st-plan:   #2A628F;
+    --shadow:    0 1px 2px rgba(11,31,38,.05), 0 8px 24px -12px rgba(11,31,38,.18);
+
+    --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --sans:  system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono:  ui-monospace, "Cascadia Mono", "Cascadia Code", Consolas, "SF Mono", Menlo, monospace;
+
+    --w: 74rem;
+    --col: 44rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:        #061418;
+      --surface:   #0C2027;
+      --surface-2: #112E37;
+      --ink:       #E4EFEF;
+      --ink-2:     #9DB8BE;
+      --ink-3:     #6B8C94;
+      --line:      #1B3B45;
+      --line-soft: #14303890;
+      --accent:    #45BFCB;
+      --accent-2:  #6FD6DF;
+      --accent-soft:#0F3239;
+      --st-ok:     #4FBF89;
+      --st-out:    #E2695B;
+      --st-low:    #D9A63C;
+      --st-plan:   #6BA8DA;
+      --shadow:    0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#061418; --surface:#0C2027; --surface-2:#112E37;
+    --ink:#E4EFEF; --ink-2:#9DB8BE; --ink-3:#6B8C94;
+    --line:#1B3B45; --line-soft:#14303890;
+    --accent:#45BFCB; --accent-2:#6FD6DF; --accent-soft:#0F3239;
+    --st-ok:#4FBF89; --st-out:#E2695B; --st-low:#D9A63C; --st-plan:#6BA8DA;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+  }
+  :root[data-theme="light"] {
+    --bg:#EEF3F3; --surface:#FFFFFF; --surface-2:#E2ECEB;
+    --ink:#0B1F26; --ink-2:#3E585F; --ink-3:#6E878D;
+    --line:#C9D9D8; --line-soft:#DEE9E8;
+    --accent:#0A6C78; --accent-2:#0E8A98; --accent-soft:#D2E8EA;
+    --st-ok:#1C7F55; --st-out:#AE3428; --st-low:#A87310; --st-plan:#2A628F;
+    --shadow:0 1px 2px rgba(11,31,38,.05), 0 8px 24px -12px rgba(11,31,38,.18);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent-2); outline-offset: 3px; border-radius: 2px; }
+
+  /* ---------- shell ---------- */
+  .shell {
+    max-width: var(--w);
+    margin: 0 auto;
+    padding: 0 1.5rem 6rem;
+    display: grid;
+    grid-template-columns: 15rem minmax(0, 1fr);
+    gap: 3.5rem;
+    align-items: start;
+  }
+
+  .rail {
+    position: sticky;
+    top: 0;
+    padding: 3rem 0;
+    display: none;
+  }
+  @media (min-width: 60rem) { .rail { display: block; } }
+
+  .rail-title {
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 1rem;
+  }
+  .rail ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .1rem; counter-reset: r; }
+  .rail li { counter-increment: r; }
+  .rail a {
+    display: grid;
+    grid-template-columns: 1.9rem 1fr;
+    gap: .2rem;
+    padding: .3rem 0;
+    font-size: .84rem;
+    line-height: 1.35;
+    color: var(--ink-2);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    padding-left: .7rem;
+    transition: color .15s, border-color .15s;
+  }
+  .rail a::before {
+    content: counter(r, decimal-leading-zero);
+    font-family: var(--mono);
+    font-size: .7rem;
+    color: var(--ink-3);
+  }
+  .rail a:hover { color: var(--accent); border-left-color: var(--accent); }
+
+  main { padding: 3rem 0 0; min-width: 0; }
+
+  /* ---------- type ---------- */
+  h1, h2, h3 { font-family: var(--serif); font-weight: 600; text-wrap: balance; margin: 0; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 .9rem;
+  }
+
+  h1 { font-size: clamp(2.6rem, 6vw, 4.1rem); line-height: 1.02; letter-spacing: -.025em; }
+  h2 { font-size: clamp(1.7rem, 3.2vw, 2.25rem); line-height: 1.15; letter-spacing: -.018em; }
+  h3 { font-size: 1.12rem; line-height: 1.3; letter-spacing: -.008em; }
+
+  p { margin: 0; max-width: var(--col); }
+  .lede { font-size: 1.12rem; color: var(--ink-2); line-height: 1.6; }
+
+  strong { font-weight: 650; color: var(--ink); }
+  em { font-style: italic; }
+
+  code {
+    font-family: var(--mono);
+    font-size: .86em;
+    background: var(--surface-2);
+    padding: .1em .38em;
+    border-radius: 3px;
+  }
+
+  /* ---------- sections ---------- */
+  section { padding: 3.75rem 0; border-top: 1px solid var(--line); }
+  section:first-of-type { border-top: 0; padding-top: 0; }
+  .stack { display: flex; flex-direction: column; gap: 1.15rem; }
+  .stack-lg { display: flex; flex-direction: column; gap: 2.25rem; }
+  .head { display: flex; flex-direction: column; gap: .85rem; margin-bottom: 2rem; }
+
+  /* ---------- hero ---------- */
+  .hero { padding-bottom: 3rem; }
+  .hero h1 { margin-bottom: 1.4rem; }
+  .hero-sub { font-family: var(--serif); font-size: clamp(1.12rem, 2vw, 1.4rem); line-height: 1.45; color: var(--ink-2); max-width: 34ch; }
+
+  .waterline {
+    height: 5.5rem;
+    margin: 2.5rem 0;
+    border-radius: 4px;
+    background:
+      linear-gradient(180deg,
+        color-mix(in oklab, var(--accent) 6%, transparent) 0%,
+        color-mix(in oklab, var(--accent) 16%, transparent) 45%,
+        color-mix(in oklab, var(--accent) 42%, transparent) 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .waterline::after {
+    content: "";
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px 3.5rem);
+    opacity: .5;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+  .chip {
+    font-family: var(--mono);
+    font-size: .7rem;
+    letter-spacing: .04em;
+    color: var(--ink-2);
+    border: 1px solid var(--line);
+    background: var(--surface);
+    padding: .3rem .6rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  /* ---------- stats ---------- */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .stat { background: var(--surface); padding: 1.15rem 1.2rem; display: flex; flex-direction: column; gap: .3rem; }
+  .stat-n {
+    font-family: var(--serif);
+    font-size: 2rem;
+    line-height: 1;
+    letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+  }
+  .stat-l { font-size: .82rem; color: var(--ink-2); line-height: 1.4; }
+
+  /* ---------- cards ---------- */
+  .grid { display: grid; gap: 1rem; }
+  .g2 { grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); }
+  .g3 { grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr)); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 1.25rem 1.35rem;
+    display: flex;
+    flex-direction: column;
+    gap: .55rem;
+    box-shadow: var(--shadow);
+  }
+  .card p { font-size: .9rem; color: var(--ink-2); max-width: none; }
+  .card-id {
+    font-family: var(--mono);
+    font-size: .68rem;
+    letter-spacing: .1em;
+    color: var(--ink-3);
+  }
+  .card.key { border-color: var(--accent); background: var(--accent-soft); }
+  .card.key .card-id { color: var(--accent); }
+  .card.key p { color: var(--ink); }
+
+  /* ---------- status dots ---------- */
+  .states { display: flex; flex-wrap: wrap; gap: 1.1rem; }
+  .state { display: flex; align-items: center; gap: .45rem; font-size: .84rem; color: var(--ink-2); }
+  .dot { width: .62rem; height: .62rem; border-radius: 50%; flex: none; }
+  .dot.ok { background: var(--st-ok); }
+  .dot.out { background: var(--st-out); }
+  .dot.low { background: var(--st-low); }
+  .dot.plan { background: var(--st-plan); }
+
+  /* ---------- tables ---------- */
+  .scroller { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: .88rem; min-width: 34rem; }
+  th, td { text-align: left; padding: .7rem .9rem; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  thead th {
+    font-family: var(--mono);
+    font-size: .66rem;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 500;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.k { font-family: var(--mono); font-size: .78rem; color: var(--accent); white-space: nowrap; }
+  td.solid { font-family: var(--serif); font-size: 1.35rem; color: var(--accent); width: 1%; padding-top: .55rem; }
+  .t-note { font-size: .82rem; color: var(--ink-3); margin-top: .6rem; }
+
+  /* ---------- code ---------- */
+  pre {
+    margin: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 1.1rem 1.2rem;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: .8rem;
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+  pre b { color: var(--accent); font-weight: 600; }
+  pre i { color: var(--ink-3); font-style: normal; }
+
+  /* ---------- lists ---------- */
+  ul.clean { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .6rem; max-width: var(--col); }
+  ul.clean li { position: relative; padding-left: 1.15rem; font-size: .94rem; color: var(--ink-2); }
+  ul.clean li::before {
+    content: "";
+    position: absolute; left: 0; top: .62em;
+    width: .38rem; height: .38rem; border-radius: 50%;
+    background: var(--accent);
+  }
+
+  ol.obj { margin: 0; padding: 0; list-style: none; counter-reset: o; display: flex; flex-direction: column; gap: .85rem; max-width: var(--col); }
+  ol.obj li {
+    counter-increment: o;
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    gap: .5rem;
+    font-size: .94rem;
+    color: var(--ink-2);
+  }
+  ol.obj li::before {
+    content: counter(o);
+    font-family: var(--mono);
+    font-size: .72rem;
+    color: var(--accent);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    height: 1.5rem; width: 1.5rem;
+    display: grid; place-items: center;
+    margin-top: .12rem;
+  }
+
+  /* ---------- callout ---------- */
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 1.1rem 1.3rem;
+    display: flex; flex-direction: column; gap: .5rem;
+  }
+  .callout .lbl {
+    font-family: var(--mono);
+    font-size: .66rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .callout p { font-size: .92rem; color: var(--ink-2); }
+
+  /* ---------- diagram ---------- */
+  figure { margin: 0; }
+  figure svg { display: block; width: 100%; height: auto; }
+  figcaption { font-size: .8rem; color: var(--ink-3); margin-top: .7rem; }
+  .fig-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 1.4rem; }
+
+  /* ---------- layers ---------- */
+  .layers { display: flex; flex-direction: column; gap: .55rem; }
+  .layer {
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--surface);
+    padding: .9rem 1.1rem;
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: 1rem;
+    align-items: baseline;
+  }
+  @media (max-width: 34rem) { .layer { grid-template-columns: 1fr; gap: .3rem; } }
+  .layer-n { font-family: var(--mono); font-size: .78rem; color: var(--accent); }
+  .layer-b { font-size: .86rem; color: var(--ink-2); }
+  .layer.core { border-color: var(--accent); background: var(--accent-soft); }
+  .layer.core .layer-b { color: var(--ink); }
+
+  /* ---------- timeline ---------- */
+  .rail-line { display: flex; flex-direction: column; gap: 0; }
+  .sprint {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr;
+    gap: 1.4rem;
+    padding: 1.15rem 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .sprint:last-child { border-bottom: 0; }
+  @media (max-width: 40rem) { .sprint { grid-template-columns: 1fr; gap: .5rem; } }
+  .sprint-k { display: flex; flex-direction: column; gap: .15rem; }
+  .sprint-n { font-family: var(--mono); font-size: .68rem; letter-spacing: .1em; color: var(--ink-3); text-transform: uppercase; }
+  .sprint-t { font-family: var(--serif); font-size: 1.02rem; color: var(--accent); line-height: 1.2; }
+  .sprint-b { display: flex; flex-direction: column; gap: .55rem; }
+  .sprint-b p { font-size: .9rem; color: var(--ink-2); max-width: none; }
+  .sprint-doc { font-size: .84rem; color: var(--ink-3); padding-left: .8rem; border-left: 2px solid var(--line); }
+
+  /* ---------- footer ---------- */
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 2.5rem 0 0;
+    font-size: .84rem;
+    color: var(--ink-3);
+    display: flex; flex-direction: column; gap: .5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
+  html { scroll-behavior: smooth; }
+</style>
+
+<div class="shell">
+
+  <nav class="rail" aria-label="Secciones">
+    <p class="rail-title">Contenido</p>
+    <ol>
+      <li><a href="#problema">El problema</a></li>
+      <li><a href="#arbol">Árbol del problema</a></li>
+      <li><a href="#objetivos">Pregunta y objetivos</a></li>
+      <li><a href="#solucion">La solución</a></li>
+      <li><a href="#alcance">Límites del alcance</a></li>
+      <li><a href="#arquitectura">Arquitectura</a></li>
+      <li><a href="#datos">Datos y persistencia</a></li>
+      <li><a href="#calidad">Patrones y SOLID</a></li>
+      <li><a href="#stack">Stack y despliegue</a></li>
+      <li><a href="#equipo">Equipo</a></li>
+      <li><a href="#cronograma">Cronograma</a></li>
+      <li><a href="#entregables">Entregables</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <!-- ================= HERO ================= -->
+    <section class="hero">
+      <p class="eyebrow">Proyecto de aula · Tecnología en Desarrollo de Software</p>
+      <h1>AguaVigía CTG</h1>
+      <p class="hero-sub">Plataforma ciudadana de monitoreo y trazabilidad del servicio de acueducto en Cartagena de Indias.</p>
+
+      <div class="waterline" role="presentation"></div>
+
+      <p class="lede">Cuando el agua se va en Cartagena, el vecino no sabe si es su casa, su cuadra o su barrio; no sabe cuánto durará; y cuando vuelve, nadie lleva la cuenta de si el operador cumplió lo que prometió. <strong>Ese vacío de información es el problema que este proyecto resuelve.</strong></p>
+
+      <div class="meta" style="margin-top:1.6rem">
+        <span class="chip">Fundación Universitaria Tecnológico Comfenalco</span>
+        <span class="chip">Cartagena de Indias D.T. y C.</span>
+        <span class="chip">6 meses · 6 sprints</span>
+        <span class="chip">Equipo de 5</span>
+        <span class="chip">Scrum</span>
+      </div>
+    </section>
+
+    <!-- ================= PROBLEMA ================= -->
+    <section id="problema">
+      <div class="head">
+        <p class="eyebrow">Capítulo I · El problema</p>
+        <h2>Dos crisis, no una</h2>
+        <p class="lede">La falla técnica del suministro y la falla de información son problemas distintos. Un proyecto de aula no puede reparar una planta de tratamiento — pero sí puede cerrar el vacío informativo que multiplica el daño.</p>
+      </div>
+
+      <div class="stack-lg">
+        <div class="stats">
+          <div class="stat"><span class="stat-n">15%</span><span class="stat-l">de la población afectada en el pico del racionamiento</span></div>
+          <div class="stat"><span class="stat-n">90%</span><span class="stat-l">del agua potable depende de una sola planta: El Bosque</span></div>
+          <div class="stat"><span class="stat-n">2</span><span class="stat-l">meses de racionamiento sectorizado entre mayo y julio de 2026</span></div>
+          <div class="stat"><span class="stat-n">2034</span><span class="stat-l">año en que vence la concesión del operador</span></div>
+        </div>
+
+        <div class="callout">
+          <span class="lbl">El hecho que define el proyecto</span>
+          <p>En junio de 2026 el <strong>Tribunal Administrativo de Bolívar</strong> dictó medidas cautelares ordenando al operador <em>socializar previamente</em> cada interrupción, detallando tiempos exactos, condiciones y funcionalidad del proceso. Que un juez deba ordenar lo que una empresa de servicios públicos debería hacer por defecto confirma que la falta de aviso no era una percepción ciudadana: era un incumplimiento verificable.</p>
+        </div>
+
+        <div class="stack">
+          <h3>Qué le pasa al ciudadano</h3>
+          <ul class="clean">
+            <li>Los avisos llegan tarde, incompletos o no llegan; la información real circula dispersa en redes sociales y grupos de WhatsApp.</li>
+            <li>No existe canal para que el vecino confirme o desmienta lo anunciado, así que nadie sabe si el corte terminó de verdad.</li>
+            <li>No hay registro público del cumplimiento: si prometen dos horas y son ocho, esa diferencia no queda documentada en ninguna parte.</li>
+            <li>El costo recae en el hogar: compra de agua, almacenamiento improvisado con riesgo sanitario, y pérdidas para comercio y hotelería.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ÁRBOL ================= -->
+    <section id="arbol">
+      <div class="head">
+        <p class="eyebrow">1.3 · Árbol del problema</p>
+        <h2>Causas, problema central y efectos</h2>
+      </div>
+
+      <div class="fig-wrap">
+        <figure>
+          <svg viewBox="0 0 880 470" role="img" aria-label="Árbol del problema: causas en la base, problema central en el centro, efectos en la parte superior">
+            <defs>
+              <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+              </marker>
+            </defs>
+            <g font-family="system-ui, sans-serif" color="var(--ink-3)">
+
+              <!-- EFECTOS -->
+              <text x="440" y="22" text-anchor="middle" font-size="11" letter-spacing="2.4" fill="var(--ink-3)">EFECTOS</text>
+              <g fill="var(--surface-2)" stroke="var(--line)">
+                <rect x="8"   y="38" width="204" height="54" rx="4"/>
+                <rect x="228" y="38" width="204" height="54" rx="4"/>
+                <rect x="448" y="38" width="204" height="54" rx="4"/>
+                <rect x="668" y="38" width="204" height="54" rx="4"/>
+              </g>
+              <g font-size="12.5" fill="var(--ink-2)" text-anchor="middle">
+                <text x="110" y="60">Gasto extra del hogar</text><text x="110" y="77">en compra de agua</text>
+                <text x="330" y="60">Riesgo sanitario por</text><text x="330" y="77">almacenamiento improvisado</text>
+                <text x="550" y="60">Pérdidas en comercio</text><text x="550" y="77">y hotelería</text>
+                <text x="770" y="60">Desconfianza y</text><text x="770" y="77">tensión institucional</text>
+              </g>
+              <g stroke="var(--line)" stroke-width="1.5" fill="none" marker-end="url(#ar)" color="var(--ink-3)">
+                <path d="M110,150 L110,96"/>
+                <path d="M330,150 L330,96"/>
+                <path d="M550,150 L550,96"/>
+                <path d="M770,150 L770,96"/>
+              </g>
+              <path d="M110,150 H770" stroke="var(--line)" stroke-width="1.5" fill="none"/>
+              <path d="M440,196 V150" stroke="var(--line)" stroke-width="1.5" fill="none"/>
+
+              <!-- PROBLEMA CENTRAL -->
+              <rect x="108" y="196" width="664" height="82" rx="5" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+              <text x="440" y="222" text-anchor="middle" font-size="10.5" letter-spacing="2.2" fill="var(--accent)">PROBLEMA CENTRAL</text>
+              <g font-size="14.5" fill="var(--ink)" text-anchor="middle" font-weight="600">
+                <text x="440" y="245">El usuario del acueducto en Cartagena no dispone de información</text>
+                <text x="440" y="265">oportuna, verificable ni trazable sobre las interrupciones del servicio.</text>
+              </g>
+
+              <!-- CAUSAS -->
+              <path d="M440,324 V278" stroke="var(--line)" stroke-width="1.5" fill="none" marker-end="url(#ar)" color="var(--ink-3)"/>
+              <path d="M110,324 H770" stroke="var(--line)" stroke-width="1.5" fill="none"/>
+              <g stroke="var(--line)" stroke-width="1.5" fill="none">
+                <path d="M110,324 V378"/><path d="M330,324 V378"/><path d="M550,324 V378"/><path d="M770,324 V378"/>
+              </g>
+              <g fill="var(--surface)" stroke="var(--line)">
+                <rect x="8"   y="378" width="204" height="54" rx="4"/>
+                <rect x="228" y="378" width="204" height="54" rx="4"/>
+                <rect x="448" y="378" width="204" height="54" rx="4"/>
+                <rect x="668" y="378" width="204" height="54" rx="4"/>
+              </g>
+              <g font-size="12.5" fill="var(--ink-2)" text-anchor="middle">
+                <text x="110" y="400">Avisos tardíos,</text><text x="110" y="417">genéricos o inexistentes</text>
+                <text x="330" y="400">Sin canal de</text><text x="330" y="417">verificación ciudadana</text>
+                <text x="550" y="400">Sin registro público del</text><text x="550" y="417">cumplimiento de tiempos</text>
+                <text x="770" y="400">Ausencia de datos</text><text x="770" y="417">abiertos del operador</text>
+              </g>
+              <text x="440" y="458" text-anchor="middle" font-size="11" letter-spacing="2.4" fill="var(--ink-3)">CAUSAS</text>
+            </g>
+          </svg>
+          <figcaption>Las cuatro causas son todas informativas, no hidráulicas. Por eso el software puede intervenir sobre ellas.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ================= OBJETIVOS ================= -->
+    <section id="objetivos">
+      <div class="head">
+        <p class="eyebrow">1.2 y 1.5 · Pregunta y objetivos</p>
+        <h2>Qué nos preguntamos y qué vamos a lograr</h2>
+      </div>
+
+      <div class="stack-lg">
+        <div class="callout">
+          <span class="lbl">Pregunta problema</span>
+          <p>¿De qué manera el desarrollo de una plataforma web de monitoreo colaborativo puede reducir la desinformación de los usuarios del servicio de acueducto en Cartagena de Indias y hacer verificable el cumplimiento de los tiempos de restablecimiento anunciados por el operador?</p>
+        </div>
+
+        <div class="stack">
+          <h3>Objetivo general</h3>
+          <p class="lede">Desarrollar una plataforma web que centralice, verifique y difunda información oportuna sobre las interrupciones del servicio de acueducto en Cartagena, integrando avisos oficiales y reportes ciudadanos georreferenciados, con el fin de reducir la desinformación y evidenciar la brecha entre los tiempos de restablecimiento prometidos y los reales.</p>
+        </div>
+
+        <div class="stack">
+          <h3>Objetivos específicos</h3>
+          <ol class="obj">
+            <li><strong>Analizar</strong> los requisitos funcionales y no funcionales mediante técnicas de elicitación aplicadas a usuarios reales del servicio.</li>
+            <li><strong>Diseñar</strong> la arquitectura bajo el patrón de Arquitectura Limpia y el modelo de datos geoespacial que soporta el mapa por sectores.</li>
+            <li><strong>Implementar</strong> la plataforma con Spring Boot, MongoDB, Redis y React, aplicando principios SOLID y patrones de diseño justificados.</li>
+            <li><strong>Validar</strong> el funcionamiento y la aceptación mediante pruebas de software e instrumentos de percepción aplicados a la muestra.</li>
+          </ol>
+        </div>
+
+        <div class="scroller">
+          <table>
+            <thead><tr><th>Definición investigativa</th><th>Alcance</th></tr></thead>
+            <tbody>
+              <tr><td class="k">Tipo</td><td>Investigación proyectiva — se diseña y construye una solución a un problema diagnosticado.</td></tr>
+              <tr><td class="k">Enfoque</td><td>Mixto: cifras del racionamiento y encuesta (cuantitativo) + entrevistas a líderes comunales (cualitativo).</td></tr>
+              <tr><td class="k">Población</td><td>Usuarios residenciales del acueducto en Cartagena (≈ 1.1 millones de habitantes).</td></tr>
+              <tr><td class="k">Muestra</td><td>No probabilística por conveniencia: 60–80 residentes de sectores afectados + 3 a 5 entrevistas a líderes o veedores.</td></tr>
+              <tr><td class="k">Confiabilidad</td><td>Alfa de Cronbach sobre el instrumento de encuesta, con meta ≥ 0.75.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SOLUCIÓN ================= -->
+    <section id="solucion">
+      <div class="head">
+        <p class="eyebrow">La solución</p>
+        <h2>Ocho módulos, una promesa</h2>
+        <p class="lede">Cruzar el aviso oficial con la voz del vecino, y dejar constancia pública de ambos.</p>
+      </div>
+
+      <div class="stack-lg">
+        <div class="states" aria-label="Estados posibles de un sector">
+          <span class="state"><span class="dot ok"></span>Con servicio</span>
+          <span class="state"><span class="dot out"></span>Sin servicio</span>
+          <span class="state"><span class="dot low"></span>Presión baja</span>
+          <span class="state"><span class="dot plan"></span>Corte programado</span>
+        </div>
+
+        <div class="grid g2">
+          <article class="card">
+            <span class="card-id">M1 · Mapa en vivo</span>
+            <h3>Ver la ciudad de un vistazo</h3>
+            <p>Mapa de Cartagena con cada sector coloreado según su estado actual. Un click abre el detalle del sector y su histórico de cortes.</p>
+          </article>
+          <article class="card">
+            <span class="card-id">M2 · Reporte ciudadano</span>
+            <h3>Reportar sin registrarse</h3>
+            <p>Cualquiera informa «no tengo agua» o «ya volvió» desde el propio mapa. Sin cuenta, sin fricción. El abuso se contiene con límite de reportes por dispositivo.</p>
+          </article>
+          <article class="card">
+            <span class="card-id">M3 · Consenso automático</span>
+            <h3>La calle confirma el corte</h3>
+            <p>Cuando varios reportes independientes coinciden en un sector dentro de una ventana de tiempo, el estado cambia solo. Es la retroalimentación en vivo que hoy no existe.</p>
+          </article>
+          <article class="card">
+            <span class="card-id">M4 · Alertas por correo</span>
+            <h3>Que te avisen a ti</h3>
+            <p>El vecino se suscribe a su sector y confirma por correo. Recibe aviso cuando se anuncia un corte, cuando la comunidad lo confirma y cuando el servicio vuelve.</p>
+          </article>
+          <article class="card">
+            <span class="card-id">M5 · Panel del veedor</span>
+            <h3>Cargar lo oficial</h3>
+            <p>Un rol administrador registra los cortes anunciados públicamente por el operador —fecha, sectores, causa y hora prometida de retorno— y modera los reportes.</p>
+          </article>
+          <article class="card key">
+            <span class="card-id">M6 · Índice de Cumplimiento</span>
+            <h3>Lo prometido contra lo cumplido</h3>
+            <p>El corazón del proyecto. Compara la duración anunciada con la duración real de cada corte y publica un puntaje por sector y global. Es exactamente la trazabilidad que ordenó el Tribunal.</p>
+          </article>
+          <article class="card">
+            <span class="card-id">M7 · Estadísticas</span>
+            <h3>Entender el patrón</h3>
+            <p>Sectores más afectados, duración promedio, frecuencia mensual, mapa de calor y evolución del cumplimiento en el tiempo.</p>
+          </article>
+          <article class="card">
+            <span class="card-id">M8 · Bitácora pública</span>
+            <h3>Que quede constancia</h3>
+            <p>Línea de tiempo inmutable: corte anunciado, confirmado por ciudadanos, restablecido. Evidencia consultable por cualquiera, incluidos periodistas y veedurías.</p>
+          </article>
+          <article class="card key">
+            <span class="card-id">M9 · Ingesta automática con IA</span>
+            <h3>Que nadie tenga que copiar y pegar</h3>
+            <p>Un pipeline lee la API oficial del operador, la prensa vía RSS y los reportes de la comunidad. Claude clasifica y extrae sectores, horarios y causa de cada aviso, y solo publica lo que puede respaldar citando la frase exacta del boletín. Lo dudoso va a revisión humana.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ALCANCE ================= -->
+    <section id="alcance">
+      <div class="head">
+        <p class="eyebrow">Delimitación</p>
+        <h2>Lo que deliberadamente no hacemos</h2>
+      </div>
+
+      <div class="stack-lg">
+        <div class="callout">
+          <span class="lbl">Una corrección que abrió la mejor fuente del proyecto</span>
+          <p>La primera versión de este plan afirmaba que el <code>robots.txt</code> del operador prohibía el acceso automatizado. <strong>Era falso</strong> — solo bloquea el panel administrativo. Al verificarlo apareció algo mejor: el sitio corre WordPress con la <strong>API REST abierta</strong>, que devuelve 307 boletines en JSON estructurado, con fecha, título, contenido y categorías. No hace falta scraping de HTML frágil: hay una fuente oficial, pública y estable. Esa corrección queda documentada en las conclusiones.</p>
+        </div>
+
+        <ul class="clean">
+          <li><strong>No se scrapea Facebook ni Instagram.</strong> Viola los términos de Meta, y las herramientas públicas desaparecieron en 2024. La vía legítima es solicitar <em>Meta Content Library</em> con respaldo institucional; si no se aprueba, los reportes ciudadanos cumplen la misma función sin depender de nadie.</li>
+          <li><strong>No se usa la API de X/Twitter.</strong> El nivel gratuito no permite búsqueda de publicaciones y el pagado excede el presupuesto de un proyecto de aula.</li>
+          <li><strong>No se repara el suministro.</strong> El proyecto interviene sobre la información, no sobre la infraestructura hidráulica.</li>
+          <li><strong>No hay app móvil nativa.</strong> El frontend será responsive y PWA, accesible desde cualquier navegador.</li>
+          <li><strong>No se piden datos personales al ciudadano.</strong> Reportar no requiere cuenta; suscribirse solo requiere un correo, con baja en un click.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================= ARQUITECTURA ================= -->
+    <section id="arquitectura">
+      <div class="head">
+        <p class="eyebrow">Diseño de sistema</p>
+        <h2>Arquitectura Limpia</h2>
+        <p class="lede">Cuatro capas con las dependencias apuntando siempre hacia adentro. El dominio no conoce Spring, ni Mongo, ni Redis, ni HTTP.</p>
+      </div>
+
+      <div class="stack-lg">
+        <div class="layers">
+          <div class="layer">
+            <span class="layer-n">api/</span>
+            <span class="layer-b">Adaptadores de entrada. Controladores REST, DTO, mappers y manejo global de errores. Traduce HTTP a casos de uso y nada más.</span>
+          </div>
+          <div class="layer">
+            <span class="layer-n">infrastructure/</span>
+            <span class="layer-b">Adaptadores de salida. Aquí vive toda la tecnología: MongoDB, Redis, correo, seguridad JWT, configuración.</span>
+          </div>
+          <div class="layer">
+            <span class="layer-n">application/</span>
+            <span class="layer-b">Orquestación. Implementa los casos de uso y publica eventos de dominio. Depende de interfaces, jamás de tecnología.</span>
+          </div>
+          <div class="layer core">
+            <span class="layer-n">domain/</span>
+            <span class="layer-b">El núcleo. Entidades, objetos de valor, reglas de negocio y puertos. Java puro, cero dependencias de framework.</span>
+          </div>
+        </div>
+
+        <div class="callout">
+          <span class="lbl">Regla de oro del equipo</span>
+          <p>Si <code>domain/</code> llega a importar algo que empiece por <code>org.springframework</code> o <code>com.mongodb</code>, la arquitectura está rota. No queda a criterio de nadie: se verifica automáticamente con <strong>ArchUnit</strong> en cada ejecución de pruebas, y la build falla. Es la mejor evidencia posible en la sustentación.</p>
+        </div>
+
+        <pre><b>com.aguavigia.ctg</b>
+├── <b>domain/</b>                    <i>← Java puro, cero framework</i>
+│   ├── model/                 <i>Sector · CorteAgua · ReporteCiudadano · Suscripcion · EventoBitacora</i>
+│   ├── vo/                    <i>Coordenada · EstadoServicio · VentanaTiempo · IndiceCumplimiento</i>
+│   ├── exception/
+│   └── port/
+│       ├── in/                <i>casos de uso, como interfaces</i>
+│       └── out/               <i>repositorios y servicios, como interfaces</i>
+├── <b>application/</b>               <i>← orquestación</i>
+│   ├── service/               <i>RegistrarReporte · EvaluarConsenso · CalcularCumplimiento</i>
+│   └── event/                 <i>eventos de dominio</i>
+├── <b>infrastructure/</b>            <i>← toda la tecnología</i>
+│   ├── persistence/mongo/
+│   ├── cache/redis/
+│   ├── notification/          <i>Spring Mail + plantillas</i>
+│   ├── security/              <i>JWT del panel admin</i>
+│   └── config/
+└── <b>api/</b>                       <i>← entrada</i>
+    ├── rest/ · dto/ · mapper/
+    └── exception/             <i>@RestControllerAdvice, respuestas RFC 7807</i></pre>
+      </div>
+    </section>
+
+    <!-- ================= DATOS ================= -->
+    <section id="datos">
+      <div class="head">
+        <p class="eyebrow">Persistencia</p>
+        <h2>Por qué MongoDB y Redis</h2>
+        <p class="lede">Dos motores, cada uno resolviendo algo que el otro no hace bien. Ninguno está por moda.</p>
+      </div>
+
+      <div class="stack-lg">
+        <div class="grid g2">
+          <article class="card">
+            <span class="card-id">MongoDB</span>
+            <h3>Documentos con geografía adentro</h3>
+            <p>Un corte es un documento de estructura variable y anidada: lista de sectores afectados, historial de estados embebido, campos que solo existen cuando el corte ya cerró. Y su soporte geoespacial nativo — GeoJSON con índices <code>2dsphere</code> — responde «¿a qué sector pertenece esta coordenada?» sin librerías extra. Un esquema relacional rígido pelearía contra ambas cosas.</p>
+          </article>
+          <article class="card">
+            <span class="card-id">Redis</span>
+            <h3>Cuatro trabajos concretos</h3>
+            <p><strong>Caché</strong> del estado del mapa, que se consulta a cada rato y cambia poco. <strong>Límite de reportes</strong> por dispositivo, que es lo que sustituye al login. <strong>Ventana deslizante de consenso</strong>, contando reportes recientes por sector. Y <strong>Pub/Sub</strong> para empujar los cambios de estado al mapa en vivo.</p>
+          </article>
+        </div>
+
+        <div class="stack">
+          <h3>De dónde salen los datos</h3>
+          <div class="scroller">
+            <table>
+              <thead><tr><th>Capa</th><th>Fuente</th><th>Cómo se obtiene</th><th>Latencia</th></tr></thead>
+              <tbody>
+                <tr><td class="k">L1 · Oficial</td><td>acuacar.com</td><td>API REST de WordPress (307 boletines en JSON) + RSS. Verificado: HTTP 200, permitido por <code>robots.txt</code></td><td>minutos</td></tr>
+                <tr><td class="k">L2 · Prensa</td><td>Medios locales y nacionales</td><td>Google News RSS — 100 resultados por consulta, agrega todos los medios</td><td>horas</td></tr>
+                <tr><td class="k">L3 · Social</td><td>Facebook · Instagram</td><td>Meta Content Library, solo si se aprueba el acceso académico. Nunca scraping</td><td>horas</td></tr>
+                <tr><td class="k">L4 · Ciudadana</td><td>La propia plataforma</td><td>Reportes de vecinos desde el mapa</td><td><strong>segundos</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="t-note">L1 dice lo que se prometió. L4 dice lo que realmente pasó. El Índice de Cumplimiento vive exactamente en esa diferencia — y es la única capa que ninguna otra plataforma tiene.</p>
+        </div>
+
+        <div class="callout">
+          <span class="lbl">Un principio que se respeta aunque nadie lo obligue</span>
+          <p>Al auditar cada medio uno por uno encontramos algo revelador: <strong>El Universal, El Tiempo, El Heraldo y Blu Radio bloquean explícitamente a los rastreadores de IA</strong> en su <code>robots.txt</code> — con nombre propio: <code>anthropic-ai</code>, <code>Claude-Web</code>, <code>GPTBot</code>. Se respeta sin condiciones, aunque un colector con identidad propia técnicamente podría evadirlo. Exigirle transparencia a Acuacar y luego colarse por la puerta trasera de otro medio sería incoherente con la tesis del proyecto. Esa cobertura llega igual, indirectamente, vía Google News RSS — sin tocar el sitio que dijo que no.</p>
+        </div>
+
+        <div class="stack">
+          <h3>Modelo de datos</h3>
+          <pre><b>sectores</b>       { _id, nombre, localidad, geometria: <i>GeoJSON Polygon</i>, centroide: Point,
+                 poblacionEstimada, estadoActual, actualizadoEn }        <i>índice 2dsphere</i>
+
+<b>cortes</b>         { _id, sectoresAfectados[], origen: <i>OFICIAL | COMUNITARIO</i>, causa,
+                 inicioProgramado, finProgramado, inicioReal, finReal,
+                 estado: <i>ANUNCIADO | ACTIVO | RESUELTO</i>,
+                 cumplimiento: { minutosPrometidos, minutosReales, desviacion, cumplio } }
+
+<b>reportes</b>       { _id, sectorId, tipo, coordenada: Point, huellaDispositivo,
+                 creadoEn, estadoModeracion }                            <i>índice TTL de purga</i>
+
+<b>suscripciones</b>  { _id, email <i>(único)</i>, sectorIds[], confirmada,
+                 tokenConfirmacion, tokenBaja }
+
+<b>bitacora</b>       { _id, sectorId, corteId, tipoEvento, descripcion,
+                 ocurridoEn, fuente }                                    <i>append-only</i></pre>
+          <p class="t-note">Los sectores se cargan desde un GeoJSON de barrios de Cartagena (Datos Abiertos Colombia / OpenStreetMap) mediante un script de inicialización.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CALIDAD ================= -->
+    <section id="calidad">
+      <div class="head">
+        <p class="eyebrow">Código limpio</p>
+        <h2>Dónde se demuestra cada principio</h2>
+        <p class="lede">Nada de citar SOLID en abstracto: cada principio tiene un lugar concreto en este código donde se puede señalar con el dedo.</p>
+      </div>
+
+      <div class="stack-lg">
+        <div class="scroller">
+          <table>
+            <thead><tr><th></th><th>Principio</th><th>Evidencia concreta en AguaVigía</th></tr></thead>
+            <tbody>
+              <tr><td class="solid">S</td><td>Responsabilidad única</td><td>Un caso de uso es una clase y una acción. <code>RegistrarReporteService</code> guarda el reporte; no calcula el consenso, lo delega.</td></tr>
+              <tr><td class="solid">O</td><td>Abierto/Cerrado</td><td>Añadir alertas por SMS o WhatsApp es escribir una nueva implementación de <code>NotificadorPort</code>. No se toca ni una línea de lo existente.</td></tr>
+              <tr><td class="solid">L</td><td>Sustitución de Liskov</td><td>El repositorio real de MongoDB y el falso en memoria que usan los tests son intercambiables sin que el servicio lo note.</td></tr>
+              <tr><td class="solid">I</td><td>Segregación de interfaces</td><td>Puertos pequeños y específicos como <code>GuardarReportePort</code> o <code>ConsultarSectorPort</code>, en lugar de una interfaz repositorio que lo haga todo.</td></tr>
+              <tr><td class="solid">D</td><td>Inversión de dependencias</td><td>La capa de aplicación depende de interfaces declaradas en el dominio, nunca de clases de Mongo. Es la columna vertebral de todo el diseño.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="stack">
+          <h3>Patrones de diseño aplicados</h3>
+          <div class="scroller">
+            <table>
+              <thead><tr><th>Patrón</th><th>Dónde y para qué</th></tr></thead>
+              <tbody>
+                <tr><td class="k">Ports &amp; Adapters</td><td>Es el patrón estructural del proyecto entero: toda la capa <code>infrastructure/</code> adapta tecnología a los puertos del dominio.</td></tr>
+                <tr><td class="k">Repository</td><td>Abstracción de la persistencia, declarada en el dominio e implementada en infraestructura.</td></tr>
+                <tr><td class="k">Strategy</td><td>Canales de notificación intercambiables; y estrategias de consenso — umbral fijo frente a umbral proporcional a la población del sector.</td></tr>
+                <tr><td class="k">Observer</td><td>Eventos de Spring: un cambio de estado dispara en cascada el correo, el registro en bitácora y la invalidación de caché, todos desacoplados entre sí.</td></tr>
+                <tr><td class="k">Builder</td><td>Construcción de <code>CorteAgua</code> validando sus invariantes: no puede cerrarse antes de abrirse, ni prometer un retorno anterior al inicio.</td></tr>
+                <tr><td class="k">Factory Method</td><td>Creación del <code>EventoBitacora</code> correspondiente según el tipo de suceso registrado.</td></tr>
+                <tr><td class="k">Value Object</td><td><code>Coordenada</code>, <code>VentanaTiempo</code> y <code>EstadoServicio</code> como <code>record</code> inmutables que validan en su constructor.</td></tr>
+                <tr><td class="k">Specification</td><td>Filtros combinables para las consultas de estadísticas, sin multiplicar métodos en el repositorio.</td></tr>
+                <tr><td class="k">Decorator</td><td>Una implementación cacheada que envuelve al repositorio real de estadísticas, sin que el llamador se entere.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= STACK ================= -->
+    <section id="stack">
+      <div class="head">
+        <p class="eyebrow">Tecnología</p>
+        <h2>Stack, repositorio y despliegue</h2>
+      </div>
+
+      <div class="stack-lg">
+        <div class="grid g3">
+          <article class="card">
+            <span class="card-id">Backend</span>
+            <h3>Spring Boot 3.4 · Java 21</h3>
+            <p>Maven, con los starters de web, MongoDB, Redis, correo, validación y actuator. MapStruct para mappers, springdoc para documentar la API, JWT para el panel.</p>
+          </article>
+          <article class="card">
+            <span class="card-id">Frontend</span>
+            <h3>React 19 · Vite · TypeScript</h3>
+            <p>Proyecto independiente del backend. Leaflet para el mapa, Recharts para las gráficas, TanStack Query para el estado del servidor, Tailwind para los estilos.</p>
+          </article>
+          <article class="card">
+            <span class="card-id">Pruebas</span>
+            <h3>Del dominio al navegador</h3>
+            <p>JUnit 5 y Mockito en el dominio, Testcontainers con Mongo y Redis reales en integración, ArchUnit vigilando las capas, Vitest y Playwright del lado del frontend.</p>
+          </article>
+          <article class="card">
+            <span class="card-id">Contenedores</span>
+            <h3>Docker multi-etapa</h3>
+            <p>Backend compila con Maven y corre sobre JRE 21 slim; frontend compila con Vite y se sirve con Nginx. Un <code>docker compose up</code> levanta Mongo, Redis, Mailhog y ambos servicios.</p>
+          </article>
+          <article class="card">
+            <span class="card-id">Despliegue</span>
+            <h3>En la nube y con URL pública</h3>
+            <p>Render o Railway para los servicios, MongoDB Atlas y Upstash Redis en sus capas gratuitas. Perfiles separados para desarrollo, contenedor y producción, sin credenciales en el código.</p>
+          </article>
+          <article class="card">
+            <span class="card-id">GitHub</span>
+            <h3>Trazabilidad de principio a fin</h3>
+            <p>Ramas <code>main</code> ← <code>develop</code> ← <code>feature/*</code>, sin push directo a main. Pull requests con revisor, Conventional Commits, Actions corriendo pruebas en cada PR y Projects como tablero Scrum.</p>
+          </article>
+        </div>
+
+        <div class="callout">
+          <span class="lbl">Contrato entre backend y frontend</span>
+          <p>El cliente HTTP del frontend se <strong>genera automáticamente desde el OpenAPI</strong> que publica el backend. Si alguien cambia un endpoint, el frontend deja de compilar en TypeScript antes de que nadie pruebe nada a mano. Es la forma barata de que dos subequipos trabajen en paralelo sin romperse.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= EQUIPO ================= -->
+    <section id="equipo">
+      <div class="head">
+        <p class="eyebrow">Organización</p>
+        <h2>Cinco roles, responsabilidades claras</h2>
+        <p class="lede">Cada quien documenta su propio módulo. La documentación no es tarea de una sola persona.</p>
+      </div>
+
+      <div class="scroller">
+        <table>
+          <thead><tr><th>Rol</th><th>Responsabilidad</th><th>Módulos</th></tr></thead>
+          <tbody>
+            <tr><td class="k">Scrum Master / Analista</td><td>Backlog, ceremonias, informe metodológico y anexos de investigación</td><td>Documentación</td></tr>
+            <tr><td class="k">Backend · Dominio</td><td>Capas de dominio y aplicación, SOLID, patrones, pruebas unitarias y ArchUnit</td><td>M3, M6</td></tr>
+            <tr><td class="k">Backend · Infraestructura</td><td>MongoDB, Redis, correo, seguridad JWT y API REST</td><td>M2, M4, M5</td></tr>
+            <tr><td class="k">Frontend</td><td>React, mapa, formularios, panel del veedor y diseño responsive</td><td>M1, M2, M5, M8</td></tr>
+            <tr><td class="k">DevOps / QA</td><td>Docker, integración continua, despliegue, datos geoespaciales y pruebas E2E</td><td>M7, infraestructura</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= CRONOGRAMA ================= -->
+    <section id="cronograma">
+      <div class="head">
+        <p class="eyebrow">Metodología Scrum</p>
+        <h2>Seis sprints, seis meses</h2>
+        <p class="lede">Cada sprint cierra con software que funciona y con documentación entregable. Nunca uno sin el otro.</p>
+      </div>
+
+      <div class="rail-line">
+        <div class="sprint">
+          <div class="sprint-k"><span class="sprint-n">Sprint 0</span><span class="sprint-t">Fundación</span></div>
+          <div class="sprint-b">
+            <p>Repositorio, ramas y tablero. Mongo, Redis y Mailhog levantando con un solo comando. Esqueletos de backend y frontend en su sitio.</p>
+            <p class="sprint-doc">Anexos de contextualización, observación de campo con 5W2H y rastreo comercial. Backlog priorizado con MoSCoW.</p>
+          </div>
+        </div>
+        <div class="sprint">
+          <div class="sprint-k"><span class="sprint-n">Sprint 1</span><span class="sprint-t">Dominio y sectores</span></div>
+          <div class="sprint-b">
+            <p>Modelo de dominio completo, puertos, adaptador de Mongo y carga del GeoJSON de barrios. El mapa de Cartagena ya se ve. Primer test de ArchUnit protegiendo las capas.</p>
+            <p class="sprint-doc">Capítulo I completo, especificación de requisitos, historias de usuario, diagrama de clases y modelo entidad-relación.</p>
+          </div>
+        </div>
+        <div class="sprint">
+          <div class="sprint-k"><span class="sprint-n">Sprint 2</span><span class="sprint-t">Reportes y consenso</span></div>
+          <div class="sprint-b">
+            <p>El ciudadano ya puede reportar desde el mapa. Límite de reportes en Redis, algoritmo de consenso y eventos de dominio cambiando el estado del sector solos.</p>
+            <p class="sprint-doc">Capítulo II con estado del arte y marcos teórico, contextual y legal. Casos de uso y diagramas de secuencia.</p>
+          </div>
+        </div>
+        <div class="sprint">
+          <div class="sprint-k"><span class="sprint-n">Sprint 3</span><span class="sprint-t">Cortes, panel y correos</span></div>
+          <div class="sprint-b">
+            <p>Gestión de cortes oficiales con JWT, moderación de reportes, suscripción con doble confirmación y envío asíncrono de alertas.</p>
+            <p class="sprint-doc">Capítulo III de metodología, diagramas de componentes y despliegue, y diseño de la encuesta y el guion de entrevista.</p>
+          </div>
+        </div>
+        <div class="sprint">
+          <div class="sprint-k"><span class="sprint-n">Sprint 4</span><span class="sprint-t">Cumplimiento y estadísticas</span></div>
+          <div class="sprint-b">
+            <p>El Índice de Cumplimiento entra en operación. Agregaciones de MongoDB, bitácora pública y tablero de estadísticas.</p>
+            <p class="sprint-doc">Documento de patrones y SOLID aplicados, registros de decisiones arquitectónicas, y aplicación de los instrumentos a la muestra.</p>
+          </div>
+        </div>
+        <div class="sprint">
+          <div class="sprint-k"><span class="sprint-n">Sprint 5</span><span class="sprint-t">Calidad y despliegue</span></div>
+          <div class="sprint-b">
+            <p>Cobertura de pruebas por encima del 70%, Testcontainers, pruebas de extremo a extremo, accesibilidad y PWA. El sistema queda accesible por una URL pública.</p>
+            <p class="sprint-doc">Plan e informe de pruebas, manuales de usuario y técnico, y cálculo del Alfa de Cronbach.</p>
+          </div>
+        </div>
+        <div class="sprint">
+          <div class="sprint-k"><span class="sprint-n">Sprint 6</span><span class="sprint-t">Cierre</span></div>
+          <div class="sprint-b">
+            <p>Refactorización final, deuda técnica documentada y carga de los datos históricos de mayo a julio de 2026 para la demostración.</p>
+            <p class="sprint-doc">Capítulo IV con resultados y conclusiones, referencias en APA, informe final, presentación y video.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ENTREGABLES ================= -->
+    <section id="entregables">
+      <div class="head">
+        <p class="eyebrow">Documentación</p>
+        <h2>Qué se entrega, además del software</h2>
+        <p class="lede">Todo versionado en el repositorio, en Markdown con diagramas que se renderizan solos en GitHub, y con portada y referencias listas para exportar a Word o PDF.</p>
+      </div>
+
+      <pre><b>docs/</b>
+├── <b>informe-metodologico/</b>
+│   ├── 00-portada · 01-introduccion
+│   ├── 02-capitulo-1-problema        <i>descripción · pregunta · árbol · justificación · objetivos</i>
+│   ├── 03-capitulo-2-marcos          <i>estado del arte · teórico · conceptual · contextual · legal</i>
+│   ├── 04-capitulo-3-metodologia     <i>tipo · diseño · técnicas · población y muestra · cronograma</i>
+│   ├── 05-capitulo-4-resultados      <i>resultados · Alfa de Cronbach · conclusiones</i>
+│   └── 06-referencias                <i>APA 7</i>
+├── <b>anexos/</b>
+│   ├── 1 Contextualización y rastreo conceptual
+│   ├── 2 Observación de campo y 5W2H
+│   ├── 3 Rastreo comercial
+│   ├── 4 Historias de usuario        <i>con criterios de aceptación en Gherkin</i>
+│   ├── 5 Diagrama de clases
+│   └── 6 Estructura de datos
+├── <b>ingenieria/</b>
+│   ├── srs · priorizacion-moscow · user-personas
+│   ├── casos-uso · diagramas-secuencia · arquitectura-c4
+│   ├── patrones-y-solid · plan-pruebas · matriz-trazabilidad
+│   └── adr/                          <i>por qué Mongo · por qué Redis · por qué no scraping</i>
+├── <b>gestion/</b>                        <i>metodología Scrum · planning, review y retrospectiva por sprint</i>
+├── <b>manuales/</b>                       <i>manual de usuario · manual técnico</i>
+└── <b>instrumentos/</b>                   <i>encuesta · guion de entrevista · consentimiento informado</i></pre>
+
+      <div style="margin-top:2rem" class="callout">
+        <span class="lbl">Cómo se prueba que funciona</span>
+        <p>La demostración de sustentación dura tres minutos: se suscribe un correo al sector Olaya Herrera, se envían tres reportes de «sin agua» desde clientes distintos, el sector cambia a rojo solo, llega la alerta al correo, el veedor registra el corte oficial prometiendo dos horas de retorno, el corte se cierra a las tres — y el Índice de Cumplimiento muestra el incumplimiento. La bitácora deja la secuencia completa registrada.</p>
+      </div>
+    </section>
+
+    <footer>
+      <p>AguaVigía CTG · Proyecto de aula · Fundación Universitaria Tecnológico Comfenalco · Cartagena de Indias D.T. y C.</p>
+      <p>Plataforma ciudadana e independiente. No está afiliada al operador del servicio de acueducto ni a ninguna entidad distrital.</p>
+    </footer>
+
+  </main>
+</div>

@@ -1,0 +1,52 @@
+{
+  "$comment": [
+    "Servidores MCP del proyecto AguaVigia CTG.",
+    "Este archivo SI se versiona: define los conectores que todo el equipo comparte.",
+    "Los secretos NUNCA van aqui. Se referencian como variables de entorno con la sintaxis ${VAR}",
+    "y cada quien las define en su propio .env local (que esta en .gitignore).",
+    "",
+    "Para activar un servidor: descomentalo, instala su paquete y define sus variables.",
+    "Verifica con: claude mcp list"
+  ],
+
+  "mcpServers": {
+    "filesystem": {
+      "$comment": "Acceso de lectura a la documentacion del proyecto. Util para que el agente navegue docs/ sin abrir archivo por archivo.",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "./docs"
+      ]
+    },
+
+    "git": {
+      "$comment": "Historial del repositorio: quien cambio que y cuando. Util para el informe de gestion y las retrospectivas.",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-git",
+        "--repository",
+        "."
+      ]
+    },
+
+    "$disabled_mongodb": {
+      "$comment": "ACTIVAR EN SPRINT 1, cuando exista la base de datos. Permite consultar sectores y cortes directamente. Definir MONGODB_URI en el .env local.",
+      "command": "npx",
+      "args": ["-y", "mongodb-mcp-server"],
+      "env": {
+        "MONGODB_URI": "${MONGODB_URI}"
+      }
+    },
+
+    "$disabled_github": {
+      "$comment": "ACTIVAR EN SPRINT 0, tras crear el repositorio. Permite leer issues y PRs para las ceremonias de Scrum. Requiere un token de acceso personal con permiso de solo lectura sobre el repo.",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    }
+  }
+}
