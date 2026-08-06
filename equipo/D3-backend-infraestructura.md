@@ -1,7 +1,7 @@
 # D3 — Backend · Infraestructura e Integraciones
 
 > **Responsable:** Adaptadores tecnológicos, base de datos MongoDB, Redis, API REST pública y Pipeline de Ingesta con IA.
-> **Módulos asignados:** M2 (Reporte ciudadano), M4 (Alertas correo), M5 (Panel veedor), M9 (Ingesta IA ⭐).
+> **Módulos asignados:** M2 (Reporte ciudadano - Backend), M5 (Panel veedor - Backend), M9 (Ingesta IA ⭐).
 > **Capa del código:** `/backend/src/main/java/com/aguavigia/ctg/infrastructure` y `/backend/src/main/java/com/aguavigia/ctg/api`.
 
 ---
@@ -22,7 +22,7 @@
 |---|---|
 | **Sprint 1** | • Adaptador MongoDB con índices geoespaciales `2dsphere`.<br>• Mappers DTO $\leftrightarrow$ Dominio con MapStruct.<br>• Endpoints REST `GET /api/sectores` y `GET /api/sectores/{id}`.<br>• Manejo global de excepciones RFC 7807 (`@RestControllerAdvice`).<br>• Configurar `springdoc-openapi` para publicar la especificación OpenAPI. |
 | **Sprint 2** | • Endpoint `POST /api/reportes`.<br>• Rate limiting en Redis (`INCR` + `EXPIRE`).<br>• Ventana deslizante de consenso en Redis con `ZSET`.<br>• Caching de respuestas del mapa en Redis.<br>• Implementación de Server-Sent Events (SSE) para actualización en tiempo real. |
-| **Sprint 3** | • Endpoints de administración (CRUD de cortes oficiales) con autenticación JWT.<br>• Integración de Spring Mail con plantillas HTML para alertas por correo.<br>• Flujo de confirmación doble opt-in y enlace de baja en 1-clic. |
+| **Sprint 3** | • Endpoints de administración (CRUD de cortes oficiales) con autenticación JWT.<br>• Moderación de reportes dudosos por parte del veedor. |
 | **Sprint 4** | • **Pipeline de Ingesta M9 completo**:<br>  - `AcuacarApiCollector` (API REST de WordPress `/wp-json/wp/v2/posts`).<br>  - `RssCollector` (Google News y Zona Cero).<br>  - Deduplicador por Hash SHA-256.<br>  - Prefiltro determinista por expresiones regulares.<br>  - Capa de IA con `anthropic-java` y salida estructurada.<br>  - Validación obligatoria de `citaTextual` (`documento.texto().contains(cita)`).<br>  - Resiliencia con Resilience4j (Circuit Breakers, Retries). |
 | **Sprint 5** | • Consultas de agregación en MongoDB para estadísticas.<br>• Decorador de caché sobre servicios de consulta.<br>• Reprocesamiento en lote del histórico de 307 boletines de Acuacar con la IA. |
 | **Sprint 6** | • Redactar Anexo 6 (Modelo de documentos Mongo, índices, diagrama E-R).<br>• Diagramas UML de componentes y de secuencia. |
