@@ -32,7 +32,23 @@ Una compuerta abierta y no anunciada deja a un compañero bloqueado sin motivo.
 
 ## 2. Bloqueos abiertos — detalle
 
-*(Vacío. Ver BL-001 en la sección 3, cerrado.)*
+### BL-002 — D4 no puede integrar el frontend con el entorno Docker ni con el backend
+
+- **Fecha:** 2026-08-07 · **Rol bloqueado:** D4 · **Compuerta:** C0 · **Titular que la abre:** D5 (Yordy Pardo Pajaro)
+- **Estado:** Abierto
+
+**Tarea detenida:** Integrar el proyecto `/frontend` con `docker compose` (backend + Redis + MongoDB corriendo). Sin entorno reproducible no se puede validar el flujo completo.
+**Insumo que falta:** PR #1 de D5 fusionado en `develop`, Docker instalado en el entorno local, y carpeta `/backend` inicializada. Ruta esperada: raíz del repositorio.
+**Verificación:**
+```
+> docker compose config -q && ls backend && ls frontend
+docker : El término 'docker' no se reconoce como nombre de un cmdlet...
+ls: No se encuentra la ruta 'backend' porque no existe.
+ls: No se encuentra la ruta 'frontend' porque no existe.
+```
+**Avisado en el chat:** Sí · a José Daniel Zambrano (D4).
+**Trabajo alterno tomado:** Esqueleto de `/frontend` creado (React 19 + Vite + TypeScript + Tailwind CSS v4), tokens de `DESIGN.md` como custom properties CSS, selector de tema claro/oscuro, rutas placeholder para M1/M2/M7/M8 — todo trabajo de Sprint 0 que no cruza ninguna compuerta.
+**Cierre:** —
 
 ---
 
@@ -81,5 +97,5 @@ proyecto ya pagó una vez el precio de afirmar sin verificar (ver `MEMORY.md`).
 **Trabajo alterno tomado:** en qué se avanzó mientras tanto, o "ninguno" si no lo había.
 **Cierre:** fecha + cómo se abrió la compuerta.
 
-Siguiente número disponible: BL-002
+Siguiente número disponible: BL-003
 -->

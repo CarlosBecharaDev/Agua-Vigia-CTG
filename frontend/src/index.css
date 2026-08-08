@@ -1,0 +1,243 @@
+/* =============================================================
+   AguaVigía CTG — Sistema de tokens de diseño
+   Fuente: DESIGN.md (fuente única de verdad)
+   
+   REGLA: Los 4 colores de estado (verde, rojo, ámbar, azul)
+   están reservados para el estado del servicio. NUNCA usarlos
+   para éxito/error/advertencia/enlace genéricos de la interfaz.
+   ============================================================= */
+
+@import "tailwindcss";
+
+/* ─── Modo claro (por defecto) ─── */
+:root {
+  /* Acento petróleo — la identidad visual del proyecto */
+  --color-acento:        #0A6C78;
+  --color-acento-vivo:   #0E8A98;
+
+  /* Tinta */
+  --color-tinta:         #0B1F26;
+  --color-tinta-2:       #3E585F;
+  --color-tinta-3:       #6E878D;
+
+  /* Superficies */
+  --color-linea:         #C9D9D8;
+  --color-superficie:    #FFFFFF;
+  --color-fondo:         #EEF3F3;
+
+  /* ── Colores de ESTADO DEL SERVICIO — reservados, no reutilizar ── */
+  --color-estado-con:    #1C7F55;   /* Con servicio  */
+  --color-estado-sin:    #AE3428;   /* Sin servicio  */
+  --color-estado-baja:   #A87310;   /* Presión baja  */
+  --color-estado-prog:   #2A628F;   /* Corte programado */
+
+  /* Tipografía */
+  --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --font-cuerpo:  system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-util:    ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  /* Espaciado base */
+  --radio-base: 0.5rem;
+  --radio-lg:   1rem;
+
+  /* Foco — WCAG AA: contorno de 2px visible en teclado */
+  --foco-outline: 2px solid var(--color-acento);
+  --foco-offset:  2px;
+
+  /* Transición suave global */
+  --transicion: 160ms ease;
+
+  color-scheme: light;
+}
+
+/* ─── Modo oscuro — media query del SO ─── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-acento:       #45BFCB;
+    --color-acento-vivo:  #6FD6DF;
+
+    --color-tinta:        #E4EFEF;
+    --color-tinta-2:      #9DB8BE;
+    --color-tinta-3:      #6B8C94;
+
+    --color-linea:        #1B3B45;
+    --color-superficie:   #0C2027;
+    --color-fondo:        #061418;
+
+    --color-estado-con:   #4FBF89;
+    --color-estado-sin:   #E2695B;
+    --color-estado-baja:  #D9A63C;
+    --color-estado-prog:  #6BA8DA;
+
+    color-scheme: dark;
+  }
+}
+
+/* ─── Modo oscuro — interruptor manual (gana sobre el SO) ─── */
+:root[data-theme="dark"] {
+  --color-acento:       #45BFCB;
+  --color-acento-vivo:  #6FD6DF;
+
+  --color-tinta:        #E4EFEF;
+  --color-tinta-2:      #9DB8BE;
+  --color-tinta-3:      #6B8C94;
+
+  --color-linea:        #1B3B45;
+  --color-superficie:   #0C2027;
+  --color-fondo:        #061418;
+
+  --color-estado-con:   #4FBF89;
+  --color-estado-sin:   #E2695B;
+  --color-estado-baja:  #D9A63C;
+  --color-estado-prog:  #6BA8DA;
+
+  color-scheme: dark;
+}
+
+/* ─── Modo claro forzado por interruptor ─── */
+:root[data-theme="light"] {
+  --color-acento:       #0A6C78;
+  --color-acento-vivo:  #0E8A98;
+
+  --color-tinta:        #0B1F26;
+  --color-tinta-2:      #3E585F;
+  --color-tinta-3:      #6E878D;
+
+  --color-linea:        #C9D9D8;
+  --color-superficie:   #FFFFFF;
+  --color-fondo:        #EEF3F3;
+
+  --color-estado-con:   #1C7F55;
+  --color-estado-sin:   #AE3428;
+  --color-estado-baja:  #A87310;
+  --color-estado-prog:  #2A628F;
+
+  color-scheme: light;
+}
+
+/* ─── Reset y base global ─── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-cuerpo);
+  font-size: 16px;
+  background-color: var(--color-fondo);
+  color: var(--color-tinta);
+  /* Sin scroll horizontal — DESIGN.md §8 */
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100dvh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color var(--transicion), color var(--transicion);
+}
+
+/* ─── Foco — WCAG AA ─── */
+:focus-visible {
+  outline: var(--foco-outline);
+  outline-offset: var(--foco-offset);
+  border-radius: var(--radio-base);
+}
+
+/* ─── Tipografía base ─── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  line-height: 1.25;
+  text-wrap: balance;
+  color: var(--color-tinta);
+}
+
+code, kbd, samp, pre {
+  font-family: var(--font-util);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Columnas de cifras siempre tabular */
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Máximo de 65 caracteres en texto corrido — DESIGN.md §4 */
+p { max-width: 65ch; }
+
+/* Mayúsculas con tracking — DESIGN.md §4 */
+.uppercase-label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  font-family: var(--font-util);
+}
+
+/* ─── Objetivos táctiles — mínimo 44×44px (DESIGN.md §7) ─── */
+button,
+[role="button"],
+a,
+input[type="checkbox"],
+input[type="radio"],
+select {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* ─── Reducción de movimiento — DESIGN.md §7 ─── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── Utilidades de color del sistema ─── */
+.text-acento    { color: var(--color-acento); }
+.text-tinta-2   { color: var(--color-tinta-2); }
+.text-tinta-3   { color: var(--color-tinta-3); }
+.bg-superficie  { background-color: var(--color-superficie); }
+.bg-fondo       { background-color: var(--color-fondo); }
+.border-linea   { border-color: var(--color-linea); }
+
+/* ─── Colores de estado (SOLO para estado del servicio) ─── */
+.estado-con   { color: var(--color-estado-con);  }
+.estado-sin   { color: var(--color-estado-sin);  }
+.estado-baja  { color: var(--color-estado-baja); }
+.estado-prog  { color: var(--color-estado-prog); }
+
+.bg-estado-con   { background-color: var(--color-estado-con);  }
+.bg-estado-sin   { background-color: var(--color-estado-sin);  }
+.bg-estado-baja  { background-color: var(--color-estado-baja); }
+.bg-estado-prog  { background-color: var(--color-estado-prog); }
+
+/* ─── Skeleton loader base (para Sprint 2) ─── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-linea) 25%,
+    var(--color-superficie) 50%,
+    var(--color-linea) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+  border-radius: var(--radio-base);
+}
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; background: var(--color-linea); }
+}
+
+/* ─── Tabla scroll horizontal propio — DESIGN.md §8 ─── */
+.tabla-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

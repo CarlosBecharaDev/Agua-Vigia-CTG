@@ -33,7 +33,12 @@ jobs:
         run: npm run lint
 
       - name: Tests
-        run: npm run test -- --run
+        run: |
+          if node -e "process.exit(require('./package.json').scripts.test ? 0 : 1)"; then
+            npm run test -- --run
+          else
+            echo "Sin script 'test' todavia (esqueleto de Sprint 0) - se omite hasta que exista."
+          fi
 
       - name: Build
         run: npm run build
