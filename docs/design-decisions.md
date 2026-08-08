@@ -560,8 +560,109 @@ que no era el suyo, y trabajo hecho por quien no figura como responsable.
 Reasignar M7 completo a una sola persona y marcar este ADR como *Reemplazada*. Es barato: la partición
 es de responsabilidad, no de código — no hay archivos que mover ni módulos que separar.
 
+## ADR-014 — Un sector sin dato verificado se publica con estado nulo, no como `CON_SERVICIO`
+
+- **Fecha:** 2026-08-08
+- **Estado:** Aceptada
+- **Decide:** Backend – Infraestructura (D3)
+
+### Contexto
+
+El sembrador de D5 (`scripts/sembrar-sectores.mjs`) carga los 211 barrios **sin `estadoActual`**, y
+deja escrita la pregunta en un comentario: *"El adaptador de SectorRepository decide el valor inicial
+al leer un sector que todavía no tiene estado registrado."* Hasta que el consenso (M3, Sprint 2)
+empiece a escribir estados, **ningún sector de Cartagena tiene estado verificado**: son 211 de 211.
+
+`EstadoServicio` es un enum cerrado de cuatro valores y no tiene `SIN_DATO` — por decisión de D2, que
+en `modelo-de-dominio.md` §1 anota que *"el 'sin dato' se resuelve en presentación, no en el dominio"*.
+Así que el adaptador tiene que elegir entre un valor del enum o la ausencia de valor.
+
+El frontend ya tomó la decisión contraria por su cuenta: `MapaCartagena.tsx:92` hace
+`sector?.estado ?? 'CON_SERVICIO'`, es decir pinta de verde todo barrio del que no sabe nada.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Por omisión `CON_SERVICIO` | El mapa se ve completo desde el primer día; ningún cliente maneja nulos | Afirma ante el vecino que hay agua en un barrio del que no se sabe nada. Es exactamente el falso positivo que `MEMORY.md` (acuerdo del 2026-08-06) manda evitar: *"un corte inventado destruye la credibilidad"* — y su simétrico, un servicio inventado, también |
+| Pedirle a D2 un quinto valor `SIN_DATO` | El dominio expresaría la ausencia explícitamente | Toca `domain/`, que es de D2, y contradice su decisión ya registrada de resolver el "sin dato" en presentación. Además obligaría a un quinto color en `DESIGN.md` §2 |
+| **Estado nulo en el adaptador y en el contrato** | Dice la verdad: no hay dato. No toca la capa de nadie más. El frontend ya sabe representarlo — `useFrescura` devuelve *"sin datos"* ante un timestamp nulo | Obliga a D4 a manejar el nulo en `InsigniaEstado` y a quitar su `?? 'CON_SERVICIO'` |
+
+### Decisión
+
+`SectorMongoAdapter` traduce a `null` tanto el estado ausente como un estado guardado que ya no
+corresponde a ningún valor del enum. El contrato lo transmite tal cual: `"estado": null` viaja
+explícito en el JSON, no se omite la clave, para que el cliente generado lo tipe como anulable.
+
+### Consecuencias
+
+- **Gana:** la plataforma no afirma nada que no haya verificado, que es la única razón por la que un
+  vecino le creería. La coherencia con `ADR-006` (cita textual obligatoria) es la misma idea aplicada
+  a otra capa: ante la duda, no se publica.
+- **Pierde:** el mapa se ve mayormente gris hasta que M3 empiece a registrar estados en el Sprint 2.
+  Se ve peor en una demostración, y es honesto.
+- **Condiciona:** `MapaCartagena.tsx:92` e `InsigniaEstado` deben tratar el nulo como *"sin datos"*.
+  Queda registrado como `BUG-008` para su titular (D4) — no se corrigió desde aquí por frontera de
+  propiedad.
+
+### Cómo se revierte
+
+Una línea en el adaptador (`orElse(EstadoServicio.CON_SERVICIO)`). Se desaconseja: revertirlo es
+elegir que la plataforma afirme lo que no sabe.
+
+---
+
+## ADR-015 — Las consultas de solo lectura van del controlador al puerto de salida, sin caso de uso
+
+- **Fecha:** 2026-08-08
+- **Estado:** Aceptada
+- **Decide:** Backend – Infraestructura (D3)
+
+### Contexto
+
+`GET /api/sectores` (RF001–RF004) no tiene regla de negocio: lee, ordena por nombre y serializa.
+`CLAUDE.md` dice que los controladores *"traducen HTTP ↔ caso de uso"*, pero los cinco casos de uso
+que D2 definió en `domain/port/in` son de escritura o de cálculo (registrar reporte, evaluar consenso,
+gestionar corte, calcular cumplimiento, registrar evento). **No existe un caso de uso de consulta de
+sectores, y `application/` está vacío.**
+
+Crear uno significaría escribir en `application/`, que es capa de D2. La frontera de propiedad está
+vigente: `ADR-012`, que habría flexibilizado esto, sigue en *Propuesta* porque su PR se fusionó sin
+los revisores que él mismo exigía.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Escribir `ConsultarSectoresService` en `application/` | Cumple la letra de "controlador ↔ caso de uso" | Escribe en la capa de D2 sin su titular — lo que `secuencia-de-trabajo.md` §5 prohíbe explícitamente para destrabarse |
+| Pedirle el caso de uso a D2 y detenerse | Respeta la frontera al pie de la letra | Bloquea C2, que es *"la compuerta más cara del proyecto"* (`D3-backend-infraestructura.md`), por una clase que solo delega |
+| **Controlador → puerto de salida** | No inventa capas ni cruza fronteras; las dependencias siguen apuntando hacia adentro; ArchUnit sigue en verde | Se aparta de la lectura estricta de `CLAUDE.md`; hay que sostener la disciplina de no dejar que crezca lógica ahí |
+
+### Decisión
+
+Para consultas sin regla de negocio, el controlador depende de `domain/port/out` directamente.
+`application/` se reserva para lo que tenga decisión de negocio, y es de D2.
+
+**Límite explícito:** en cuanto una consulta necesite una regla —filtrar por frescura, combinar
+sectores con cortes activos, calcular un agregado— deja de ser cosa del controlador y pasa a ser un
+caso de uso de D2. Si aparece un `if` de negocio en `SectorController`, este ADR se está violando.
+
+### Consecuencias
+
+- **Gana:** C2 se abre sin invadir la capa de otro rol ni inventar un intermediario vacío.
+- **Pierde:** la regla "controlador ↔ caso de uso" pasa a tener una excepción, y las excepciones se
+  erosionan solas si nadie las vigila. Por eso el límite de arriba está escrito y no sobreentendido.
+- **Condiciona:** si D2 define después un caso de uso de consulta, el controlador se migra a él.
+
+### Cómo se revierte
+
+Introduciendo el caso de uso en `application/` y apuntando el controlador ahí. El adaptador, el DTO
+y el contrato no cambian.
+
+---
+
 <!--
-Siguiente número disponible: ADR-014
+Siguiente número disponible: ADR-016
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->

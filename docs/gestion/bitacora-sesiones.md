@@ -26,6 +26,17 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 0
 
+### 2026-08-08 · D3 · `feature/d3-sprint1-mongo-y-api-sectores`
+**Qué:** Entregables de Sprint 1 de D3: adaptador Mongo de `SectorRepository` (índice `2dsphere`,
+conserva la geometría de D5 al guardar), adaptador de `RelojPort`, `GET /api/sectores` y
+`/api/sectores/{id}`, errores RFC 7807 y `backend/openapi.yaml` generado desde la app — **abre C2**.
+`./mvnw clean verify` → 34 pruebas, 0 fallos. `ADR-014` (estado nulo en vez de `CON_SERVICIO` sin
+dato verificado) y `ADR-015` (consultas de lectura van al puerto de salida, sin invadir
+`application/`, que es de D2). Encontrados `BUG-007` (Testcontainers vs. Docker Engine 29, corregido
+aquí mismo) y `BUG-008` (el mapa pinta de verde los 211 sectores sin dato — es de D4).
+**Sigue:** Abrir PR con revisor y avisar a D4 de que C2 abre al fusionarse, con los dos avisos del
+contrato (`estado` anulable, OpenAPI 3.0.1). Sprint 2 de D3: `POST /api/reportes` y rate limiting.
+
 ### 2026-08-08 · D5 · `feature/d5-dockerfile-frontend-y-jacoco`
 **Qué:** Registrados en `registro-de-implementaciones.md` los PRs #27 y #33 (Dockerfiles backend/frontend,
 JaCoCo, perfiles de Spring, `/actuator/health`), fusionados sin registrar. Actualizados `docs/anexos/README.md`
