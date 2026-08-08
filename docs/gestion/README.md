@@ -50,9 +50,14 @@ Las cuatro tienen skill propia: `registrar-implementacion`, `registrar-bug`, `ce
 
 ---
 
-## Calendario de sprints
+## Los siete sprints
 
-**7 sprints. Sprint 0 de preparación + 6 de construcción.** Cada uno de ~4 semanas.
+**7 sprints. Sprint 0 de preparación + 6 de construcción.** No tienen duración fija.
+
+**Un sprint se marca como completado cuando su entregable se demuestra funcionando, no cuando se
+acaba la semana.** La columna "Entregable que lo cierra" es la definición, no una aspiración: mientras
+eso no se pueda mostrar corriendo, el sprint sigue abierto por rápido que se haya ido; y cuando se
+puede mostrar, el sprint cierra aunque hayan pasado tres días.
 
 | Sprint | Foco | Entregable que lo cierra |
 |---|---|---|
@@ -72,9 +77,9 @@ Detalle de tareas por persona: `docs/equipo/secuencia-de-trabajo.md`.
 
 | Ceremonia | Cuándo | Duración | Deja escrito |
 |---|---|---|---|
-| **Planning** | Primer día del sprint | 1 h | Objetivo del sprint y compromisos en `sprint-N.md` |
-| **Daily** | 3 veces por semana | 15 min | Nada. Si algo hay que escribir, es un bloqueo → issue |
-| **Review** | Último día del sprint | 1 h | Qué se demostró funcionando, en `sprint-N.md` |
+| **Planning** | Al abrir el sprint, antes de la primera tarea | 1 h | Objetivo del sprint y compromisos en `sprint-N.md` |
+| **Daily** | Al menos 3 veces por semana mientras el sprint esté abierto | 15 min | Nada. Si algo hay que escribir, es un bloqueo → issue |
+| **Review** | Cuando el entregable del sprint se puede demostrar corriendo | 1 h | Qué se demostró funcionando, en `sprint-N.md` |
 | **Retrospectiva** | Después del review | 45 min | Máximo 3 acciones concretas, con responsable |
 
 **La retrospectiva no produce buenos deseos.** "Comunicarnos mejor" no es una acción. "D3 publica el

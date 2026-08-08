@@ -77,16 +77,16 @@ deuda técnica disfrazada de permiso.
 
 | ID | Compuerta | Autoriza | Qué se permite exactamente | Caduca | Issue de reconciliación | Estado |
 |---|---|---|---|---|---|---|
-| DT-001 | C2 | ✅ Sebastián Montes Olivera (D3, titular de C2) — 2026-08-08 | `SECTORES_MOCK` en `PaginaMapa.tsx:21`: datos de sectores escritos a mano donde debería ir `GET /api/sectores`. Introducido por el PR #12 (M1) | **2026-09-30** (fin estimado del Sprint 1, cuando D3 debe abrir C2 para `/api/sectores`) | [#34](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/34) | 🟡 **Vigente** |
-| DT-002 | C2 | ✅ Sebastián Montes Olivera (D3, titular de C2) — 2026-08-08 | `SECTORES_MOCK` en `FormularioReporte.tsx:5` (M2): mismo patrón que DT-001, en el formulario de reporte. Introducido por el PR #19 | **2026-09-30** (cuando D3 abra C2 para `POST /api/reportes`) | [#35](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/35) | 🟡 **Vigente** |
-| DT-003 | C2 | ✅ Sebastián Montes Olivera (D3, titular de C2) — 2026-08-08 | "Mock data de reportes" en `PaginaVeedor.tsx:75` (M5): datos de reportes ciudadanos para moderar, escritos a mano. Introducido por el PR #20 | **2026-09-30** (cuando D3 abra C2 para la moderación de reportes) | [#36](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/36) | 🟡 **Vigente** |
-| DT-004 | C2 | ✅ D5 (Yordy Pardo Pajaro) — según confirma Sebastián Montes Olivera (D3) el 2026-08-08, decisión de equipo | "MOCK DATA" en `PaginaEstadisticas.tsx:20` (M7): `roles-y-tareas.md` asigna M7 a D5 | **2026-09-30** | [#38](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/38) | 🟡 **Vigente** |
-| DT-005 | C2 | ✅ D1 (Yordy Pardo Pajaro) — según confirma Sebastián Montes Olivera (D3) el 2026-08-08, decisión de equipo | `MOCK_EVENTOS` en `PaginaBitacora.tsx:10` (M8): módulo de D1 | **2026-09-30** | [#39](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/39) | 🟡 **Vigente** |
+| DT-001 | C2 | ✅ Sebastián Montes Olivera (D3, titular de C2) — 2026-08-08 | `SECTORES_MOCK` en `PaginaMapa.tsx:21`: datos de sectores escritos a mano donde debería ir `GET /api/sectores`. Introducido por el PR #12 (M1) | **Al cerrar el Sprint 1** — cuando D3 abra C2 para `/api/sectores` | [#34](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/34) | 🟡 **Vigente** |
+| DT-002 | C2 | ✅ Sebastián Montes Olivera (D3, titular de C2) — 2026-08-08 | `SECTORES_MOCK` en `FormularioReporte.tsx:5` (M2): mismo patrón que DT-001, en el formulario de reporte. Introducido por el PR #19 | **Al cerrar el Sprint 1** — cuando D3 abra C2 para `POST /api/reportes` | [#35](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/35) | 🟡 **Vigente** |
+| DT-003 | C2 | ✅ Sebastián Montes Olivera (D3, titular de C2) — 2026-08-08 | "Mock data de reportes" en `PaginaVeedor.tsx:75` (M5): datos de reportes ciudadanos para moderar, escritos a mano. Introducido por el PR #20 | **Al cerrar el Sprint 1** — cuando D3 abra C2 para la moderación de reportes | [#36](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/36) | 🟡 **Vigente** |
+| DT-004 | C2 | ✅ D5 (Yordy Pardo Pajaro) — según confirma Sebastián Montes Olivera (D3) el 2026-08-08, decisión de equipo | "MOCK DATA" en `PaginaEstadisticas.tsx:20` (M7): `roles-y-tareas.md` asigna M7 a D5 | **Al cerrar el Sprint 1** | [#38](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/38) | 🟡 **Vigente** |
+| DT-005 | C2 | ✅ D1 (Yordy Pardo Pajaro) — según confirma Sebastián Montes Olivera (D3) el 2026-08-08, decisión de equipo | `MOCK_EVENTOS` en `PaginaBitacora.tsx:10` (M8): módulo de D1 | **Al cerrar el Sprint 1** | [#39](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/39) | 🟡 **Vigente** |
 
 **Sobre DT-001/002/003.** Los PRs #12, #19 y #20 se fusionaron con datos simulados en lugar de la API,
 que no existe porque C2 está cerrada. Es una salida legítima —`secuencia-de-trabajo.md` §5 la
 contempla— y D3 (titular de C2 para M2 y M5) las autoriza por escrito aquí el 2026-08-08, con
-caducidad al 2026-09-30. No es un reproche a D4: ninguna de las tres pantallas se podía construir de
+caducidad al cerrar el Sprint 1. No es un reproche a D4: ninguna de las tres pantallas se podía construir de
 otro modo, y los propios PRs declaran que el mock se reemplaza al abrir C2. Issues de reconciliación
 abiertos: [#34](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/34) (DT-001),
 [#35](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/35) (DT-002),

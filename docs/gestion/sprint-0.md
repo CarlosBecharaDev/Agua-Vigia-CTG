@@ -1,7 +1,8 @@
 # Sprint 0 — Preparación e infraestructura
 
-**Fechas:** 2026-08-06 → 2026-09-02 *(4 semanas · confirmar en el planning)* · **Scrum Master del
-sprint:** Yordy Pardo Pajaro (D5), interino desde 2026-08-08 (`ADR-011`, `BL-003` cerrado)
+**Abierto:** 2026-08-06 · **Cerrado:** — *(cierra cuando cualquiera pueda clonar el repositorio y
+levantar el entorno con un comando, demostrado en el review)* · **Scrum Master del sprint:** Yordy
+Pardo Pajaro (D5), interino desde 2026-08-08 (`ADR-011`, `BL-003` cerrado)
 
 > Este archivo se creó tarde, en la auditoría del 2026-08-07, cuando el sprint ya llevaba dos días
 > corriendo. Su ausencia tuvo un costo medible: la creación de `/backend` —lo único que bloquea a los
@@ -31,7 +32,7 @@ arrancar sin fricción. Qué se permite escribir y qué no: `ADR-009`.
 | D2 | — | Diseño del dominio de M3/M6 en `docs/ingenieria/modelo-de-dominio.md` | — | ✅ PR #4 |
 | D4 | — | Esqueleto de `/frontend`: React 19 + Vite + TS + Tailwind, tokens de `DESIGN.md`, rutas vacías | — | ✅ PR #5 |
 | D4 | — | Docker Desktop instalado y `docker compose up` corriendo en su máquina | — | ✅ `BL-002` cerrado 2026-08-08 |
-| D3 | — | Sin compromisos de código en el Sprint 0 — entra con **C1** | C1 | — |
+| D3 | — | Andamiaje de infraestructura: dependencias de build (`pom.xml`), `RedisConfig` y paquetes vacíos de `infrastructure/` | C1 *(abierta 2026-08-08)* | ✅ PR #40 — sus entregables de código (adaptador Mongo, `GET /api/sectores`, OpenAPI) son del Sprint 1 |
 | D1 (Yordy, interino) | — | Anexos 1–2 redactados; Anexo 3 pendiente de datos reales · plantilla oficial del informe · solicitud a Meta Content Library | — | 🟡 Anexos 1–2 ✅ PR #32 · plantilla e ICPSR aún sin enviar |
 | D5 | — | Dockerfile multi-etapa backend y frontend, JaCoCo en CI, perfiles de Spring, `/actuator/health` | — | ✅ PRs #27 y #33 |
 
@@ -58,7 +59,7 @@ Solo queda `BL-002` (D4 instala Docker en su máquina — tarea suya, no depende
 | BL-001 | C0 (parcial) | D5 | 0 | Branch protection descartada como control técnico, política documentada (`ADR-010`). Yordy queda en `write`, no `admin` — GitHub no permite subir el rol de un colaborador existente en un repo personal |
 | BL-002 | C0 | D4 | 1 | Cerrado 2026-08-08 — D5 declaró C0 abierta y D4 instaló Docker Desktop |
 | BL-003 | — | D1 (vacante) | 1 | Cerrado 2026-08-08 — D1 reasignado temporalmente a Yordy Pardo Pajaro (D5), `ADR-011` |
-| DT-001 a DT-005 | C2 | — | — | Regularizados el 2026-08-08, caducan 2026-09-30. DT-001/002/003 por D3 (titular); DT-004/005 (M7, M8) autorizados por D5/D1 según confirma D3. Detalle: `registro-de-bloqueos.md` §4 |
+| DT-001 a DT-005 | C2 | — | — | Regularizados el 2026-08-08, caducan **al cerrar el Sprint 1**. DT-001/002/003 por D3 (titular); DT-004/005 (M7, M8) autorizados por D5/D1 según confirma D3. Detalle: `registro-de-bloqueos.md` §4 |
 
 ---
 

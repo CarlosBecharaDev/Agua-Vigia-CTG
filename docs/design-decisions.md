@@ -454,6 +454,7 @@ marca este ADR como *Reemplazada por ADR-NNN*, y Yordy vuelve a responder solo p
 
 - **Fecha:** 2026-08-08
 - **Estado:** 🟡 **Propuesta — pendiente de aprobación de Carlos (D2), José Daniel (D4) y Yordy (D1/D5) en el propio Pull Request.** No se activa con este registro.
+  **Verificado el 2026-08-08:** el PR [#42](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/42) que incorporó este ADR **se fusionó sin ningún revisor** (`gh pr view 42 --json reviews` → `reviews: []`). La condición de aprobación no se cumplió, así que el ADR sigue en *Propuesta*: hasta que los tres se pronuncien, rige la frontera de propiedad estricta con desbloqueo temporal caso por caso.
 - **Propone:** Sebastián Montes Olivera (D3)
 
 ### Contexto
@@ -501,8 +502,66 @@ frontera de propiedad estricta, con desbloqueo temporal caso por caso.
   de verdad no hay nadie disponible, hay que revisar el ADR — es una señal de que la excepción se
   volvió la regla.
 
+## ADR-013 — M7 (Estadísticas) se parte: la pantalla es de D4, las métricas y su contrato son de D5
+
+- **Fecha:** 2026-08-08
+- **Estado:** 🟡 **Propuesta — pendiente de ratificación de Carlos (D2) y José Daniel (D4).** Hasta que
+  la ratifiquen, `roles-y-tareas.md` no se modifica y M7 sigue figurando como de D5.
+- **Propone:** Yordy Pardo Pajaro (D5, titular actual de M7)
+
+### Contexto
+
+M7 tiene tres dueños distintos según qué archivo del repositorio se lea, y los tres están escritos:
+
+| Fuente | Qué dice |
+|---|---|
+| `roles-y-tareas.md` §Resumen del equipo | M7 es de **D5** |
+| `registro-de-bloqueos.md` §4, `DT-004` | *"dueño ambiguo entre D3 y D5"* |
+| `registro-de-implementaciones.md` | `PaginaEstadisticas.tsx` (RF023, RF024) lo entregó **D4** en el PR #20 |
+| `secuencia-de-trabajo.md` §4 | El *dashboard M7* es tarea de **D5** en el Sprint 4; las *agregaciones Mongo* que lo alimentan son de **D3** en el Sprint 5 |
+
+Verificado el 2026-08-08: `frontend/src/pages/PaginaEstadisticas.tsx` está en `develop`, usa Recharts
+con datos escritos a mano, y la rama `vista-previa-total` lo reescribe otras 289 líneas — de nuevo D4.
+La ambigüedad no es teórica: ya produjo un desbloqueo temporal (`DT-004`) autorizado por un titular
+que no era el suyo, y trabajo hecho por quien no figura como responsable.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| **M7 completo a D5**, como dice hoy `roles-y-tareas.md` | No cambia nada escrito; respeta la asignación oficial | Descarta o transfiere trabajo que D4 ya hizo dos veces; obliga a D5 a mantener una pantalla React siendo su capa Docker, CI y datos |
+| **M7 completo a D4** | Formaliza lo que de hecho ocurrió; D4 ya conoce el código | Deja a D5 sin ningún módulo funcional propio, y D5 responde por M7 ante el docente; concentra aún más frontend en una sola persona |
+| **Partir M7 por capas** *(elegida)*: la pantalla es de D4, las métricas y el contrato de datos son de D5 | Cada mitad queda en la capa de quien ya trabaja ahí; ninguno pierde trabajo hecho; el registro de contribución individual sigue siendo legible | M7 pasa a tener dos responsables, y eso obliga a que las tres filas de `RF023`/`RF024` digan cuál mitad cubre cada PR |
+
+### Decisión
+
+**M7 se parte en dos responsabilidades explícitas, y D3 no cambia:**
+
+- **D4 (José Daniel)** responde por `frontend/src/pages/PaginaEstadisticas.tsx`: los gráficos, la
+  accesibilidad y el cumplimiento de `DESIGN.md`.
+- **D5 (Yordy)** responde por **qué se mide**: define las métricas de `RF023` y `RF024`, el contrato
+  de datos que las alimenta, valida que la pantalla diga la verdad, y responde por M7 en la
+  sustentación.
+- **D3 (Sebastián)** conserva sin cambio las agregaciones de MongoDB del Sprint 5, tal como ya
+  aparecen en `secuencia-de-trabajo.md` §4.
+
+### Consecuencias
+
+- **Gana:** cada mitad la sostiene quien ya trabaja en esa capa; `DT-004` deja de estar autorizado por
+  un titular incierto y pasa a tener a D5 como titular sin ambigüedad.
+- **Pierde:** M7 es el único módulo con dos responsables, así que cada PR suyo tiene que declarar qué
+  mitad toca; sin esa disciplina la trazabilidad individual del Capítulo IV se enturbia justo aquí.
+- **Condiciona:** si se ratifica, hay que actualizar el mismo día `roles-y-tareas.md` §Resumen del
+  equipo y la fila `DT-004` de `registro-de-bloqueos.md` §4. Mientras siga en *Propuesta*, no se toca
+  ninguno de los dos.
+
+### Cómo se revierte
+
+Reasignar M7 completo a una sola persona y marcar este ADR como *Reemplazada*. Es barato: la partición
+es de responsabilidad, no de código — no hay archivos que mover ni módulos que separar.
+
 <!--
-Siguiente número disponible: ADR-013
+Siguiente número disponible: ADR-014
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->

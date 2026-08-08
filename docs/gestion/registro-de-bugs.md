@@ -30,6 +30,7 @@ Tres razones concretas, no burocráticas:
 | BUG-003 | 2026-08-08 | S2 | — (infraestructura) | `docker compose config -q` fallaba en un clon limpio por depender de un `.env` que nunca se versiona | Cerrado | D5 |
 | BUG-004 | 2026-08-08 | S2 | M5 | `PaginaVeedor.tsx` compara el acceso contra la contraseña `'1234'` escrita en el código fuente | Cerrado | D5 |
 | BUG-005 | 2026-08-08 | S3 | — (proceso) | Los PRs se siguen fusionando sin revisor, y el patrón empeora en vez de mejorar | Abierto | Equipo |
+| BUG-006 | 2026-08-08 | S2 | M5 | La rama `vista-previa-total` vuelve a comparar contra `'1234'` y borra la prueba que cerró `BUG-004` | Abierto | D4 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -38,6 +39,39 @@ Tres razones concretas, no burocráticas:
 ---
 
 ## Bugs abiertos — detalle
+
+### BUG-006 — La rama `vista-previa-total` vuelve a pedir la contraseña `'1234'` y borra la prueba que lo impedía
+
+- **Fecha:** 2026-08-08 · **Severidad:** S2 · **Módulo:** M5 · **Responsable:** D4
+- **Estado:** Abierto — **no está en `develop`**; se dispara solo si la rama se fusiona sin poner al día
+
+**Síntoma:** en `origin/vista-previa-total`, `frontend/src/pages/PaginaVeedor.tsx:16` vuelve a
+contener `if (contraseña === '1234')` y el texto *"Código de acceso temporal (MOCK: usa 1234)"* en la
+línea 33 — exactamente el defecto que cerró `BUG-004`. En la misma rama,
+`frontend/src/pages/PaginaVeedor.test.tsx` aparece **borrado**, que es la prueba escrita para impedir
+esta regresión.
+
+**Reproducción:** consistente, 2 de 2 ejecuciones.
+
+```
+git show origin/develop:frontend/src/pages/PaginaVeedor.tsx | grep -c 1234          → 0
+git show origin/vista-previa-total:frontend/src/pages/PaginaVeedor.tsx | grep -c 1234 → 2
+git diff --name-status origin/develop origin/vista-previa-total -- frontend/src/pages/PaginaVeedor.test.tsx → D
+```
+
+**Esperado:** `develop` no vuelve a contener una credencial comparable escrita en el código, y
+`PaginaVeedor.test.tsx` sigue existiendo y en verde. `BUG-004` quedó cerrado con esa prueba como
+condición de cierre.
+
+**Causa raíz:** la rama se creó antes del PR #30 (el que corrigió `BUG-004`) y nunca se sincronizó con
+`develop`. Al fusionarla, su versión antigua del archivo pisa la corregida y arrastra consigo el
+borrado del test. No es un cambio deliberado de D4: es divergencia por una rama larga sin rebase.
+
+**Corrección:** pendiente. Condición de entrada del PR de M5 (paso 4 del plan de integración):
+`git rebase origin/develop` sobre la rama, conservar `PaginaVeedor.test.tsx` y correr `npm test` en
+verde antes de abrir el PR. Sin eso, el PR no se fusiona.
+
+---
 
 ### BUG-005 — Los PRs se fusionan sin revisor, y el patrón empeora
 
@@ -146,5 +180,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-006
+Siguiente número disponible: BUG-007
 -->
