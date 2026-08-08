@@ -29,6 +29,7 @@ Tres razones concretas, no burocráticas:
 | BUG-002 | 2026-08-07 | S3 | CI | Frontend CI fallaba al asumir un script `test` que el esqueleto no tiene | Cerrado | D2 |
 | BUG-003 | 2026-08-08 | S2 | — (infraestructura) | `docker compose config -q` fallaba en un clon limpio por depender de un `.env` que nunca se versiona | Cerrado | D5 |
 | BUG-004 | 2026-08-08 | S2 | M5 | `PaginaVeedor.tsx` compara el acceso contra la contraseña `'1234'` escrita en el código fuente | Cerrado | D5 |
+| BUG-005 | 2026-08-08 | S3 | — (proceso) | Los PRs se siguen fusionando sin revisor, y el patrón empeora en vez de mejorar | Abierto | Equipo |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -37,6 +38,29 @@ Tres razones concretas, no burocráticas:
 ---
 
 ## Bugs abiertos — detalle
+
+### BUG-005 — Los PRs se fusionan sin revisor, y el patrón empeora
+
+**Síntoma:** la auditoría del 2026-08-08 (sesión de D3) encontró 18 de 32 PRs fusionados sin revisor
+registrado, ya un incumplimiento de la política de `ADR-010`. El mismo día, después de dejarlo escrito
+en `sprint-0.md`, los PRs #40, #41 y #42 se fusionaron igual sin revisor: los tres, fusionados por
+Carlos (D2) en un lapso de 30 segundos (07:37:03–07:37:33 UTC), con `reviews: []` y `comments: []`
+verificado con `gh pr view --json reviews,comments`. Esto es relevante en particular para el PR #42
+(propuesta de `ADR-012`), cuyo propio texto pedía explícitamente aprobación por comentario antes de
+fusionarse — la fusión no la sustituye, y el ADR se mantiene en estado *Propuesta* por esa razón.
+**Reproducción:** cualquier PR abierto en este repositorio puede fusionarse sin que nadie deje un
+comentario o *review* — no hay protección de rama configurada (`ADR-010`, decisión deliberada: es
+política, no candado técnico).
+**Esperado:** `docs/gestion/README.md` §"Definición de terminado" exige *"entró por Pull Request con
+al menos 1 revisor"* para cualquier entregable.
+**Causa raíz:** la política es solo documentada, no técnica (`ADR-010`), y hoy no hay ningún hábito ni
+recordatorio que la haga cumplir en la práctica — cada quien fusiona su propio trabajo o el de otro sin
+pausar a pedir o dejar una revisión.
+**Corrección:** *pendiente.* No es un bug de código: es un hábito de equipo. Posible acción concreta
+para la retrospectiva del Sprint 0: acordar que nadie fusiona su propio PR sin al menos un comentario
+de otro integrante, y que el Scrum Master del sprint lo verifique antes de cerrar el sprint.
+
+---
 
 ### BUG-004 — `PaginaVeedor.tsx` compara el acceso contra una contraseña escrita en el código *(cerrado)*
 
@@ -122,5 +146,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-005
+Siguiente número disponible: BUG-006
 -->
