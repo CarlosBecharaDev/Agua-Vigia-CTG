@@ -26,6 +26,10 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 0
 
+### 2026-08-07 · D4 · `feature/d4-sprint2-reportar`
+**Qué:** M2 completado (UI): FormularioReporte con selecciones accesibles, sin registro (RF005), 2 toques desde el mapa leyendo sector de URL (RF008) y opción de ubicación (RF007). Pantalla de éxito. Usa datos mock provisionales. PR pendiente de crear.
+**Sigue:** Crear PR a `develop` y esperar C2 para integrar `POST /api/reportes` con TanStack Query.
+
 ### 2026-08-07 · D3 · `docs/alistamiento-sprint0`
 **Qué:** Auditoría de coherencia de todo el repositorio (8 PRs, 4 ramas, 20 documentos). Corregidas 10
 contradicciones entre documentos y la realidad del repositorio: `ADR-009` (el Sprint 0 admite
