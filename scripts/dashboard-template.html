@@ -338,12 +338,17 @@
   .chip-mini.validada { background: var(--color-estado-con-bg); color: var(--color-estado-con); }
   .chip-mini.descartada { background: var(--color-estado-sin-bg); color: var(--color-estado-sin); }
   .chip-mini.resuelta { background: var(--color-estado-prog-bg); color: var(--color-estado-prog); }
-  .rec-item { padding: 0.9rem 0; border-bottom: 1px dashed var(--color-linea); break-inside: avoid-column; }
-  .rec-item:last-child { border-bottom: none; padding-bottom: 0; }
-  .rec-cab { display: flex; align-items: baseline; gap: 0.55rem; flex-wrap: wrap; margin-bottom: 0.35rem; }
+  .lista-recomendaciones { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  @media (max-width: 780px) { .lista-recomendaciones { grid-template-columns: 1fr; } }
+  .rec-item {
+    background: var(--color-superficie); border: 1px solid var(--color-linea); border-radius: var(--radio-lg);
+    box-shadow: var(--sombra); padding: 1.1rem 1.25rem; overflow-wrap: anywhere;
+  }
+  .rec-cab { display: flex; align-items: baseline; gap: 0.55rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
   .rec-id { font-family: var(--font-util); font-size: 0.72rem; color: var(--color-acento); }
   .rec-titulo { font-family: var(--font-display); font-size: 0.98rem; font-weight: 600; color: var(--color-tinta); }
   .rec-detalle { font-family: var(--font-display); font-size: 0.9rem; line-height: 1.7; color: var(--color-tinta-2); }
+  .nota-firma { font-family: var(--font-cuerpo); font-size: 0.72rem; color: var(--color-tinta-3); margin-top: 1.2rem; padding-top: 1rem; border-top: 1px dashed var(--color-linea); }
 
   .panel-notas textarea, .panel-notas input[type=text] {
     border-radius: var(--radio-base); border: 1px solid var(--color-linea); background: var(--color-superficie-2);
@@ -530,10 +535,8 @@
 
       <section id="recomendaciones">
         <div class="cab-seccion"><div><h2>Mejoras a futuro — recomendaciones</h2><p class="desc">La lectura de Claude sobre el proyecto — <span class="mono">docs/gestion/recomendaciones-ia.md</span>. Se agregan al notar algo, no al final de la sesión; el equipo las valida o descarta cambiando su estado.</p></div></div>
-        <div class="card narrativa">
-          <div id="lista-recomendaciones"></div>
-          <div class="firma">Carlos, esto es una lectura mía del estado del repositorio hasta el commit más reciente que generó esta página — no un veredicto. El equipo cambia el estado de cada una (Pendiente → Validada / Descartada / Resuelta) editando el archivo.</div>
-        </div>
+        <div class="lista-recomendaciones" id="lista-recomendaciones"></div>
+        <p class="nota-firma">Carlos, esto es una lectura mía del estado del repositorio hasta el commit más reciente que generó esta página — no un veredicto. El equipo cambia el estado de cada una (Pendiente → Validada / Descartada / Resuelta) editando el archivo.</p>
       </section>
 
       <section id="resumen-textual">
