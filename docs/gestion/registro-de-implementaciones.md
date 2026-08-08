@@ -80,6 +80,7 @@ no la abre quien la produce el insumo, la abre su titular (`secuencia-de-trabajo
 | RF001 · RF002 · RF004 | func | M1 backend: adaptador Mongo de `SectorRepository` (índice `2dsphere`, geometría preservada al guardar), adaptador de `RelojPort`, `GET /api/sectores` y `/api/sectores/{id}`, errores RFC 7807, contrato OpenAPI publicado. **Abre C2** | D3 | [#56](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/56) | `./mvnw clean verify` → **34 pruebas, 0 fallos**, ArchUnit incluido · verificado además contra Mongo real: 211 sectores servidos, 404 en `application/problem+json` |
 | RF009–RF011 | infra | M3: adaptador Redis de `ContadorReportesPort` — ventana deslizante de reportes por sector sobre un `ZSET` (score = instante epoch millis), TTL de retención de 24h. No deduplica por `HuellaDispositivo` a propósito (responsabilidad del rate limiting HTTP, todavía sin construir). Sin consumidor todavía: `EvaluarConsensoUseCase` sigue sin existir en `application/` (capa de D2) | D3 | [#57](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/57) | `./mvnw clean verify` → 40 pruebas, 0 fallos, ArchUnit incluido · `RedisContadorReportesAdapterTest` — 6 pruebas de integración contra `redis:7-alpine` real (Testcontainers) |
 | RF019 · RNF011 | func | M5: infraestructura JWT del panel del veedor — `POST /api/veedor/sesion` (credencial única BCrypt, RF019), `SecurityConfig` protege `/api/veedor/**` y deja el resto público, token expira a las 8h exactas (RNF011). Sin CRUD de cortes ni moderación todavía: necesitan casos de uso de `application/`, capa de D2 | D3 | [#58](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/58) | `./mvnw clean verify` → 52 pruebas, 0 fallos, ArchUnit incluido · `JwtProviderTest` (6), `VeedorAuthControllerTest` (8) · verificado además en vivo: login, 401/404 según corresponda, expiración exacta de 8h |
+| — (parte de M9, RF029–RF036) | infra | M9: `DocumentoCrudo` (normalización + hash SHA-256), `PrefiltroDeterminista` (9 palabras clave ya aprobadas en el diseño, descarta ~70% del volumen antes de gastar un token de IA) y `DeduplicadorReciente` (mitad Redis del diseño, ventana de 7 días, deliberadamente no permanente). Sin colectores (`AcuacarApiCollector`, `RssCollector`) ni capa de IA — bloqueados por `BL-004`/`BL-005`, no rodeados | D3 | [#59](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/59) | `./mvnw clean verify` → 70 pruebas, 0 fallos, ArchUnit incluido · `PrefiltroDeterministaTest` (11, con titulares reales del diseño), `DeduplicadorRecienteTest` (3, integración contra `redis:7-alpine`), `DocumentoCrudoTest` (4) |
 
 ⚠️ **El PR #12 introdujo datos simulados sin desbloqueo temporal registrado.** `SECTORES_MOCK`
 sustituye a `GET /api/sectores`, que no existe porque C2 está cerrada. La regla del proyecto
@@ -120,6 +121,16 @@ que no existía en ninguno de los dos PRs por separado, solo en su combinación 
 sin manejar `MethodArgumentNotValidException`/`NoResourceFoundException`, y `SectorControllerTest` sin
 `@Import(SecurityConfig.class)`). Se corrigió antes de fusionar; detalle en `registro-de-bugs.md`
 (`BUG-011`).
+
+**El PR #59 no tiene `RF` porque es explícitamente parcial:** cubre solo la parte del pipeline M9 que
+no toca la red externa. Sin `RF029`–`RF036` en la columna a propósito — asignárselos inflaría la
+cobertura de un módulo que todavía no tiene ni un colector ni la capa de IA conectados. `BL-004`
+(correo de contacto real, de D1) y `BL-005` (clave de Anthropic, del equipo) documentan por qué se
+detuvo ahí en vez de rodearlo.
+
+⚠️ **El PR #59 se fusionó sin ningún revisor humano** (`reviews: []`) — séptima ocurrencia de
+`BUG-005`. Igual que en los PR #57 y #58, el agente revisó el código y las pruebas antes de fusionar,
+autorizado explícitamente por Carlos (D2) en el chat.
 
 ---
 

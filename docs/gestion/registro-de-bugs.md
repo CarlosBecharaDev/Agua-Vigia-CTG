@@ -287,6 +287,12 @@ PR #56 y #57 ya fusionados, no en ninguno de los tres por separado. Es evidencia
 de ojos, aunque no sea humano, está encontrando defectos reales de integración — pero no reemplaza la
 razón original por la que la política pide un revisor: que alguien del equipo, no solo quien fusiona,
 entienda y respalde el cambio.
+**Verificado el 2026-08-08, séptima ocurrencia:** el PR
+[#59](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/59) (normalización, prefiltro y dedup
+del pipeline de ingesta M9, D3) se fusionó también con `reviews: []`. Sin bug de integración esta vez
+— el merge fue limpio salvo conflictos de texto — pero el patrón de fondo no cambió: cuatro PRs
+seguidos (#56, #57, #58, #59) de la misma sesión, todos fusionados sin que un segundo humano del
+equipo los viera.
 **Reproducción:** cualquier PR abierto en este repositorio puede fusionarse sin que nadie deje un
 comentario o *review* — no hay protección de rama configurada (`ADR-010`, decisión deliberada: es
 política, no candado técnico).
