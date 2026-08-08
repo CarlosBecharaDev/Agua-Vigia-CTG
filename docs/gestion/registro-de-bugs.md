@@ -336,6 +336,14 @@ del pipeline de ingesta M9, D3) se fusionó también con `reviews: []`. Sin bug 
 — el merge fue limpio salvo conflictos de texto — pero el patrón de fondo no cambió: cuatro PRs
 seguidos (#56, #57, #58, #59) de la misma sesión, todos fusionados sin que un segundo humano del
 equipo los viera.
+**Verificado el 2026-08-08, octava ocurrencia:** el PR
+[#60](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/60) (rate limiting HTTP genérico, D3,
+último de cinco PRs de la misma sesión) se fusionó también con `reviews: []`. Igual que en la sexta
+ocurrencia, la revisión del agente encontró algo real antes de fusionar: `BUG-012`, un fallo de
+integración que solo existía en la combinación de este PR con los tres anteriores ya fusionados
+(#56, #58, #59), no en ninguno por separado. Cinco PRs, ocho ocurrencias del mismo patrón en una
+sola sesión — el hábito de fondo sigue sin corregirse, aunque la revisión automatizada haya estado
+atrapando los defectos de integración que ese hábito habría dejado pasar sin que nadie se enterara.
 **Reproducción:** cualquier PR abierto en este repositorio puede fusionarse sin que nadie deje un
 comentario o *review* — no hay protección de rama configurada (`ADR-010`, decisión deliberada: es
 política, no candado técnico).
