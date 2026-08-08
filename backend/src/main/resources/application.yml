@@ -7,6 +7,17 @@ spring:
 server:
   port: ${SERVER_PORT:8080}
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    # 3.0.1 y no 3.1: en 3.1 `nullable` deja de ser palabra clave y springdoc la descarta en vez
+    # de traducirla a `type: [x, "null"]`. El contrato quedaria diciendo que `estado` siempre trae
+    # valor, que es justo lo contrario de lo que decide ADR-014, y el cliente generado por D4
+    # heredaria la mentira.
+    version: openapi_3_0
+  swagger-ui:
+    path: /swagger-ui.html
+
 management:
   endpoints:
     web:
