@@ -57,6 +57,12 @@ Radio, W Radio, Zona Cero.
 - **Alcaldía de Cartagena** (`cartagena.gov.co`): devuelve **HTTP 403** incluso con `User-Agent` de
   navegador. Sus comunicados sí aparecen indexados en Google News.
 
+### 2026-08-07 — GeoJSON de barrios de Cartagena verificado y disponible
+Cartagena Cómo Vamos publica un Feature Service público en ArcGIS con los 213 barrios (polígonos,
+WGS84): `services7.arcgis.com/.../Barrios_de_Cartagena/FeatureServer/0`. Descargado a
+`data/geoespacial/barrios-cartagena.geojson`. Tiene 3 `CODIGO` duplicados y no trae población.
+Detalle, licencia y problemas conocidos: `data/geoespacial/README.md`.
+
 ### 2026-08-06 — GDELT quedó sin verificar
 La API pública de GDELT devolvió `429 Too Many Requests` durante la auditoría (límite compartido de
 su infraestructura, no un bloqueo dirigido). **No está descartada: está pendiente de reintentar** con
