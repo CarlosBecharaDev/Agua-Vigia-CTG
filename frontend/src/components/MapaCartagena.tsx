@@ -23,8 +23,8 @@ import { InsigniaEstado } from './InsigniaEstado'
 const CENTRO: L.LatLngExpression = [10.3950, -75.4800]
 const ZOOM_INICIAL = 13
 const BOUNDS_CARTAGENA: L.LatLngBoundsExpression = [
-  [10.28, -75.56], // Suroeste más cerrado
-  [10.45, -75.42]  // Noreste más cerrado
+  [10.25, -75.68], // Suroeste (Expandido más al sur y al oeste para que no se corte Cartagena)
+  [10.48, -75.35]  // Noreste (Expandido un poco para dar más margen)
 ]
 
 interface Props {
@@ -32,7 +32,8 @@ interface Props {
   cargando: boolean
   error: string | null
   ultimaActualizacion: string | null
-  onSectorSeleccionado?: (sector: Sector) => void
+  sectorActivo: Sector | null
+  onSectorSeleccionado?: (sector: Sector | null) => void
   onAbrirReporte?: (sectorId: string) => void
 }
 
@@ -46,13 +47,13 @@ export const MapaCartagena: FC<Props> = ({
   cargando,
   error,
   ultimaActualizacion,
+  sectorActivo,
   onSectorSeleccionado,
   onAbrirReporte
 }) => {
   const contenedorRef = useRef<HTMLDivElement>(null)
   const mapaRef = useRef<L.Map | null>(null)
   const capaRef = useRef<L.GeoJSON | null>(null)
-  const [sectorActivo, setSectorActivo] = useState<Sector | null>(null)
 
   // Índice de sectores por nombre normalizado para lookup O(1)
   const indiceSectores = useRef<Map<string, Sector>>(new Map())
@@ -88,7 +89,18 @@ export const MapaCartagena: FC<Props> = ({
         className: esActivo ? 'barrio-seleccionado' : ''
       }
     })
-  }, [sectorActivo])
+
+    // Centrar automáticamente el mapa en el polígono del barrio seleccionado
+    if (sectorActivo) {
+      capaRef.current.eachLayer((layer: any) => {
+        const nombre = layer.feature?.properties?.NOMBRE ?? ''
+        const sector = indiceSectores.current.get(normalizarNombre(nombre))
+        if (sector && sector.id === sectorActivo.id && mapaRef.current) {
+          mapaRef.current.flyToBounds(layer.getBounds(), { padding: [20, 20], duration: 1.5 })
+        }
+      })
+    }
+  }, [sectorActivo, sectores])
 
   // Inicializar el mapa una sola vez
   useEffect(() => {
@@ -118,11 +130,14 @@ export const MapaCartagena: FC<Props> = ({
     const mapa = mapaRef.current
     if (!mapa) return
 
+    let montado = true;
+
     if (capaRef.current) { capaRef.current.remove(); capaRef.current = null }
 
     fetch('/barrios-cartagena.geojson')
       .then(r => r.json())
       .then((geojson) => {
+        if (!montado) return;
         const capa = L.geoJSON(geojson, {
           style: (feature) => {
             const nombre = feature?.properties?.NOMBRE ?? ''
@@ -148,10 +163,17 @@ export const MapaCartagena: FC<Props> = ({
             layer.bindTooltip(nombre, { sticky: true, className: 'leaflet-tooltip-av' })
 
             layer.on('click', () => {
-              if (sector) {
-                setSectorActivo(sector)
-                onSectorSeleccionado?.(sector)
-              }
+              // Si el barrio no está en la BD, lo generamos al vuelo como CON_SERVICIO
+              const sectorClick = sector || {
+                id: `geo-${normalizarNombre(nombre)}`,
+                nombre: nombre,
+                estado: 'CON_SERVICIO',
+                reportesActivos: 0,
+                actualizadoHace: 'En este momento',
+                actualizadoEn: new Date().toISOString()
+              };
+              
+              onSectorSeleccionado?.(sectorClick as Sector)
             })
 
             layer.on('mouseover', (e) => {
@@ -167,7 +189,9 @@ export const MapaCartagena: FC<Props> = ({
         capaRef.current = capa
       })
       .catch(console.error)
-  }, [sectores, onSectorSeleccionado])
+
+    return () => { montado = false; }
+  }, [onSectorSeleccionado])
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
@@ -250,7 +274,7 @@ export const MapaCartagena: FC<Props> = ({
             </div>
             <button
               aria-label="Cerrar detalle del sector"
-              onClick={() => setSectorActivo(null)}
+              onClick={() => onSectorSeleccionado?.(null)}
               style={{
                 background: 'none',
                 border: 'none',

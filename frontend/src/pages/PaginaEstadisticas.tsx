@@ -20,6 +20,7 @@ import {
 } from 'recharts'
 
 import { Download, AlertTriangle, Clock, TrendingUp, Sparkles } from 'lucide-react'
+import { AguaVigiaAPI } from '../api/services'
 
 // Generador de datos dinámicos para el gráfico principal
 const MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -83,10 +84,44 @@ const datosSectoresAfectadosInicial = [
 
 const PaginaEstadisticas: FC = () => {
   const [periodo, setPeriodo] = useState<'30dias' | '3meses'>('30dias')
-  const datosCumplimiento = useMemo(() => generarDatosPeriodo(periodo), [periodo])
+  const [datosCumplimiento, setDatosCumplimiento] = useState<any[]>(generarDatosPeriodo('30dias'))
   
   const [datosBarras, setDatosBarras] = useState(datosSectoresAfectadosInicial)
+  
+  // KPIs
   const [kpiReportes, setKpiReportes] = useState(3452)
+  const [kpiTiempoPromedio, _setKpiTiempoPromedio] = useState('4.2 hrs')
+  const [kpiBarriosAfectados, _setKpiBarriosAfectados] = useState('8')
+
+  useEffect(() => {
+    // Cargar datos de cumplimiento cuando cambie el periodo
+    AguaVigiaAPI.obtenerDatosCumplimiento(periodo)
+      .then(data => { if (data && data.length > 0) setDatosCumplimiento(data) })
+      .catch(err => {
+        console.warn("API de cumplimiento no disponible, usando MOCKS", err);
+        setDatosCumplimiento(generarDatosPeriodo(periodo));
+      });
+  }, [periodo]);
+
+  useEffect(() => {
+    // Cargar KPIs iniciales y sectores afectados
+    AguaVigiaAPI.obtenerKPIs()
+      .then(data => {
+        if (data) {
+          setKpiReportes(data.totalReportesMes);
+          _setKpiTiempoPromedio(data.tiempoPromedioCorte);
+          _setKpiBarriosAfectados(data.barriosAfectadosHoy.toString());
+        }
+      })
+      .catch(() => console.warn("API de KPIs no disponible, usando MOCKS"));
+
+    AguaVigiaAPI.obtenerSectoresAfectados()
+      .then(data => {
+        if (data && data.length > 0) setDatosBarras(data);
+      })
+      .catch(() => console.warn("API de sectores afectados no disponible, usando MOCKS"));
+  }, []);
+  
   const [barrasVisibles, setBarrasVisibles] = useState(false)
   const seccionBarrasRef = useRef<HTMLElement>(null)
 
@@ -139,11 +174,12 @@ const PaginaEstadisticas: FC = () => {
         </div>
 
         {/* KPIs (Métricas rápidas clave) */}
+        {/* TODO M5: Reemplazar estas métricas por las que envíe C2 desde el servidor real */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6" style={{ marginBottom: '3.5rem' }}>
           {[
             { titulo: 'Total Reportes Mes', valor: kpiReportes.toLocaleString(), sub: '+12% vs mes anterior', Icono: TrendingUp, color: 'var(--color-acento)' },
-            { titulo: 'Tiempo Promedio de Corte', valor: '4.2 hrs', sub: 'Meta: < 3 hrs', Icono: Clock, color: 'var(--color-estado-sin)' },
-            { titulo: 'Barrios Afectados Hoy', valor: '8', sub: 'De 120 barrios totales', Icono: AlertTriangle, color: 'var(--color-estado-baja)' }
+            { titulo: 'Tiempo Promedio de Corte', valor: kpiTiempoPromedio, sub: 'Meta: < 3 hrs', Icono: Clock, color: 'var(--color-estado-sin)' },
+            { titulo: 'Barrios Afectados Hoy', valor: kpiBarriosAfectados, sub: 'De 120 barrios totales', Icono: AlertTriangle, color: 'var(--color-estado-baja)' }
           ].map((kpi, i) => {
             const Icono = kpi.Icono
             return (

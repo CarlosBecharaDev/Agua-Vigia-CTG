@@ -44,7 +44,7 @@ export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema }) => (
     style={{
       position: 'sticky',
       top: 0,
-      zIndex: 100,
+      zIndex: 2000,
       borderBottom: '1px solid var(--color-linea)',
       display: 'flex',
       alignItems: 'center',

@@ -39,6 +39,20 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
+    proxy: {
+      '/acuacar-api': {
+        target: 'https://www.acuacar.com/wp-json/wp/v2',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/acuacar-api/, ''),
+      },
+      '/google-news-rss': {
+        target: 'https://news.google.com/rss',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/google-news-rss/, ''),
+      },
+    },
   },
   // @ts-ignore - Vitest types
   test: {

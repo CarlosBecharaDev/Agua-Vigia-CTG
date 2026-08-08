@@ -10,37 +10,37 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto:wght@500;700&display=swap');
 @import "tailwindcss";
 
-/* ─── Modo claro (por defecto) ─── */
+/* ─── Modo claro (por defecto - Apple Style) ─── */
 :root {
-  /* Acento tech serio (Cyan Profundo / Azul Acero) */
-  --color-acento:        #0284C7; /* Sky 600 */
-  --color-acento-vivo:   #0369A1; /* Sky 700 */
+  /* Apple Blue */
+  --color-acento:        #0066cc;
+  --color-acento-vivo:   #0071e3;
 
-  /* Tinta (Escala Zinc) */
-  --color-tinta:         #18181B; /* Zinc 900 */
-  --color-tinta-2:       #52525B; /* Zinc 500 */
-  --color-tinta-3:       #A1A1AA; /* Zinc 400 */
+  /* Apple Ink */
+  --color-tinta:         #1d1d1f;
+  --color-tinta-2:       #7a7a7a;
+  --color-tinta-3:       #cccccc;
 
-  /* Superficies (Translucidas para efecto Glass) */
-  --color-linea:         rgba(228, 228, 231, 0.4); /* Zinc 200 con opacidad */
-  --color-superficie:    rgba(255, 255, 255, 0.75);
-  --color-fondo:         #F4F4F5; /* Zinc 100 */
+  /* Superficies Apple planas (sin glassmorphism) */
+  --color-linea:         #e0e0e0;
+  --color-superficie:    #ffffff;
+  --color-fondo:         #f5f5f7;
 
-  /* ── Colores de ESTADO DEL SERVICIO — reservados, no reutilizar ── */
-  --color-estado-con:    #15803d;   /* Verde serio */
-  --color-estado-sin:    #b91c1c;   /* Rojo serio  */
-  --color-estado-baja:   #b45309;   /* Ámbar serio */
-  --color-estado-prog:   #475569;   /* Gris pizarra para programado */
+  /* ── Colores de ESTADO DEL SERVICIO ── */
+  --color-estado-con:    #34c759;   /* Apple Green */
+  --color-estado-sin:    #ff3b30;   /* Apple Red  */
+  --color-estado-baja:   #ff9500;   /* Apple Orange */
+  --color-estado-prog:   #8e8e93;   /* Apple Gray */
 
-  /* Tipografía Profesional */
-  --font-display: 'Roboto', ui-sans-serif, system-ui, sans-serif;
-  --font-cuerpo:  'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-util:    ui-monospace, "Cascadia Mono", Consolas, monospace;
+  /* Tipografía Apple */
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+  --font-cuerpo:  -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --font-util:    "SF Mono", ui-monospace, monospace;
 
-  /* Espaciado base (radios más ovalados y modernos) */
-  --radio-base: 0.75rem;
-  --radio-md:   1rem;
-  --radio-lg:   1.5rem;
+  /* Espaciado base (Apple Corners) */
+  --radio-base: 8px;
+  --radio-md:   11px;
+  --radio-lg:   18px;
   --radio-pill: 9999px;
 
   /* Foco — WCAG AA: contorno de 2px visible en teclado */
@@ -53,67 +53,67 @@
   color-scheme: light;
 }
 
-/* ─── Modo oscuro — media query del SO ─── */
+/* ─── Modo oscuro — media query del SO (Apple Dark Mode) ─── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --color-acento:       #38BDF8; /* Sky 400 */
-    --color-acento-vivo:  #7DD3FC; /* Sky 300 */
+    --color-acento:       #2997ff;
+    --color-acento-vivo:  #0071e3;
 
-    --color-tinta:        #FAFAFA; /* Zinc 50 */
-    --color-tinta-2:      #A1A1AA; /* Zinc 400 */
-    --color-tinta-3:      #52525B; /* Zinc 500 */
+    --color-tinta:        #ffffff;
+    --color-tinta-2:      #a1a1a6;
+    --color-tinta-3:      #6e6e73;
 
-    --color-linea:        rgba(39, 39, 42, 0.5); /* Zinc 800 translúcido */
-    --color-superficie:   rgba(24, 24, 27, 0.65); /* Zinc 900 translúcido */
-    --color-fondo:        #09090B; /* Zinc 950 */
+    --color-linea:        #38383a;
+    --color-superficie:   #1c1c1e;
+    --color-fondo:        #000000;
 
-    --color-estado-con:   #22c55e;
-    --color-estado-sin:   #ef4444;
-    --color-estado-baja:  #f59e0b;
-    --color-estado-prog:  #94a3b8;
+    --color-estado-con:   #30d158;
+    --color-estado-sin:   #ff453a;
+    --color-estado-baja:  #ff9f0a;
+    --color-estado-prog:  #98989d;
 
     color-scheme: dark;
   }
 }
 
-/* ─── Modo oscuro — interruptor manual (gana sobre el SO) ─── */
+/* ─── Modo oscuro — interruptor manual (Apple) ─── */
 :root[data-theme="dark"] {
-  --color-acento:       #38BDF8;
-  --color-acento-vivo:  #7DD3FC;
+  --color-acento:       #2997ff;
+  --color-acento-vivo:  #0071e3;
 
-  --color-tinta:        #FAFAFA;
-  --color-tinta-2:      #A1A1AA;
-  --color-tinta-3:      #52525B;
+  --color-tinta:        #ffffff;
+  --color-tinta-2:      #a1a1a6;
+  --color-tinta-3:      #6e6e73;
 
-  --color-linea:        rgba(39, 39, 42, 0.5);
-  --color-superficie:   rgba(24, 24, 27, 0.65);
-  --color-fondo:        #09090B;
+  --color-linea:        #38383a;
+  --color-superficie:   #1c1c1e;
+  --color-fondo:        #000000;
 
-  --color-estado-con:   #22c55e;
-  --color-estado-sin:   #ef4444;
-  --color-estado-baja:  #f59e0b;
-  --color-estado-prog:  #94a3b8;
+  --color-estado-con:   #30d158;
+  --color-estado-sin:   #ff453a;
+  --color-estado-baja:  #ff9f0a;
+  --color-estado-prog:  #98989d;
 
   color-scheme: dark;
 }
 
-/* ─── Modo claro forzado por interruptor ─── */
+/* ─── Modo claro forzado por interruptor (Apple) ─── */
 :root[data-theme="light"] {
-  --color-acento:        #0284C7;
-  --color-acento-vivo:   #0369A1;
+  --color-acento:        #0066cc;
+  --color-acento-vivo:   #0071e3;
 
-  --color-tinta:         #18181B;
-  --color-tinta-2:       #52525B;
-  --color-tinta-3:       #A1A1AA;
+  --color-tinta:         #1d1d1f;
+  --color-tinta-2:       #7a7a7a;
+  --color-tinta-3:       #cccccc;
 
-  --color-linea:         rgba(228, 228, 231, 0.4);
-  --color-superficie:    rgba(255, 255, 255, 0.75);
-  --color-fondo:         #F4F4F5;
+  --color-linea:         #e0e0e0;
+  --color-superficie:    #ffffff;
+  --color-fondo:         #f5f5f7;
 
-  --color-estado-con:    #15803d;
-  --color-estado-sin:    #b91c1c;
-  --color-estado-baja:   #b45309;
-  --color-estado-prog:   #475569;
+  --color-estado-con:    #34c759;
+  --color-estado-sin:    #ff3b30;
+  --color-estado-baja:   #ff9500;
+  --color-estado-prog:   #8e8e93;
 
   color-scheme: light;
 }
@@ -226,32 +226,26 @@ select {
 .bg-fondo       { background-color: var(--color-fondo); }
 .border-linea   { border-color: var(--color-linea); }
 
-/* ─── Efecto Glassmorphism ─── */
+/* ─── Efecto Superficie Apple (Sin Glassmorphism) ─── */
 .panel-glass {
   background-color: var(--color-superficie);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--color-linea);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
 }
 
-/* ─── Efectos Interactivos (Hover, Brillo, Escala) ─── */
+/* ─── Efectos Interactivos (Sutiles al estilo Apple) ─── */
 .hover-glowing {
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s ease, box-shadow 0.3s ease !important;
-  will-change: transform, box-shadow;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease !important;
+  will-change: transform;
 }
 
 .hover-glowing:hover {
-  transform: scale(1.015);
-  border-color: #FFFFFF !important;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.4) !important;
-  z-index: 10;
+  transform: scale(1.02);
 }
 
 .hover-glowing:active {
-  transform: scale(0.95) !important;
-  box-shadow: 0 0 5px rgba(255, 255, 255, 0.2) !important;
-  border-color: var(--color-acento) !important;
+  transform: scale(0.97) !important;
+  opacity: 0.85 !important;
 }
 
 .hover-highlight-text {
