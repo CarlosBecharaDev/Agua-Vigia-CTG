@@ -98,7 +98,11 @@ export default defineConfig({
       '/acuacar-api': {
         target: 'https://www.acuacar.com/wp-json/wp/v2',
         changeOrigin: true,
-        secure: true,
+        secure: false,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'application/json'
+        },
         rewrite: (path) => path.replace(/^\/acuacar-api/, ''),
       },
       '/google-news-rss': {
