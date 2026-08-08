@@ -56,6 +56,66 @@ permanentemente, por decisión explícita, no por un permiso que falló en aplic
 
 ---
 
+### BL-004 — Los colectores del pipeline M9 no pueden salir a producción sin un correo de contacto real
+
+- **Fecha:** 2026-08-08 · **Rol bloqueado:** D3 (Sebastián) · **Compuerta:** ninguna · **Titular que lo resuelve:** D1 (Yordy)
+- **Estado:** Abierto
+
+**Tarea detenida:** `AcuacarApiCollector` y `RssCollector` (Sprint 4 de D3, M9). El diseño en
+`docs/ingenieria/pipeline-ingesta-datos.md` ya está aprobado; lo que falta es identificar el
+colector con datos reales antes de hacerle una sola petición a un tercero.
+
+**Insumo que falta:** un correo de contacto real del equipo, para `COLLECTOR_USER_AGENT` en `.env`.
+
+**Verificación:**
+```
+grep COLLECTOR_USER_AGENT .env.example
+→ COLLECTOR_USER_AGENT=AguaVigiaCTG-Bot/1.0 (+correo-de-contacto-del-equipo@pendiente)
+```
+El propio comentario de esa línea dice *"ajustar con el correo real antes de Sprint 4"* — que es
+ahora. `CLAUDE.md`, ética de datos punto 3: *"el colector se identifica siempre"*.
+
+**Por qué no se rodea:** identificar el bot con un correo que no existe es peor que no
+identificarlo — parece un canal de contacto funcional y no lo es. Sería incoherente con la propia
+tesis del proyecto (le exige transparencia a Acuacar) hacer una petición real a un tercero con una
+identidad falsa, aunque sea sin mala intención.
+
+**Trabajo alterno tomado:** se construyó y probó todo lo del pipeline que no toca la red:
+`DocumentoCrudo` (normalización + hash SHA-256), `PrefiltroDeterminista` (regex, sin red) y
+`DeduplicadorReciente` (Redis). Los colectores quedan como el siguiente paso, listos para escribirse
+en cuanto este bloqueo cierre.
+
+**Cierre:** cuando D1 confirme el correo real y se actualice `.env.example`.
+
+---
+
+### BL-005 — La capa de IA del pipeline M9 no tiene clave de Anthropic para probarse
+
+- **Fecha:** 2026-08-08 · **Rol bloqueado:** D3 (Sebastián) · **Compuerta:** ninguna · **Titular que lo resuelve:** el equipo
+- **Estado:** Abierto
+
+**Tarea detenida:** la etapa 4 del pipeline (extracción estructurada con `anthropic-java`,
+`docs/ingenieria/pipeline-ingesta-datos.md` §4).
+
+**Insumo que falta:** `ANTHROPIC_API_KEY` — vacía en `.env.example`, "cada persona usa su propia
+clave de desarrollo".
+
+**Verificación:** `grep ANTHROPIC_API_KEY .env.example` → valor vacío.
+
+**Por qué no se rodea:** el propio diseño advierte que hay que *"verificar los nombres exactos del
+builder contra la versión del SDK que quede en el `pom.xml` antes de dar por buena esta firma"* —
+es decir, ni el equipo está seguro de que el código de ejemplo compile contra `anthropic-java
+2.53.0` sin probarlo. Escribir esa capa sin poder ejecutarla ni una vez, con una API de pago,
+sería exactamente "avanzo ahora y después lo ajusto" — prohibido en `secuencia-de-trabajo.md` §5.
+
+**Trabajo alterno tomado:** el mismo que en `BL-004` — todo el pipeline previo a la IA ya está
+construido y probado, así que en cuanto haya clave, la etapa 4 se conecta directo después del
+prefiltro sin tener que rehacer nada anterior.
+
+**Cierre:** cuando alguien del equipo obtenga y configure su propia clave de desarrollo.
+
+---
+
 ## 3. Bloqueos cerrados
 
 | ID | Fecha | Rol bloqueado | Compuerta | Días detenido | Cómo se resolvió |

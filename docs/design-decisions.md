@@ -560,8 +560,67 @@ que no era el suyo, y trabajo hecho por quien no figura como responsable.
 Reasignar M7 completo a una sola persona y marcar este ADR como *Reemplazada*. Es barato: la partición
 es de responsabilidad, no de código — no hay archivos que mover ni módulos que separar.
 
+## ADR-017 — `DocumentoCrudo` vive en `infrastructure/ingest/`, no en `domain/`
+
+- **Fecha:** 2026-08-08
+- **Estado:** Aceptada
+- **Decide:** Backend – Infraestructura (D3)
+
+### Nota de numeración
+
+Este PR usa `ADR-017` porque `ADR-014`–`016` ya están reservados por los PR #56 y #58 (sin
+fusionar). Avisar si el orden de fusión cambia y hace falta renumerar.
+
+### Contexto
+
+`docs/ingenieria/pipeline-ingesta-datos.md` define `DocumentoCrudo` como la forma normalizada a la
+que convergen todos los colectores, con un campo `hash` (SHA-256) para deduplicar. Es tentador
+tratarlo como un Value Object de dominio —se parece a `Sector` o `Coordenada` en que es inmutable y
+se valida al construirse— pero no representa nada del acueducto: representa la forma de un boletín
+de prensa antes de que la IA decida si le importa al dominio o no. Si `EventoExtraido` alguna vez se
+publica como `CorteAgua`, ahí sí cruza a `domain/` — `DocumentoCrudo` nunca lo hace.
+
+También se decidió el alcance de `DeduplicadorReciente`: el diseño pide dos chequeos, uno rápido en
+Redis y uno autoritativo contra Mongo ("¿el hash ya existe en Mongo? → descartar"). El segundo
+depende de dónde el equipo decida persistir los documentos o eventos procesados —una colección que
+todavía no existe y cuyo dueño (D2 o D3) no se ha discutido—, así que este PR construye solo la
+mitad Redis, deliberadamente no permanente (ventana de 7 días, no un registro definitivo).
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| `DocumentoCrudo` como Value Object en `domain/` | Consistente con `Coordenada`/`VentanaTiempo` | Acopla el dominio a la forma de un boletín de prensa; ArchUnit (Regla de Oro) prohibiría que dependa de nada de infraestructura, y su único propósito es alimentar una llamada a una API externa |
+| **`DocumentoCrudo` en `infrastructure/ingest/`** (elegida) | Refleja lo que es: un DTO interno del pipeline, no un concepto del negocio | Ningún test de ArchUnit lo protege de mutar libremente — pero tampoco lo necesita, no es una invariante del dominio |
+| Deduplicación completa (Redis + Mongo) en este PR | Cierra el diseño de una vez | Obliga a decidir ahora dónde persisten los documentos procesados, una decisión de modelado que no es solo de D3 |
+| **Solo la mitad Redis, con el límite escrito en el código** (elegida) | Entrega valor real (evita reprocesar el mismo boletín en la semana) sin inventar una colección de Mongo que nadie diseñó todavía | La deduplicación no es permanente — un boletín republicado después de 7 días se reprocesaría |
+
+### Decisión
+
+`DocumentoCrudo`, `PrefiltroDeterminista` y `DeduplicadorReciente` viven en
+`infrastructure/ingest/`. `DeduplicadorReciente` cubre solo la ventana reciente vía Redis; el
+chequeo autoritativo contra Mongo queda pendiente de que se diseñe dónde persisten los documentos
+procesados (`BL-004`/`BL-005` en `registro-de-bloqueos.md` cubren lo que falta del pipeline).
+
+### Consecuencias
+
+- **Gana:** Sprint 4 avanza sin inventar una colección de Mongo ni una decisión de modelado que le
+  corresponde discutir al equipo, y sin arriesgar la pureza de `domain/` que protege ArchUnit.
+- **Pierde:** la deduplicación no es definitiva todavía — un reprocesamiento después de 7 días es
+  posible y esperado hasta que exista la mitad Mongo.
+- **Condiciona:** cuando se diseñe la persistencia de documentos/eventos procesados, alguien decide
+  si el chequeo autoritativo va en un nuevo puerto de dominio (como `ContadorReportesPort`, que D3
+  implementaría) o si vive enteramente en infraestructura. Ese es el momento de revisar este ADR.
+
+### Cómo se revierte
+
+Moviendo `DocumentoCrudo` a `domain/` si algún día representa algo que el dominio necesita conocer
+directamente — hoy no es el caso.
+
+---
+
 <!--
-Siguiente número disponible: ADR-014
+Siguiente número disponible: ADR-018
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->
