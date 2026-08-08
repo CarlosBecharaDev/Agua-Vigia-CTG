@@ -21,6 +21,7 @@
     <java.version>21</java.version>
     <mapstruct.version>1.6.3</mapstruct.version>
     <testcontainers.version>1.21.3</testcontainers.version>
+    <jjwt.version>0.12.6</jjwt.version>
   </properties>
 
   <dependencyManagement>
@@ -83,6 +84,30 @@
       <groupId>com.anthropic</groupId>
       <artifactId>anthropic-java</artifactId>
       <version>2.53.0</version>
+    </dependency>
+
+    <!-- JWT del panel del veedor (D3, Sprint 3 - RF019, RNF011). BCryptPasswordEncoder tambien
+         viene de aqui (spring-security-crypto), para no depender de una libreria aparte. -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-api</artifactId>
+      <version>${jjwt.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-impl</artifactId>
+      <version>${jjwt.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-jackson</artifactId>
+      <version>${jjwt.version}</version>
+      <scope>runtime</scope>
     </dependency>
 
     <dependency>

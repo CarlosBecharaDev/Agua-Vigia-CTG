@@ -31,6 +31,10 @@ Tres razones concretas, no burocráticas:
 | BUG-004 | 2026-08-08 | S2 | M5 | `PaginaVeedor.tsx` compara el acceso contra la contraseña `'1234'` escrita en el código fuente | Cerrado | D5 |
 | BUG-005 | 2026-08-08 | S3 | — (proceso) | Los PRs se siguen fusionando sin revisor, y el patrón empeora en vez de mejorar | Abierto | Equipo |
 | BUG-006 | 2026-08-08 | S2 | M5 | La rama `vista-previa-total` vuelve a comparar contra `'1234'` y borra la prueba que cerró `BUG-004` | Abierto | D4 |
+| BUG-010 | 2026-08-08 | S2 | M5 | `JwtProvider.validarYObtenerSujeto` habría podido tumbar con 500 cualquier ruta pública si `JWT_SECRET` no estaba configurado | Cerrado | D3 |
+
+**Nota de numeración:** BUG-007, BUG-008 y BUG-009 se registraron primero en los PR #56 y #57
+(sin fusionar todavía). Esta fila usa BUG-010 para no colisionar cuando converjan en `develop`.
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -39,6 +43,38 @@ Tres razones concretas, no burocráticas:
 ---
 
 ## Bugs abiertos — detalle
+
+### BUG-010 — Un `JWT_SECRET` sin configurar habría podido tumbar con 500 cualquier ruta pública
+
+- **Fecha:** 2026-08-08 · **Severidad:** S2 · **Módulo:** M5 · **Responsable:** D3
+- **Estado:** Cerrado — corregido antes de comitear, capturado escribiendo la prueba
+
+**Síntoma (en el diseño original, nunca llegó a `develop`):** `JwtAuthenticationFilter` llama a
+`JwtProvider.validarYObtenerSujeto(token)` en **toda** petición que traiga un header `Authorization`,
+sin importar si la ruta exige autenticación o no (RF019: el resto de la plataforma es público). La
+primera versión de ese método solo capturaba `JwtException` e `IllegalArgumentException`; la
+validación del secreto (`clave()`) lanza `IllegalStateException` cuando `JWT_SECRET` no está
+configurado, y esa excepción no estaba cubierta.
+
+**Reproducción:** con `JWT_SECRET` vacío (el valor por defecto de `.env.example`, sin configurar
+todavía), cualquier petición a una ruta pública —incluida `GET /api/sectores`— con un header
+`Authorization: Bearer cualquier-cosa` habría propagado `IllegalStateException` sin capturar,
+devolviendo un 500 en una ruta que ni siquiera exige token.
+
+**Esperado:** que un `JWT_SECRET` sin configurar afecte solo al login del veedor (`503` explícito,
+ya cubierto por `VeedorAuthController`), nunca a rutas públicas.
+
+**Causa raíz:** al escribir `validarYObtenerSujeto` no se distinguió entre "token inválido" (debe
+devolver vacío) y "el servidor no puede validar nada porque está mal configurado" (debía devolver
+vacío también, pero se decidió tratarlo como una excepción de configuración sin pensar en quién
+llama al método).
+
+**Corrección:** `JwtProvider.java` — se agregó `IllegalStateException` a la captura de
+`validarYObtenerSujeto`. Cubierto por `JwtProviderTest.validarNoDebeLanzarAunqueElSecretoEsteMalConfigurado`
+y verificado en vivo: con `JWT_SECRET` configurado, `GET /api/veedor/lo-que-sea` sin token → 401;
+con token válido → 404 (pasó el filtro, no hay handler todavía) — nunca 500.
+
+---
 
 ### BUG-006 — La rama `vista-previa-total` vuelve a pedir la contraseña `'1234'` y borra la prueba que lo impedía
 
