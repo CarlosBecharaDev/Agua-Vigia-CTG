@@ -312,6 +312,15 @@
   .chip-mini.pendiente { background: var(--color-estado-baja-bg); color: var(--color-estado-baja); font-weight: 700; }
   .chip-mini.cerrado { background: var(--color-estado-con-bg); color: var(--color-estado-con); }
   .chip-mini.abierto { background: var(--color-estado-sin-bg); color: var(--color-estado-sin); font-weight: 700; }
+  .chip-mini.validada { background: var(--color-estado-con-bg); color: var(--color-estado-con); }
+  .chip-mini.descartada { background: var(--color-estado-sin-bg); color: var(--color-estado-sin); }
+  .chip-mini.resuelta { background: var(--color-estado-prog-bg); color: var(--color-estado-prog); }
+  .rec-item { padding: 0.9rem 0; border-bottom: 1px dashed var(--color-linea); }
+  .rec-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .rec-cab { display: flex; align-items: baseline; gap: 0.55rem; flex-wrap: wrap; margin-bottom: 0.35rem; }
+  .rec-id { font-family: var(--font-util); font-size: 0.72rem; color: var(--color-acento); }
+  .rec-titulo { font-family: var(--font-display); font-size: 0.98rem; font-weight: 600; color: var(--color-tinta); }
+  .rec-detalle { font-family: var(--font-display); font-size: 0.9rem; line-height: 1.7; color: var(--color-tinta-2); }
 
   .panel-notas textarea, .panel-notas input[type=text] {
     border-radius: var(--radio-base); border: 1px solid var(--color-linea); background: var(--color-superficie-2);
@@ -490,14 +499,10 @@
       </section>
 
       <section id="recomendaciones">
-        <div class="cab-seccion"><div><h2>Mejoras a futuro — recomendaciones</h2><p class="desc">Esta sección no la calcula el script: es la lectura de Claude sobre el proyecto, se actualiza a mano cuando hay algo nuevo que valga la pena decir.</p></div></div>
+        <div class="cab-seccion"><div><h2>Mejoras a futuro — recomendaciones</h2><p class="desc">La lectura de Claude sobre el proyecto — <span class="mono">docs/gestion/recomendaciones-ia.md</span>. Se agregan al notar algo, no al final de la sesión; el equipo las valida o descarta cambiando su estado.</p></div></div>
         <div class="card narrativa">
-          <p><strong>1. Formalizar quién es Rafael Sarmiento (<span class="mono">sarmientordev</span>).</strong> Tiene acceso de escritura al repositorio pero no aparece en <span class="mono">docs/equipo/roles-y-tareas.md</span> ni tiene un solo PR o commit todavía. Si es el 5.º integrante que se estaba esperando, formalícenlo (rol, ADR de reasignación si corresponde) y agréguenlo al <span class="mono">ROSTER</span> de <span class="mono">scripts/generar-dashboard.mjs</span> — hoy ese script lo excluye de todas las estadísticas del equipo por no estar en esa lista.</p>
-          <p><strong>2. BUG-005 (PRs sin revisor) sigue abierto y el patrón no mejora.</strong> <span class="mono">ADR-010</span> decidió conscientemente no usar branch protection técnica, y es una decisión razonable — pero el propio registro de bugs admite que la disciplina no está sosteniendo la política sola. Antes de escalar a protección técnica, algo más barato: una plantilla de PR con un checklist de "revisor asignado" y que el Scrum Master del sprint lo audite en la retro, como ya dice <span class="mono">roles-y-tareas.md</span> que debería hacer.</p>
-          <p><strong>3. C2 (contrato OpenAPI) es el cuello de botella real ahora mismo.</strong> D4 ya construyó cuatro pantallas completas contra datos simulados (5 issues de reconciliación abiertos: #34, #35, #36, #38, #39) y ese es trabajo real que se pierde si el contrato final no coincide con la forma que asumieron los mocks. Vale la pena que D3 y D1 publiquen aunque sea un <span class="mono">openapi.yaml</span> parcial pronto — no hace falta que esté completo para reducir el riesgo de que la UI ya construida tenga que rehacerse.</p>
-          <p><strong>4. La cobertura de pruebas del frontend está muy por debajo de la del backend.</strong> El backend tiene 23 pruebas reales, incluido ArchUnit protegiendo la Regla de Oro. El frontend tiene 2 (<span class="mono">InsigniaEstado.test.tsx</span>, <span class="mono">PaginaVeedor.test.tsx</span>) contra 20 archivos de componentes. <span class="mono">RNF017</span> pide ≥70% de cobertura — vale la pena empezar a cerrar esa brecha antes de que el Sprint 2 traiga más superficie de UI todavía sin probar.</p>
-          <p><strong>5. Esta misma Sala de control tiene un punto ciego que hay que vigilar.</strong> El <span class="mono">ROSTER</span> (login de GitHub → nombre/rol) está escrito a mano dentro del script, no se lee de ningún documento — es exactamente el mismo tipo de dato "vive en un solo lugar" que <span class="mono">protocolo-de-contexto.md</span> pide evitar duplicar. Si el roster cambia (como el punto 1 de arriba) y alguien actualiza <span class="mono">roles-y-tareas.md</span> sin tocar el script, el dashboard queda mintiendo con toda confianza. Vale la pena, en algún momento, mover ese mapeo a un archivo que ambos lean.</p>
-          <div class="firma">Carlos, esto es una lectura mía del estado del repositorio hasta el commit más reciente que generó esta página — no un veredicto. Bórrala, cámbiala o pídeme que la actualice cuando quieras.</div>
+          <div id="lista-recomendaciones"></div>
+          <div class="firma">Carlos, esto es una lectura mía del estado del repositorio hasta el commit más reciente que generó esta página — no un veredicto. El equipo cambia el estado de cada una (Pendiente → Validada / Descartada / Resuelta) editando el archivo.</div>
         </div>
       </section>
 
@@ -511,7 +516,7 @@
           <p>Esta página se regenera automáticamente en cada push a <span class="mono">develop</span> — <span class="mono">.github/workflows/dashboard.yml</span> corre <span class="mono">scripts/generar-dashboard.mjs</span>, que lee PRs e issues reales con <span class="mono">gh</span> y parsea los registros en <span class="mono">docs/</span>. Nada aquí se escribe a mano.</p>
           <div class="fuentes">
             <div><b>Fuentes:</b> gh pr list / gh issue list</div>
-            <div>docs/design-decisions.md · docs/gestion/registro-de-bugs.md</div>
+            <div>docs/design-decisions.md · docs/gestion/registro-de-bugs.md · docs/gestion/recomendaciones-ia.md</div>
             <div>docs/gestion/registro-de-bloqueos.md · docs/equipo/secuencia-de-trabajo.md</div>
             <div>docs/gestion/registro-de-implementaciones.md</div>
           </div>
@@ -866,6 +871,24 @@ window.addEventListener("error", function (ev) {
         '<span class="chip-mini ' + (b.estado === "Abierto" ? "abierto" : "cerrado") + '">' + b.estado + '</span></div>';
     }).join("");
     document.getElementById("lista-bugs").innerHTML = htmlBug || '<p class="vacio-atencion">Sin bugs registrados.</p>';
+  })();
+
+  /* ============== Recomendaciones (docs/gestion/recomendaciones-ia.md) ============== */
+  function formatearInline(s) {
+    return escapeHtml(s)
+      .replace(/`([^`]+)`/g, '<span class="mono">$1</span>')
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  }
+  (function renderRecomendaciones() {
+    var cont = document.getElementById("lista-recomendaciones");
+    if (!DATA.recomendaciones.length) { cont.innerHTML = '<p class="vacio-atencion">Sin recomendaciones registradas todavía.</p>'; return; }
+    var claseEstado = { "Pendiente": "pendiente", "Validada": "validada", "Descartada": "descartada", "Resuelta": "resuelta" };
+    cont.innerHTML = DATA.recomendaciones.map(function (r) {
+      return '<div class="rec-item"><div class="rec-cab"><span class="rec-id">' + r.id + '</span>' +
+        '<span class="rec-titulo">' + formatearInline(r.titulo) + '</span>' +
+        '<span class="chip-mini ' + (claseEstado[r.estado] || "pendiente") + '">' + escapeHtml(r.estado) + '</span></div>' +
+        '<div class="rec-detalle">' + formatearInline(r.detalle) + '</div></div>';
+    }).join("");
   })();
 
   /* ============== Narrativa (generada de las mismas cifras) ============== */
