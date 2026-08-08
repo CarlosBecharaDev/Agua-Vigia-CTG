@@ -26,6 +26,29 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 0
 
+### 2026-08-08 · D3 · `feature/d3-sprint1-mongo-y-api-sectores`
+**Qué:** Entregables de Sprint 1 de D3: adaptador Mongo de `SectorRepository` (índice `2dsphere`,
+conserva la geometría de D5 al guardar), adaptador de `RelojPort`, `GET /api/sectores` y
+`/api/sectores/{id}`, errores RFC 7807 y `backend/openapi.yaml` generado desde la app — **abre C2**.
+`./mvnw clean verify` → 34 pruebas, 0 fallos. `ADR-014` (estado nulo en vez de `CON_SERVICIO` sin
+dato verificado) y `ADR-015` (consultas de lectura van al puerto de salida, sin invadir
+`application/`, que es de D2). Encontrados `BUG-007` (Testcontainers vs. Docker Engine 29, corregido
+aquí mismo) y `BUG-008` (el mapa pinta de verde los 211 sectores sin dato — es de D4).
+**Sigue:** Abrir PR con revisor y avisar a D4 de que C2 abre al fusionarse, con los dos avisos del
+contrato (`estado` anulable, OpenAPI 3.0.1). Sprint 2 de D3: `POST /api/reportes` y rate limiting.
+
+### 2026-08-08 · D3 · `feature/d3-sprint2-redis-consenso`
+**Qué:** Adelanto de Sprint 2 de D3 mientras el PR #56 (Sprint 1) espera revisor: adaptador Redis de
+`ContadorReportesPort` (ventana deslizante con `ZSET`, TTL de retención) para RF009–RF011. Encontrado
+y corregido `BUG-009` (bean `RedisTemplate<String,String>` ambiguo con `stringRedisTemplate` de
+Spring — afectaba a cualquier futura inyección por tipo, no solo a este adaptador).
+`./mvnw clean verify` → 29 pruebas, 0 fallos, incluida integración contra `redis:7-alpine` real.
+**No se tocó** `POST /api/reportes` ni `EvaluarConsensoUseCase`: son casos de uso de `application/`,
+capa de D2, que sigue vacía. El resto del backlog de Sprint 2 (rate limiting HTTP, caché del mapa,
+SSE) sigue pendiente y depende de decisiones de diseño que no me corresponde tomar solo.
+**Sigue:** Rama publicada sin PR todavía — junto con el PR #56, ambos esperan revisor humano. Cuando
+D2 implemente `EvaluarConsensoUseCase`, este adaptador queda listo para conectarse sin cambios.
+
 ### 2026-08-08 · D3 · `feature/d3-sprint3-jwt-veedor`
 **Qué:** Adelanto de Sprint 3 de D3, tercer PR de la sesión: infraestructura JWT del panel del
 veedor (RF019, RNF011) — `JwtProvider`, `JwtAuthenticationFilter`, `SecurityConfig`
