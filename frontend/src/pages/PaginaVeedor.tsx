@@ -7,15 +7,6 @@ import type { FC } from 'react'
 
 const PaginaVeedor: FC = () => {
   const [autenticado, setAutenticado] = useState(false)
-  const [contraseña, setContraseña] = useState('')
-
-  // Flujo mock de autenticación
-  const alHacerLogin = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (contraseña === '1234') {
-      setAutenticado(true)
-    }
-  }
 
   if (!autenticado) {
     return (
@@ -25,40 +16,25 @@ const PaginaVeedor: FC = () => {
             Panel del Veedor
           </h1>
           <p style={{ color: 'var(--color-tinta-2)', marginBottom: '2rem', fontSize: '0.9rem' }}>
-            Acceso restringido. Requiere autenticación con token.
+            Acceso restringido. Cuando C2 (contrato OpenAPI) esté abierta, este panel exigirá
+            autenticación real con JWT. Por ahora, sin credencial que simular, entra directo a la
+            vista de moderación con datos de ejemplo.
           </p>
-          <form onSubmit={alHacerLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', color: 'var(--color-tinta)', fontWeight: '500' }}>
-              Código de acceso temporal (MOCK: usa 1234)
-              <input 
-                type="password" 
-                value={contraseña} 
-                onChange={(e) => setContraseña(e.target.value)}
-                style={{
-                  padding: '0.75rem',
-                  fontSize: '1rem',
-                  borderRadius: 'var(--radio-md)',
-                  border: '1px solid var(--color-linea)',
-                  backgroundColor: 'var(--color-superficie)'
-                }}
-              />
-            </label>
-            <button
-              type="submit"
-              disabled={!contraseña}
-              style={{
-                backgroundColor: contraseña ? 'var(--color-acento)' : 'var(--color-linea)',
-                color: contraseña ? '#FFF' : 'var(--color-tinta-3)',
-                padding: '0.75rem',
-                border: 'none',
-                borderRadius: 'var(--radio-md)',
-                fontWeight: '600',
-                cursor: contraseña ? 'pointer' : 'not-allowed'
-              }}
-            >
-              Ingresar
-            </button>
-          </form>
+          <button
+            type="button"
+            onClick={() => setAutenticado(true)}
+            style={{
+              backgroundColor: 'var(--color-acento)',
+              color: '#FFF',
+              padding: '0.75rem 1.5rem',
+              border: 'none',
+              borderRadius: 'var(--radio-md)',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            Simular ingreso de veedor
+          </button>
         </div>
       </main>
     )
