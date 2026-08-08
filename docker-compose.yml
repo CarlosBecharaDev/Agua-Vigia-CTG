@@ -1,0 +1,58 @@
+networks:
+  aguavigia:
+    driver: bridge
+
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: aguavigia-mongo
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE:-aguavigia}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - aguavigia
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: aguavigia-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - aguavigia
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: aguavigia-mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # UI web
+    networks:
+      - aguavigia
+
+  # --- Backend y frontend: se activan cuando existan sus Dockerfiles ---
+  # backend:  Dockerfile multi-etapa (Spring Boot) — tarea de D5 en Sprint 1, ver docs/equipo/D5-devops-qa.md
+  # frontend: Dockerfile multi-etapa (Vite -> Nginx) — tarea de D5 en Sprint 3, ver docs/equipo/D5-devops-qa.md
+  # No se declaran como stubs vacios para no mentir sobre el estado del proyecto (Sprint 0, fase documentacion).
+
+volumes:
+  mongo-data:
+  redis-data:
