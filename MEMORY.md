@@ -63,6 +63,14 @@ WGS84): `services7.arcgis.com/.../Barrios_de_Cartagena/FeatureServer/0`. Descarg
 `data/geoespacial/barrios-cartagena.geojson`. Tiene 3 `CODIGO` duplicados y no trae población.
 Detalle, licencia y problemas conocidos: `data/geoespacial/README.md`.
 
+### 2026-08-08 — Acuacar reporta a veces por tramo de calle/manzana, más fino que cualquier polígono
+Validado el GeoJSON de barrios contra boletines reales (#2785, #2787, #2547): los nombres coinciden
+bien, incluidos los 11 sub-sectores de Olaya Herrera. Pero Acuacar también reporta cortes por tramo de
+calle ("La Candelaria entre carrera 34 y 38...") o por manzana ("Chiquinquirá Mz 01 a Mz 05..."), un
+nivel que ningún polígono de barrio puede representar. **Relevante para M9 (D3) y el dominio `Sector`
+(D2)**: el matching texto→polígono necesita tolerancia y un umbral de confianza más bajo para avisos a
+nivel de tramo de calle. Detalle: `data/geoespacial/README.md`.
+
 ### 2026-08-06 — GDELT quedó sin verificar
 La API pública de GDELT devolvió `429 Too Many Requests` durante la auditoría (límite compartido de
 su infraestructura, no un bloqueo dirigido). **No está descartada: está pendiente de reintentar** con
