@@ -24,6 +24,8 @@ falta un requisito por escribir — ambas cosas hay que resolverlas antes de agr
 
 ## Sprint 0 — Configuración e infraestructura
 
+Sin `RF` asociado a propósito: es arquitectura base, no funcionalidad (`ADR-009`).
+
 | RF/RNF | Tipo | Qué | Resp. | PR | Prueba |
 |---|---|---|---|---|---|
 | — | infra | `docker-compose.yml` base (Mongo 7 + Redis 7 + Mailhog), `.env.example`, plantillas de PR e issue y 3 workflows de GitHub Actions | D5 | [#1](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/1) | `docker compose config -q` sin errores |
@@ -34,9 +36,29 @@ falta un requisito por escribir — ambas cosas hay que resolverlas antes de agr
 | — | datos | Validación del GeoJSON contra boletines #2785, #2787 y #2547; hallazgo de granularidad por tramo de calle y manzana | D5 | [#6](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/6) | `data/geoespacial/README.md` + `MEMORY.md` |
 | — | proceso | Regla de lenguaje llano al comunicar bloqueos en el chat | D5 | [#7](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/7) | `secuencia-de-trabajo.md` §5 |
 | — | proceso | Asignación a D2 del proyecto base de `/backend`, tarea que nadie tenía y sin la cual C0 no abre | D2 | [#8](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/8) | `D2-backend-dominio.md` §2, fila Sprint 0 |
+| — | andamio | Proyecto base de `/backend`: Maven, Java 21, Spring Boot 3.4.1, estructura vacía de Arquitectura Limpia (`domain/`, `application/`, `infrastructure/`, `api/`) | D2 | [#10](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/10) | `./mvnw verify` → BUILD SUCCESS, local y en Backend CI |
+| — | proceso | Registro del proyecto base de `/backend` en implementaciones y bitácora | D2 | [#11](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/11) | esta tabla |
 
 **Cobertura de requisitos del Sprint 0: 0 de 36.** Es lo esperado y no es un retraso: por `ADR-009`
 el Sprint 0 no implementa funcionalidad. Lo de arriba es lo que hace posible implementarla.
+
+**Con el PR #10, el comando de C0 pasa completo.** Falta que D5 lo verifique y la declare abierta —
+no la abre quien la produce el insumo, la abre su titular (`secuencia-de-trabajo.md` §2, regla 1).
+
+---
+
+## Sprint 1 — Mapa base y dominio core
+
+| RF/RNF | Tipo | Qué | Resp. | PR | Prueba |
+|---|---|---|---|---|---|
+| RF001 · RF004 | func | M1: `MapaCartagena` (Leaflet + los 213 barrios reales), `ListaSectores` accesible, `InsigniaEstado`, `EtiquetaFrescura` | D4 | [#12](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/12) | `npm run build` en verde · ⚠️ **se alimenta de `SECTORES_MOCK`, no de la API** |
+
+⚠️ **El PR #12 introdujo datos simulados sin desbloqueo temporal registrado.** `SECTORES_MOCK`
+sustituye a `GET /api/sectores`, que no existe porque C2 está cerrada. La regla del proyecto
+(`secuencia-de-trabajo.md` §5) permite exactamente esto, pero **solo** con autorización escrita del
+titular de la compuerta, caducidad e issue de reconciliación. Registrado como pendiente de regularizar
+en `registro-de-bloqueos.md` §4. No cuenta como RF001/RF004 implementados hasta que consuma la API
+real; la tabla de cobertura sigue en 0%.
 
 ---
 

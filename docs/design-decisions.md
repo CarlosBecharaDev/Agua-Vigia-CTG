@@ -376,8 +376,8 @@ repositorio remoto y registró **BL-001**. El bloqueo se cerró dándole `admin`
 no configurar branch protection técnica en GitHub.
 
 El problema no es la decisión, es lo que quedó escrito: dos documentos siguen prometiendo una red que
-no existe. Y ya falló: **4 de los 8 PRs del Sprint 0 se fusionaron sin revisor** (#2, #4, #6 y #7),
-contra la regla de 1 revisor mínimo.
+no existe. Y ya falló: **7 de los 11 PRs fusionados hasta el 2026-08-07 no registran revisor**
+(#2, #4, #6, #7, #10, #11 y #12), contra la regla de 1 revisor mínimo.
 
 ### Alternativas consideradas
 | Opción | A favor | En contra |

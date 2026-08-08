@@ -32,14 +32,25 @@ contradicciones entre documentos y la realidad del repositorio: `ADR-009` (el Sp
 andamiaje, no funcionalidad) y `ADR-010` (branch protection es política, no candado). Registrados los
 8 PRs del Sprint 0, `BUG-001` y `BUG-002` —encontrados en revisión y nunca registrados— y `BL-003`
 (D1 sin titular). Creado `sprint-0.md`. Normalizadas 6 fechas escritas en UTC a hora de Cartagena.
-**Sigue:** Que D2 suba el proyecto base de `/backend` — es lo único que falta para que D5 abra C0 y
-arranque el resto del equipo. En paralelo, designar Scrum Master interino y enviar los dos correos de
-`BL-003` (plantilla al docente, ICPSR).
+**Sigue:** Que D5 verifique y declare C0 abierta —el PR #10 ya la habilitó— y que se regularice el
+desbloqueo temporal de `SECTORES_MOCK` del PR #12. En paralelo, designar Scrum Master interino y
+enviar los dos correos de `BL-003` (plantilla al docente, ICPSR).
+
+### 2026-08-07 · D2 · `feature/d2-backend-base`
+**Qué:** Creado el proyecto base de `/backend` (issue #9, PR #10): Maven, Java 21, Spring Boot 3.4.1,
+estructura vacía de Arquitectura Limpia. `./mvnw verify` → BUILD SUCCESS local y en CI. El comando de
+C0 (`docker compose config -q && ls backend frontend`) ya pasa completo.
+**Sigue:** Avisar a D5 (Yordy) para que verifique C0 con su comando y la marque abierta en
+`registro-de-bloqueos.md` §1 — no la abre D2, el titular de esa compuerta es D5.
 
 ### 2026-08-07 · D2 · `docs/d2-diseno-dominio-sprint0`
 **Qué:** Diseño adelantado del dominio de M3/M6 (`docs/ingenieria/modelo-de-dominio.md`) mientras C0
 sigue cerrada. Corregida la duplicación de `SuscribirseService` entre D1 y D2 (era de D1 por M4).
 **Sigue:** Resolver quién crea el esqueleto de `/backend` en Sprint 0 para poder abrir C0.
+
+### 2026-08-07 · D4 · `feature/d4-sprint1-mapa`
+**Qué:** M1 completado: MapaCartagena (Leaflet + GeoJSON 213 barrios de D5), ListaSectores (RF004), InsigniaEstado, EtiquetaFrescura, useFrescura, tipos-dominio. PR #12 abierto a develop.
+**Sigue:** Que Carlos (D2) apruebe PR #12. Cuando C2 abra, reemplazar SECTORES_MOCK con TanStack Query → GET /api/sectores.
 
 ### 2026-08-07 · D4 · `feature/d4-sprint0-esqueleto`
 **Qué:** Esqueleto de `/frontend` creado: React 19 + Vite + TypeScript + Tailwind CSS v4. Tokens de `DESIGN.md` como custom properties CSS (paleta, temas claro/oscuro, tipografía, estado del servicio). `useTheme` hook + `SelectorTema` + `Encabezado` + rutas placeholder para M1, M2, M7, M8. `BL-002` registrado (D4 bloqueado por C0). Dev server en `localhost:5173`.

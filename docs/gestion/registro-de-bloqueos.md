@@ -18,7 +18,7 @@ el repositorio no.
 
 | Compuerta | La abre | Habilita a | Comando de verificación | Estado | Abierta el |
 |---|---|---|---|---|---|
-| **C0** · Entorno reproducible | D5 (verifica) · D2 aporta `/backend`, D4 aportó `/frontend` | Todos | `docker compose config -q && ls backend frontend` | 🔴 Cerrada — **solo falta `/backend`** | — |
+| **C0** · Entorno reproducible | D5 (verifica y declara) · D2 aportó `/backend`, D4 aportó `/frontend` | Todos | `docker compose config -q && ls backend frontend` | 🔴 Cerrada — ⚠️ **el comando ya pasa desde el PR #10: falta que D5 la declare** | — |
 | **C1** · Dominio y puertos | D2 | D3 · D1 | `ls backend/src/main/java/com/aguavigia/ctg/domain/port/out` | 🔴 Cerrada | — |
 | **C2** · Contrato OpenAPI | D3 · D1 | D4 | `git show develop:backend/openapi.yaml \| head -5` | 🔴 Cerrada | — |
 | **C3** · SPA integrada contra API real | D4 | D5 (E2E · despliegue) | `cd frontend && npm run build` | 🔴 Cerrada | — |
@@ -38,13 +38,12 @@ Una compuerta abierta y no anunciada deja a un compañero bloqueado sin motivo.
 - **Estado:** Abierto
 
 **Tarea detenida:** Integrar el proyecto `/frontend` con `docker compose` (backend + Redis + MongoDB corriendo). Sin entorno reproducible no se puede validar el flujo completo.
-**Insumo que falta** *(actualizado el 2026-08-07 tras la auditoría — dos de los tres insumos originales ya existen)*: el proyecto base de `/backend`, que crea D2 en el Sprint 0. Ruta esperada: `/backend/pom.xml`. Además, Docker Desktop instalado en la máquina de D4, que es tarea suya y no depende de nadie.
-**Ya no falta:** el PR #1 de D5 (fusionado en `43cb22d`) ni `/frontend` (existe desde el PR #5).
+**Insumo que falta** *(actualizado el 2026-08-07 tras la auditoría)*: **ninguno del lado del equipo.** Solo falta que D5 declare C0 abierta, y que D4 instale Docker Desktop en su máquina — tarea suya, que no depende de nadie.
+**Ya no falta:** el PR #1 de D5 (fusionado en `43cb22d`), `/frontend` (PR #5) ni `/backend` (PR #10).
 **Verificación** *(2026-08-07, contra `develop` al día)*:
 ```
-> docker compose config -q && ls backend frontend
-frontend
-ls: no se encuentra 'backend'
+> ls backend frontend
+backend  frontend
 ```
 **Avisado en el chat:** Sí · a José Daniel Zambrano (D4).
 **Trabajo alterno tomado:** Esqueleto de `/frontend` creado (React 19 + Vite + TypeScript + Tailwind CSS v4), tokens de `DESIGN.md` como custom properties CSS, selector de tema claro/oscuro, rutas placeholder para M1/M2/M7/M8 — todo trabajo de Sprint 0 que no cruza ninguna compuerta.
@@ -97,7 +96,17 @@ deuda técnica disfrazada de permiso.
 
 | ID | Compuerta | Autoriza | Qué se permite exactamente | Caduca | Issue de reconciliación | Estado |
 |---|---|---|---|---|---|---|
-| — | — | — | *Sin desbloqueos vigentes.* | — | — | — |
+| DT-001 | C2 | ⚠️ **nadie todavía** — lo debe autorizar D3 (titular de C2) | `SECTORES_MOCK` en `/frontend`: datos de sectores escritos a mano donde debería ir `GET /api/sectores`. Introducido por el PR #12 (M1) | *por fijar* | *por abrir* | ⚠️ **Por regularizar** |
+
+**Sobre DT-001.** El PR #12 se fusionó con datos simulados en lugar de la API, que no existe porque
+C2 está cerrada. Es una salida legítima —`secuencia-de-trabajo.md` §5 la contempla— pero requiere
+autorización escrita del titular, caducidad e issue de reconciliación, y ninguna de las tres se
+registró. No es un reproche a D4: el mapa no se podía construir de otro modo y el propio PR declara
+que `SECTORES_MOCK` se reemplaza al abrir C2. Lo que falta es dejarlo escrito, que es justamente lo
+que impide que un dato simulado sobreviva hasta el Sprint 6.
+
+**Para cerrarlo:** D3 autoriza y fija caducidad (propuesta: al abrir C2), se abre el issue de
+reconciliación y se marca la fila como vigente. Si caduca sin reconciliar, pasa a bug S2.
 
 Condiciones obligatorias de todo desbloqueo temporal:
 
