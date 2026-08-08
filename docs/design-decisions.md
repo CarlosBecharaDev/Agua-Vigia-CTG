@@ -505,9 +505,12 @@ frontera de propiedad estricta, con desbloqueo temporal caso por caso.
 ## ADR-013 — M7 (Estadísticas) se parte: la pantalla es de D4, las métricas y su contrato son de D5
 
 - **Fecha:** 2026-08-08
-- **Estado:** 🟡 **Propuesta — pendiente de ratificación de Carlos (D2) y José Daniel (D4).** Hasta que
-  la ratifiquen, `roles-y-tareas.md` no se modifica y M7 sigue figurando como de D5.
+- **Estado:** 🟡 **Propuesta — ratificada por Carlos (D2) el 2026-08-08; pendiente de José Daniel (D4).**
+  Hasta que José Daniel también ratifique, `roles-y-tareas.md` no se modifica y M7 sigue figurando
+  como de D5.
 - **Propone:** Yordy Pardo Pajaro (D5, titular actual de M7)
+- **Ratifica (D2):** Carlos Bechara Arias, 2026-08-08 — de acuerdo con la partición: pantalla de M7 a
+  D4, métricas/contrato de datos a D5, agregaciones Mongo sin cambio en D3.
 
 ### Contexto
 

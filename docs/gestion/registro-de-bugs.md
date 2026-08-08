@@ -156,6 +156,11 @@ Carlos (D2) en un lapso de 30 segundos (07:37:03–07:37:33 UTC), con `reviews: 
 verificado con `gh pr view --json reviews,comments`. Esto es relevante en particular para el PR #42
 (propuesta de `ADR-012`), cuyo propio texto pedía explícitamente aprobación por comentario antes de
 fusionarse — la fusión no la sustituye, y el ADR se mantiene en estado *Propuesta* por esa razón.
+**Verificado el 2026-08-08:** el patrón se repitió una cuarta vez — el PR
+[#45](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/45), que es justamente el que registra
+este bug y propone `ADR-013`, se fusionó también con `reviews: []` (`gh pr view 45 --json reviews`),
+fusionado por Carlos (D2). Por la misma razón que el PR #42, `ADR-013` sigue en estado *Propuesta*: su
+condición de ratificación no se cumplió con la fusión.
 **Reproducción:** cualquier PR abierto en este repositorio puede fusionarse sin que nadie deje un
 comentario o *review* — no hay protección de rama configurada (`ADR-010`, decisión deliberada: es
 política, no candado técnico).

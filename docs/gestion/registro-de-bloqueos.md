@@ -57,6 +57,32 @@ Al conectar el frontend a estos dos endpoints caducan `DT-001` y `DT-002`.
 
 ## 2. Bloqueos abiertos — detalle
 
+### BL-004 — D2 (Carlos) no puede empezar la lógica de consenso ni la de reportes: el Sprint 0 no ha cerrado formalmente
+
+- **Fecha:** 2026-08-08 · **Rol bloqueado:** D2 · **Compuerta:** ninguna — es la frontera de fase de
+  `ADR-009`, no una compuerta C0–C3 · **Titular que lo resuelve:** D5 (Yordy Pardo Pajaro, Scrum Master
+  interino del Sprint 0)
+- **Estado:** Abierto
+
+**Tarea detenida:** `EvaluarConsensoService` (RF009–RF011, patrón Strategy) y `RegistrarReporteService`
+(RF005–RF007) — lo que la hoja de ruta de `secuencia-de-trabajo.md` §4 marca como Sprint 2 de D2, pero
+que ya podría empezar en cuanto exista un sprint abierto que lo autorice.
+**Insumo que falta:** el Review de cierre del Sprint 0 (`sprint-0.md` §4, sin filas todavía) y el
+Planning del Sprint 1 — son ceremonias del Scrum Master, no un artefacto de código.
+**Verificación:** `ls docs/gestion/sprint-1.md` → no existe. `sprint-0.md` §4 "Review — qué se
+demostró funcionando" está vacío. `ADR-009`: *"¿este código implementa un RF? Si la respuesta es sí,
+no va en el Sprint 0"* — sigue vigente mientras el Sprint 0 no cierre. C0 y C1 (lo único que el
+trabajo de D2 consume) ya están abiertas, así que **no es que falte el insumo de otro rol en el
+sentido técnico** — es que falta la ceremonia que autoriza escribir el siguiente RF.
+**Avisado en el chat:** sí, a Carlos (D2), 2026-08-08.
+**Trabajo alterno tomado:** poner al día `registro-de-implementaciones.md` (faltan PR #21 y #44–48) y
+`bitacora-sesiones.md` (sin entradas después del PR #33); ratificar `ADR-012`; corregir la mención de
+`NotificacionPort` en `secuencia-de-trabajo.md` §3 Paso 2, que ya no es tarea de D2 desde la corrección
+del `modelo-de-dominio.md` §5.
+**Cierre:** pendiente.
+
+---
+
 **Nota aparte, no bloqueante — cerrada, 2026-08-08:** el cierre de BL-001 (tabla §3) decía que Carlos
 le había dado rol `admin` a Yordy. **Causa raíz encontrada:** en un repositorio personal (no una
 organización), GitHub no ofrece forma de cambiar el rol de un colaborador ya existente — ni por API
