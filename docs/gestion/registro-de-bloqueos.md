@@ -32,7 +32,27 @@ Una compuerta abierta y no anunciada deja a un compañero bloqueado sin motivo.
 
 ## 2. Bloqueos abiertos — detalle
 
-*(Vacío. El código de la aplicación aún no ha iniciado.)*
+### BL-001 — No se puede configurar branch protection en `main`/`develop` por falta de permiso `admin`
+
+- **Fecha:** 2026-08-07 · **Rol bloqueado:** D5 · **Compuerta:** C0 (tarea parcial, no la compuerta completa) · **Titular que la abre:** D5, pero requiere admin del repositorio (Carlos Bechara, D2, dueño de `CarlosBecharaDev/Agua-Vigia-CTG`)
+- **Estado:** Abierto
+
+**Tarea detenida:** configurar reglas de protección de rama en `main` y `develop` — tarea de Sprint 0
+de D5 (`docs/equipo/D5-devops-qa.md` §2: "ramas main/develop y reglas de protección de PR").
+**Insumo que falta:** permiso `admin` sobre `github.com/CarlosBecharaDev/Agua-Vigia-CTG`. La cuenta
+autenticada del agente (Jordy-Lv, de D5) solo tiene `push` y `triage`.
+**Verificación:**
+1. `gh api repos/CarlosBecharaDev/Agua-Vigia-CTG --jq '{permissions}'` →
+   `{"admin":false,"maintain":false,"pull":true,"push":true,"triage":true}`
+2. `gh api repos/CarlosBecharaDev/Agua-Vigia-CTG/branches/main/protection -X PUT ...` → `404 Not Found`
+   (2026-08-07)
+**Avisado en el chat:** sí · a Yordy Pardo Pajaro (D5).
+**Trabajo alterno tomado:** resto del alcance de Sprint 0 de D5 completado sin necesitar admin — rama
+`develop` creada y publicada, `.env.example`, `docker-compose.yml` base (Mongo+Redis+Mailhog) y
+workflows de GitHub Actions (backend-ci, frontend-ci, secret-scan). Ver PR #1:
+`feature/d5-sprint0-infraestructura` → `develop`.
+**Cierre:** pendiente — se cierra cuando Carlos Bechara configure la protección él mismo, o le dé
+rol `admin` a Yordy en Settings → Collaborators del repositorio.
 
 ---
 
@@ -81,5 +101,5 @@ proyecto ya pagó una vez el precio de afirmar sin verificar (ver `MEMORY.md`).
 **Trabajo alterno tomado:** en qué se avanzó mientras tanto, o "ninguno" si no lo había.
 **Cierre:** fecha + cómo se abrió la compuerta.
 
-Siguiente número disponible: BL-001
+Siguiente número disponible: BL-002
 -->
