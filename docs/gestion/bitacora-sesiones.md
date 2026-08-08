@@ -26,6 +26,11 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 0
 
+### 2026-08-08 · D2 · `docs/d2-diseno-dominio-sprint0`
+**Qué:** Diseño adelantado del dominio de M3/M6 (`docs/ingenieria/modelo-de-dominio.md`) mientras C0
+sigue cerrada. Corregida la duplicación de `SuscribirseService` entre D1 y D2 (era de D1 por M4).
+**Sigue:** Resolver quién crea el esqueleto de `/backend` en Sprint 0 para poder abrir C0.
+
 ### 2026-08-07 · D5 · `feature/d5-sprint0-infraestructura`
 **Qué:** Creada `develop`, `.env.example`, `docker-compose.yml` base (Mongo+Redis+Mailhog) y workflows
 de GitHub Actions (backend-ci, frontend-ci, secret-scan). Abierto PR #1 hacia `develop`. Registrado
