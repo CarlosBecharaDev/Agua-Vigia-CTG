@@ -7,7 +7,9 @@ services:
     image: mongo:7.0
     container_name: aguavigia-mongo
     restart: unless-stopped
-    env_file: .env
+    env_file:
+      - path: .env
+        required: false
     environment:
       MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE:-aguavigia}
     ports:

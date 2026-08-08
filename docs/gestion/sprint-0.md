@@ -26,7 +26,7 @@ arrancar sin fricción. Qué se permite escribir y qué no: `ADR-009`.
 | D5 | — | Repositorio, ramas, `.env.example`, plantillas de PR e issue | — | ✅ PR #1 |
 | D5 | — | `docker-compose.yml` (Mongo + Redis + Mailhog) y 3 workflows de CI | — | ✅ PR #1 |
 | D5 | — | GeoJSON de los 213 barrios, validado contra boletines reales | — | ✅ PRs #2 y #6 |
-| D5 | — | **Verificar y declarar C0 abierta**, y anunciarlo al equipo | — *(ya no depende de nada)* | 🟡 **Pendiente — es lo único que falta** |
+| D5 | — | **Verificar y declarar C0 abierta**, y anunciarlo al equipo | — *(ya no depende de nada)* | ✅ Declarada 2026-08-08 — de paso se encontró y corrigió `BUG-003` (`docker compose config -q` fallaba sin `.env`) |
 | D2 | — | **Proyecto base de `/backend`**: Maven, Java 21, Spring Boot 3.4.1, paquetes vacíos de Arquitectura Limpia | — | ✅ PR #10 |
 | D2 | — | Diseño del dominio de M3/M6 en `docs/ingenieria/modelo-de-dominio.md` | — | ✅ PR #4 |
 | D4 | — | Esqueleto de `/frontend`: React 19 + Vite + TS + Tailwind, tokens de `DESIGN.md`, rutas vacías | — | ✅ PR #5 |
@@ -37,16 +37,16 @@ arrancar sin fricción. Qué se permite escribir y qué no: `ADR-009`.
 La columna **Depende de** es la importante: es donde se ven los bloqueos antes de que ocurran.
 Cadena de dependencias y compuertas: [`../equipo/secuencia-de-trabajo.md`](../equipo/secuencia-de-trabajo.md) §1 y §2.
 
-### Camino crítico — una sola cosa
+### Camino crítico — resuelto
 
 ```
-✅ D2 subió /backend (PR #10)  →  🟡 D5 verifica y declara C0  →  D2 empieza el dominio  →  C1  →  D3 y D1
-                                                              →  D4 integra el frontend (cierra BL-002)
+✅ D2 subió /backend (PR #10)  →  ✅ D5 verificó y declaró C0 (2026-08-08)  →  D2 empieza el dominio  →  C1  →  D3 y D1
+                                                                          →  D4 integra el frontend (cierra BL-002)
 ```
 
-**Todo lo demás del Sprint 0 ya está hecho.** El comando de C0 pasa desde el PR #10; lo único que
-falta es que su titular la declare abierta y lo anuncie. Una compuerta que está abierta de hecho pero
-cerrada en la tabla deja al equipo esperando sin motivo (`secuencia-de-trabajo.md` §2, regla 3).
+**C0 está abierta.** D2 y D3 pueden empezar su trabajo de dominio y puertos sin esperar a nadie más.
+Solo queda `BL-002` (D4 instala Docker en su máquina — tarea suya, no depende de nadie) y `BL-003`
+(vacante de D1).
 
 ---
 
