@@ -30,3 +30,11 @@ jobs:
       # si domain/ importa Spring o MongoDB, este paso falla la build.
       - name: Build y pruebas (incluye ArchUnit)
         run: ./mvnw --batch-mode verify
+
+      - name: Publicar reporte de cobertura (JaCoCo)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: backend/target/site/jacoco/
+          retention-days: 14
