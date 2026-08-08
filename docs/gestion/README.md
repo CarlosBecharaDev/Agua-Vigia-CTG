@@ -26,7 +26,9 @@ Son parte de la definición de terminado del proyecto, no una formalidad.
 
 **1. Toda implementación se registra.**
 Al fusionar un PR a `develop`, una fila en `registro-de-implementaciones.md` con su `RF`, su PR y su
-prueba. Un requisito sin fila no cuenta como implementado, aunque el código exista.
+prueba. Un requisito sin fila no cuenta como implementado, aunque el código exista. **Aplica a todo
+PR fusionado**, no solo al que implementa un requisito: el andamiaje, la infraestructura y los
+cambios de proceso llevan `RF = —` y su `Tipo`, y no suman a la cobertura (`ADR-009`).
 
 **2. Todo bug se registra al encontrarlo**, aunque se arregle en el acto.
 Con severidad, causa raíz y la prueba que impide que vuelva. Un bug arreglado sin prueba es un bug que

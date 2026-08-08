@@ -14,6 +14,11 @@ repositorio.
 **Tarea bloqueante del Sprint 0 (D1):** validar esta lista contra el documento del docente y corregir
 lo que difiera. Ver [`../informe-metodologico/README.md`](../informe-metodologico/README.md).
 
+🚧 **Nadie la está haciendo: D1 no tiene titular** (`BL-003` en
+[`../gestion/registro-de-bloqueos.md`](../gestion/registro-de-bloqueos.md)). Los Anexos 1–3 vencen en
+el Sprint 0 y no tienen responsable. Pedirle la plantilla al docente es un correo y destraba los diez
+documentos de esta lista.
+
 ---
 
 ## Los seis anexos

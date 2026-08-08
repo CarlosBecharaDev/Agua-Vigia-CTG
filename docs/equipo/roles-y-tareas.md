@@ -53,7 +53,12 @@ No hay un Scrum Master fijo: **el rol rota cada sprint**, en orden D1 → D2 →
 
 | Sprint | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
 |---|---|---|---|---|---|---|---|
-| **Scrum Master** | D1 | D2 | D3 | D4 | D5 | D1 | D2 |
+| **Scrum Master** | D1 ⚠️ | D2 | D3 | D4 | D5 | D1 ⚠️ | D2 |
+
+⚠️ **D1 no tiene titular, así que el Sprint 0 va sin Scrum Master.** No es un detalle de forma: es la
+razón de que nadie convocara planning, de que `sprint-0.md` no existiera hasta el 2026-08-07 y de que
+la creación de `/backend` pasara dos sesiones sin dueño. Registrado como **BL-003**; mientras la
+vacante siga, el equipo designa un Scrum Master interino entre los cuatro titulares.
 
 **Por qué rota:** son 5 estudiantes con la misma carga académica; un Scrum Master fijo pierde un
 desarrollador y concentra en una persona el aprendizaje de la gestión, que también se evalúa.

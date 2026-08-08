@@ -35,7 +35,7 @@ Mientras está cerrada, quien depende de ella **no empieza**: registra el bloque
 
 | # | Compuerta | La abre | Habilita a | Artefacto que la abre | Se verifica con |
 |---|---|---|---|---|---|
-| **C0** | Entorno reproducible | D5 | Todos | `/backend`, `/frontend`, `docker-compose.yml`, CI en verde | `docker compose config -q && ls backend frontend` |
+| **C0** | Entorno reproducible | D5 **verifica y declara**; D2 aporta `/backend`, D4 aportó `/frontend` | Todos | Proyectos `/backend` y `/frontend` que compilan, `docker-compose.yml` levantando Mongo, Redis y Mailhog, y CI en verde. **No** incluye los Dockerfiles de backend y frontend: son de los Sprints 1 y 3 | `docker compose config -q && ls backend frontend` |
 | **C1** | Dominio y puertos | D2 | D3 · D1 | Entidades, objetos de valor y `domain/port/**` fusionados en `develop`, ArchUnit en verde | `ls backend/src/main/java/com/aguavigia/ctg/domain/port/out` |
 | **C2** | Contrato OpenAPI | D3 · D1 | D4 | `backend/openapi.yaml` versionado en `develop` | `git show develop:backend/openapi.yaml \| head -5` |
 | **C3** | SPA integrada | D4 | D5 (QA) | Frontend consumiendo la API real, build sin errores | `cd frontend && npm run build` |
@@ -57,10 +57,14 @@ Mientras está cerrada, quien depende de ella **no empieza**: registra el bloque
 **Empieza:** siempre. No depende de nadie.
 **Cierra abriendo C0.**
 
-1. Inicializa el repositorio con `/backend` y `/frontend`, ramas y protección de PR.
+1. Inicializa el repositorio y las ramas. **Los proyectos base no los crea D5**: `/frontend` lo hizo
+   D4 y `/backend` lo hace D2 (asignado el 2026-08-07). D5 verifica que ambos existan y compilen, y
+   entonces declara C0 abierta.
 2. Levanta `docker-compose.yml` (MongoDB + Redis + Mailhog).
 3. Deja el pipeline de GitHub Actions compilando ambos proyectos.
-4. Carga el GeoJSON de barrios de Cartagena.
+4. Carga el GeoJSON de barrios de Cartagena. ✅ *Hecho en el Sprint 0 (PRs #2 y #6).*
+
+**La protección de ramas no se configura**: es política documentada, no candado técnico (`ADR-010`).
 
 ### Paso 2 · D2 (Backend · dominio) — define el corazón
 
@@ -114,8 +118,8 @@ accesibilidad estáticas no cruzan la compuerta. Lo que no se puede es inventar 
 
 | Sprint | Enfoque principal | D5 (DevOps/QA) | D2 (Dominio) | D3 (Infra/IA) | D1 (Full-Stack/IA Docs) | D4 (Frontend) |
 |---|---|---|---|---|---|---|
-| **Sprint 0** | Configuración e infraestructura | Repositorio, Docker Compose, CI/CD | Proyecto base de `/backend` (asignado 2026-08-08) | — | Plantillas de correo, prompts IA (Anexos 1–3) | Esqueleto React + Vite, tokens CSS |
-| **Sprint 1** | Mapa base y dominio core | Carga GeoJSON barrios | Entidades Java, ArchUnit, puertos | Adaptador Mongo, API Sectores, OpenAPI | API Suscripción, `@Async` Mail, prompts (Cap. I) | Mapa Leaflet, lista accesible |
+| **Sprint 0** | Configuración e infraestructura | Repositorio, Docker Compose, CI/CD, GeoJSON de barrios | Proyecto base de `/backend` (asignado 2026-08-07) | — | ⚠️ *sin titular — ver BL-003* | Esqueleto React + Vite, tokens CSS |
+| **Sprint 1** | Mapa base y dominio core | Script de siembra del GeoJSON en Mongo | Entidades Java, ArchUnit, puertos | Adaptador Mongo, API Sectores, OpenAPI | API Suscripción, `@Async` Mail, prompts (Cap. I) | Mapa Leaflet, lista accesible |
 | **Sprint 2** | Reporte ciudadano y consenso | Testcontainers, JaCoCo | Lógica de consenso (patrón Strategy) | Rate limit Redis, `POST /api/reportes` | Doble opt-in, prompts (Cap. II) | Formulario en 2 toques, SSE |
 | **Sprint 3** | Administración y alertas | Docker Nginx frontend | Reglas de corte oficial (Builder) | CRUD cortes veedor, JWT | Backend bitácora (M8), prompts (Cap. III) | Panel del veedor, formulario de alertas |
 | **Sprint 4** | Ingesta IA y Cumplimiento ⭐ | Dashboard M7, prueba de caos | `CalcularCumplimientoService` | **Pipeline M9 IA**, `citaTextual` | Timeline bitácora, tabular encuestas | UI del Índice de Cumplimiento |
@@ -148,7 +152,7 @@ accesibilidad estáticas no cruzan la compuerta. Lo que no se puede es inventar 
 
 ### Anunciar el resultado siempre — no solo cuando bloquea
 
-**Regla del equipo, 2026-08-08.** No basta con detenerse y avisar cuando hay bloqueo (siguiente
+**Regla del equipo, 2026-08-07.** No basta con detenerse y avisar cuando hay bloqueo (siguiente
 sección): **en toda tarea, la respuesta del agente dice explícitamente** si se puede avanzar o si hay
 que esperar a que otro rol adelante algo — aunque la respuesta sea "sí, se puede avanzar". Callar la
 verificación cuando todo está en orden deja a la persona (o a su compañero) preguntándose si alguien

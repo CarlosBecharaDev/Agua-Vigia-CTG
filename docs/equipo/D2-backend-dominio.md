@@ -4,7 +4,7 @@
 > **Responsable:** Reglas de negocio puras, modelos del dominio, casos de uso y cálculo del Índice de Cumplimiento.
 > **Módulos asignados:** M3 (Consenso automático), M6 (Índice de Cumplimiento ⭐).
 > **Capa del código:** `/backend/src/main/java/com/aguavigia/ctg/domain` y `/backend/src/main/java/com/aguavigia/ctg/application`.
-> **Compuertas:** crea el proyecto base de `/backend` en Sprint 0 (asignado 2026-08-08 — ver tabla de
+> **Compuertas:** crea el proyecto base de `/backend` en Sprint 0 (asignado 2026-08-07 — ver tabla de
 > Sprint 0 abajo), lo que le falta a C0 para abrir · empieza el dominio cuando **C0** está abierta ·
 > **abre C1** (dominio y puertos) para D3 y D1. Ver [`secuencia-de-trabajo.md`](secuencia-de-trabajo.md) §2.
 
