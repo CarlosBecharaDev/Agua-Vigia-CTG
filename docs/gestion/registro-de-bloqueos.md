@@ -20,7 +20,7 @@ el repositorio no.
 |---|---|---|---|---|---|
 | **C0** · Entorno reproducible | D5 (verificó y declaró) · D2 aportó `/backend`, D4 aportó `/frontend` | Todos | `docker compose config -q && ls backend frontend` | 🟢 **Abierta** | 2026-08-08 |
 | **C1** · Dominio y puertos | D2 | D3 · D1 | `ls backend/src/main/java/com/aguavigia/ctg/domain/port/out` | 🟢 Abierta — entidades, VOs y `domain/port/**` en `develop` (PR #21), ArchUnit en verde | 2026-08-08 |
-| **C2** · Contrato OpenAPI | D3 · D1 | D4 | `git show develop:backend/openapi.yaml \| head -5` | 🟡 **Parcial — abre al fusionar el PR de D3** | 2026-08-08 |
+| **C2** · Contrato OpenAPI | D3 · D1 | D4 | `git show develop:backend/openapi.yaml \| head -5` | 🟢 **Abierta — PR #56 fusionado a `develop`** | 2026-08-08 |
 | **C3** · SPA integrada contra API real | D4 | D5 (E2E · despliegue) | `cd frontend && npm run build` | 🔴 Cerrada | — |
 
 Estados: 🔴 Cerrada · 🟡 Parcial (abierta solo para parte del alcance, detállalo) · 🟢 Abierta
@@ -28,11 +28,9 @@ Estados: 🔴 Cerrada · 🟡 Parcial (abierta solo para parte del alcance, det�
 **Quien abre una compuerta la marca aquí en el mismo PR que la abre**, y avisa en el chat del equipo.
 Una compuerta abierta y no anunciada deja a un compañero bloqueado sin motivo.
 
-### Alcance exacto de C2 (D3, 2026-08-08)
+### Alcance exacto de C2 (D3, 2026-08-08 · marcada 🟢 al fusionar el PR #56)
 
 `backend/openapi.yaml` está versionado y generado desde la aplicación corriendo, no escrito a mano.
-**El comando de verificación solo dará salida cuando el PR se fusione a `develop`** — hasta entonces
-la compuerta figura 🟡 y no 🟢, porque el repositorio manda sobre la tabla.
 
 **Abierto para D4:**
 
@@ -107,7 +105,11 @@ permanentemente, por decisión explícita, no por un permiso que falló en aplic
 
 ---
 
-### BL-004 — Los colectores del pipeline M9 no pueden salir a producción sin un correo de contacto real
+### BL-006 — Los colectores del pipeline M9 no pueden salir a producción sin un correo de contacto real
+
+*(Registrado originalmente como `BL-004` en el PR #59, sin ver que ese número ya estaba tomado por
+el bloqueo de D2 más arriba. Renumerado a `BL-006` el 2026-08-08 al detectar la colisión — el
+contenido no cambia.)*
 
 - **Fecha:** 2026-08-08 · **Rol bloqueado:** D3 (Sebastián) · **Compuerta:** ninguna · **Titular que lo resuelve:** D1 (Yordy)
 - **Estado:** Abierto

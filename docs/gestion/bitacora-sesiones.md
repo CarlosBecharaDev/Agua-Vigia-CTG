@@ -74,7 +74,7 @@ ya aprobadas en `pipeline-ingesta-datos.md`, sin ampliarlas por cuenta propia) y
 **No se construyeron** `AcuacarApiCollector` ni `RssCollector`: `COLLECTOR_USER_AGENT` sigue con un
 correo de contacto literalmente `pendiente`, y hacerles una petición real a Acuacar/Google
 News/Zona Cero con esa identidad sería incoherente con la ética de datos del proyecto —
-`BL-004`, para D1. Tampoco se construyó la capa de IA: sin `ANTHROPIC_API_KEY` no se puede probar
+`BL-006` (renumerado desde `BL-004`, que ya estaba tomado), para D1. Tampoco se construyó la capa de IA: sin `ANTHROPIC_API_KEY` no se puede probar
 ni una vez, y el propio diseño avisa que hay que verificar la firma del SDK contra código real
 antes de darla por buena — `BL-005`, para el equipo.
 **Sigue:** Van **cuatro PRs** de esta sesión (#56, #57, #58 y este, sin número todavía) esperando

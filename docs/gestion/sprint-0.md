@@ -67,8 +67,34 @@ Solo queda `BL-002` (D4 instala Docker en su máquina — tarea suya, no depende
 
 *(Se llena el último día del sprint. Solo lo que se pudo mostrar corriendo.)*
 
+> ⚠️ **Borrador preparado por el agente el 2026-08-08 para que Yordy (D5, Scrum Master interino) lo
+> verifique y marque la columna "¿Aceptado?".** El agente reunió la evidencia; no le corresponde
+> aceptarla — eso es del equipo, en el Review real. Mientras esta columna no se llene, el sprint
+> sigue sin cerrar y `BL-004` sigue abierto.
+
 | RF/RNF | Qué se demostró | ¿Aceptado? |
 |---|---|---|
+| — | `docker compose config -q && ls backend frontend` → sale limpio: `.env.example`, plantillas de PR/issue, 3 workflows de CI (PR #1) | |
+| — | GeoJSON de los 213 barrios de Cartagena, contrastado contra boletines reales de Acuacar (PRs #2, #6) | |
+| — | `docs/ingenieria/modelo-de-dominio.md`: diseño de dominio de M3/M6 (PR #4) | |
+| — | `/frontend`: React 19 + Vite + TS + Tailwind, temas claro/oscuro, 4 rutas — `npm run build` en verde (PR #5) | |
+| — | `/backend`: Maven, Java 21, Spring Boot 3.4.1, Arquitectura Limpia vacía — `./mvnw verify` → BUILD SUCCESS (PR #10) | |
+| — | **C0 declarada abierta** 2026-08-08 — `docker compose config -q && ls backend frontend` en verde | |
+| — | Población real por barrio (DANE 2018 + CORVIVIENDA) sembrada en Mongo — 211 sectores, `$geoIntersects` verificado (PR #13) | |
+| — | Dockerfiles multi-etapa (backend + frontend), JaCoCo en CI, perfiles de Spring, `/actuator/health` → `mongo: UP` (PRs #27, #33) | |
+| — | Anexos 1 y 2 (encuesta, guion de entrevista) trazados a RF001, RF005/RF008, RF009, RF012–RF014, RF020–RF022, RNF008 (PR #32) | |
+| — | Andamiaje de infraestructura de D3: dependencias de build, `RedisConfig`, paquetes vacíos — `./mvnw verify` en verde (PR #40) | |
+| — | **C1 abierta** (dominio y puertos, PR #21) — `ls backend/.../domain/port/out` en verde, ArchUnit incluido | |
+| — | **C2 abierta** (contrato OpenAPI, PR #56) — `git show develop:backend/openapi.yaml \| head -5` responde | |
+
+**Lo que se demostró de más, fuera del alcance formal del Sprint 0** (evidencia de que el objetivo del
+sprint —"empezar a escribir código de su capa sin preguntarle nada a nadie"— ya se cumple en la
+práctica, aunque la ceremonia no haya cerrado): D3 fusionó 6 PRs de Sprint 1 a Sprint 5
+(`#56`–`#61`: adaptador Mongo + API de sectores, adaptador Redis de consenso, JWT del veedor,
+pipeline de ingesta parcial, rate limiting HTTP, caché sobre Redis), todos con `./mvnw clean verify`
+en verde y ArchUnit incluido. Sigue en `andamio`/`infra`, no `func`, según
+`registro-de-implementaciones.md` — la cobertura de requisitos sigue en 0% hasta que D2 conecte
+casos de uso reales en `application/`, que es exactamente lo que `BL-004` tiene detenido.
 
 **Comprometido:** 0 requisitos *(por diseño — `ADR-009`)* · **Entregado:** — · **Arrastrado:** —
 

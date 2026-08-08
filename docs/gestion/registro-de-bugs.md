@@ -37,6 +37,7 @@ Tres razones concretas, no burocráticas:
 | BUG-010 | 2026-08-08 | S2 | M5 | `JwtProvider.validarYObtenerSujeto` habría podido tumbar con 500 cualquier ruta pública si `JWT_SECRET` no estaba configurado | Cerrado | D3 |
 | BUG-011 | 2026-08-08 | S2 | M1/M5 | `ManejadorGlobalDeErrores` devolvía 500 en vez de 400/404 para validación de `@Valid` y rutas sin handler; solo aparecía al fusionar los PR #56 y #58 juntos | Cerrado | Equipo (fusión) |
 | BUG-012 | 2026-08-08 | S2 | M1/M2/M5 | `RateLimitConfig` (`WebMvcConfigurer`) tumbaba cualquier `@WebMvcTest` del proyecto que no mockeara `RedisTemplate`; solo aparecía al fusionar el PR #60 sobre #56/#58 | Cerrado | Equipo (fusión) |
+| BUG-013 | 2026-08-08 | S3 | — (proceso) | `BL-004` se usó para dos bloqueos distintos en `registro-de-bloqueos.md` (el de D2 y el de los colectores del PR #59); también la tabla de compuertas §1 seguía mostrando C2 en 🟡 después de que el PR #56 la abriera | Cerrado | Equipo (documentación) |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -45,6 +46,28 @@ Tres razones concretas, no burocráticas:
 ---
 
 ## Bugs abiertos — detalle
+
+### BUG-013 — Numeración duplicada de `BL-004` y tabla de compuertas desactualizada
+
+- **Fecha:** 2026-08-08 · **Severidad:** S3 · **Módulo:** — (proceso, documentación de gestión) ·
+  **Responsable:** Equipo (encontrado y corregido al preparar el cierre del Sprint 0)
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** `registro-de-bloqueos.md` tenía dos entradas `### BL-004` distintas — el bloqueo de D2
+(Sprint 0 sin cerrar) y el de los colectores del pipeline M9 (PR #59). Además, la tabla de compuertas
+§1 seguía marcando **C2** como 🟡 Parcial, aunque el PR #56 ya la había abierto y el propio comando de
+verificación (`git show develop:backend/openapi.yaml`) lo confirmaba.
+
+**Causa raíz:** el PR #59 registró su bloqueo como `BL-004` sin revisar que ese número ya estaba en
+uso — mismo patrón que las colisiones de `ADR`/`BUG` de sesiones anteriores, esta vez en bloqueos. La
+tabla de compuertas quedó desactualizada porque quien fusionó el PR #56 no la marcó en el mismo PR,
+como pide la regla de la propia tabla ("quien abre una compuerta la marca aquí").
+
+**Corrección:** el bloqueo de los colectores se renumeró a `BL-006` (siguiente número libre), con nota
+de la colisión. Se actualizaron las referencias cruzadas en `bitacora-sesiones.md` y
+`registro-de-implementaciones.md`. La tabla de compuertas se corrigió a `🟢 Abierta — PR #56 fusionado`.
+
+---
 
 ### BUG-012 — `RateLimitConfig` tumbaba cualquier `@WebMvcTest` del proyecto, solo al combinar tres PRs
 
