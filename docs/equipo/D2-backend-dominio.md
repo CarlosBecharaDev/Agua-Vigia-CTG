@@ -9,6 +9,12 @@
 
 ---
 
+**Diseño del dominio adelantado en Sprint 0** (mientras C0 sigue cerrada):
+[`../ingenieria/modelo-de-dominio.md`](../ingenieria/modelo-de-dominio.md) — Value Objects,
+entidades, patrones y puertos de M3/M6, listo para traducir a Java cuando abra C1.
+
+---
+
 ## 1. Especificación del Rol
 
 - Diseña las entidades del dominio (`CorteAgua`, `Sector`, `ReporteCiudadano`, `EventoBitacora`).
@@ -25,7 +31,7 @@
 |---|---|
 | **Sprint 1** | • Modelar entidades de dominio y Value Objects (`Coordenada`, `EstadoServicio`, `VentanaTiempo`).<br>• Definir contratos de puertos de entrada (`port/in`) y salida (`port/out`).<br>• **Escribir el test de ArchUnit** en JUnit 5 para auditar aislamiento de `domain/`.<br>• Pruebas unitarias de las invariantes del dominio. |
 | **Sprint 2** | • Implementar `RegistrarReporteService`.<br>• Implementar `EvaluarConsensoService` con **patrón Strategy** (Estrategia 1: Umbral fijo; Estrategia 2: Umbral proporcional a población).<br>• Publicación de eventos del dominio (`SectorCambioEstadoEvent`). |
-| **Sprint 3** | • Implementar `GestionarCorteOficialService`.<br>• Implementar `SuscribirseService` (validación de reglas para doble opt-in).<br>• Validación inmutable de `CorteAgua` mediante patrón Builder (impedir horas fin < inicio). |
+| **Sprint 3** | • Implementar `GestionarCorteOficialService`.<br>• Validación inmutable de `CorteAgua` mediante patrón Builder (impedir horas fin < inicio). |
 | **Sprint 4** | • **`CalcularCumplimientoService`** (módulo estrella): comparar duración prometida vs. real.<br>• `RegistrarEventoBitacoraService` usando Factory Method.<br>• Implementación de Specification Pattern para filtros de estadísticas. |
 | **Sprint 5** | • Elevar cobertura de pruebas unitarias en `domain/` y `application/` a **$\ge 70\%$** (con JaCoCo).<br>• Refactorización de casos de uso basada en análisis de calidad de código. |
 | **Sprint 6** | • Documentar patrones de diseño aplicados y matriz de demostración SOLID (clase, línea y principio).<br>• Diagrama de clases UML definitivo. |
