@@ -146,6 +146,20 @@ accesibilidad estáticas no cruzan la compuerta. Lo que no se puede es inventar 
 | La tarea pertenece a **otro rol** | No la ejecuta. Lo dice y ofrece prepararle el insumo a su titular |
 | No logra determinar de qué depende | **Pregunta.** No supone |
 
+### Anunciar el resultado siempre — no solo cuando bloquea
+
+**Regla del equipo, 2026-08-08.** No basta con detenerse y avisar cuando hay bloqueo (siguiente
+sección): **en toda tarea, la respuesta del agente dice explícitamente** si se puede avanzar o si hay
+que esperar a que otro rol adelante algo — aunque la respuesta sea "sí, se puede avanzar". Callar la
+verificación cuando todo está en orden deja a la persona (o a su compañero) preguntándose si alguien
+la hizo. Aplica a cualquiera de los cinco, no solo a quien abrió esta conversación.
+
+Una línea, al empezar cualquier tarea, con uno de estos dos formatos:
+
+- ✅ **Se puede avanzar** — compuerta `C<N>` verificada con su comando, abierta · o la tarea no depende
+  de ninguna compuerta.
+- 🚧 **Hay que esperar** — igual que el aviso de bloqueo de la sección siguiente.
+
 ### Al detectar un bloqueo — las tres cosas, siempre
 
 1. **Detenerse** en la parte bloqueada. No en toda la sesión: en esa tarea.
