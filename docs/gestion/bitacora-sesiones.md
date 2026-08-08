@@ -95,6 +95,18 @@ proyecto, es del entorno de verificación local (`MSYS_NO_PATHCONV=1` lo evita).
 **Sigue:** Cuando el PR #58 (JWT del veedor) se fusione, activar
 `aguavigia.rate-limit.reglas[0].ruta=/api/veedor/sesion` con `limite: 5, ventanaSegundos: 300`.
 
+### 2026-08-08 · D3 · `feature/d3-cache-redis`
+**Qué:** Sexto PR de la sesión: configuración de caché sobre Redis (`@EnableCaching` +
+`RedisCacheManager`, valores en JSON no serialización Java), pendiente de Sprint 2 ("caching de
+respuestas del mapa") y Sprint 5 ("decorador de caché") — misma pieza para ambos. TTL configurable
+por `application.yml`, 30s por defecto, con overrides por nombre de cache. `./mvnw clean verify` →
+27 pruebas, 0 fallos, incluida verificación del TTL real vía inspección directa de Redis.
+**Contradicción encontrada, no resuelta por mi cuenta:** `D3-backend-infraestructura.md` Sprint 5
+sigue listando "agregaciones MongoDB para estadísticas" como mío, pero `ADR-013` (misma fecha,
+sigue 🟡 Propuesta) dice que las métricas de M7 son de D5. Señalado al equipo, no construido.
+**Sigue:** Cuando D2/D3 tengan un caso de uso de consulta real que valga la pena cachear
+(`GET /api/sectores` una vez fusione el PR #56), anotarlo con `@Cacheable("sectores")`.
+
 ### 2026-08-08 · D5 · `feature/d5-dockerfile-frontend-y-jacoco`
 **Qué:** Registrados en `registro-de-implementaciones.md` los PRs #27 y #33 (Dockerfiles backend/frontend,
 JaCoCo, perfiles de Spring, `/actuator/health`), fusionados sin registrar. Actualizados `docs/anexos/README.md`
