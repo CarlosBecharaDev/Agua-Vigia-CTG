@@ -31,6 +31,12 @@ Tres razones concretas, no burocráticas:
 | BUG-004 | 2026-08-08 | S2 | M5 | `PaginaVeedor.tsx` compara el acceso contra la contraseña `'1234'` escrita en el código fuente | Cerrado | D5 |
 | BUG-005 | 2026-08-08 | S3 | — (proceso) | Los PRs se siguen fusionando sin revisor, y el patrón empeora en vez de mejorar | Abierto | Equipo |
 | BUG-006 | 2026-08-08 | S2 | M5 | La rama `vista-previa-total` vuelve a comparar contra `'1234'` y borra la prueba que cerró `BUG-004` | Abierto | D4 |
+| BUG-007 | 2026-08-08 | S2 | — (pruebas) | Testcontainers no encuentra Docker: Engine 29 exige API ≥ 1.40 y docker-java negocia 1.32 | Cerrado | D3 |
+| BUG-008 | 2026-08-08 | S2 | M1 | El mapa pinta como "con servicio" los 211 sectores de los que no tiene dato | Abierto | D4 |
+| BUG-009 | 2026-08-08 | S2 | — (infraestructura) | `RedisTemplate<String,String>` es ambiguo entre el bean propio y `stringRedisTemplate` de Spring | Cerrado | D3 |
+
+**Nota de numeración:** BUG-007 y BUG-008 se registraron primero en el PR #56 (Sprint 1, sin
+fusionar todavía). Esta fila usa BUG-009 para no colisionar cuando ambos PRs converjan en `develop`.
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -39,6 +45,34 @@ Tres razones concretas, no burocráticas:
 ---
 
 ## Bugs abiertos — detalle
+
+### BUG-009 — `RedisTemplate<String,String>` es ambiguo entre el bean propio y `stringRedisTemplate` de Spring
+
+- **Fecha:** 2026-08-08 · **Severidad:** S2 · **Módulo:** — (infraestructura) · **Responsable:** D3
+- **Estado:** Cerrado — corregido en el mismo PR que lo encontró
+
+**Síntoma:** al inyectar `RedisTemplate<String, String>` por tipo en `RedisContadorReportesAdapter`,
+Spring falla al arrancar el contexto de prueba con
+`NoUniqueBeanDefinitionException: ... expected single matching bean but found 2: redisTemplate,stringRedisTemplate`.
+
+**Reproducción:** consistente. `RedisConfig.java` (Sprint 0) define un bean `redisTemplate` de tipo
+`RedisTemplate<String, String>`. La autoconfiguración de Spring Boot registra además
+`stringRedisTemplate` — de tipo `StringRedisTemplate`, que **extiende** `RedisTemplate<String, String>`
+y por eso también encaja en cualquier inyección por ese tipo. La autoconfiguración de este segundo
+bean no está condicionada a que falte el primero, así que los dos siempre coexisten.
+
+**Esperado:** que inyectar el `RedisTemplate<String, String>` de `RedisConfig` sea inequívoco.
+
+**Causa raíz:** ningún código había consumido ese bean por tipo hasta este PR — `RedisConfig` existía
+desde el Sprint 0/1 como andamiaje, sin consumidor que expusiera la ambigüedad. Le iba a pasar al
+primer `@Autowired RedisTemplate<String,String>` que alguien del equipo escribiera, en cualquier capa.
+
+**Corrección:** `RedisContadorReportesAdapter` — parámetro de constructor calificado con
+`@Qualifier("redisTemplate")`. Cubierto por la propia suite de integración de
+`RedisContadorReportesAdapterTest`: si el contexto no puede resolver el bean, las 6 pruebas fallan al
+arrancar (ya lo hicieron, en el diagnóstico de este bug).
+
+---
 
 ### BUG-006 — La rama `vista-previa-total` vuelve a pedir la contraseña `'1234'` y borra la prueba que lo impedía
 
