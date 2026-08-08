@@ -51,7 +51,6 @@
       "Read(**/credentials.json)",
       "Read(**/*secret*)",
 
-      "Bash(git push:*)",
       "Bash(git reset --hard:*)",
       "Bash(git clean:*)",
       "Bash(rm -rf:*)",
