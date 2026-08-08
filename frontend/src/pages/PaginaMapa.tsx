@@ -180,6 +180,7 @@ const PaginaMapa: FC = () => {
       <ModalReporte 
         abierto={modalAbierto} 
         alCerrar={() => setModalAbierto(false)} 
+        sectores={sectores}
         sectorPreseleccionado={sectorReporte}
       />
     </main>

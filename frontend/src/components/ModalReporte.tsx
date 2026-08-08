@@ -6,10 +6,11 @@ import { X, CheckCircle } from 'lucide-react'
 interface Props {
   abierto: boolean
   alCerrar: () => void
+  sectores: {id: string, nombre: string}[]
   sectorPreseleccionado?: string
 }
 
-export const ModalReporte: FC<Props> = ({ abierto, alCerrar, sectorPreseleccionado }) => {
+export const ModalReporte: FC<Props> = ({ abierto, alCerrar, sectores, sectorPreseleccionado }) => {
   const [reporteExitoso, setReporteExitoso] = useState(false)
 
   useEffect(() => {
@@ -119,6 +120,7 @@ export const ModalReporte: FC<Props> = ({ abierto, alCerrar, sectorPreselecciona
             </p>
 
             <FormularioReporte 
+              sectores={sectores}
               sectorPreseleccionado={sectorPreseleccionado}
               onReporteEnviado={() => setReporteExitoso(true)}
             />
