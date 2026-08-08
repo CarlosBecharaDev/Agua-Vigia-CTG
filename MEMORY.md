@@ -63,6 +63,14 @@ WGS84): `services7.arcgis.com/.../Barrios_de_Cartagena/FeatureServer/0`. Descarg
 `data/geoespacial/barrios-cartagena.geojson`. Tiene 3 `CODIGO` duplicados y no trae población.
 Detalle, licencia y problemas conocidos: `data/geoespacial/README.md`.
 
+### 2026-08-08 — Acuacar reporta a veces por tramo de calle/manzana, más fino que cualquier polígono
+Validado el GeoJSON de barrios contra boletines reales (#2785, #2787, #2547): los nombres coinciden
+bien, incluidos los 11 sub-sectores de Olaya Herrera. Pero Acuacar también reporta cortes por tramo de
+calle ("La Candelaria entre carrera 34 y 38...") o por manzana ("Chiquinquirá Mz 01 a Mz 05..."), un
+nivel que ningún polígono de barrio puede representar. **Relevante para M9 (D3) y el dominio `Sector`
+(D2)**: el matching texto→polígono necesita tolerancia y un umbral de confianza más bajo para avisos a
+nivel de tramo de calle. Detalle: `data/geoespacial/README.md`.
+
 ### 2026-08-06 — GDELT quedó sin verificar
 La API pública de GDELT devolvió `429 Too Many Requests` durante la auditoría (límite compartido de
 su infraestructura, no un bloqueo dirigido). **No está descartada: está pendiente de reintentar** con
@@ -98,6 +106,7 @@ throttling propio en el Sprint 0.
 | 2026-08-07 | La secuencia **D5 → D2 → D3 y D1 → D4 → D5 (QA)** es obligatoria y se controla con **4 compuertas verificables** (C0–C3). Un rol bloqueado se detiene, registra en `docs/gestion/registro-de-bloqueos.md` y **avisa en el chat**; nunca rodea el bloqueo inventando el insumo que falta. |
 | 2026-08-07 | **El agente nunca figura como colaborador del repositorio**: sin `Co-Authored-By`, sin firmas en commits o PRs. La autoría es de las 5 personas. Forzado con `includeCoAuthoredBy: false`. Ver `CLAUDE.md` § Convenciones de Git. |
 | 2026-08-08 | En **toda tarea**, el agente anuncia si se puede avanzar o hay que esperar a otro rol — no solo cuando bloquea. Ver `docs/equipo/secuencia-de-trabajo.md` §5. |
+| 2026-08-08 | Con las personas, en el chat, sin códigos de compuerta (`C0`, `C1`...) ni nombres de puerto: se explica con nombres y entregables concretos. El código sí va en el registro escrito. Ver `docs/equipo/secuencia-de-trabajo.md` §5. |
 | 2026-08-08 | Se asignó a Carlos (D2) crear el proyecto base de `/backend` en Sprint 0 — nadie lo tenía asignado y sin eso C0 no podía abrir. Ver `docs/equipo/D2-backend-dominio.md`. |
 
 ---
