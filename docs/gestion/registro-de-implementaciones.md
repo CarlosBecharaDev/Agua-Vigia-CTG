@@ -82,6 +82,7 @@ no la abre quien la produce el insumo, la abre su titular (`secuencia-de-trabajo
 | RF019 · RNF011 | func | M5: infraestructura JWT del panel del veedor — `POST /api/veedor/sesion` (credencial única BCrypt, RF019), `SecurityConfig` protege `/api/veedor/**` y deja el resto público, token expira a las 8h exactas (RNF011). Sin CRUD de cortes ni moderación todavía: necesitan casos de uso de `application/`, capa de D2 | D3 | [#58](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/58) | `./mvnw clean verify` → 52 pruebas, 0 fallos, ArchUnit incluido · `JwtProviderTest` (6), `VeedorAuthControllerTest` (8) · verificado además en vivo: login, 401/404 según corresponda, expiración exacta de 8h |
 | — (parte de M9, RF029–RF036) | infra | M9: `DocumentoCrudo` (normalización + hash SHA-256), `PrefiltroDeterminista` (9 palabras clave ya aprobadas en el diseño, descarta ~70% del volumen antes de gastar un token de IA) y `DeduplicadorReciente` (mitad Redis del diseño, ventana de 7 días, deliberadamente no permanente). Sin colectores (`AcuacarApiCollector`, `RssCollector`) ni capa de IA — bloqueados por `BL-004`/`BL-005`, no rodeados | D3 | [#59](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/59) | `./mvnw clean verify` → 70 pruebas, 0 fallos, ArchUnit incluido · `PrefiltroDeterministaTest` (11, con titulares reales del diseño), `DeduplicadorRecienteTest` (3, integración contra `redis:7-alpine`), `DocumentoCrudoTest` (4) |
 | — (RNF de rate limiting, ADR-007) | infra | Rate limiting HTTP genérico — `RateLimitingInterceptor` + `RateLimitConfig` (Redis `INCR`+`EXPIRE`), configurable por `application.yml` (`aguavigia.rate-limit.reglas`), **opt-in**: sin reglas configuradas, no protege nada. Cierra el hueco de fuerza bruta señalado en `ADR-016` (login del veedor) sin depender del PR que lo introdujo. `ADR-018`: clave por IP, no por huella de dispositivo | D3 | [#60](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/60) | `./mvnw clean verify` → 75 pruebas, 0 fallos, ArchUnit incluido · `RateLimitingInterceptorTest` (3, integración contra `redis:7-alpine`), `RateLimitConfigTest` (2, extremo a extremo con `MockMvc`) · verificado además en vivo: 3 peticiones pasan, la 4ª y 5ª reciben `429` con `Retry-After` |
+| — (infraestructura transversal) | infra | Configuración de caché sobre Redis — `@EnableCaching` + `RedisCacheManager`, valores serializados en JSON (no serialización Java), TTL configurable por `application.yml` (`aguavigia.cache`, 30s por defecto, con overrides por nombre de caché). Ningún método de producción usa `@Cacheable` todavía — queda listo para que D2/D3 lo anoten cuando exista una consulta que valga la pena cachear | D3 | [#61](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/61) | `./mvnw clean verify` → 79 pruebas, 0 fallos, ArchUnit incluido · `CacheConfigTest` (4, integración contra `redis:7-alpine`, incluida verificación del TTL real por inspección directa de Redis) |
 
 ⚠️ **El PR #12 introdujo datos simulados sin desbloqueo temporal registrado.** `SECTORES_MOCK`
 sustituye a `GET /api/sectores`, que no existe porque C2 está cerrada. La regla del proyecto
@@ -146,6 +147,18 @@ pero nadie ha activado todavía `aguavigia.rate-limit.reglas` para `/api/veedor/
 `VeedorAuthControllerTest` (que no tenían un `RedisTemplate` disponible) y dejó sin efecto la
 protección de `SecurityConfig` en el propio `RateLimitConfigTest`. Ninguno de los PRs lo tenía por
 separado; se corrigió antes de fusionar. Detalle en `registro-de-bugs.md` (`BUG-012`).
+
+**El PR #61 tampoco tiene `RF` directo y sirve a dos sprints a la vez** (Sprint 2 "caching de
+respuestas del mapa" y Sprint 5 "decorador de caché"), por eso no lleva número de módulo. **No repite
+`BUG-011`/`BUG-012`:** a diferencia de `RateLimitConfig`, `CacheConfig` no implementa
+`WebMvcConfigurer`, así que `@WebMvcTest` no lo autodetecta en otros slices — se verificó que las 79
+pruebas combinadas pasan sin tocar ningún test existente. El PR también señaló, sin resolverla por su
+cuenta, una contradicción entre `D3-backend-infraestructura.md` (agregaciones de M7 listadas como de
+D3) y `ADR-013` (M7 es de D5, sigue en *Propuesta*) — pendiente de que el equipo la resuelva.
+
+⚠️ **El PR #61 se fusionó sin ningún revisor humano** (`reviews: []`) — novena ocurrencia de
+`BUG-005`, la última de los seis PRs de esta sesión (#56 a #61). El agente revisó el código antes de
+fusionar, autorizado explícitamente por Carlos (D2) en el chat.
 
 ---
 

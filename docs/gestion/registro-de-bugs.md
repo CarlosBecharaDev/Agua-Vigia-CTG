@@ -344,6 +344,14 @@ integración que solo existía en la combinación de este PR con los tres anteri
 (#56, #58, #59), no en ninguno por separado. Cinco PRs, ocho ocurrencias del mismo patrón en una
 sola sesión — el hábito de fondo sigue sin corregirse, aunque la revisión automatizada haya estado
 atrapando los defectos de integración que ese hábito habría dejado pasar sin que nadie se enterara.
+**Verificado el 2026-08-08, novena ocurrencia:** el PR
+[#61](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/61) (configuración de caché sobre
+Redis, D3) se fusionó también con `reviews: []` — el sexto y último de los PRs de esta sesión
+(corrección sobre la nota de la octava ocurrencia, que contó cinco: en realidad fueron seis, #56 a
+#61). Esta vez no apareció ningún bug de integración nuevo: `CacheConfig` no implementa
+`WebMvcConfigurer`, así que no repitió el patrón de `BUG-011`/`BUG-012`. Seis PRs, nueve ocurrencias
+de `BUG-005` en una sola sesión de trabajo — la corrección pendiente sigue siendo la misma: un hábito
+de equipo, no algo que la revisión del agente pueda sustituir de forma permanente.
 **Reproducción:** cualquier PR abierto en este repositorio puede fusionarse sin que nadie deje un
 comentario o *review* — no hay protección de rama configurada (`ADR-010`, decisión deliberada: es
 política, no candado técnico).
