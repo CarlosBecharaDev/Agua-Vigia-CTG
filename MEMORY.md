@@ -107,6 +107,7 @@ throttling propio en el Sprint 0.
 | 2026-08-07 | **El agente nunca figura como colaborador del repositorio**: sin `Co-Authored-By`, sin firmas en commits o PRs. La autoría es de las 5 personas. Forzado con `includeCoAuthoredBy: false`. Ver `CLAUDE.md` § Convenciones de Git. |
 | 2026-08-08 | En **toda tarea**, el agente anuncia si se puede avanzar o hay que esperar a otro rol — no solo cuando bloquea. Ver `docs/equipo/secuencia-de-trabajo.md` §5. |
 | 2026-08-08 | Con las personas, en el chat, sin códigos de compuerta (`C0`, `C1`...) ni nombres de puerto: se explica con nombres y entregables concretos. El código sí va en el registro escrito. Ver `docs/equipo/secuencia-de-trabajo.md` §5. |
+| 2026-08-08 | Se asignó a Carlos (D2) crear el proyecto base de `/backend` en Sprint 0 — nadie lo tenía asignado y sin eso C0 no podía abrir. Ver `docs/equipo/D2-backend-dominio.md`. |
 
 ---
 

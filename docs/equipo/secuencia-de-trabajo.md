@@ -114,7 +114,7 @@ accesibilidad estáticas no cruzan la compuerta. Lo que no se puede es inventar 
 
 | Sprint | Enfoque principal | D5 (DevOps/QA) | D2 (Dominio) | D3 (Infra/IA) | D1 (Full-Stack/IA Docs) | D4 (Frontend) |
 |---|---|---|---|---|---|---|
-| **Sprint 0** | Configuración e infraestructura | Repositorio, Docker Compose, CI/CD | — | — | Plantillas de correo, prompts IA (Anexos 1–3) | Esqueleto React + Vite, tokens CSS |
+| **Sprint 0** | Configuración e infraestructura | Repositorio, Docker Compose, CI/CD | Proyecto base de `/backend` (asignado 2026-08-08) | — | Plantillas de correo, prompts IA (Anexos 1–3) | Esqueleto React + Vite, tokens CSS |
 | **Sprint 1** | Mapa base y dominio core | Carga GeoJSON barrios | Entidades Java, ArchUnit, puertos | Adaptador Mongo, API Sectores, OpenAPI | API Suscripción, `@Async` Mail, prompts (Cap. I) | Mapa Leaflet, lista accesible |
 | **Sprint 2** | Reporte ciudadano y consenso | Testcontainers, JaCoCo | Lógica de consenso (patrón Strategy) | Rate limit Redis, `POST /api/reportes` | Doble opt-in, prompts (Cap. II) | Formulario en 2 toques, SSE |
 | **Sprint 3** | Administración y alertas | Docker Nginx frontend | Reglas de corte oficial (Builder) | CRUD cortes veedor, JWT | Backend bitácora (M8), prompts (Cap. III) | Panel del veedor, formulario de alertas |
