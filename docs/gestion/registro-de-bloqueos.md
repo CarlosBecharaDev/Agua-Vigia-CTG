@@ -18,7 +18,7 @@ el repositorio no.
 
 | Compuerta | La abre | Habilita a | Comando de verificación | Estado | Abierta el |
 |---|---|---|---|---|---|
-| **C0** · Entorno reproducible | D5 | Todos | `docker compose config -q && ls backend frontend` | 🔴 Cerrada | — |
+| **C0** · Entorno reproducible | D5 | Todos | `docker compose config -q && ls backend frontend` | 🟡 Parcial | — |
 | **C1** · Dominio y puertos | D2 | D3 · D1 | `ls backend/src/main/java/com/aguavigia/ctg/domain/port/out` | 🔴 Cerrada | — |
 | **C2** · Contrato OpenAPI | D3 · D1 | D4 | `git show develop:backend/openapi.yaml \| head -5` | 🔴 Cerrada | — |
 | **C3** · SPA integrada contra API real | D4 | D5 (E2E · despliegue) | `cd frontend && npm run build` | 🔴 Cerrada | — |
@@ -31,6 +31,18 @@ Una compuerta abierta y no anunciada deja a un compañero bloqueado sin motivo.
 ---
 
 ## 2. Bloqueos abiertos — detalle
+
+### C0 · verificación parcial (2026-08-08, D5)
+
+`ls backend frontend` → **existen los dos** (Carlos creó el proyecto base del backend en el PR #10,
+José Daniel ya tenía `/frontend` desde Sprint 0). `docker compose config -q` **sigue sin verificarse**
+en esta máquina: no tiene Docker instalado (mismo límite que ya constaba en este archivo). Falta que
+alguien del equipo con Docker disponible corra el comando completo y confirme para pasar a 🟢.
+
+**Nota aparte, no bloqueante:** el cierre de BL-001 (tabla §3) dice que Carlos le dio rol `admin` a
+Yordy el 2026-08-08, pero `gh api repos/.../permissions` sigue devolviendo `admin: false` para esta
+cuenta. No afecta la resolución acordada (política documentada, sin bloqueo técnico de GitHub), pero
+alguien debería confirmar si el permiso se otorgó de verdad o si quedó pendiente.
 
 ### BL-002 — D4 no puede integrar el frontend con el entorno Docker ni con el backend
 
