@@ -20,7 +20,7 @@ el repositorio no.
 |---|---|---|---|---|---|
 | **C0** · Entorno reproducible | D5 (verificó y declaró) · D2 aportó `/backend`, D4 aportó `/frontend` | Todos | `docker compose config -q && ls backend frontend` | 🟢 **Abierta** | 2026-08-08 |
 | **C1** · Dominio y puertos | D2 | D3 · D1 | `ls backend/src/main/java/com/aguavigia/ctg/domain/port/out` | 🟢 Abierta — entidades, VOs y `domain/port/**` en `develop` (PR #21), ArchUnit en verde | 2026-08-08 |
-| **C2** · Contrato OpenAPI | D3 · D1 | D4 | `git show develop:backend/openapi.yaml \| head -5` | 🔴 Cerrada | — |
+| **C2** · Contrato OpenAPI | D3 · D1 | D4 | `git show develop:backend/openapi.yaml \| head -5` | 🟡 **Parcial — abre al fusionar el PR de D3** | 2026-08-08 |
 | **C3** · SPA integrada contra API real | D4 | D5 (E2E · despliegue) | `cd frontend && npm run build` | 🔴 Cerrada | — |
 
 Estados: 🔴 Cerrada · 🟡 Parcial (abierta solo para parte del alcance, detállalo) · 🟢 Abierta
@@ -28,9 +28,60 @@ Estados: 🔴 Cerrada · 🟡 Parcial (abierta solo para parte del alcance, det�
 **Quien abre una compuerta la marca aquí en el mismo PR que la abre**, y avisa en el chat del equipo.
 Una compuerta abierta y no anunciada deja a un compañero bloqueado sin motivo.
 
+### Alcance exacto de C2 (D3, 2026-08-08)
+
+`backend/openapi.yaml` está versionado y generado desde la aplicación corriendo, no escrito a mano.
+**El comando de verificación solo dará salida cuando el PR se fusione a `develop`** — hasta entonces
+la compuerta figura 🟡 y no 🟢, porque el repositorio manda sobre la tabla.
+
+**Abierto para D4:**
+
+| Endpoint | Estado |
+|---|---|
+| `GET /api/sectores` | ✅ Contrato y backend terminados, probados contra Mongo real (211 sectores) |
+| `GET /api/sectores/{id}` | ✅ Ídem, con 404 en `application/problem+json` (RFC 7807) |
+
+**Sigue cerrado** (fuera de alcance, no empezar contra él): `POST /api/reportes` (Sprint 2), CRUD del
+veedor (Sprint 3), estadísticas de M7 y bitácora de M8 — estos dos últimos son de D5 y D1, no de D3.
+
+Dos avisos para D4 al generar el cliente:
+
+1. `estado` y `actualizadoEn` son **anulables** en el contrato, y hoy vienen nulos en los 211
+   sectores. No es un caso de borde: es el estado normal hasta el Sprint 2. Ver `ADR-014` y `BUG-008`.
+2. El contrato se publica en **OpenAPI 3.0.1** a propósito: en 3.1 springdoc descarta `nullable` y el
+   cliente generado tiparía `estado` como si siempre trajera valor.
+
+Al conectar el frontend a estos dos endpoints caducan `DT-001` y `DT-002`.
+
 ---
 
 ## 2. Bloqueos abiertos — detalle
+
+### BL-004 — D2 (Carlos) no puede empezar la lógica de consenso ni la de reportes: el Sprint 0 no ha cerrado formalmente
+
+- **Fecha:** 2026-08-08 · **Rol bloqueado:** D2 · **Compuerta:** ninguna — es la frontera de fase de
+  `ADR-009`, no una compuerta C0–C3 · **Titular que lo resuelve:** D5 (Yordy Pardo Pajaro, Scrum Master
+  interino del Sprint 0)
+- **Estado:** Abierto
+
+**Tarea detenida:** `EvaluarConsensoService` (RF009–RF011, patrón Strategy) y `RegistrarReporteService`
+(RF005–RF007) — lo que la hoja de ruta de `secuencia-de-trabajo.md` §4 marca como Sprint 2 de D2, pero
+que ya podría empezar en cuanto exista un sprint abierto que lo autorice.
+**Insumo que falta:** el Review de cierre del Sprint 0 (`sprint-0.md` §4, sin filas todavía) y el
+Planning del Sprint 1 — son ceremonias del Scrum Master, no un artefacto de código.
+**Verificación:** `ls docs/gestion/sprint-1.md` → no existe. `sprint-0.md` §4 "Review — qué se
+demostró funcionando" está vacío. `ADR-009`: *"¿este código implementa un RF? Si la respuesta es sí,
+no va en el Sprint 0"* — sigue vigente mientras el Sprint 0 no cierre. C0 y C1 (lo único que el
+trabajo de D2 consume) ya están abiertas, así que **no es que falte el insumo de otro rol en el
+sentido técnico** — es que falta la ceremonia que autoriza escribir el siguiente RF.
+**Avisado en el chat:** sí, a Carlos (D2), 2026-08-08.
+**Trabajo alterno tomado:** poner al día `registro-de-implementaciones.md` (faltan PR #21 y #44–48) y
+`bitacora-sesiones.md` (sin entradas después del PR #33); ratificar `ADR-012`; corregir la mención de
+`NotificacionPort` en `secuencia-de-trabajo.md` §3 Paso 2, que ya no es tarea de D2 desde la corrección
+del `modelo-de-dominio.md` §5.
+**Cierre:** pendiente.
+
+---
 
 **Nota aparte, no bloqueante — cerrada, 2026-08-08:** el cierre de BL-001 (tabla §3) decía que Carlos
 le había dado rol `admin` a Yordy. **Causa raíz encontrada:** en un repositorio personal (no una
@@ -53,6 +104,66 @@ permanentemente, por decisión explícita, no por un permiso que falló en aplic
 
 - **Fecha:** 2026-08-07 · **Rol bloqueado:** D1 (vacante) · **Compuerta:** ninguna · **Titular que lo resuelve:** el equipo
 - **Estado:** Cerrado — ver tabla §3 y `ADR-011`
+
+---
+
+### BL-004 — Los colectores del pipeline M9 no pueden salir a producción sin un correo de contacto real
+
+- **Fecha:** 2026-08-08 · **Rol bloqueado:** D3 (Sebastián) · **Compuerta:** ninguna · **Titular que lo resuelve:** D1 (Yordy)
+- **Estado:** Abierto
+
+**Tarea detenida:** `AcuacarApiCollector` y `RssCollector` (Sprint 4 de D3, M9). El diseño en
+`docs/ingenieria/pipeline-ingesta-datos.md` ya está aprobado; lo que falta es identificar el
+colector con datos reales antes de hacerle una sola petición a un tercero.
+
+**Insumo que falta:** un correo de contacto real del equipo, para `COLLECTOR_USER_AGENT` en `.env`.
+
+**Verificación:**
+```
+grep COLLECTOR_USER_AGENT .env.example
+→ COLLECTOR_USER_AGENT=AguaVigiaCTG-Bot/1.0 (+correo-de-contacto-del-equipo@pendiente)
+```
+El propio comentario de esa línea dice *"ajustar con el correo real antes de Sprint 4"* — que es
+ahora. `CLAUDE.md`, ética de datos punto 3: *"el colector se identifica siempre"*.
+
+**Por qué no se rodea:** identificar el bot con un correo que no existe es peor que no
+identificarlo — parece un canal de contacto funcional y no lo es. Sería incoherente con la propia
+tesis del proyecto (le exige transparencia a Acuacar) hacer una petición real a un tercero con una
+identidad falsa, aunque sea sin mala intención.
+
+**Trabajo alterno tomado:** se construyó y probó todo lo del pipeline que no toca la red:
+`DocumentoCrudo` (normalización + hash SHA-256), `PrefiltroDeterminista` (regex, sin red) y
+`DeduplicadorReciente` (Redis). Los colectores quedan como el siguiente paso, listos para escribirse
+en cuanto este bloqueo cierre.
+
+**Cierre:** cuando D1 confirme el correo real y se actualice `.env.example`.
+
+---
+
+### BL-005 — La capa de IA del pipeline M9 no tiene clave de Anthropic para probarse
+
+- **Fecha:** 2026-08-08 · **Rol bloqueado:** D3 (Sebastián) · **Compuerta:** ninguna · **Titular que lo resuelve:** el equipo
+- **Estado:** Abierto
+
+**Tarea detenida:** la etapa 4 del pipeline (extracción estructurada con `anthropic-java`,
+`docs/ingenieria/pipeline-ingesta-datos.md` §4).
+
+**Insumo que falta:** `ANTHROPIC_API_KEY` — vacía en `.env.example`, "cada persona usa su propia
+clave de desarrollo".
+
+**Verificación:** `grep ANTHROPIC_API_KEY .env.example` → valor vacío.
+
+**Por qué no se rodea:** el propio diseño advierte que hay que *"verificar los nombres exactos del
+builder contra la versión del SDK que quede en el `pom.xml` antes de dar por buena esta firma"* —
+es decir, ni el equipo está seguro de que el código de ejemplo compile contra `anthropic-java
+2.53.0` sin probarlo. Escribir esa capa sin poder ejecutarla ni una vez, con una API de pago,
+sería exactamente "avanzo ahora y después lo ajusto" — prohibido en `secuencia-de-trabajo.md` §5.
+
+**Trabajo alterno tomado:** el mismo que en `BL-004` — todo el pipeline previo a la IA ya está
+construido y probado, así que en cuanto haya clave, la etapa 4 se conecta directo después del
+prefiltro sin tener que rehacer nada anterior.
+
+**Cierre:** cuando alguien del equipo obtenga y configure su propia clave de desarrollo.
 
 ---
 
