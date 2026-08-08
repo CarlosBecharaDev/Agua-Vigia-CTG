@@ -31,6 +31,8 @@ Tres razones concretas, no burocráticas:
 | BUG-004 | 2026-08-08 | S2 | M5 | `PaginaVeedor.tsx` compara el acceso contra la contraseña `'1234'` escrita en el código fuente | Cerrado | D5 |
 | BUG-005 | 2026-08-08 | S3 | — (proceso) | Los PRs se siguen fusionando sin revisor, y el patrón empeora en vez de mejorar | Abierto | Equipo |
 | BUG-006 | 2026-08-08 | S2 | M5 | La rama `vista-previa-total` vuelve a comparar contra `'1234'` y borra la prueba que cerró `BUG-004` | Abierto | D4 |
+| BUG-007 | 2026-08-08 | S2 | — (pruebas) | Testcontainers no encuentra Docker: Engine 29 exige API ≥ 1.40 y docker-java negocia 1.32 | Cerrado | D3 |
+| BUG-008 | 2026-08-08 | S2 | M1 | El mapa pinta como "con servicio" los 211 sectores de los que no tiene dato | Abierto | D4 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -39,6 +41,78 @@ Tres razones concretas, no burocráticas:
 ---
 
 ## Bugs abiertos — detalle
+
+### BUG-008 — El mapa pinta como "con servicio" los sectores de los que no tiene ningún dato
+
+- **Fecha:** 2026-08-08 · **Severidad:** S2 · **Módulo:** M1 · **Responsable:** D4
+- **Estado:** Abierto — encontrado por D3 al construir el contrato de `GET /api/sectores`
+
+**Síntoma:** `frontend/src/components/MapaCartagena.tsx:92` hace
+`const estado: EstadoServicio = sector?.estado ?? 'CON_SERVICIO'`. Todo barrio sin dato se dibuja con
+el color de servicio normal. Con los datos reales esto no es un caso raro: **son 211 de 211 los
+sectores sin estado registrado** hasta que M3 (consenso) empiece a escribirlos en el Sprint 2.
+
+**Reproducción:** consistente. Con el backend sirviendo datos reales, `GET /api/sectores` devuelve
+`"estado": null` en los 211 sectores; el mapa los muestra todos en verde.
+
+```
+curl -s http://localhost:8080/api/sectores | grep -c '"estado":null'   → 211
+```
+
+**Esperado:** que un sector sin dato se distinga visualmente de uno verificado con servicio. La
+plataforma no debe afirmar lo que no ha verificado — es el acuerdo del 2026-08-06 en `MEMORY.md`
+("falsos positivos son peores que falsos negativos") y la razón de `ADR-014`. Un vecino que ve su
+barrio en verde y no tiene agua deja de creerle a la plataforma, que es su único activo.
+
+**Causa raíz:** el frontend se construyó contra `SECTORES_MOCK`, donde todos los sectores traían
+estado. El `?? 'CON_SERVICIO'` era un relleno razonable para un dato que en los mocks nunca faltaba;
+con datos reales se vuelve una afirmación falsa. Es el costo de `DT-001`/`DT-002` que el propio
+registro de desbloqueos anticipaba.
+
+**Corrección:** pendiente. Es de D4: `MapaCartagena.tsx:92` (color neutro para nulo) e
+`InsigniaEstado` (que hoy no acepta nulo y rompería en `colores.etiqueta`). El contrato ya declara
+`estado` como anulable, así que el cliente generado obligará a tratar el caso.
+
+---
+
+### BUG-007 — Las pruebas con Testcontainers no encuentran Docker aunque Docker esté corriendo
+
+- **Fecha:** 2026-08-08 · **Severidad:** S2 · **Módulo:** — (infraestructura de pruebas) · **Responsable:** D3
+- **Estado:** Cerrado — corregido en el mismo PR que lo encontró
+
+**Síntoma:** `./mvnw verify` falla con
+`IllegalState Could not find a valid Docker environment. Please see logs and check configuration`,
+con Docker Desktop 4.82 corriendo y `docker ps` funcionando sin problema. El mensaje no menciona el
+motivo real, que es una versión de API incompatible.
+
+**Reproducción:** consistente, en toda ejecución. Diagnóstico contra el socket real:
+
+```
+docker version  →  ApiVersion 1.55, MinAPIVersion 1.40
+GET //./pipe/docker_engine /v1.44/info  →  200
+GET //./pipe/docker_engine /v1.32/info  →  400   (cuerpo idéntico al del error de Testcontainers)
+```
+
+**Esperado:** que las pruebas de integración del adaptador Mongo corran, porque son parte de la
+definición de terminado de D3 (`D3-backend-infraestructura.md` §3).
+
+**Causa raíz:** Docker Engine 29 subió su `MinAPIVersion` a 1.40 y dejó de aceptar versiones
+anteriores. docker-java, dentro de Testcontainers 1.21.3 (**la última publicada** — no hay versión a
+la que actualizar), sigue negociando 1.32 y recibe 400. No es un problema de esta máquina: le va a
+pasar a todo el equipo en cuanto actualice Docker Desktop.
+
+Descartado por comprobación: no es el sandbox (falla igual fuera de él), no es el pipe (ambos
+responden 200 desde otros clientes), no es filtrado del daemon (Node obtiene 200), y las variables
+`DOCKER_HOST` y `DOCKER_API_VERSION` no lo corrigen — esa ruta de configuración las ignora.
+
+**Corrección:** `backend/pom.xml` — propiedad `docker.api.version` (1.41, la ventana más ancha:
+soportada desde Docker 20.10 y por encima del mínimo de 29) inyectada al JVM de pruebas como la
+propiedad `api.version` que docker-java sí lee, vía `maven-surefire-plugin`. Verificado:
+`./mvnw clean verify` sin banderas ni variables de entorno → **34 pruebas, 0 fallos**, incluidas las
+7 de `SectorMongoAdapterTest` contra un contenedor `mongo:7.0` real. Se quita cuando Testcontainers
+publique una versión que negocie sola.
+
+---
 
 ### BUG-006 — La rama `vista-previa-total` vuelve a pedir la contraseña `'1234'` y borra la prueba que lo impedía
 
@@ -180,5 +254,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-007
+Siguiente número disponible: BUG-009
 -->
