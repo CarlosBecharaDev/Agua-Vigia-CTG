@@ -36,7 +36,8 @@ type VistaMovil = 'mapa' | 'lista'
 
 const PaginaMapa: FC = () => {
   const [vistaMovil, setVistaMovil] = useState<VistaMovil>('mapa')
-  const [sectorActivo, setSectorActivo] = useState<Sector | null>(null)
+  // TODO Sprint 2: usar el valor (resaltar el sector activo en el mapa/lista) cuando se defina el diseño de esa interaccion.
+  const [, setSectorActivo] = useState<Sector | null>(null)
 
   // TODO Sprint 1: reemplazar con TanStack Query → GET /api/sectores (cuando C2 abra)
   const cargando = false
