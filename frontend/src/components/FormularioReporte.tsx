@@ -4,30 +4,16 @@ import { DropletOff, ArrowDownToLine, CheckCircle2, MapPin, MessageSquare, Mail,
 import { AguaVigiaAPI } from '../api/services'
 
 
-// Coordenadas aproximadas para simular el geofence local en el Frontend
-const SECTORES_MOCK = [
-  { id: '1', nombre: 'BOCAGRANDE', lat: 10.4035, lng: -75.5539 },
-  { id: '2', nombre: 'CASTILLOGRANDE', lat: 10.3951, lng: -75.5492 },
-  { id: '3', nombre: 'EL LAGUITO', lat: 10.3965, lng: -75.5574 },
-  { id: '4', nombre: 'MANGA', lat: 10.4137, lng: -75.5342 },
-  { id: '5', nombre: 'PIE DE LA POPA', lat: 10.4215, lng: -75.5255 },
-  { id: '6', nombre: 'OLAYA ST. RICAURTE', lat: 10.3955, lng: -75.4947 },
-  { id: '7', nombre: 'OLAYA ST. CENTRAL', lat: 10.3900, lng: -75.4950 },
-  { id: '8', nombre: 'GETSEMANI', lat: 10.4223, lng: -75.5446 },
-  { id: '9', nombre: 'EL CENTRO', lat: 10.4243, lng: -75.5502 },
-  { id: '10', nombre: 'LA BOQUILLA', lat: 10.4783, lng: -75.4975 },
-  { id: '11', nombre: 'EL SOCORRO', lat: 10.3800, lng: -75.5015 },
-]
-
 export type TipoReporte = 'SIN_AGUA' | 'PRESION_BAJA' | 'SERVICIO_RESTABLECIDO'
 
 interface Props {
+  sectores: {id: string, nombre: string}[]
   sectorPreseleccionado?: string
   onReporteEnviado: () => void
 }
 
-export const FormularioReporte: FC<Props> = ({ onReporteEnviado }) => {
-  const [sectorId, setSectorId] = useState<string>(() => sessionStorage.getItem('gps_sectorId') || '')
+export const FormularioReporte: FC<Props> = ({ sectores, sectorPreseleccionado, onReporteEnviado }) => {
+  const [sectorId, setSectorId] = useState<string>(() => sessionStorage.getItem('gps_sectorId') || sectorPreseleccionado || '')
   const [sectorNombreGPS, setSectorNombreGPS] = useState<string>(() => sessionStorage.getItem('gps_sectorNombre') || '')
   const [tipo, setTipo] = useState<TipoReporte | ''>('')
   const [compartirUbicacion, setCompartirUbicacion] = useState(() => sessionStorage.getItem('gps_verificado') === 'true')
@@ -247,7 +233,7 @@ export const FormularioReporte: FC<Props> = ({ onReporteEnviado }) => {
             <div>
               <span style={{ display: 'block', color: 'var(--color-tinta)', fontWeight: '600', fontSize: '0.95rem' }}>
                 {sectorId 
-                  ? `📍 Estás en: ${sectorNombreGPS || SECTORES_MOCK.find(s => s.id === sectorId)?.nombre || 'Cartagena'}`
+                  ? `📍 Estás en: ${sectorNombreGPS || sectores.find(s => s.id === sectorId)?.nombre || 'Cartagena'}`
                   : compartirUbicacion ? 'Analizando cartografía GPS...' : 'Detectar mi barrio actual'}
               </span>
               <span style={{ display: 'block', color: 'var(--color-tinta-2)', fontSize: '0.8rem', marginTop: '0.1rem' }}>
