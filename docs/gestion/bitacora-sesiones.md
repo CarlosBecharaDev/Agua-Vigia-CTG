@@ -26,6 +26,10 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 0
 
+### 2026-08-07 · D4 · `feature/d4-sprint0-esqueleto`
+**Qué:** Esqueleto de `/frontend` creado: React 19 + Vite + TypeScript + Tailwind CSS v4. Tokens de `DESIGN.md` como custom properties CSS (paleta, temas claro/oscuro, tipografía, estado del servicio). `useTheme` hook + `SelectorTema` + `Encabezado` + rutas placeholder para M1, M2, M7, M8. `BL-002` registrado (D4 bloqueado por C0). Dev server en `localhost:5173`.
+**Sigue:** Fusionar PR a `develop` con al menos 1 revisor, y esperar que D5 (Yordy) cierre BL-001 para que C0 quede abierta.
+
 ### 2026-08-07 · D5 · `feature/d5-sprint0-infraestructura`
 **Qué:** Creada `develop`, `.env.example`, `docker-compose.yml` base (Mongo+Redis+Mailhog) y workflows
 de GitHub Actions (backend-ci, frontend-ci, secret-scan). Abierto PR #1 hacia `develop`. Registrado
