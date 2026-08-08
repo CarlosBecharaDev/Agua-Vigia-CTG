@@ -26,6 +26,13 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 0
 
+### 2026-08-08 · D2 · `feature/d2-backend-base`
+**Qué:** Creado el proyecto base de `/backend` (issue #9, PR #10): Maven, Java 21, Spring Boot 3.4.1,
+estructura vacía de Arquitectura Limpia. `./mvnw verify` → BUILD SUCCESS local y en CI. El comando de
+C0 (`docker compose config -q && ls backend frontend`) ya pasa completo.
+**Sigue:** Avisar a D5 (Yordy) para que verifique C0 con su comando y la marque abierta en
+`registro-de-bloqueos.md` §1 — no la abre D2, el titular de esa compuerta es D5.
+
 ### 2026-08-08 · D2 · `docs/d2-diseno-dominio-sprint0`
 **Qué:** Diseño adelantado del dominio de M3/M6 (`docs/ingenieria/modelo-de-dominio.md`) mientras C0
 sigue cerrada. Corregida la duplicación de `SuscribirseService` entre D1 y D2 (era de D1 por M4).

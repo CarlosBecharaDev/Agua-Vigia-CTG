@@ -23,9 +23,14 @@ falta un requisito por escribir — ambas cosas hay que resolverlas antes de agr
 
 ## Sprint 0 — Configuración e infraestructura
 
+Sin RF/RNF asociado a propósito: es arquitectura base, no funcionalidad. La cobertura de requisitos
+(tabla de abajo) sigue en 0% hasta Sprint 1.
+
 | RF/RNF | Módulo | Qué | Resp. | PR | Prueba |
 |---|---|---|---|---|---|
-| — | — | *Fase de documentación. El código de la aplicación aún no ha iniciado.* | — | — | — |
+| — | Infraestructura | Docker Compose (Mongo+Redis+Mailhog), `.env.example`, CI (backend/frontend/secret-scan) | D5 | [#1](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/1) | `docker compose config -q` |
+| — | Frontend | Esqueleto React 19 + Vite + TS + Tailwind, tokens de `DESIGN.md`, selector de tema | D4 | [#5](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/5) | `npm run build` |
+| — | Backend | Proyecto base Maven/Spring Boot 3.4.1, estructura vacía de Arquitectura Limpia (`domain/`, `application/`, `infrastructure/`, `api/`) | D2 | [#10](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/10) | `./mvnw verify` → BUILD SUCCESS |
 
 ---
 
