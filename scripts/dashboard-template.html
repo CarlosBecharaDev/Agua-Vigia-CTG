@@ -97,7 +97,7 @@
   html, body { margin: 0; }
   body {
     background: var(--color-fondo); color: var(--color-tinta); font-family: var(--font-cuerpo);
-    font-size: 14.5px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+    font-size: 14.5px; line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-x: hidden;
   }
   h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; color: var(--color-tinta); }
   p { margin: 0; }
@@ -151,7 +151,7 @@
   .cab-seccion h2 { font-size: 1.15rem; }
   .cab-seccion .desc { color: var(--color-tinta-2); font-size: 0.82rem; max-width: 50ch; }
 
-  .card { background: var(--color-superficie); border: 1px solid var(--color-linea); border-radius: var(--radio-lg); box-shadow: var(--sombra); padding: 1.15rem 1.25rem; }
+  .card { background: var(--color-superficie); border: 1px solid var(--color-linea); border-radius: var(--radio-lg); box-shadow: var(--sombra); padding: 1.15rem 1.25rem; overflow-wrap: anywhere; }
   .card-cab { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.9rem; gap: 0.75rem; }
   .card-cab h3 { font-family: var(--font-cuerpo); font-size: 0.92rem; font-weight: 600; }
   .card-cab .tag { font-family: var(--font-util); font-size: 0.66rem; color: var(--color-tinta-3); }
@@ -258,7 +258,7 @@
   .compromiso.parcial .marca { color: var(--color-estado-baja); }
   .compromiso.pendiente .marca { color: var(--color-tinta-3); }
   .compromiso .resp { font-family: var(--font-util); font-size: 0.6rem; color: var(--color-tinta-3); flex: none; text-transform: uppercase; }
-  .compromiso .entregable { font-size: 0.7rem; color: var(--color-tinta-2); line-height: 1.4; }
+  .compromiso .entregable { flex: 1; min-width: 0; font-size: 0.7rem; color: var(--color-tinta-2); line-height: 1.4; }
   .compromiso.hecho .entregable { color: var(--color-tinta); }
   .rf-info { display: flex; gap: 0.65rem; align-items: flex-start; background: var(--color-superficie-2); border-radius: var(--radio-base); padding: 0.8rem; margin-top: 0.7rem; }
   .rf-info .marcador { font-family: var(--font-util); font-size: 0.68rem; color: var(--color-acento); border: 1px solid var(--color-acento); border-radius: 999px; width: 1.3rem; height: 1.3rem; display: flex; align-items: center; justify-content: center; flex: none; }
@@ -314,6 +314,9 @@
   .lista-atencion { display: flex; flex-direction: column; gap: 0.65rem; }
   .item-atencion { display: flex; gap: 0.65rem; padding: 0.75rem; border-radius: var(--radio-base); background: var(--color-superficie-2); border: 1px solid var(--color-linea); }
   .item-atencion.urgente { border-color: color-mix(in srgb, var(--color-estado-baja) 45%, var(--color-linea)); background: var(--color-estado-baja-bg); }
+  .item-atencion.critica { border-color: color-mix(in srgb, var(--color-estado-sin) 55%, var(--color-linea)); background: var(--color-estado-sin-bg); }
+  .item-atencion.critica .ia-icono .ic { color: var(--color-estado-sin); }
+  .item-atencion.critica .ia-titulo { color: var(--color-estado-sin); font-weight: 700; }
   .ia-icono { flex: none; width: 1.6rem; height: 1.6rem; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: var(--color-superficie); }
   .ia-icono .ic { width: .9rem; height: .9rem; color: var(--color-estado-baja); }
   .ia-titulo { font-size: 0.8rem; font-weight: 600; line-height: 1.4; }
@@ -335,7 +338,7 @@
   .chip-mini.validada { background: var(--color-estado-con-bg); color: var(--color-estado-con); }
   .chip-mini.descartada { background: var(--color-estado-sin-bg); color: var(--color-estado-sin); }
   .chip-mini.resuelta { background: var(--color-estado-prog-bg); color: var(--color-estado-prog); }
-  .rec-item { padding: 0.9rem 0; border-bottom: 1px dashed var(--color-linea); }
+  .rec-item { padding: 0.9rem 0; border-bottom: 1px dashed var(--color-linea); break-inside: avoid-column; }
   .rec-item:last-child { border-bottom: none; padding-bottom: 0; }
   .rec-cab { display: flex; align-items: baseline; gap: 0.55rem; flex-wrap: wrap; margin-bottom: 0.35rem; }
   .rec-id { font-family: var(--font-util); font-size: 0.72rem; color: var(--color-acento); }
@@ -364,11 +367,11 @@
   .vacio-notas { font-size: 0.77rem; color: var(--color-tinta-3); font-style: italic; padding: 0.5rem 0; }
   .aviso-local { font-size: 0.69rem; color: var(--color-tinta-3); max-width: 36ch; line-height: 1.45; margin-top: 0.9rem; }
 
-  .narrativa { max-width: 76ch; }
-  .narrativa p { font-family: var(--font-display); font-size: 0.98rem; line-height: 1.75; color: var(--color-tinta-2); margin-bottom: 1.1rem; }
+  .narrativa { column-width: 34ch; column-gap: 2.4rem; }
+  .narrativa p { font-family: var(--font-display); font-size: 0.98rem; line-height: 1.75; color: var(--color-tinta-2); margin-bottom: 1.1rem; break-inside: avoid-column; }
   .narrativa p:last-child { margin-bottom: 0; }
   .narrativa strong { color: var(--color-tinta); font-weight: 600; }
-  .narrativa .firma { font-family: var(--font-cuerpo); font-size: 0.72rem; color: var(--color-tinta-3); margin-top: 1.4rem; padding-top: 1rem; border-top: 1px dashed var(--color-linea); }
+  .narrativa .firma { column-span: all; font-family: var(--font-cuerpo); font-size: 0.72rem; color: var(--color-tinta-3); margin-top: 1.4rem; padding-top: 1rem; border-top: 1px dashed var(--color-linea); }
 
   footer.pie { margin-top: 3rem; border-top: 1px solid var(--color-linea); padding-top: 1.4rem; }
   .pie-grid { display: flex; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
@@ -933,12 +936,14 @@ window.addEventListener("error", function (ev) {
       atencion.push({ icon: "alert-triangle", titulo: "ADR-" + String(a.numero).padStart(3, "0") + " — " + a.titulo, href: null, desc: "Decisión propuesta, pendiente de aprobación del equipo.", quien: null, urgente: true });
     });
     DATA.bugs.filter(function (b) { return b.estado === "Abierto"; }).forEach(function (b) {
-      atencion.push({ icon: "alert-triangle", titulo: b.id + " — " + b.titulo, href: null, desc: "Severidad " + b.sev + " · responsable: " + b.responsable, quien: null });
+      var grave = b.sev === "S1" || b.sev === "S2";
+      atencion.push({ icon: "alert-triangle", titulo: b.id + " — " + b.titulo, href: null, desc: "Severidad " + b.sev + " · responsable: " + b.responsable, quien: null, urgente: grave, critica: grave });
     });
+    atencion.sort(function (a, b) { return (b.critica ? 1 : 0) - (a.critica ? 1 : 0); });
     var contA = document.getElementById("lista-atencion");
     if (!atencion.length) { contA.innerHTML = '<p class="vacio-atencion">Nada pendiente ahora mismo — todos los PRs, issues y bugs están cerrados.</p>'; return; }
     var htmlA = atencion.map(function (it) {
-      var h = '<div class="item-atencion' + (it.urgente ? " urgente" : "") + '"><div class="ia-icono" data-icon="' + it.icon + '"></div><div>';
+      var h = '<div class="item-atencion' + (it.critica ? " critica" : (it.urgente ? " urgente" : "")) + '"><div class="ia-icono" data-icon="' + it.icon + '"></div><div>';
       h += '<div class="ia-titulo">' + (it.href ? '<a href="' + it.href + '" target="_blank" rel="noopener">' + it.titulo + '</a>' : it.titulo) + '</div>';
       h += '<div class="ia-desc">' + it.desc + '</div></div></div>';
       return h;
