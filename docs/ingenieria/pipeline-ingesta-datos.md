@@ -80,9 +80,11 @@ Devuelve **100 ítems** con `title`, `link`, `pubDate` y `source`. Resultados re
 de Acuacar, comunicados de la Alcaldía Mayor de Cartagena y notas de prensa sobre el fallo del Tribunal.
 
 De los medios locales, **Zona Cero** expone RSS propio y funcional (`zonacero.com/rss.xml`).
-RCN Radio, Caracol Radio y W Radio tienen `robots.txt` abierto (solo bloquean bots agresivos como
-PetalBot) pero no se logró ubicar/conectar su feed en esta primera pasada — quedan como pendientes
-de Sprint 0, no como descartados.
+**Caracol Radio y W Radio, reverificados el 2026-08-08, también funcionan**: el feed real no estaba
+en `/rss/` (esa ruta nunca existió) sino en `/arc/outboundfeeds/google-news-feed/?outputType=xml`
+—mismo CMS Arc/PEP en ambos—, permitido explícitamente por su `robots.txt` (que sí bloquea la ruta
+legacy `/feed.aspx`, evitada). **RCN Radio sigue sin feed localizado** pese a probar cuatro rutas
+candidatas — su `robots.txt` lo permite, pero no se encontró el feed real.
 
 **El Universal, El Tiempo, El Heraldo y Blu Radio quedan fuera del pipeline automatizado por decisión
 explícita del propio medio**: sus archivos `robots.txt` bloquean directamente a `anthropic-ai`,
@@ -318,6 +320,8 @@ molesta al operador.
 | Acuacar RSS | 15 min | Redundancia por si la API REST falla |
 | Google News RSS | 30 min | La prensa siempre va detrás del boletín oficial |
 | Zona Cero RSS | 30 min | Igual |
+| Caracol Radio RSS | 30 min | Igual — verificado 2026-08-08, `/arc/outboundfeeds/google-news-feed/` |
+| W Radio RSS | 30 min | Igual — mismo CMS y ruta que Caracol Radio |
 | Meta Content Library | 6 h | Solo si se aprueba el acceso; no es tiempo real |
 | Reportes ciudadanos | **tiempo real** | Es un evento entrante, no un sondeo |
 

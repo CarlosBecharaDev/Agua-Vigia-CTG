@@ -78,10 +78,10 @@ búsqueda (`x6zm-nfuj`) tenía nombre casi idéntico pero era de La Estrella, An
 leer el `attribution`, no el título. El campo `poblacion` pierde ceros finales (bug de Socrata);
 corrección documentada en `scripts/sembrar-sectores.mjs`. Detalle: `data/geoespacial/README.md`.
 
-### 2026-08-06 — GDELT quedó sin verificar
-La API pública de GDELT devolvió `429 Too Many Requests` durante la auditoría (límite compartido de
-su infraestructura, no un bloqueo dirigido). **No está descartada: está pendiente de reintentar** con
-throttling propio en el Sprint 0.
+### 2026-08-06/08 — GDELT sigue en `429` pese a reintentar con throttling
+Reintentado el 2026-08-08 con `User-Agent` propio y esperas crecientes (2 s/6 s/15 s): sigue en
+`429` persistente. No es `robots.txt` (no existe, `404`) — es límite de infraestructura compartida
+que no cede desde este entorno. Pendiente: otra red, u contacto sugerido por la propia API.
 
 ---
 
