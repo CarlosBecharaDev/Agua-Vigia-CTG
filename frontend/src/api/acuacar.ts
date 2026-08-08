@@ -18,6 +18,7 @@ export interface BoletinAcuacar {
   contenidoHTML: string;
   contenidoTexto: string;
   barriosAfectados: string[];
+  url?: string;
 }
 
 export interface EstadoBarrioAcuacar {
@@ -67,7 +68,7 @@ function normalizar(texto: string): string {
 export async function obtenerBoletinesRecientes(cantidad: number = 15): Promise<BoletinAcuacar[]> {
   try {
     const baseUrl = import.meta.env.VITE_ACUACAR_API_URL || '/acuacar-api';
-    const url = `${baseUrl}/posts?per_page=${cantidad}&_fields=id,date,title,content`;
+    const url = `${baseUrl}/posts?per_page=${cantidad}&_fields=id,date,title,content,link`;
 
     const res = await fetch(url);
     if (!res.ok) throw new Error(`Acuacar API respondió ${res.status}`);
@@ -88,6 +89,7 @@ export async function obtenerBoletinesRecientes(cantidad: number = 15): Promise<
         contenidoHTML,
         contenidoTexto,
         barriosAfectados: extraerBarriosDeTexto(contenidoTexto),
+        url: post.link || `https://www.acuacar.com/?p=${post.id}`,
       };
     });
   } catch (error) {

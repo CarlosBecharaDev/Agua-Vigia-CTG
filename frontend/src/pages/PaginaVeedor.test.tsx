@@ -12,8 +12,8 @@ describe('PaginaVeedor', () => {
   it('entra al panel de moderación al simular el ingreso, sin credencial', () => {
     render(<PaginaVeedor />)
 
-    fireEvent.click(screen.getByRole('button', { name: /simular ingreso de veedor/i }))
+    fireEvent.click(screen.getByRole('button', { name: /simular ingreso/i }))
 
-    expect(screen.getByRole('heading', { name: /panel de moderación/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /central de moderación/i })).toBeInTheDocument()
   })
 })

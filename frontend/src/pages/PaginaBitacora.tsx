@@ -11,7 +11,7 @@ import { InsigniaEstado } from '../components/InsigniaEstado'
 import { obtenerBoletinesRecientes } from '../api/acuacar'
 import type { BoletinAcuacar } from '../api/acuacar'
 import type { EstadoServicio } from '../types/tipos-dominio'
-import { RefreshCw, ExternalLink, MapPin } from 'lucide-react'
+import { RefreshCw, ExternalLink, MapPin, Activity, CheckCircle2, AlertTriangle, Info } from 'lucide-react'
 
 // MOCK DATA - Fallback si la API no responde
 const MOCK_EVENTOS = [
@@ -62,13 +62,24 @@ function estadoDeBoletin(titulo: string): EstadoServicio {
   return 'CON_SERVICIO';
 }
 
+/* ── Estilos glassmorphism reutilizables ── */
+const estiloGlass: React.CSSProperties = {
+  background: 'linear-gradient(135deg, rgba(var(--glass-r, 255), var(--glass-g, 255), var(--glass-b, 255), 0.65) 0%, rgba(var(--glass-r, 255), var(--glass-g, 255), var(--glass-b, 255), 0.3) 100%)',
+  backdropFilter: 'blur(24px) saturate(180%)',
+  WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+  border: '1px solid rgba(255, 255, 255, 0.2)',
+  boxShadow: '0 12px 40px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+}
+
 const PaginaBitacora: FC = () => {
   const [boletines, setBoletines] = useState<BoletinAcuacar[]>([])
   const [cargando, setCargando] = useState(true)
   const [usandoDatosReales, setUsandoDatosReales] = useState(false)
+  const [animarLista, setAnimarLista] = useState(false)
 
   const cargarBoletines = async () => {
     setCargando(true)
+    setAnimarLista(false)
     try {
       const datos = await obtenerBoletinesRecientes(20)
       if (datos.length > 0) {
@@ -81,6 +92,7 @@ const PaginaBitacora: FC = () => {
       setUsandoDatosReales(false)
     } finally {
       setCargando(false)
+      setTimeout(() => setAnimarLista(true), 50)
     }
   }
 
@@ -90,145 +102,199 @@ const PaginaBitacora: FC = () => {
 
   return (
     <main id="contenido-principal" role="main" aria-label="Bitácora pública de interrupciones del servicio">
-      <div style={{ padding: '2rem 1.25rem', maxWidth: '800px', margin: '0 auto' }}>
+      <div style={{ padding: '2.5rem 1.25rem', maxWidth: '840px', margin: '0 auto' }}>
         
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '0.5rem' }}>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', color: 'var(--color-tinta)' }}>
-            Bitácora Pública
-          </h1>
-          <button
-            onClick={cargarBoletines}
-            disabled={cargando}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '0.4rem',
-              background: 'none', border: '1px solid var(--color-linea)',
-              borderRadius: 'var(--radio-pill)', padding: '0.4rem 1rem',
-              fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer',
-              color: 'var(--color-acento)'
-            }}
-          >
-            <RefreshCw size={14} className={cargando ? 'animate-spin' : ''} />
-            {cargando ? 'Cargando...' : 'Actualizar'}
-          </button>
+        {/* ENCABEZADO PREMIUM */}
+        <div style={{ marginBottom: '2.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '0.75rem' }}>
+            <h1 style={{ 
+              fontFamily: 'var(--font-display)', 
+              fontSize: 'clamp(2rem, 5vw, 2.75rem)', 
+              fontWeight: '800',
+              letterSpacing: '-1px',
+              color: 'var(--color-tinta)',
+              margin: 0
+            }}>
+              Bitácora Pública
+            </h1>
+            <button
+              onClick={cargarBoletines}
+              disabled={cargando}
+              className="hover-glowing"
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                background: 'var(--color-superficie)', 
+                border: '1px solid var(--color-linea)',
+                borderRadius: 'var(--radio-pill)', 
+                padding: '0.5rem 1.25rem',
+                fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer',
+                color: 'var(--color-tinta)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                transition: 'all 0.3s ease'
+              }}
+            >
+              <RefreshCw size={16} className={cargando ? 'animate-spin' : ''} color="var(--color-acento)" />
+              {cargando ? 'Sincronizando...' : 'Actualizar'}
+            </button>
+          </div>
+          
+          <p style={{ color: 'var(--color-tinta-2)', fontSize: '1.05rem', lineHeight: '1.6', maxWidth: '600px', margin: 0 }}>
+            Registro inmutable de boletines oficiales de Acuacar. Monitorea mantenimientos, suspensiones y restablecimientos del servicio de agua en tiempo real.
+          </p>
         </div>
 
-        <p style={{ color: 'var(--color-tinta-2)', fontSize: '1rem', marginBottom: '1.5rem', lineHeight: '1.5' }}>
-          Registro público de boletines oficiales de Acuacar sobre interrupciones y mantenimientos del servicio de agua.
-        </p>
-
-        {/* Indicador de fuente de datos */}
+        {/* INDICADOR DE FUENTE DE DATOS TIPO PILL PREMIUM */}
         <div
           role="note"
           style={{
-            backgroundColor: 'var(--color-superficie)',
-            border: '1px solid var(--color-linea)',
-            borderRadius: 'var(--radio-md)',
-            padding: '0.75rem',
-            marginBottom: '2rem',
-            fontSize: '0.75rem',
-            color: 'var(--color-tinta-2)',
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
-            gap: '0.5rem'
+            gap: '0.5rem',
+            backgroundColor: usandoDatosReales ? 'rgba(48, 209, 88, 0.1)' : 'rgba(255, 69, 58, 0.1)',
+            padding: '0.4rem 1rem',
+            borderRadius: 'var(--radio-pill)',
+            border: `1px solid ${usandoDatosReales ? 'rgba(48, 209, 88, 0.2)' : 'rgba(255, 69, 58, 0.2)'}`,
+            marginBottom: '2rem',
           }}
         >
-          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: usandoDatosReales ? 'var(--color-estado-con)' : 'var(--color-estado-baja)', display: 'inline-block' }}></span>
-          {usandoDatosReales
-            ? `✅ ${boletines.length} boletines oficiales de acuacar.com (API WordPress REST)`
-            : '⚠️ Datos de demostración — la API de Acuacar no respondió'}
+          <Activity size={16} color={usandoDatosReales ? '#30d158' : '#ff453a'} style={{ animation: 'pulse-live 2s infinite' }} />
+          <span style={{ fontSize: '0.75rem', fontWeight: '700', color: usandoDatosReales ? '#30d158' : '#ff453a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            {cargando 
+              ? 'Conectando con acuacar...' 
+              : usandoDatosReales 
+                ? `DATOS EN VIVO (${boletines.length} Boletines)` 
+                : 'MODO DEMO (Sin Conexión)'}
+          </span>
         </div>
 
-        {/* Timeline de Boletines Reales o Eventos Mock */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {/* LISTA DE EVENTOS (TIMELINE) */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', position: 'relative' }}>
+          {/* Línea vertical del timeline */}
+          <div style={{
+            position: 'absolute',
+            left: '2rem',
+            top: '2rem',
+            bottom: '2rem',
+            width: '2px',
+            background: 'linear-gradient(to bottom, var(--color-linea), transparent)',
+            zIndex: 0
+          }} />
+
           {usandoDatosReales ? (
             // ── BOLETINES REALES DE ACUACAR ──
-            boletines.map(boletin => {
+            boletines.map((boletin, index) => {
               const estado = estadoDeBoletin(boletin.titulo);
               const tieneBarrios = boletin.barriosAfectados.length > 0;
+              
+              const iconoColor = estado === 'SIN_SERVICIO' ? '#ff453a' 
+                               : estado === 'CORTE_PROGRAMADO' ? '#ff9f0a' 
+                               : '#30d158';
+              
+              const IconoEstado = estado === 'SIN_SERVICIO' ? AlertTriangle
+                                : estado === 'CORTE_PROGRAMADO' ? Info
+                                : CheckCircle2;
 
               return (
                 <article 
                   key={boletin.id}
-                  className="panel-glass hover-glowing"
+                  className="hover-glowing"
                   style={{
+                    ...estiloGlass,
                     display: 'flex',
-                    gap: '1rem',
+                    gap: '1.25rem',
                     padding: '1.5rem',
-                    borderRadius: 'var(--radio-md)',
+                    borderRadius: '1.5rem',
                     position: 'relative',
+                    zIndex: 1,
+                    opacity: animarLista ? 1 : 0,
+                    transform: animarLista ? 'translateY(0)' : 'translateY(20px)',
+                    transition: `opacity 0.5s ease ${index * 0.08}s, transform 0.5s ease ${index * 0.08}s`,
                   }}
                 >
-                  {/* Línea vertical decorativa con color del estado */}
+                  {/* Icono del Timeline */}
                   <div style={{
-                    width: '4px',
-                    backgroundColor: estado === 'SIN_SERVICIO' ? 'var(--color-estado-sin)'
-                      : estado === 'CORTE_PROGRAMADO' ? 'var(--color-estado-baja)'
-                      : 'var(--color-estado-con)',
-                    borderRadius: '2px'
-                  }} />
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '50%',
+                    background: 'var(--color-superficie)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    border: '1px solid var(--color-linea)',
+                    boxShadow: `0 4px 12px ${iconoColor}30`,
+                    zIndex: 2,
+                    position: 'relative'
+                  }}>
+                    <IconoEstado size={20} color={iconoColor} />
+                  </div>
                   
                   <div style={{ flex: 1 }}>
-                    <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                          <span style={{ fontSize: '0.7rem', fontWeight: '700', color: 'var(--color-acento)', backgroundColor: 'var(--color-fondo)', padding: '0.15rem 0.5rem', borderRadius: 'var(--radio-pill)', border: '1px solid var(--color-linea)' }}>
+                    <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--color-acento)', backgroundColor: 'var(--color-acento)15', padding: '0.2rem 0.6rem', borderRadius: 'var(--radio-pill)' }}>
                             {boletin.numero}
                           </span>
                           <InsigniaEstado estado={estado} tamaño="sm" />
+                          <time dateTime={boletin.fecha} style={{ fontSize: '0.75rem', color: 'var(--color-tinta-3)', fontWeight: '600' }}>
+                            {formatearFecha(boletin.fecha)}
+                          </time>
                         </div>
-                        <h2 style={{ fontSize: '0.95rem', margin: 0, color: 'var(--color-tinta)', fontFamily: 'var(--font-display)', lineHeight: 1.4 }}>
+                        <h2 style={{ fontSize: '1.1rem', margin: 0, color: 'var(--color-tinta)', fontWeight: '700', lineHeight: 1.3, letterSpacing: '-0.3px' }}>
                           {boletin.titulo.replace(/^#\d+\s*–?\s*/, '')}
                         </h2>
-                        <time dateTime={boletin.fecha} style={{ fontSize: '0.8rem', color: 'var(--color-tinta-3)' }}>
-                          {formatearFecha(boletin.fecha)}
-                        </time>
                       </div>
                     </header>
                     
-                    {/* Barrios afectados extraídos del boletín */}
+                    {/* Barrios afectados (Pills premium) */}
                     {tieneBarrios && (
-                      <div style={{ marginTop: '0.5rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '0.4rem' }}>
-                          <MapPin size={12} color="var(--color-tinta-3)" />
-                          <span style={{ fontSize: '0.7rem', color: 'var(--color-tinta-3)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                            Barrios mencionados ({boletin.barriosAfectados.length})
+                      <div style={{ marginTop: '1rem', backgroundColor: 'var(--color-superficie)50', padding: '1rem', borderRadius: '1rem', border: '1px solid var(--color-linea)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.6rem' }}>
+                          <MapPin size={14} color="var(--color-tinta-3)" />
+                          <span style={{ fontSize: '0.75rem', color: 'var(--color-tinta-2)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            Afectación en {boletin.barriosAfectados.length} zonas
                           </span>
                         </div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                           {boletin.barriosAfectados.slice(0, 8).map(barrio => (
                             <span key={barrio} style={{
-                              fontSize: '0.65rem', fontWeight: '600',
-                              padding: '0.15rem 0.4rem',
-                              borderRadius: '4px',
+                              fontSize: '0.75rem', fontWeight: '600',
+                              padding: '0.25rem 0.6rem',
+                              borderRadius: 'var(--radio-pill)',
                               backgroundColor: 'var(--color-fondo)',
-                              color: 'var(--color-tinta-2)',
-                              border: '1px solid var(--color-linea)'
+                              color: 'var(--color-tinta)',
+                              border: '1px solid var(--color-linea)',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
                             }}>
                               {barrio}
                             </span>
                           ))}
                           {boletin.barriosAfectados.length > 8 && (
-                            <span style={{ fontSize: '0.65rem', color: 'var(--color-tinta-3)', padding: '0.15rem 0.4rem' }}>
-                              +{boletin.barriosAfectados.length - 8} más
+                            <span style={{ fontSize: '0.75rem', fontWeight: '600', color: 'var(--color-tinta-3)', padding: '0.25rem 0.6rem' }}>
+                              +{boletin.barriosAfectados.length - 8} sectores más
                             </span>
                           )}
                         </div>
                       </div>
                     )}
 
-                    {/* Enlace a boletín original */}
+                    {/* Enlace al boletín */}
                     <a
                       href={`https://www.acuacar.com/?p=${boletin.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
+                      className="hover-glowing"
                       style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '0.3rem',
-                        marginTop: '0.75rem', fontSize: '0.75rem',
-                        color: 'var(--color-acento)', textDecoration: 'none',
-                        fontWeight: '500'
+                        display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                        marginTop: '1.25rem', fontSize: '0.8rem',
+                        color: '#FFF', backgroundColor: 'var(--color-acento)', 
+                        padding: '0.4rem 1rem', borderRadius: 'var(--radio-pill)',
+                        textDecoration: 'none', fontWeight: '600',
+                        boxShadow: '0 4px 12px rgba(0, 102, 204, 0.3)'
                       }}
                     >
-                      Ver boletín completo <ExternalLink size={12} />
+                      Leer documento oficial <ExternalLink size={14} />
                     </a>
                   </div>
                 </article>
@@ -236,37 +302,68 @@ const PaginaBitacora: FC = () => {
             })
           ) : (
             // ── EVENTOS MOCK (fallback) ──
-            MOCK_EVENTOS.map(evento => (
-              <article 
-                key={evento.id}
-                className="panel-glass hover-glowing"
-                style={{
-                  display: 'flex',
-                  gap: '1rem',
-                  padding: '1.5rem',
-                  borderRadius: 'var(--radio-md)',
-                  position: 'relative'
-                }}
-              >
-                <div style={{ width: '4px', backgroundColor: 'var(--color-linea)', borderRadius: '2px' }} />
-                <div style={{ flex: 1 }}>
-                  <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                    <div>
-                      <h2 style={{ fontSize: '1.1rem', margin: 0, color: 'var(--color-tinta)', fontFamily: 'var(--font-display)' }}>
-                        {evento.sector}
-                      </h2>
-                      <time dateTime={evento.timestamp} style={{ fontSize: '0.8rem', color: 'var(--color-tinta-3)' }}>
-                        {formatearFecha(evento.timestamp)}
-                      </time>
-                    </div>
-                    <InsigniaEstado estado={evento.estadoRelacionado} tamaño="sm" />
-                  </header>
-                  <p style={{ color: 'var(--color-tinta-2)', fontSize: '0.95rem', margin: 0, lineHeight: '1.4' }}>
-                    <strong>{evento.tipo.replace(/_/g, ' ')}:</strong> {evento.descripcion}
-                  </p>
-                </div>
-              </article>
-            ))
+            MOCK_EVENTOS.map((evento, index) => {
+              const iconoColor = evento.estadoRelacionado === 'SIN_SERVICIO' ? '#ff453a' 
+                               : evento.estadoRelacionado === 'CORTE_PROGRAMADO' ? '#ff9f0a' 
+                               : '#30d158';
+              const IconoEstado = evento.estadoRelacionado === 'SIN_SERVICIO' ? AlertTriangle
+                                : evento.estadoRelacionado === 'CORTE_PROGRAMADO' ? Info
+                                : CheckCircle2;
+                                
+              return (
+                <article 
+                  key={evento.id}
+                  className="hover-glowing"
+                  style={{
+                    ...estiloGlass,
+                    display: 'flex',
+                    gap: '1.25rem',
+                    padding: '1.5rem',
+                    borderRadius: '1.5rem',
+                    position: 'relative',
+                    zIndex: 1,
+                    opacity: animarLista ? 1 : 0,
+                    transform: animarLista ? 'translateY(0)' : 'translateY(20px)',
+                    transition: `opacity 0.5s ease ${index * 0.1}s, transform 0.5s ease ${index * 0.1}s`,
+                  }}
+                >
+                  {/* Icono del Timeline */}
+                  <div style={{
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '50%',
+                    background: 'var(--color-superficie)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    border: '1px solid var(--color-linea)',
+                    boxShadow: `0 4px 12px ${iconoColor}30`,
+                  }}>
+                    <IconoEstado size={20} color={iconoColor} />
+                  </div>
+                  
+                  <div style={{ flex: 1 }}>
+                    <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                          <InsigniaEstado estado={evento.estadoRelacionado} tamaño="sm" />
+                          <time dateTime={evento.timestamp} style={{ fontSize: '0.75rem', color: 'var(--color-tinta-3)', fontWeight: '600' }}>
+                            {formatearFecha(evento.timestamp)}
+                          </time>
+                        </div>
+                        <h2 style={{ fontSize: '1.15rem', margin: 0, color: 'var(--color-tinta)', fontWeight: '700', letterSpacing: '-0.3px' }}>
+                          {evento.sector}
+                        </h2>
+                      </div>
+                    </header>
+                    <p style={{ color: 'var(--color-tinta-2)', fontSize: '0.95rem', margin: 0, lineHeight: '1.5' }}>
+                      <strong style={{ color: 'var(--color-tinta)' }}>{evento.tipo.replace(/_/g, ' ')}:</strong> {evento.descripcion}
+                    </p>
+                  </div>
+                </article>
+              )
+            })
           )}
         </div>
 
