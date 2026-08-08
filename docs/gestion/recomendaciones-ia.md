@@ -17,7 +17,7 @@
 |---|---|---|---|
 | REC-001 | 2026-08-08 | Formalizar quién es Rafael Sarmiento (`sarmientordev`) | Pendiente |
 | REC-002 | 2026-08-08 | BUG-005 (PRs sin revisor) sigue abierto y el patrón no mejora | Pendiente |
-| REC-003 | 2026-08-08 | C2 (contrato OpenAPI) es el cuello de botella real ahora mismo | Pendiente |
+| REC-003 | 2026-08-08 | C2 (contrato OpenAPI) es el cuello de botella real ahora mismo | Resuelta |
 | REC-004 | 2026-08-08 | La cobertura de pruebas del frontend está muy por debajo de la del backend | Pendiente |
 | REC-005 | 2026-08-08 | El ROSTER de `generar-dashboard.mjs` está escrito a mano, no se lee de ningún documento | Pendiente |
 
@@ -50,13 +50,17 @@ que debería hacer.
 
 ### REC-003 — C2 (contrato OpenAPI) es el cuello de botella real ahora mismo
 
-- **Fecha:** 2026-08-08 · **Estado:** Pendiente
+- **Fecha:** 2026-08-08 · **Estado:** Resuelta — el 2026-08-08, al fusionar el PR #56
 
 D4 ya construyó cuatro pantallas completas contra datos simulados (5 issues de reconciliación
 abiertos: #34, #35, #36, #38, #39) y ese es trabajo real que se pierde si el contrato final no
 coincide con la forma que asumieron los mocks. Vale la pena que D3 y D1 publiquen aunque sea un
 `openapi.yaml` parcial pronto — no hace falta que esté completo para reducir el riesgo de que la UI
 ya construida tenga que rehacerse.
+
+**Resuelta:** el PR #56 publicó `backend/openapi.yaml` (`GET /api/sectores` y `/api/sectores/{id}`) y
+abrió C2 formalmente. Los 5 issues de reconciliación siguen abiertos — falta que D4 conecte el
+frontend al contrato real y los cierre — pero eso ya no es un bloqueo de C2, es trabajo normal de D4.
 
 ### REC-004 — La cobertura de pruebas del frontend está muy por debajo de la del backend
 

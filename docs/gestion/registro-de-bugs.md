@@ -38,6 +38,8 @@ Tres razones concretas, no burocráticas:
 | BUG-011 | 2026-08-08 | S2 | M1/M5 | `ManejadorGlobalDeErrores` devolvía 500 en vez de 400/404 para validación de `@Valid` y rutas sin handler; solo aparecía al fusionar los PR #56 y #58 juntos | Cerrado | Equipo (fusión) |
 | BUG-012 | 2026-08-08 | S2 | M1/M2/M5 | `RateLimitConfig` (`WebMvcConfigurer`) tumbaba cualquier `@WebMvcTest` del proyecto que no mockeara `RedisTemplate`; solo aparecía al fusionar el PR #60 sobre #56/#58 | Cerrado | Equipo (fusión) |
 | BUG-013 | 2026-08-08 | S3 | — (proceso) | `BL-004` se usó para dos bloqueos distintos en `registro-de-bloqueos.md` (el de D2 y el de los colectores del PR #59); también la tabla de compuertas §1 seguía mostrando C2 en 🟡 después de que el PR #56 la abriera | Cerrado | Equipo (documentación) |
+| BUG-014 | 2026-08-08 | S3 | — (sala de control) | `dashboard-template.html` no tiene `<!DOCTYPE html>` ni `<meta charset="UTF-8">` — el navegador adivina la codificación y la adivina mal, mostrando "AguaVigÃ­a" en vez de "AguaVigía" en todo el panel | Cerrado | Equipo (sala de control) |
+| BUG-015 | 2026-08-08 | S2 | — (sala de control) | `generar-dashboard.mjs` inyectaba `JSON.stringify(datos)` sin escapar dentro de un `<script>`; un título de PR/issue/bug con `</script>` literal rompería la página o ejecutaría contenido inyectado | Cerrado | Equipo (sala de control) |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -46,6 +48,72 @@ Tres razones concretas, no burocráticas:
 ---
 
 ## Bugs abiertos — detalle
+
+### BUG-015 — Inyección de JSON sin escapar dentro de un `<script>` en la sala de control
+
+- **Fecha:** 2026-08-08 · **Severidad:** S2 · **Módulo:** — (sala de control, `scripts/`) ·
+  **Responsable:** Equipo (encontrado al auditar el panel a pedido de Carlos)
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** `generar-dashboard.mjs` construye la página con
+`plantilla.replace(marcador, JSON.stringify(datos))`, e inyecta ese texto directo dentro de
+`var DATA = /*__DASHBOARD_DATA__*/{};` en un `<script>`. `JSON.stringify` no escapa la secuencia
+`</script>` dentro de cadenas de texto.
+
+**Reproducción:**
+```
+node -e "console.log(JSON.stringify({t:'</script><script>alert(1)</script>'}))"
+→ {"t":"</script><script>alert(1)</script>"}
+```
+`datos` incluye títulos reales de PRs e issues de GitHub (`obtenerPRs`, `obtenerIssuesAbiertos`) y
+texto libre de `docs/gestion/*.md` (bugs, ADRs, recomendaciones) — todo escrito por personas, sin
+control de formato. Un título o descripción que citara un `<script>` (plausible en un proyecto que
+documenta bugs de frontend) habría cerrado el `<script>` de datos a la mitad, rompiendo el resto de
+la página, o — en el peor caso — ejecutado contenido inyectado en el navegador de quien la viera.
+
+**Esperado:** que el contenido de `datos` nunca pueda alterar la estructura HTML de la página que lo
+muestra, sin importar qué texto contenga.
+
+**Causa raíz:** `JSON.stringify` solo garantiza JSON válido, no que el resultado sea seguro para
+incrustar dentro de HTML/`<script>` — es un error conocido y común de la técnica de "inyectar JSON en
+un script inline", no específico de este proyecto.
+
+**Corrección:** `generar-dashboard.mjs` — se escapa `<` a `<` en el JSON ya serializado antes de
+incrustarlo (`JSON.stringify(datos).replace(/</g, "\\u003c")`), que es indistinguible para
+`JSON.parse`/el intérprete de JS pero ya no puede cerrar ninguna etiqueta. Verificado: la sala de
+control se regeneró y renderiza igual, sin errores de consola.
+
+---
+
+### BUG-014 — La sala de control mostraba los acentos rotos ("AguaVigÃ­a") en todo el panel
+
+- **Fecha:** 2026-08-08 · **Severidad:** S3 · **Módulo:** — (sala de control, `scripts/`) ·
+  **Responsable:** Equipo (encontrado al auditar el panel a pedido de Carlos)
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** todo el texto con tildes, eñes o rayas largas se veía como mojibake —
+`AguaVigÃ­a CTG`, `CÃ³mo va el equipo`, `instantÃ¡nea`, `quiÃ©n`, `â€"` en vez de `AguaVigía CTG`,
+`Cómo va el equipo`, `instantánea`, `quién`, `—`.
+
+**Reproducción:** consistente, en cualquier navegador — capturado al abrir `dist-dashboard/index.html`
+servido localmente.
+
+**Esperado:** que el texto en español se muestre tal cual está escrito en el archivo (que sí está en
+UTF-8 — verificado con `readFileSync(..., "utf8")` en el generador).
+
+**Causa raíz:** `scripts/dashboard-template.html` no tenía `<!DOCTYPE html>`, `<html>`, `<head>` ni
+`<meta charset="UTF-8">` — empezaba directo en `<title>`. Sin una declaración de codificación
+explícita, el navegador tiene que adivinarla, y para un archivo mayormente ASCII con secuencias UTF-8
+esparcidas (tildes, eñes), el resultado típico es interpretarlo como Windows-1252/ISO-8859-1: cada
+carácter UTF-8 de 2 bytes se muestra como dos caracteres Latin-1 distintos.
+
+**Corrección:** se envolvió la plantilla en un documento HTML5 válido —
+`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" ...></head><body>
+...</body></html>` — sin tocar el contenido ni el marcador de datos. Verificado: la sala de control
+se regeneró y el texto se ve correcto en todas las pestañas (Resumen, Compuertas, Equipo, Progreso,
+Sprints, Actividad, Decisiones, Ideas, Recomendaciones).
+
+---
 
 ### BUG-013 — Numeración duplicada de `BL-004` y tabla de compuertas desactualizada
 
