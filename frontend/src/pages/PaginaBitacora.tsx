@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react'
 import type { FC } from 'react'
 import { InsigniaEstado } from '../components/InsigniaEstado'
-import { obtenerBoletinesRecientes, determinarEstadoBarrios, limpiarHTML } from '../api/acuacar'
+import { obtenerBoletinesRecientes } from '../api/acuacar'
 import type { BoletinAcuacar } from '../api/acuacar'
 import type { EstadoServicio } from '../types/tipos-dominio'
 import { RefreshCw, ExternalLink, MapPin } from 'lucide-react'

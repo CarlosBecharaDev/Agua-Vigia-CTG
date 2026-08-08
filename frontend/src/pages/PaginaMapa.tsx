@@ -8,27 +8,18 @@
  *
  * DESIGN.md §1: responde "¿tengo agua?" en menos de 5 segundos.
  */
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import type { FC } from 'react'
 import { MapaCartagena } from '../components/MapaCartagena'
 import { ListaSectores } from '../components/ListaSectores'
 import { FeedComentarios } from '../components/FeedComentarios'
 import { ModalReporte } from '../components/ModalReporte'
 import type { Sector } from '../types/tipos-dominio'
-import { Megaphone, CloudRain, Thermometer, RefreshCw, Database, ServerCrash, Droplet } from 'lucide-react'
+import { Megaphone, RefreshCw, Database, ServerCrash, Droplet } from 'lucide-react'
 import { useDatosEnVivo } from '../hooks/useDatosEnVivo'
 
 const PaginaMapa: FC = () => {
-  const {
-    sectores,
-    cargando,
-    error,
-    ultimaActualizacion,
-    usandoDatosReales,
-    clima,
-    recargar,
-  } = useDatosEnVivo();
-
+  const { sectores, clima, cargando, error, ultimaActualizacion, recargar } = useDatosEnVivo();
 
   const [sectorActivo, setSectorActivo] = useState<Sector | null>(null)
   const [modalAbierto, setModalAbierto] = useState(false)

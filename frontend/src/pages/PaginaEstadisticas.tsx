@@ -3,7 +3,7 @@
  * UI inicial de Dashboard con Recharts usando datos MOCK.
  * Sprint 4: Se conecta con el API cuando C2 se abra.
  */
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { FC } from 'react'
 import {
   BarChart,

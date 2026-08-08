@@ -9,7 +9,7 @@
  *
  * Leaflet requiere que su CSS se importe antes de crear el mapa.
  */
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import type { FC } from 'react'
 // (No se requiere Link aquí)
 import L from 'leaflet'
