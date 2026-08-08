@@ -19,9 +19,9 @@ vacío de información que multiplica el daño. Toda decisión de alcance se juz
 
 ## Estado actual
 
-**Sprint 0 · Fase: DOCUMENTACIÓN.** No se escribe código de la aplicación hasta que el equipo lo
-autorice explícitamente; si una tarea parece requerir código de producción, confirma antes. Sí se
-puede: documentos, diagramas, especificaciones, plantillas, configuración del repositorio.
+**Sprint 0 · Fase: ANDAMIAJE.** Se permite estructura de proyecto, configuración, infraestructura,
+tokens visuales y rutas vacías. Se prohíbe la funcionalidad: **si el código implementa un `RF`, no va
+en el Sprint 0** (`ADR-009`). Ante un caso de frontera, pregunta antes de escribirlo.
 
 **7 sprints de ~4 semanas: Sprint 0 (preparación) + Sprints 1–6.** Calendario en `docs/gestion/README.md`.
 
@@ -80,10 +80,13 @@ Al proponer código, verifica mentalmente esta regla antes de escribir el import
 
 ## Convenciones de Git
 
-- Ramas: `main` ← `develop` ← `feature/*`, `fix/*`. **Nadie hace push directo a `main`.**
+- Ramas: `main` ← `develop` ← `feature/*`, `fix/*`. `develop` se fusiona a `main` **al cerrar cada
+  sprint**, por PR y con etiqueta `sprint-N`. Fuera de eso, `main` no se toca.
 - Commits en formato **Conventional Commits**: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`.
-  Mensaje en español, imperativo: `feat: agregar cálculo del índice de cumplimiento`.
-- Todo cambio entra por Pull Request con al menos **1 revisor**, enlazando su issue y su historia de usuario.
+  Mensaje en español, imperativo: `feat: agregar cálculo del índice de cumplimiento`. Fecha del
+  proyecto = **hora local de Cartagena (UTC-5)**, no UTC.
+- Todo cambio entra por Pull Request con al menos **1 revisor**, enlazando su issue y su historia de
+  usuario. **Es política, no un candado técnico**: no hay branch protection en GitHub (`ADR-010`).
 
 ### Autoría — regla no negociable
 
@@ -103,11 +106,9 @@ está declarado en la documentación académica y en el rol de D1.
 
 Es la coherencia del proyecto, no una preferencia de estilo. Detalle en `ADR-005` y `ADR-006`.
 
-1. **Se respeta `robots.txt` siempre**, aunque pudiéramos evadirlo. El Universal, El Tiempo, El
-   Heraldo y Blu Radio bloquean a `anthropic-ai` / `Claude-Web` / `GPTBot`: **no se scrapean, no se
-   disfraza el `User-Agent`, no se discute.**
-2. **No se scrapea Facebook, Instagram ni X.** Vía legítima: Meta Content Library con acceso
-   académico; si no se aprueba, la capa de reportes ciudadanos la reemplaza.
+1. **Se respeta `robots.txt` siempre**, aunque pudiéramos evadirlo: **no se disfraza el
+   `User-Agent`, no se discute.** Qué medio bloquea a qué agente: `MEMORY.md`.
+2. **No se scrapea Facebook, Instagram ni X.** Vía legítima y su estado: `MEMORY.md` § Restricciones.
 3. **El colector se identifica siempre**: `User-Agent` con nombre del proyecto y correo de contacto.
 4. **Nada llega al mapa público sin verificación.** Si la IA no puede citar la frase exacta del
    boletín que respalda su extracción, no se publica. Un corte inventado destruiría la credibilidad.
@@ -117,10 +118,9 @@ Es la coherencia del proyecto, no una preferencia de estilo. Detalle en `ADR-005
 ## Fuentes de datos
 
 En uso y verificadas: **Acuacar** (API REST de WordPress + RSS), **Google News RSS** y **Zona Cero
-RSS**. Las 18 evaluadas, con veredicto y motivo de descarte: `docs/ingenieria/auditoria-fuentes-de-datos.md`.
-
-**Antes de afirmar que una fuente está bloqueada o disponible, verifícalo con una petición real**
-(skill `verificar-fuente`). Aquí ya costó caro asumir un `robots.txt` sin leerlo.
+RSS**. Las 18 evaluadas, con veredicto: `docs/ingenieria/auditoria-fuentes-de-datos.md`. **Antes de
+afirmar que una fuente está bloqueada o disponible, verifícalo con una petición real** (skill
+`verificar-fuente`): aquí ya costó caro asumir un `robots.txt` sin leerlo.
 
 ---
 
@@ -134,7 +134,7 @@ docs/equipo/            Titulares D1–D5, tareas por sprint y secuencia de trab
 docs/ingenieria/        Pipeline de datos, auditoría de fuentes, matriz de trazabilidad
 docs/gestion/           Scrum, bitácora, bugs, implementaciones, bloqueos y compuertas
 docs/informe-metodologico/ · docs/anexos/   Los 4 capítulos y los 6 anexos académicos
-backend/ · frontend/    (pendientes) Spring Boot · React + Vite
+frontend/               React 19 + Vite — esqueleto de Sprint 0 · backend/ lo crea D2 (Sprint 0)
 ```
 
 ---

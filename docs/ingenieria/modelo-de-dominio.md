@@ -63,7 +63,7 @@
 `D1-notificaciones-bitacora.md`, dueño real de M4 (tabla "Resumen del equipo" en `roles-y-tareas.md`:
 D1 posee `application/`, `infrastructure/mail/`, `api/` y `frontend/` para M4 completo, suscripción
 incluida). Era un error de copiado al armar las tablas de sprint, no una decisión entre alternativas.
-**Corregido 2026-08-08**: se quitó la línea de `D2-backend-dominio.md`. D2 no toca `SuscribirseService`.
+**Corregido 2026-08-07**: se quitó la línea de `D2-backend-dominio.md`. D2 no toca `SuscribirseService`.
 
 ## 6. Diagrama de clases (borrador)
 

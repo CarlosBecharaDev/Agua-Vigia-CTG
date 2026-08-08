@@ -25,7 +25,8 @@ Tres razones concretas, no burocráticas:
 
 | ID | Fecha | Sev | Módulo | Título | Estado | Responsable |
 |---|---|---|---|---|---|---|
-| — | — | — | — | *Sin bugs registrados. El código de la aplicación aún no ha iniciado.* | — | — |
+| BUG-001 | 2026-08-07 | S2 | CI | Los workflows de CI se disparaban a sí mismos y fallaban | Cerrado | D2 |
+| BUG-002 | 2026-08-07 | S3 | CI | Frontend CI fallaba al asumir un script `test` que el esqueleto no tiene | Cerrado | D2 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -37,6 +38,27 @@ Tres razones concretas, no burocráticas:
 
 *(Vacío. Los bugs abiertos se detallan completos aquí; al cerrarse, el detalle se reduce a su fila en
 la tabla de arriba — ver `protocolo-de-contexto.md` §5.)*
+
+---
+
+## Nota sobre BUG-001 y BUG-002
+
+Ambos se encontraron y se corrigieron durante la revisión de los PRs #1 y #5, y **se registraron
+tarde**, en la auditoría del 2026-08-07. Se dejan escritos porque son exactamente lo que la regla 2 de
+`README.md` pide capturar: defectos reales, atrapados por la revisión por pares antes de llegar a
+`develop`. Son los dos primeros datos del Capítulo IV.
+
+**Causa raíz común:** ambos workflows se escribieron asumiendo un repositorio que todavía no existía
+—uno con `backend/`, `frontend/` y un script `test`—. La lección es del proceso, no de quien los
+escribió: la configuración de CI se valida contra el estado **actual** del repositorio, no contra el
+que tendrá en el Sprint 2.
+
+**Corrección:** `0cb3b06` (quitar el propio archivo del filtro `paths`) y `f9c19c2` (detectar el
+script `test` antes de invocarlo).
+**Prueba que impide la regresión:** ninguna automatizada. Es una limitación conocida — no hay forma
+barata de probar un workflow sin ejecutarlo. Mitigación: el paso de tests de `frontend-ci.yml` ya es
+tolerante a su ausencia, y `backend-ci.yml` correrá por primera vez cuando D2 suba `/backend`, lo que
+lo pone bajo prueba real ese mismo día.
 
 ---
 

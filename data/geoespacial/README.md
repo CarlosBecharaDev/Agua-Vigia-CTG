@@ -66,7 +66,7 @@ decida. Quien construya el seed de Sprint 1 debe resolver esto explícitamente:
 
 ---
 
-## Validado contra boletines reales de Acuacar (2026-08-08)
+## Validado contra boletines reales de Acuacar (2026-08-07)
 
 Se compararon los nombres de este GeoJSON contra el contenido real de varios boletines de
 `acuacar.com` (API REST, ver `MEMORY.md`), incluida la programación detallada de suspensiones
