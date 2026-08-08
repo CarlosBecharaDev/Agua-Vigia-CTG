@@ -30,7 +30,7 @@ Tres razones concretas, no burocráticas:
 | BUG-003 | 2026-08-08 | S2 | — (infraestructura) | `docker compose config -q` fallaba en un clon limpio por depender de un `.env` que nunca se versiona | Cerrado | D5 |
 | BUG-004 | 2026-08-08 | S2 | M5 | `PaginaVeedor.tsx` compara el acceso contra la contraseña `'1234'` escrita en el código fuente | Cerrado | D5 |
 | BUG-005 | 2026-08-08 | S3 | — (proceso) | Los PRs se siguen fusionando sin revisor, y el patrón empeora en vez de mejorar | Abierto | Equipo |
-| BUG-006 | 2026-08-08 | S2 | M5 | La rama `vista-previa-total` vuelve a comparar contra `'1234'` y borra la prueba que cerró `BUG-004` | Abierto | D4 |
+| BUG-006 | 2026-08-08 | S2 | M5 | La rama `vista-previa-total` vuelve a comparar contra `'1234'` y borra la prueba que cerró `BUG-004` | Cerrado | D4 |
 | BUG-007 | 2026-08-08 | S2 | — (pruebas) | Testcontainers no encuentra Docker: Engine 29 exige API ≥ 1.40 y docker-java negocia 1.32 | Cerrado | D3 |
 | BUG-008 | 2026-08-08 | S2 | M1 | El mapa pinta como "con servicio" los 211 sectores de los que no tiene dato | Abierto | D4 |
 | BUG-009 | 2026-08-08 | S2 | — (infraestructura) | `RedisTemplate<String,String>` es ambiguo entre el bean propio y `stringRedisTemplate` de Spring | Cerrado | D3 |
@@ -40,6 +40,7 @@ Tres razones concretas, no burocráticas:
 | BUG-013 | 2026-08-08 | S3 | — (proceso) | `BL-004` se usó para dos bloqueos distintos en `registro-de-bloqueos.md` (el de D2 y el de los colectores del PR #59); también la tabla de compuertas §1 seguía mostrando C2 en 🟡 después de que el PR #56 la abriera | Cerrado | Equipo (documentación) |
 | BUG-014 | 2026-08-08 | S3 | — (sala de control) | `dashboard-template.html` no tiene `<!DOCTYPE html>` ni `<meta charset="UTF-8">` — el navegador adivina la codificación y la adivina mal, mostrando "AguaVigÃ­a" en vez de "AguaVigía" en todo el panel | Cerrado | Equipo (sala de control) |
 | BUG-015 | 2026-08-08 | S2 | — (sala de control) | `generar-dashboard.mjs` inyectaba `JSON.stringify(datos)` sin escapar dentro de un `<script>`; un título de PR/issue/bug con `</script>` literal rompería la página o ejecutaría contenido inyectado | Cerrado | Equipo (sala de control) |
+| BUG-016 | 2026-08-08 | S4 | M7 | Las líneas rojas de la gráfica interactiva SVG en el HTML exportado se cortaban a la mitad cuando tenían demasiados picos debido a la restricción nativa de `stroke-dasharray`. | Cerrado | D4 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético

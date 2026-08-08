@@ -26,6 +26,10 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 0
 
+### 2026-08-08 · D4 · `vista-previa-total`
+**Qué:** Misión 1 (Dividir rama gigante y reporte offline interactivo con IA). Construcción masiva de todas las vistas (Estadísticas, Bitácora, Mapa, Veedor, Reportar) con componentes nativos interactivos, glassmorphism y tooltips SVG puros (offline). Arreglamos `BUG-016` (cortes en línea SVG por stroke-dasharray) y `BUG-006` (quitamos la clave mock 1234 en el panel del Veedor). 
+**Sigue:** PR hacia develop para integrar esta base colosal de UI y continuar conectando con la sala de control y backend.
+
 ### 2026-08-08 · D3 · `feature/d3-sprint1-mongo-y-api-sectores`
 **Qué:** Entregables de Sprint 1 de D3: adaptador Mongo de `SectorRepository` (índice `2dsphere`,
 conserva la geometría de D5 al guardar), adaptador de `RelojPort`, `GET /api/sectores` y
