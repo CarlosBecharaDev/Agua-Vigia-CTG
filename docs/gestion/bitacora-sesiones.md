@@ -81,6 +81,20 @@ antes de darla por buena — `BL-005`, para el equipo.
 revisor humano. En cuanto D1 fije el correo real y alguien configure una clave de Anthropic, los
 colectores y la capa de IA se conectan directo después del prefiltro sin rehacer nada de esto.
 
+### 2026-08-08 · D3 · `feature/d3-sprint2-rate-limiting-http`
+**Qué:** Quinto PR de la sesión: rate limiting HTTP genérico (Redis `INCR`+`EXPIRE`), pendiente de
+Sprint 2 y hueco señalado en `ADR-016`. `RateLimitingInterceptor` + `RateLimitConfig`, configurable
+por `application.yml` (`aguavigia.rate-limit.reglas`), opt-in, sin depender de ningún PR sin
+fusionar. `ADR-018`: clave por IP, no por huella de dispositivo (eso es de M2/negocio, no de este
+componente genérico). `./mvnw clean verify` → 28 pruebas, 0 fallos. Verificado en vivo contra la
+app corriendo y Redis real: 3 peticiones pasan, la 4ª y 5ª reciben `429` con `Retry-After`.
+Confirmado (y documentado en el código) que `/actuator/**` no queda cubierto porque Actuator usa su
+propio `HandlerMapping`. En el camino: diagnosticado que Git Bash (MSYS) reescribe rutas tipo
+`/actuator/health` a rutas de Windows al pasarlas por variable de entorno — no es un bug del
+proyecto, es del entorno de verificación local (`MSYS_NO_PATHCONV=1` lo evita).
+**Sigue:** Cuando el PR #58 (JWT del veedor) se fusione, activar
+`aguavigia.rate-limit.reglas[0].ruta=/api/veedor/sesion` con `limite: 5, ventanaSegundos: 300`.
+
 ### 2026-08-08 · D5 · `feature/d5-dockerfile-frontend-y-jacoco`
 **Qué:** Registrados en `registro-de-implementaciones.md` los PRs #27 y #33 (Dockerfiles backend/frontend,
 JaCoCo, perfiles de Spring, `/actuator/health`), fusionados sin registrar. Actualizados `docs/anexos/README.md`

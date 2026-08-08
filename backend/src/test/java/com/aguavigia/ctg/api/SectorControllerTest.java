@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -44,6 +45,12 @@ class SectorControllerTest {
 
     @MockitoBean
     private JwtProvider jwtProvider;
+
+    // RateLimitConfig implementa WebMvcConfigurer: @WebMvcTest lo detecta e instancia en
+    // cualquier slice del proyecto, aunque no se importe aqui — necesita este bean para construirse.
+    // name="redisTemplate" porque RateLimitConfig lo pide con @Qualifier("redisTemplate").
+    @MockitoBean(name = "redisTemplate")
+    private RedisTemplate<String, String> redisTemplateMock;
 
     @Test
     void debeDevolverElListadoConLaHoraEnQueSeGenero() throws Exception {

@@ -777,8 +777,59 @@ directamente — hoy no es el caso.
 
 ---
 
+## ADR-018 — Rate limiting HTTP genérico, opt-in por configuración, clave por IP
+
+- **Fecha:** 2026-08-08
+- **Estado:** Aceptada
+- **Decide:** Backend – Infraestructura (D3)
+
+### Contexto
+
+`D3-backend-infraestructura.md` Sprint 2 pide "Rate limiting en Redis (`INCR` + `EXPIRE`)", y
+`ADR-016` dejó señalado que `POST /api/veedor/sesion` no tenía freno contra fuerza bruta. Ninguno
+de los dos endpoints que más lo necesitan (login del veedor, `POST /api/reportes`) existe todavía en
+`develop` — viven en PRs sin fusionar (#58) o sin construir (`application/` de D2 vacía). Construir
+el limitador acoplado a un endpoint concreto habría significado depender de una rama ajena sin
+fusionar, o inventar el endpoint que falta.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Un interceptor hardcodeado para `/api/veedor/sesion` | Resuelve el hueco exacto de `ADR-016` | Depende del PR #58 sin fusionar; sirve un solo caso cuando `POST /api/reportes` va a necesitar lo mismo |
+| **Interceptor genérico, reglas por `application.yml`** (elegida) | Reutilizable para cualquier ruta futura sin tocar código Java; no depende de ningún PR sin fusionar; opt-in — sin reglas configuradas, cero cambio de comportamiento | Una capa de indirección más (propiedades → interceptor) para un caso que hoy es solo uno |
+| Clave por `HuellaDispositivo` (como `ContadorReportesPort`, PR #57) | Coherente con ADR-007 (rate limiting "por huella de dispositivo/IP") | La huella la calcula el cliente y la manda en un header — es información de negocio (M2), no algo que un interceptor HTTP genérico de infraestructura deba conocer. Mezclarlo aquí acoplaría este componente a un contrato de request específico |
+| **Clave por IP del request** (elegida) | Disponible en cualquier petición HTTP sin contrato adicional; suficiente para frenar fuerza bruta contra un login | Un atacante con muchas IPs no queda contenido — el mismo límite que ya acepta `ADR-007` para el resto del proyecto |
+
+### Decisión
+
+`RateLimitingInterceptor` + `RateLimitConfig` (`WebMvcConfigurer`), configurable vía
+`aguavigia.rate-limit.reglas` (lista de `{ruta, limite, ventanaSegundos}`). Lista vacía por
+defecto. Clave en Redis: IP del cliente (`request.getRemoteAddr()`), no huella de dispositivo.
+
+**No cubre `/actuator/**`**: Actuator se sirve por un `HandlerMapping` propio
+(`WebMvcEndpointHandlerMapping`) que no recoge los interceptores de `WebMvcConfigurer` —
+verificado en vivo. No hacía falta de todas formas: solo `health` está expuesto y nadie querría
+limitar un healthcheck.
+
+### Consecuencias
+
+- **Gana:** cierra `ADR-016` sin esperar a que se fusione ningún PR; cualquier ruta futura se
+  protege con 3 líneas de `application.yml`, sin tocar Java.
+- **Pierde:** no protege por dispositivo, solo por IP — un atacante con IPs rotativas no queda
+  contenido. Suficiente para el caso que motivó esto (fuerza bruta simple contra un login).
+- **Condiciona:** cuando alguien active esto para `/api/veedor/sesion`, el valor sugerido es
+  `limite: 5, ventanaSegundos: 300` (5 intentos cada 5 min) — documentado en el javadoc de
+  `RateLimitProperties`, no forzado por código.
+
+### Cómo se revierte
+
+Vaciando `aguavigia.rate-limit.reglas`. El interceptor no se registra si la lista está vacía.
+
+---
+
 <!--
-Siguiente número disponible: ADR-018
+Siguiente número disponible: ADR-019
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->

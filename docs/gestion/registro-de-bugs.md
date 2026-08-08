@@ -36,6 +36,7 @@ Tres razones concretas, no burocráticas:
 | BUG-009 | 2026-08-08 | S2 | — (infraestructura) | `RedisTemplate<String,String>` es ambiguo entre el bean propio y `stringRedisTemplate` de Spring | Cerrado | D3 |
 | BUG-010 | 2026-08-08 | S2 | M5 | `JwtProvider.validarYObtenerSujeto` habría podido tumbar con 500 cualquier ruta pública si `JWT_SECRET` no estaba configurado | Cerrado | D3 |
 | BUG-011 | 2026-08-08 | S2 | M1/M5 | `ManejadorGlobalDeErrores` devolvía 500 en vez de 400/404 para validación de `@Valid` y rutas sin handler; solo aparecía al fusionar los PR #56 y #58 juntos | Cerrado | Equipo (fusión) |
+| BUG-012 | 2026-08-08 | S2 | M1/M2/M5 | `RateLimitConfig` (`WebMvcConfigurer`) tumbaba cualquier `@WebMvcTest` del proyecto que no mockeara `RedisTemplate`; solo aparecía al fusionar el PR #60 sobre #56/#58 | Cerrado | Equipo (fusión) |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -44,6 +45,48 @@ Tres razones concretas, no burocráticas:
 ---
 
 ## Bugs abiertos — detalle
+
+### BUG-012 — `RateLimitConfig` tumbaba cualquier `@WebMvcTest` del proyecto, solo al combinar tres PRs
+
+- **Fecha:** 2026-08-08 · **Severidad:** S2 · **Módulo:** M1/M2/M5 (transversal, infraestructura) ·
+  **Responsable:** Equipo (encontrado y corregido resolviendo el merge del PR #60)
+- **Estado:** Cerrado — corregido antes de fusionar, ninguno de los PRs lo tenía por separado
+
+**Síntoma:** al combinar el PR #60 (rate limiting, `RateLimitConfig implements WebMvcConfigurer`)
+con `develop` (que ya traía los PR #56 y #58), `./mvnw clean verify` pasó de 0 a 12 pruebas
+fallidas: `SectorControllerTest` (4, error de contexto — `UnsatisfiedDependencyException`),
+`VeedorAuthControllerTest` (6) y el propio `RateLimitConfigTest` (2, `esperado 200, recibido 401`).
+
+**Reproducción:** consistente, solo con los tres PRs presentes a la vez.
+
+1. `@WebMvcTest` no solo escanea controladores: también autodetecta cualquier bean que implemente
+   `WebMvcConfigurer`, aunque no esté en la lista de `@Import` del test. `RateLimitConfig` implementa
+   esa interfaz, así que **cualquier** `@WebMvcTest` del proyecto —no solo los relacionados con rate
+   limiting— pasó a instanciarlo, y su constructor exige un `RedisTemplate` calificado
+   (`@Qualifier("redisTemplate")`). `SectorControllerTest` y `VeedorAuthControllerTest` no tenían
+   ese bean disponible en su slice: el contexto de Spring fallaba al arrancar.
+2. `RateLimitConfigTest` (el propio test del PR #60) tampoco importaba `SecurityConfig` — mismo
+   patrón que `BUG-011`: sin él, Spring Security por defecto exige autenticación en todas las rutas
+   de ese slice, y sus dos pruebas contra `/protegida` y `/sin-proteger` recibían 401 en vez de 200.
+
+**Esperado:** que los slices de prueba existentes sigan pasando sin cambios al fusionar
+infraestructura nueva que no tocan directamente.
+
+**Causa raíz:** ninguno de los tres PRs pudo haberlo visto solo. El PR #56 y el #58 escribieron sus
+pruebas antes de que `RateLimitConfig` existiera. El PR #60 escribió las suyas contra una rama sin
+`SectorControllerTest` ni `VeedorAuthControllerTest`. El defecto solo existe en la intersección de
+los tres — es responsabilidad de quien resuelve el merge, igual que `BUG-011`.
+
+**Corrección:**
+- `SectorControllerTest.java` y `VeedorAuthControllerTest.java` — `@MockitoBean(name = "redisTemplate")`
+  para satisfacer el `@Qualifier` de `RateLimitConfig`. Nombrar el campo igual que el bean no bastó:
+  hubo que fijar `name` explícitamente en `@MockitoBean`.
+- `RateLimitConfigTest.java` — `@Import(SecurityConfig.class)` y `@MockitoBean JwtProvider`, igual
+  que ya hacía `VeedorAuthControllerTest`.
+
+Verificado: `./mvnw clean verify` → 75 pruebas, 0 fallos, ArchUnit incluido.
+
+---
 
 ### BUG-011 — `ManejadorGlobalDeErrores` devolvía 500 donde correspondía 400/404, solo al combinar dos PRs
 
