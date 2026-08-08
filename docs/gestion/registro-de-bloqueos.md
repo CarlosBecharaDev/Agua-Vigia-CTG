@@ -1,0 +1,85 @@
+# Registro de bloqueos y estado de las compuertas
+
+> Un **bloqueo** es una tarea que no puede avanzar porque su insumo lo produce otro rol y todavía no
+> existe. Se registra aquí **en el momento en que se detecta** y se avisa en el chat a la persona
+> que está trabajando. No avanzar es la conducta correcta; avanzar inventando el insumo faltante es
+> lo que rompe el proyecto.
+>
+> **Para agregar o cerrar una entrada: usa la skill `registrar-bloqueo`.**
+> Las compuertas, quién las abre y qué habilitan: [`../equipo/secuencia-de-trabajo.md`](../equipo/secuencia-de-trabajo.md) §2.
+
+---
+
+## 1. Estado de las compuertas — tabla viva
+
+**Esta tabla es la fuente de verdad del avance del equipo.** El agente la lee antes de empezar
+cualquier tarea, y **la verifica con el comando de la columna**: la tabla puede estar desactualizada,
+el repositorio no.
+
+| Compuerta | La abre | Habilita a | Comando de verificación | Estado | Abierta el |
+|---|---|---|---|---|---|
+| **C0** · Entorno reproducible | D5 | Todos | `docker compose config -q && ls backend frontend` | 🔴 Cerrada | — |
+| **C1** · Dominio y puertos | D2 | D3 · D1 | `ls backend/src/main/java/com/aguavigia/ctg/domain/port/out` | 🔴 Cerrada | — |
+| **C2** · Contrato OpenAPI | D3 · D1 | D4 | `git show develop:backend/openapi.yaml \| head -5` | 🔴 Cerrada | — |
+| **C3** · SPA integrada contra API real | D4 | D5 (E2E · despliegue) | `cd frontend && npm run build` | 🔴 Cerrada | — |
+
+Estados: 🔴 Cerrada · 🟡 Parcial (abierta solo para parte del alcance, detállalo) · 🟢 Abierta
+
+**Quien abre una compuerta la marca aquí en el mismo PR que la abre**, y avisa en el chat del equipo.
+Una compuerta abierta y no anunciada deja a un compañero bloqueado sin motivo.
+
+---
+
+## 2. Bloqueos abiertos — detalle
+
+*(Vacío. El código de la aplicación aún no ha iniciado.)*
+
+---
+
+## 3. Bloqueos cerrados
+
+| ID | Fecha | Rol bloqueado | Compuerta | Días detenido | Cómo se resolvió |
+|---|---|---|---|---|---|
+| — | — | — | — | — | *Sin bloqueos registrados.* |
+
+**Los días detenidos son un dato del Capítulo IV**, no un reproche. Miden si la secuencia funcionó.
+
+---
+
+## 4. Desbloqueos temporales autorizados
+
+Excepción única a la regla de no avanzar. **Solo la autoriza el titular de la compuerta**, por
+escrito, y siempre con fecha de caducidad y tarea de reconciliación. Un desbloqueo sin caducidad es
+deuda técnica disfrazada de permiso.
+
+| ID | Compuerta | Autoriza | Qué se permite exactamente | Caduca | Issue de reconciliación | Estado |
+|---|---|---|---|---|---|---|
+| — | — | — | *Sin desbloqueos vigentes.* | — | — | — |
+
+Condiciones obligatorias de todo desbloqueo temporal:
+
+1. Lo provisional queda **detrás de una bandera o en un archivo con sufijo `.provisional`**, nunca
+   mezclado con el código definitivo.
+2. Existe un issue abierto para retirarlo, enlazado en la fila.
+3. **Si caduca y sigue vigente, se convierte en bug S2** y se registra como tal.
+
+---
+
+<!--
+Plantilla de bloqueo abierto — copiar a la sección 2.
+
+### BL-NNN — <qué no se puede hacer, en una línea>
+
+- **Fecha:** AAAA-MM-DD · **Rol bloqueado:** D<N> · **Compuerta:** C<N> · **Titular que la abre:** D<N>
+- **Estado:** Abierto
+
+**Tarea detenida:** qué se iba a hacer + RF que implementa.
+**Insumo que falta:** el artefacto concreto, con su ruta esperada.
+**Verificación:** el comando que se corrió y su salida real. Sin esto la entrada no vale — el
+proyecto ya pagó una vez el precio de afirmar sin verificar (ver `MEMORY.md`).
+**Avisado en el chat:** sí/no · a quién.
+**Trabajo alterno tomado:** en qué se avanzó mientras tanto, o "ninguno" si no lo había.
+**Cierre:** fecha + cómo se abrió la compuerta.
+
+Siguiente número disponible: BL-001
+-->

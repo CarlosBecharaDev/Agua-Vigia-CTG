@@ -639,73 +639,78 @@
       <div class="team-grid">
         <div class="team-card">
           <div class="avatar-badge">D1</div>
-          <div class="dev-role">Full-Stack & IA Docs</div>
-          <div class="dev-task"><strong>MÓDULOS:</strong> M4 (Alertas) y M8 (Bitácora Pública).<br>Generación de informe metodológico con IA.</div>
+          <div class="dev-role">Full-Stack &amp; IA Docs</div>
+          <div class="dev-task"><strong>TITULAR:</strong> por asignar.<br><strong>MÓDULOS:</strong> M4 (Alertas) y M8 (Bitácora Pública).<br>Generación de informe metodológico con IA.</div>
         </div>
 
         <div class="team-card">
           <div class="avatar-badge">D2</div>
           <div class="dev-role">Backend Dominio</div>
-          <div class="dev-task"><strong>MÓDULOS:</strong> M3 (Consenso) y M6 (Índice Cumplimiento ⭐).<br>Java puro, ArchUnit y SOLID.</div>
+          <div class="dev-task"><strong>TITULAR:</strong> Carlos Bechara Arias.<br><strong>MÓDULOS:</strong> M3 (Consenso) y M6 (Índice Cumplimiento ⭐).<br>Java puro, ArchUnit y SOLID.</div>
         </div>
 
         <div class="team-card">
           <div class="avatar-badge">D3</div>
-          <div class="dev-role">Backend Infra & IA</div>
-          <div class="dev-task"><strong>MÓDULOS:</strong> M2, M5 y M9 (Ingesta IA ⭐).<br>MongoDB geoespacial, Redis y Anthropic SDK.</div>
+          <div class="dev-role">Backend Infra &amp; IA</div>
+          <div class="dev-task"><strong>TITULAR:</strong> Sebastián Montes Olivera.<br><strong>MÓDULOS:</strong> M2, M5 y M9 (Ingesta IA ⭐).<br>MongoDB geoespacial, Redis y Anthropic SDK.</div>
         </div>
 
         <div class="team-card">
           <div class="avatar-badge">D4</div>
           <div class="dev-role">Frontend SPA</div>
-          <div class="dev-task"><strong>MÓDULOS:</strong> M1 (Mapa), M2 (Reporte UI), M5 (Veedor UI).<br>React 19, TS, Leaflet y WCAG AA.</div>
+          <div class="dev-task"><strong>TITULAR:</strong> José Daniel Zambrano.<br><strong>MÓDULOS:</strong> M1 (Mapa), M2 (Reporte UI), M5 (Veedor UI).<br>React 19, TS, Leaflet y WCAG AA.</div>
         </div>
 
         <div class="team-card">
           <div class="avatar-badge">D5</div>
-          <div class="dev-role">DevOps & QA</div>
-          <div class="dev-task"><strong>MÓDULOS:</strong> M7 (Estadísticas) + CI/CD.<br>Docker, Playwright, GeoJSON Cartagena.</div>
+          <div class="dev-role">DevOps &amp; QA</div>
+          <div class="dev-task"><strong>TITULAR:</strong> Yordy Pardo Pajaro.<br><strong>MÓDULOS:</strong> M7 (Estadísticas) + CI/CD.<br>Docker, Playwright, GeoJSON Cartagena.</div>
         </div>
       </div>
 
       <h3 style="font-family: var(--font-display); font-size: 1.5rem; margin-top: 3rem; text-align: center;">
         🔄 Secuencia y Orden de Trabajo en Cascada
       </h3>
+      <p class="section-sub" style="margin: 0 auto 2rem; max-width: 60ch;">
+        Seguir esta secuencia es <strong>obligatorio</strong>. Entre etapas hay <strong>compuertas</strong>:
+        un artefacto verificable que separa a quien lo produce de quien lo consume. Mientras una compuerta
+        siga cerrada, quien depende de ella no empieza: registra el bloqueo y lo avisa al equipo.
+      </p>
 
       <div class="timeline">
         <div class="step-item">
           <div class="step-num">1</div>
           <div class="step-content">
             <div class="step-title">D5 — Infraestructura Base & Docker (Prepara el Terreno)</div>
-            <div class="step-desc">Inicializa repositorio, levanta contenedores Mongo/Redis con `docker-compose` y provee el GeoJSON de Cartagena.</div>
+            <div class="step-desc">Inicializa repositorio, levanta contenedores Mongo/Redis con `docker-compose` y provee el GeoJSON de Cartagena.<br><strong>Abre la compuerta C0</strong> — entorno reproducible, habilita a todo el equipo.</div>
           </div>
         </div>
         <div class="step-item">
           <div class="step-num">2</div>
           <div class="step-content">
             <div class="step-title">D2 — Dominio y Contratos Pure Java (Núcleo de Negocio)</div>
-            <div class="step-desc">Crea las entidades puras, objetos de valor (`record`), los puertos de entrada/salida y las reglas de ArchUnit.</div>
+            <div class="step-desc">Crea las entidades puras, objetos de valor (`record`), los puertos de entrada/salida y las reglas de ArchUnit.<br><strong>Abre la compuerta C1</strong> — dominio y puertos, habilita a D3 y D1.</div>
           </div>
         </div>
         <div class="step-item">
           <div class="step-num">3</div>
           <div class="step-content">
             <div class="step-title">D3 & D1 — Backend Infraestructura, Alertas & Ingesta IA (Tubería Técnica)</div>
-            <div class="step-desc">D3 implementa MongoDB, Redis y la Ingesta IA publicando OpenAPI. D1 implementa el servicio de correos y la Bitácora.</div>
+            <div class="step-desc">D3 implementa MongoDB, Redis y la Ingesta IA publicando OpenAPI. D1 implementa el servicio de correos y la Bitácora.<br><strong>Abren la compuerta C2</strong> — contrato OpenAPI, habilita a D4.</div>
           </div>
         </div>
         <div class="step-item">
           <div class="step-num">4</div>
           <div class="step-content">
             <div class="step-title">D4 — Frontend React & Mapas Leaflet (Experiencia Visual)</div>
-            <div class="step-desc">Consume la OpenAPI para generar clientes TypeScript y construye el Mapa, Formularios, Panel y Timeline.</div>
+            <div class="step-desc">Consume la OpenAPI para <em>generar</em> los clientes TypeScript —nunca escribirlos a mano— y construye el Mapa, Formularios, Panel y Timeline.<br><strong>Abre la compuerta C3</strong> — SPA integrada, habilita el QA final.</div>
           </div>
         </div>
         <div class="step-item">
           <div class="step-num">5</div>
           <div class="step-content">
             <div class="step-title">D5 — Pruebas E2E, Chaos Testing & Despliegue Cloud (Cierre de Ciclo)</div>
-            <div class="step-desc">Valida el sistema completo con Playwright, ejecuta prueba de caos y despliega en Render/MongoDB Atlas/Upstash.</div>
+            <div class="step-desc">Valida el sistema completo con Playwright, ejecuta prueba de caos y despliega en Render/MongoDB Atlas/Upstash.<br><strong>Requiere la compuerta C3</strong> abierta y verificada.</div>
           </div>
         </div>
       </div>

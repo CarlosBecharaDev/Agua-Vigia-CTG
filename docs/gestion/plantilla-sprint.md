@@ -34,14 +34,19 @@ Una frase que describe qué podrá hacer un usuario al final que hoy no puede.
 | D5 | | | |
 
 La columna **Depende de** es la importante: es donde se ven los bloqueos antes de que ocurran.
-Ver la cadena de dependencias en `docs/equipo/secuencia-de-trabajo.md` §1.
+Escríbela con la **compuerta** correspondiente (C0–C3), no con un nombre propio. Cadena de
+dependencias y compuertas: `docs/equipo/secuencia-de-trabajo.md` §1 y §2.
 
 ---
 
-## 3. Bloqueos detectados durante el sprint
+## 3. Bloqueos del sprint — resumen
 
-| Fecha | Quién | Bloqueo | Cómo se resolvió |
-|---|---|---|---|
+El detalle de cada bloqueo vive en `registro-de-bloqueos.md`; aquí solo el resumen del sprint, para
+la retrospectiva. Un sprint sin bloqueos anotados y con entregables retrasados significa que hubo
+bloqueos y no se registraron.
+
+| ID | Compuerta | Quién quedó detenido | Días | Cómo se resolvió |
+|---|---|---|---|---|
 
 ---
 

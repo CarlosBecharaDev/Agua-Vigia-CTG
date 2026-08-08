@@ -13,13 +13,14 @@
 | [`bitacora-sesiones.md`](bitacora-sesiones.md) | Qué hizo cada sesión de trabajo con IA | Al cerrar cada sesión |
 | [`registro-de-bugs.md`](registro-de-bugs.md) | Defectos, causa raíz y corrección | Al encontrar un bug |
 | [`registro-de-implementaciones.md`](registro-de-implementaciones.md) | Qué requisito pasó a funcionando | Al fusionar un PR a `develop` |
+| [`registro-de-bloqueos.md`](registro-de-bloqueos.md) | Estado de las compuertas y quién está detenido esperando a quién | Al detectar un bloqueo y al abrir una compuerta |
 | [`plantilla-sprint.md`](plantilla-sprint.md) | Planning, review y retrospectiva | Al abrir y cerrar cada sprint |
 | `sprint-N.md` | Un archivo por sprint, desde la plantilla | Durante el sprint |
 | `historico/` | Registros rotados de sprints cerrados | Al cerrar el sprint |
 
 ---
 
-## Las tres reglas de registro — no negociables
+## Las cuatro reglas de registro — no negociables
 
 Son parte de la definición de terminado del proyecto, no una formalidad.
 
@@ -35,7 +36,15 @@ regresa en el siguiente sprint.
 Tres líneas: qué se logró y cuál es el siguiente paso. Es lo que permite que otro compañero —o tú
 mismo mañana— retome sin reconstruir la conversación.
 
-Las tres tienen skill propia: `registrar-implementacion`, `registrar-bug`, `cerrar-sesion`.
+**4. Todo bloqueo se registra y se avisa.**
+Si una tarea no puede avanzar porque su insumo lo produce otro rol y aún no existe, se detiene, se
+registra en `registro-de-bloqueos.md` y **se avisa en el chat del equipo**. Rodear un bloqueo
+inventando el insumo que falta —tipos escritos a mano, un contrato "provisional"— es la única forma
+conocida de que cinco personas construyan cinco sistemas incompatibles. Ver
+`docs/equipo/secuencia-de-trabajo.md` §2 y §5.
+
+Las cuatro tienen skill propia: `registrar-implementacion`, `registrar-bug`, `cerrar-sesion`,
+`registrar-bloqueo`.
 
 ---
 

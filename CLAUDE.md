@@ -20,22 +20,17 @@ vacío de información que multiplica el daño. Toda decisión de alcance se juz
 ## Estado actual
 
 **Sprint 0 · Fase: DOCUMENTACIÓN.** No se escribe código de la aplicación hasta que el equipo lo
-autorice explícitamente. Si una tarea parece requerir código de producción, confirma antes de
-escribirlo.
+autorice explícitamente; si una tarea parece requerir código de producción, confirma antes. Sí se
+puede: documentos, diagramas, especificaciones, plantillas, configuración del repositorio.
 
-Lo que sí se puede hacer ahora: documentos, diagramas, especificaciones, plantillas, configuración
-del repositorio.
-
-**7 sprints de ~4 semanas: Sprint 0 (preparación) + Sprints 1–6 (construcción).** Calendario y
-ceremonias en `docs/gestion/README.md`.
+**7 sprints de ~4 semanas: Sprint 0 (preparación) + Sprints 1–6.** Calendario en `docs/gestion/README.md`.
 
 ---
 
 ## Stack
 
 **Backend** Spring Boot 3.4 · Java 21 · Maven · MongoDB (documentos + geoespacial `2dsphere`) ·
-Redis (caché, rate limiting, ventana de consenso, pub/sub) · Anthropic Java SDK
-(`com.anthropic:anthropic-java`, modelo `claude-opus-5`)
+Redis (caché, rate limiting, ventana de consenso, pub/sub) · Anthropic Java SDK, modelo `claude-opus-5`
 **Frontend** React 19 · Vite · TypeScript · Tailwind · Leaflet/react-leaflet · Recharts · TanStack Query
 **Infraestructura** Docker multi-etapa + docker compose · GitHub Actions
 
@@ -59,7 +54,6 @@ com.aguavigia.ctg
 
 **Si `domain/` importa algo que empiece por `org.springframework` o `com.mongodb`, la arquitectura
 está rota.** No es criterio de nadie: hay un test de ArchUnit que lo verifica y la build falla.
-
 Al proponer código, verifica mentalmente esta regla antes de escribir el import.
 
 ### Otras reglas estructurales
@@ -67,23 +61,20 @@ Al proponer código, verifica mentalmente esta regla antes de escribir el import
 - Los controladores **no** contienen lógica de negocio. Traducen HTTP ↔ caso de uso y nada más.
 - Nunca exponer entidades de dominio en la API. Siempre DTOs, mapeados con MapStruct.
 - Un caso de uso = una clase = una acción. Si un servicio hace dos cosas, son dos servicios.
-- Los objetos de valor (`Coordenada`, `VentanaTiempo`, `EstadoServicio`) son `record` inmutables que
-  validan en el constructor.
+- Objetos de valor (`Coordenada`, `VentanaTiempo`, `EstadoServicio`): `record` que valida al construir.
 - Errores de API en formato RFC 7807, centralizados en un `@RestControllerAdvice`.
 
 ---
 
 ## Convenciones de código
 
-- **Idioma**: nombres de clases, paquetes y métodos en **español** cuando son del dominio
-  (`CorteAgua`, `ReporteCiudadano`, `calcularCumplimiento`). Términos técnicos universales en inglés
-  (`Repository`, `Controller`, `Adapter`). No mezclar dentro de un mismo identificador.
+- **Idioma**: lo del dominio en **español** (`CorteAgua`, `calcularCumplimiento`); términos técnicos
+  universales en inglés (`Repository`, `Controller`, `Adapter`). No mezclar en un mismo identificador.
 - **Inyección de dependencias por constructor**, nunca `@Autowired` en campos.
 - **Sin Lombok en `domain/`** — el dominio es Java puro y explícito. Lombok sí en `infrastructure/`.
 - **Comentarios**: por defecto ninguno. Solo cuando el *porqué* no es obvio (una restricción oculta,
   un workaround con motivo). Nunca comentarios que expliquen *qué* hace el código.
-- **Tests**: nombre descriptivo en español —
-  `debeRechazarCorteConFinAnteriorAlInicio()`.
+- **Tests**: nombre descriptivo en español — `debeRechazarCorteConFinAnteriorAlInicio()`.
 
 ---
 
@@ -92,21 +83,19 @@ Al proponer código, verifica mentalmente esta regla antes de escribir el import
 - Ramas: `main` ← `develop` ← `feature/*`, `fix/*`. **Nadie hace push directo a `main`.**
 - Commits en formato **Conventional Commits**: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`.
   Mensaje en español, imperativo: `feat: agregar cálculo del índice de cumplimiento`.
-- Todo cambio entra por Pull Request con al menos **1 revisor**.
-- Cada PR enlaza el issue y la historia de usuario que implementa.
+- Todo cambio entra por Pull Request con al menos **1 revisor**, enlazando su issue y su historia de usuario.
 
 ### Autoría — regla no negociable
 
 **El agente nunca figura como colaborador del repositorio**: ni un trailer `Co-Authored-By`, ni una
-firma *"Generated with Claude Code"*, ni como autor o revisor de un PR, issue o comentario. En
-commits, PRs y todo lo demás. Refuerzo mecánico: `includeCoAuthoredBy: false` en
-`.claude/settings.json`; si aun así ves un trailer de coautoría en un mensaje que vas a escribir,
-quítalo.
+firma *"Generated with Claude Code"*, ni como autor o revisor de un PR, issue o comentario. Refuerzo
+mecánico: `includeCoAuthoredBy: false` en `.claude/settings.json`; si aun así ves un trailer de
+coautoría en un mensaje que vas a escribir, quítalo.
 
 **Por qué:** la autoría es de las cinco personas, que responden por el proyecto ante el docente. La IA
-es una herramienta y se documenta como tal en el Capítulo III — no como integrante. Firmar los commits
-enturbiaría el registro de contribución individual, que es evidencia evaluable. Esto **no** oculta el
-uso de IA: está declarado en la documentación académica y en el rol de D1.
+es una herramienta y se documenta como tal en el Capítulo III. Firmar los commits enturbiaría el
+registro de contribución individual, que es evidencia evaluable. Esto **no** oculta el uso de IA:
+está declarado en la documentación académica y en el rol de D1.
 
 ---
 
@@ -114,16 +103,14 @@ uso de IA: está declarado en la documentación académica y en el rol de D1.
 
 Es la coherencia del proyecto, no una preferencia de estilo. Detalle en `ADR-005` y `ADR-006`.
 
-1. **Se respeta `robots.txt` siempre**, aunque técnicamente pudiéramos evadirlo. El Universal, El
-   Tiempo, El Heraldo y Blu Radio bloquean a `anthropic-ai` / `Claude-Web` / `GPTBot`: **no se
-   scrapean, no se disfraza el `User-Agent`, no se discute.** Exigirle transparencia a Acuacar y
-   colarse por la puerta trasera de otro medio sería incoherente.
+1. **Se respeta `robots.txt` siempre**, aunque pudiéramos evadirlo. El Universal, El Tiempo, El
+   Heraldo y Blu Radio bloquean a `anthropic-ai` / `Claude-Web` / `GPTBot`: **no se scrapean, no se
+   disfraza el `User-Agent`, no se discute.**
 2. **No se scrapea Facebook, Instagram ni X.** Vía legítima: Meta Content Library con acceso
    académico; si no se aprueba, la capa de reportes ciudadanos la reemplaza.
 3. **El colector se identifica siempre**: `User-Agent` con nombre del proyecto y correo de contacto.
 4. **Nada llega al mapa público sin verificación.** Si la IA no puede citar la frase exacta del
-   boletín que respalda su extracción, no se publica. Un corte inventado destruiría la credibilidad
-   del proyecto entero.
+   boletín que respalda su extracción, no se publica. Un corte inventado destruiría la credibilidad.
 
 ---
 
@@ -133,28 +120,21 @@ En uso y verificadas: **Acuacar** (API REST de WordPress + RSS), **Google News R
 RSS**. Las 18 evaluadas, con veredicto y motivo de descarte: `docs/ingenieria/auditoria-fuentes-de-datos.md`.
 
 **Antes de afirmar que una fuente está bloqueada o disponible, verifícalo con una petición real**
-(skill `verificar-fuente`). Este proyecto ya tuvo un error por asumir el contenido de un `robots.txt`
-sin leerlo.
+(skill `verificar-fuente`). Aquí ya costó caro asumir un `robots.txt` sin leerlo.
 
 ---
 
 ## Dónde está cada cosa
 
 ```
-/                          CLAUDE.md · DESIGN.md · MEMORY.md · README.md · .mcp.json
-.claude/                   skills/ · agents/ · settings.json
-docs/
-├── brief.md                Qué es el producto y para quién
-├── product-requirements.md 36 RF y 20 RNF con id, prioridad y origen
-├── design-decisions.md     Bitácora de decisiones (ADR)
-├── equipo/                 Roles, tareas y especificación por desarrollador (D1–D5)
-├── ingenieria/             Pipeline de datos, auditoría de fuentes, matriz de trazabilidad
-├── gestion/                Scrum, bitácora de sesiones, bugs, implementaciones
-├── informe-metodologico/   Los 4 capítulos del entregable académico
-├── anexos/                 Los 6 anexos exigidos por el programa
-└── index.html              Presentación del proyecto
-backend/                   (pendiente) Spring Boot
-frontend/                  (pendiente) React + Vite
+/                       CLAUDE.md · DESIGN.md · MEMORY.md · README.md · .mcp.json
+.claude/                skills/ · agents/ · settings.json
+docs/                   brief.md · product-requirements.md (36 RF, 20 RNF) · design-decisions.md (ADR)
+docs/equipo/            Titulares D1–D5, tareas por sprint y secuencia de trabajo
+docs/ingenieria/        Pipeline de datos, auditoría de fuentes, matriz de trazabilidad
+docs/gestion/           Scrum, bitácora, bugs, implementaciones, bloqueos y compuertas
+docs/informe-metodologico/ · docs/anexos/   Los 4 capítulos y los 6 anexos académicos
+backend/ · frontend/    (pendientes) Spring Boot · React + Vite
 ```
 
 ---
@@ -164,11 +144,30 @@ frontend/                  (pendiente) React + Vite
 Plantilla del Tecnológico Comfenalco: **4 capítulos + 6 anexos + referencias APA 7**. No inventes
 secciones ni las renombres — el docente evalúa contra esa plantilla.
 
-⚠️ **La plantilla oficial aún no está en el repositorio**; el índice de
-`docs/informe-metodologico/README.md` es una reconstrucción marcada como tal, y validarla es tarea
-bloqueante de D1 en el Sprint 0.
+⚠️ **La plantilla oficial aún no está en el repositorio**: el índice de
+`docs/informe-metodologico/README.md` es una reconstrucción y validarla es tarea bloqueante de D1.
 
 Enfoque investigativo: **proyectiva, mixta**, validada con **Alfa de Cronbach ≥ 0.75**.
+
+---
+
+## Secuencia de trabajo — obligatoria
+
+Orden: **D5 → D2 → D3 y D1 → D4 → D5 (QA)**. Entre etapas hay **compuertas**: un artefacto
+verificable que separa a quien lo produce de quien lo consume. Compuertas, titulares y protocolo en
+`docs/equipo/secuencia-de-trabajo.md` §2 y §5; estado vivo en `docs/gestion/registro-de-bloqueos.md`.
+
+**Antes de la primera línea de cualquier tarea:**
+
+1. **Verifica con su comando** la compuerta de la que depende esa tarea. No de memoria, y no
+   confiando en la tabla de estado: la tabla se desactualiza, el repositorio no.
+2. Abierta → avanzas. **Cerrada → te detienes**: registras el bloqueo (skill `registrar-bloqueo`),
+   **lo avisas en el chat** con el formato de la skill y ofreces el trabajo alterno que no la cruza.
+3. **Nunca rodees un bloqueo** inventando el insumo que falta (tipos escritos a mano, DTOs
+   "provisionales", simulaciones que nadie retira) ni escribiendo en la capa de otro rol. Única
+   excepción: desbloqueo temporal autorizado por el titular, con caducidad y registro.
+4. Si la tarea es de **otro rol**, no la ejecutas: lo dices. Si no sabes de qué depende, preguntas.
+   Al **abrir** una compuerta, la verificas, la marcas y la anuncias igual.
 
 ---
 
@@ -183,14 +182,15 @@ No es opcional: es parte de la definición de terminado y el insumo del Capítul
 | Termina una sesión de trabajo con IA | `docs/gestion/bitacora-sesiones.md` | `cerrar-sesion` |
 | Se elige entre alternativas técnicas | `docs/design-decisions.md` | `registrar-decision` |
 | Se verifica una fuente de datos | `docs/ingenieria/auditoria-fuentes-de-datos.md` | `verificar-fuente` |
+| Una tarea no puede avanzar por falta del insumo de otro rol | `docs/gestion/registro-de-bloqueos.md` **+ aviso en el chat** | `registrar-bloqueo` |
 
 ---
 
 ## Cómo colaborar conmigo (el equipo, contigo el agente)
 
-- **Antes de tu primera sesión, lee `docs/gestion/protocolo-de-contexto.md`**: dónde vive cada dato,
-  el presupuesto de líneas de los archivos permanentes y cómo no desperdiciar contexto. Cinco personas
-  comparten este repositorio; cada línea que agregues aquí la pagan las cinco, en cada sesión.
+- **Antes de tu primera sesión, lee `docs/gestion/protocolo-de-contexto.md`**: dónde vive cada dato y
+  el presupuesto de líneas de los archivos permanentes. Cada línea que agregues aquí la pagan las
+  cinco personas del equipo, en cada una de sus sesiones.
 - **Un dato vive en un solo archivo.** Si lo encuentras duplicado, es un defecto: detalle en uno,
   puntero en el otro.
 - **No repitas contexto**: lo decidido está en `docs/design-decisions.md`. Léelo antes de proponer una

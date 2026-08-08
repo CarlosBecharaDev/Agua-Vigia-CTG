@@ -1,8 +1,12 @@
 # D3 — Backend · Infraestructura e Integraciones
 
+> **Titular:** Sebastián Montes Olivera.
 > **Responsable:** Adaptadores tecnológicos, base de datos MongoDB, Redis, API REST pública y Pipeline de Ingesta con IA.
 > **Módulos asignados:** M2 (Reporte ciudadano - Backend), M5 (Panel veedor - Backend), M9 (Ingesta IA ⭐).
 > **Capa del código:** `/backend/src/main/java/com/aguavigia/ctg/infrastructure` y `/backend/src/main/java/com/aguavigia/ctg/api`.
+> **Compuertas:** empieza cuando **C1** está abierta · **abre C2** (contrato OpenAPI) para D4 — es la
+> compuerta más cara del proyecto: mientras siga cerrada, D4 está detenido.
+> Ver [`secuencia-de-trabajo.md`](secuencia-de-trabajo.md) §2.
 
 ---
 

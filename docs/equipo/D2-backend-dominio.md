@@ -1,8 +1,11 @@
 # D2 — Backend · Dominio y Aplicación
 
+> **Titular:** Carlos Bechara Arias.
 > **Responsable:** Reglas de negocio puras, modelos del dominio, casos de uso y cálculo del Índice de Cumplimiento.
 > **Módulos asignados:** M3 (Consenso automático), M6 (Índice de Cumplimiento ⭐).
 > **Capa del código:** `/backend/src/main/java/com/aguavigia/ctg/domain` y `/backend/src/main/java/com/aguavigia/ctg/application`.
+> **Compuertas:** empieza cuando **C0** está abierta · **abre C1** (dominio y puertos) para D3 y D1.
+> Ver [`secuencia-de-trabajo.md`](secuencia-de-trabajo.md) §2.
 
 ---
 

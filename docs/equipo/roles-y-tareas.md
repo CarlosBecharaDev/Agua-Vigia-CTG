@@ -8,6 +8,25 @@
 
 ---
 
+## Quién es quién — asignación oficial
+
+Esta tabla es la **fuente única** de la correspondencia entre persona y rol. En el resto del
+repositorio se usa el código (`D1`–`D5`); si necesitas el nombre, vuelve aquí.
+
+| Rol | Integrante | Responsabilidad en una línea |
+|---|---|---|
+| **D1** | ⚠️ *por asignar — 5.º integrante* | Notificaciones, bitácora pública y documentación académica asistida por IA |
+| **D2** | **Carlos Bechara Arias** | Dominio y casos de uso: Java puro, responde por la Regla de Oro |
+| **D3** | **Sebastián Montes Olivera** | Infraestructura e integraciones: MongoDB, Redis, ingesta con IA, contrato OpenAPI |
+| **D4** | **José Daniel Zambrano** | Frontend: SPA React, mapas, accesibilidad |
+| **D5** | **Yordy Pardo Pajaro** | DevOps, QA y datos geoespaciales |
+
+**La asignación es firme, no indicativa.** Cada quien responde por su rol ante el docente en la
+sustentación, y el registro de contribución individual (commits, PRs, registros de `docs/gestion/`)
+es evidencia evaluable. Un cambio de rol se acuerda en equipo y se escribe aquí el mismo día.
+
+---
+
 ## Resumen del equipo
 
 | # | Rol | Módulos | Capas del código | Entregables académicos |
@@ -23,7 +42,8 @@
 | [D1](D1-notificaciones-bitacora.md) | [D2](D2-backend-dominio.md) | [D3](D3-backend-infraestructura.md) | [D4](D4-frontend.md) | [D5](D5-devops-qa.md) |
 |---|---|---|---|---|
 
-**Orden de trabajo y dependencias entre roles:** [`secuencia-de-trabajo.md`](secuencia-de-trabajo.md)
+**Orden de trabajo, compuertas y dependencias entre roles:**
+[`secuencia-de-trabajo.md`](secuencia-de-trabajo.md) — **de cumplimiento obligatorio.**
 
 ---
 
@@ -41,7 +61,8 @@ desarrollador y concentra en una persona el aprendizaje de la gestión, que tamb
 **Qué hace el Scrum Master del sprint** (además de sus propias tareas de código):
 
 1. Convoca planning, review y retrospectiva, y deja `docs/gestion/sprint-N.md` lleno.
-2. Persigue los bloqueos de la tabla §3 de ese archivo. **No los resuelve él: los desatasca.**
+2. Revisa a diario `docs/gestion/registro-de-bloqueos.md` y persigue lo que esté abierto.
+   **No resuelve los bloqueos: los desatasca**, y verifica que las compuertas abiertas se anunciaron.
 3. Al cerrar el sprint, rota los registros que superaron su límite
    (`docs/gestion/protocolo-de-contexto.md` §5) y actualiza la matriz de trazabilidad.
 
@@ -62,6 +83,10 @@ Library** vía ICPSR (ver `docs/ingenieria/pipeline-ingesta-datos.md` §5).
    enlazando su issue y su `RF`.
 5. **Dueño ≠ propietario exclusivo.** Puedes leer y proponer cambios sobre el módulo de cualquiera;
    lo que no puedes es fusionarlos sin que su dueño revise.
+6. **La secuencia se respeta.** Antes de empezar una tarea se verifica la **compuerta** de la que
+   depende (`secuencia-de-trabajo.md` §2). Si está cerrada, el trabajo **se detiene, se registra y
+   se avisa** — nunca se rodea inventando el insumo que falta. Aplica igual a las personas y a sus
+   agentes de IA; para los agentes es obligación explícita (`secuencia-de-trabajo.md` §5).
 
 ---
 
@@ -76,6 +101,7 @@ Aplica a los cinco, sin excepción. Detalle en [`../gestion/README.md`](../gesti
 | Terminas una sesión de trabajo con IA | 3 líneas en `bitacora-sesiones.md` | `cerrar-sesion` |
 | Eliges entre alternativas técnicas | ADR en `design-decisions.md` | `registrar-decision` |
 | Evalúas una fuente de datos nueva | Entrada en la auditoría de fuentes | `verificar-fuente` |
+| No puedes avanzar porque falta el insumo de otro rol | Entrada en `registro-de-bloqueos.md` **y aviso en el chat** | `registrar-bloqueo` |
 
 **Esto no es burocracia: es el Capítulo IV.** Los resultados del informe se construyen desde estos
 registros. Quien no registre durante el sprint tendrá que inventarlo en el Sprint 6, y eso se nota.

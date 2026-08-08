@@ -1,8 +1,12 @@
 # D5 — DevOps / QA / Datos Geoespaciales
 
+> **Titular:** Yordy Pardo Pajaro.
 > **Responsable:** Infraestructura de despliegue, Docker, integración continua (CI/CD), datos geoespaciales GeoJSON y aseguramiento de calidad (QA).
 > **Módulos asignados:** M7 (Estadísticas) + Infraestructura global del proyecto.
 > **Capa del código:** `/backend`, `/frontend`, `.github/workflows`, `docker-compose.yml`.
+> **Compuertas:** **abre C0** (entorno reproducible) — habilita a todo el equipo, por eso va primero ·
+> entra de nuevo al final, cuando **C3** está abierta, para E2E, caos y despliegue.
+> Ver [`secuencia-de-trabajo.md`](secuencia-de-trabajo.md) §2.
 
 ---
 

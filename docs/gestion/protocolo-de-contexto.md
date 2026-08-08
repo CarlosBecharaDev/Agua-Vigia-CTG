@@ -44,6 +44,7 @@ sabe cuál manda.
 | Quién hace qué y cuándo | `docs/equipo/` |
 | Qué se implementó | `docs/gestion/registro-de-implementaciones.md` |
 | Qué se rompió y cómo se arregló | `docs/gestion/registro-de-bugs.md` |
+| Quién está detenido esperando a quién, y el estado de las compuertas | `docs/gestion/registro-de-bloqueos.md` |
 | Qué hizo cada sesión de trabajo con IA | `docs/gestion/bitacora-sesiones.md` |
 | Estado de tareas en curso | GitHub Issues / Projects — **no** en archivos |
 

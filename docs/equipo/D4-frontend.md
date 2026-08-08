@@ -1,8 +1,12 @@
 # D4 — Frontend
 
+> **Titular:** José Daniel Zambrano.
 > **Responsable:** Desarrollo de la aplicación web de una sola página (SPA), interfaz de usuario, mapas interactivos, accesibilidad y experiencia móvil.
 > **Módulos asignados:** M1 (Mapa en vivo), M2 (Reporte ciudadano - UI), M5 (Panel del veedor - UI).
 > **Capa del código:** `/frontend` (React 19 + Vite + TypeScript + Tailwind CSS).
+> **Compuertas:** empieza cuando **C2** está abierta · **abre C3** (SPA integrada) para el QA de D5.
+> Sin C2 se avanza en maquetación, tokens y accesibilidad, **nunca escribiendo los tipos a mano**.
+> Ver [`secuencia-de-trabajo.md`](secuencia-de-trabajo.md) §2.
 
 ---
 
