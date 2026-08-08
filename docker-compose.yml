@@ -50,10 +50,33 @@ services:
     networks:
       - aguavigia
 
-  # --- Backend y frontend: se activan cuando existan sus Dockerfiles ---
-  # backend:  Dockerfile multi-etapa (Spring Boot) — tarea de D5 en Sprint 1, ver docs/equipo/D5-devops-qa.md
-  # frontend: Dockerfile multi-etapa (Vite -> Nginx) — tarea de D5 en Sprint 3, ver docs/equipo/D5-devops-qa.md
-  # No se declaran como stubs vacios para no mentir sobre el estado del proyecto (Sprint 0, fase documentacion).
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aguavigia-backend
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
+      SERVER_PORT: ${SERVER_PORT:-8080}
+      SPRING_DATA_MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/aguavigia}
+      SPRING_DATA_REDIS_HOST: ${REDIS_HOST:-redis}
+      SPRING_DATA_REDIS_PORT: ${REDIS_PORT:-6379}
+    ports:
+      - "8080:8080"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - aguavigia
+
+  # --- Frontend: se activa cuando exista su Dockerfile ---
+  # Dockerfile multi-etapa (Vite -> Nginx) — tarea de D5 en Sprint 3, ver docs/equipo/D5-devops-qa.md
 
 volumes:
   mongo-data:

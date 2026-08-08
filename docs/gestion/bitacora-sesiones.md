@@ -26,6 +26,14 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 0
 
+### 2026-08-08 · D5 · `feature/d5-dockerfile-backend`
+**Qué:** Declarada C0 abierta con evidencia real (encontró y corrigió `BUG-003` en el camino). Resueltos
+los conflictos de los PR #19, #24 y #25 verificando build/tests después de cada uno. Registrado `BUG-004`
+(contraseña mock en `PaginaVeedor.tsx`, avisado a D4). Escrito el Dockerfile multi-etapa del backend y
+activado en `docker-compose.yml`, revisado con hadolint pero sin construir la imagen (sin daemon Docker).
+**Sigue:** Que alguien con Docker completo confirme `docker compose build backend`. Pendiente: D1 sigue
+vacante (`BL-003`), C2 sigue cerrada (falta que D3/D1 publiquen el contrato OpenAPI).
+
 ### 2026-08-08 · D2 · `feature/d2-dominio-sprint1`
 **Qué:** Modelado el dominio de M3/M6 (PR #21): Value Objects, entidades (`CorteAgua` con Builder),
 `domain/port/in` y `port/out`, test de ArchUnit. 23 pruebas, 0 fallos. Abierta **C1**. Adelantado con
