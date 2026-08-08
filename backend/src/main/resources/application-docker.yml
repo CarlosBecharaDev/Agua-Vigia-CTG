@@ -1,0 +1,11 @@
+# Backend corriendo dentro de docker-compose. docker-compose.yml ya
+# inyecta estos valores por variable de entorno (mismo nombre de propiedad
+# con relajación de Spring); los defaults de aquí solo cubren el caso de
+# correr la imagen sola, fuera de compose, en la misma red Docker.
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://mongo:27017/aguavigia}
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}

@@ -19,6 +19,11 @@ RUN ./mvnw package -DskipTests -B
 FROM eclipse-temurin:21-jre AS runtime
 WORKDIR /app
 
+# curl: eclipse-temurin:21-jre no lo trae por defecto y lo necesita el
+# HEALTHCHECK de docker-compose.yml contra /actuator/health.
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
 # Sin root: el proceso de la aplicacion no necesita privilegios de root en el contenedor.
 RUN addgroup --system aguavigia && adduser --system --ingroup aguavigia aguavigia
 COPY --from=build /build/target/*.jar app.jar
