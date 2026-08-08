@@ -40,6 +40,14 @@ José Daniel ya tenía `/frontend` desde Sprint 0). D5 no tiene Docker en su má
 && ls backend frontend`, con un `.env` temporal a partir de `.env.example`, no comiteado) → sin
 errores. Falta que D5 lo confirme en su entorno y declare C0 — no lo hace D2, D2 no es el titular.
 
+**Excepción registrada, 2026-08-08:** Carlos (dueño del repositorio, rol D2) autoriza explícitamente
+empezar el trabajo de dominio de Sprint 1 sin esperar la declaración formal de D5, porque el criterio
+técnico de C0 ya se verificó dos veces con el comando exacto de la compuerta. No es un desbloqueo
+temporal de los de §4 (esos aplican a datos simulados con caducidad) — es la persona con autoridad
+sobre el proyecto decidiendo avanzar con el riesgo ya medido, y queda escrito aquí para que no sea un
+rodeo silencioso. **Pendiente:** D5 sigue debiendo declarar C0 formalmente cuando pueda verificarla en
+su propio entorno; si al hacerlo encuentra algo distinto a lo que reportó D2, se reabre como bug.
+
 **Nota aparte, no bloqueante — actualizada:** el cierre de BL-001 (tabla §3) dice que Carlos le dio rol
 `admin` a Yordy, pero **sigue sin verificarse de verdad**: `gh api
 repos/.../collaborators/Jordy-Lv/permission` devuelve `write`, no `admin`, incluso después de repetir
