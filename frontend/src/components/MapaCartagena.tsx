@@ -232,7 +232,7 @@ export const MapaCartagena: FC<Props> = ({
           <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             <EtiquetaFrescura timestampIso={sectorActivo.actualizadoEn} />
             <a
-              href="/reportar"
+              href={`/reportar?sector=${sectorActivo.id}`}
               style={{
                 fontSize: '0.8rem',
                 color: 'var(--color-acento)',
