@@ -505,9 +505,12 @@ frontera de propiedad estricta, con desbloqueo temporal caso por caso.
 ## ADR-013 — M7 (Estadísticas) se parte: la pantalla es de D4, las métricas y su contrato son de D5
 
 - **Fecha:** 2026-08-08
-- **Estado:** 🟡 **Propuesta — pendiente de ratificación de Carlos (D2) y José Daniel (D4).** Hasta que
-  la ratifiquen, `roles-y-tareas.md` no se modifica y M7 sigue figurando como de D5.
+- **Estado:** 🟡 **Propuesta — ratificada por Carlos (D2) el 2026-08-08; pendiente de José Daniel (D4).**
+  Hasta que José Daniel también ratifique, `roles-y-tareas.md` no se modifica y M7 sigue figurando
+  como de D5.
 - **Propone:** Yordy Pardo Pajaro (D5, titular actual de M7)
+- **Ratifica (D2):** Carlos Bechara Arias, 2026-08-08 — de acuerdo con la partición: pantalla de M7 a
+  D4, métricas/contrato de datos a D5, agregaciones Mongo sin cambio en D3.
 
 ### Contexto
 
@@ -560,16 +563,225 @@ que no era el suyo, y trabajo hecho por quien no figura como responsable.
 Reasignar M7 completo a una sola persona y marcar este ADR como *Reemplazada*. Es barato: la partición
 es de responsabilidad, no de código — no hay archivos que mover ni módulos que separar.
 
-## ADR-018 — Rate limiting HTTP genérico, opt-in por configuración, clave por IP
+## ADR-014 — Un sector sin dato verificado se publica con estado nulo, no como `CON_SERVICIO`
 
 - **Fecha:** 2026-08-08
 - **Estado:** Aceptada
 - **Decide:** Backend – Infraestructura (D3)
 
-### Nota de numeración
+### Contexto
 
-Este PR usa `ADR-018` porque `ADR-014`–`017` ya están reservados por los PR #56, #58 y #59 (sin
-fusionar). Avisar si el orden de fusión cambia y hace falta renumerar.
+El sembrador de D5 (`scripts/sembrar-sectores.mjs`) carga los 211 barrios **sin `estadoActual`**, y
+deja escrita la pregunta en un comentario: *"El adaptador de SectorRepository decide el valor inicial
+al leer un sector que todavía no tiene estado registrado."* Hasta que el consenso (M3, Sprint 2)
+empiece a escribir estados, **ningún sector de Cartagena tiene estado verificado**: son 211 de 211.
+
+`EstadoServicio` es un enum cerrado de cuatro valores y no tiene `SIN_DATO` — por decisión de D2, que
+en `modelo-de-dominio.md` §1 anota que *"el 'sin dato' se resuelve en presentación, no en el dominio"*.
+Así que el adaptador tiene que elegir entre un valor del enum o la ausencia de valor.
+
+El frontend ya tomó la decisión contraria por su cuenta: `MapaCartagena.tsx:92` hace
+`sector?.estado ?? 'CON_SERVICIO'`, es decir pinta de verde todo barrio del que no sabe nada.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Por omisión `CON_SERVICIO` | El mapa se ve completo desde el primer día; ningún cliente maneja nulos | Afirma ante el vecino que hay agua en un barrio del que no se sabe nada. Es exactamente el falso positivo que `MEMORY.md` (acuerdo del 2026-08-06) manda evitar: *"un corte inventado destruye la credibilidad"* — y su simétrico, un servicio inventado, también |
+| Pedirle a D2 un quinto valor `SIN_DATO` | El dominio expresaría la ausencia explícitamente | Toca `domain/`, que es de D2, y contradice su decisión ya registrada de resolver el "sin dato" en presentación. Además obligaría a un quinto color en `DESIGN.md` §2 |
+| **Estado nulo en el adaptador y en el contrato** | Dice la verdad: no hay dato. No toca la capa de nadie más. El frontend ya sabe representarlo — `useFrescura` devuelve *"sin datos"* ante un timestamp nulo | Obliga a D4 a manejar el nulo en `InsigniaEstado` y a quitar su `?? 'CON_SERVICIO'` |
+
+### Decisión
+
+`SectorMongoAdapter` traduce a `null` tanto el estado ausente como un estado guardado que ya no
+corresponde a ningún valor del enum. El contrato lo transmite tal cual: `"estado": null` viaja
+explícito en el JSON, no se omite la clave, para que el cliente generado lo tipe como anulable.
+
+### Consecuencias
+
+- **Gana:** la plataforma no afirma nada que no haya verificado, que es la única razón por la que un
+  vecino le creería. La coherencia con `ADR-006` (cita textual obligatoria) es la misma idea aplicada
+  a otra capa: ante la duda, no se publica.
+- **Pierde:** el mapa se ve mayormente gris hasta que M3 empiece a registrar estados en el Sprint 2.
+  Se ve peor en una demostración, y es honesto.
+- **Condiciona:** `MapaCartagena.tsx:92` e `InsigniaEstado` deben tratar el nulo como *"sin datos"*.
+  Queda registrado como `BUG-008` para su titular (D4) — no se corrigió desde aquí por frontera de
+  propiedad.
+
+### Cómo se revierte
+
+Una línea en el adaptador (`orElse(EstadoServicio.CON_SERVICIO)`). Se desaconseja: revertirlo es
+elegir que la plataforma afirme lo que no sabe.
+
+---
+
+## ADR-015 — Las consultas de solo lectura van del controlador al puerto de salida, sin caso de uso
+
+- **Fecha:** 2026-08-08
+- **Estado:** Aceptada
+- **Decide:** Backend – Infraestructura (D3)
+
+### Contexto
+
+`GET /api/sectores` (RF001–RF004) no tiene regla de negocio: lee, ordena por nombre y serializa.
+`CLAUDE.md` dice que los controladores *"traducen HTTP ↔ caso de uso"*, pero los cinco casos de uso
+que D2 definió en `domain/port/in` son de escritura o de cálculo (registrar reporte, evaluar consenso,
+gestionar corte, calcular cumplimiento, registrar evento). **No existe un caso de uso de consulta de
+sectores, y `application/` está vacío.**
+
+Crear uno significaría escribir en `application/`, que es capa de D2. La frontera de propiedad está
+vigente: `ADR-012`, que habría flexibilizado esto, sigue en *Propuesta* porque su PR se fusionó sin
+los revisores que él mismo exigía.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Escribir `ConsultarSectoresService` en `application/` | Cumple la letra de "controlador ↔ caso de uso" | Escribe en la capa de D2 sin su titular — lo que `secuencia-de-trabajo.md` §5 prohíbe explícitamente para destrabarse |
+| Pedirle el caso de uso a D2 y detenerse | Respeta la frontera al pie de la letra | Bloquea C2, que es *"la compuerta más cara del proyecto"* (`D3-backend-infraestructura.md`), por una clase que solo delega |
+| **Controlador → puerto de salida** | No inventa capas ni cruza fronteras; las dependencias siguen apuntando hacia adentro; ArchUnit sigue en verde | Se aparta de la lectura estricta de `CLAUDE.md`; hay que sostener la disciplina de no dejar que crezca lógica ahí |
+
+### Decisión
+
+Para consultas sin regla de negocio, el controlador depende de `domain/port/out` directamente.
+`application/` se reserva para lo que tenga decisión de negocio, y es de D2.
+
+**Límite explícito:** en cuanto una consulta necesite una regla —filtrar por frescura, combinar
+sectores con cortes activos, calcular un agregado— deja de ser cosa del controlador y pasa a ser un
+caso de uso de D2. Si aparece un `if` de negocio en `SectorController`, este ADR se está violando.
+
+### Consecuencias
+
+- **Gana:** C2 se abre sin invadir la capa de otro rol ni inventar un intermediario vacío.
+- **Pierde:** la regla "controlador ↔ caso de uso" pasa a tener una excepción, y las excepciones se
+  erosionan solas si nadie las vigila. Por eso el límite de arriba está escrito y no sobreentendido.
+- **Condiciona:** si D2 define después un caso de uso de consulta, el controlador se migra a él.
+
+### Cómo se revierte
+
+Introduciendo el caso de uso en `application/` y apuntando el controlador ahí. El adaptador, el DTO
+y el contrato no cambian.
+
+---
+
+## ADR-016 — El panel del veedor usa una sola credencial compartida, no cuentas individuales
+
+- **Fecha:** 2026-08-08
+- **Estado:** Aceptada
+- **Decide:** Backend – Infraestructura (D3)
+
+### Contexto
+
+RF019 exige que el panel del veedor requiera autenticación con token; RNF011 fija la expiración
+máxima en 8 horas. Ninguno de los dos dice si hay una cuenta por veedor o una credencial compartida
+— y el dominio tampoco lo decide: no existe una entidad `Usuario` ni `Veedor` en `domain/`, y crearla
+sería una decisión de D2, no algo que D3 pueda inventar en su propia capa.
+
+El propio frontend ya venía asumiendo una credencial única: `PaginaVeedor.tsx` comparaba el acceso
+contra una contraseña literal en el código (`'1234'`, `BUG-004`) antes de que D5 la reemplazara por
+un botón "Simular ingreso" sin credencial real, a la espera de JWT server-side (comentario en el
+propio archivo: *"Requiere C2 abierta para integrar JWT y endpoints"*).
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| **Credencial única compartida** (elegida) | No requiere entidad `Usuario`; RF019 habla de "un usuario autenticado" en singular; coincide con el patrón que ya asumía el frontend | No hay auditoría de qué persona del equipo hizo qué cambio como veedor |
+| Cuenta por integrante del equipo | Trazabilidad individual de acciones administrativas | Exige modelar `Usuario`/`Veedor` en `domain/` (decisión de D2), gestión de altas/bajas y recuperación de contraseña — desproporcionado para 5 personas en un proyecto de aula de 6 meses |
+| Delegar la decisión a D2 y bloquear Sprint 3 mientras tanto | Máximo respeto a la frontera de propiedad | RF019/RNF011 son requisitos claros y no ambiguos; no hay nada que preguntar sobre "si" debe haber JWT, solo sobre el modelo de cuentas — bloquear por eso habría sido esperar sin necesidad |
+
+### Decisión
+
+Una sola clave, cuyo hash BCrypt vive en la variable de entorno `VEEDOR_PASSWORD_HASH` (nunca la
+clave en texto plano). `POST /api/veedor/sesion` la valida y devuelve un JWT firmado con
+`JWT_SECRET`, válido 8 horas. `SecurityConfig` protege `/api/veedor/**` (menos el propio login) y
+deja todo lo demás público, siguiendo la letra de RF019.
+
+### Consecuencias
+
+- **Gana:** Sprint 3 no queda detenido esperando que D2 diseñe un modelo de usuarios que ningún
+  requisito pide todavía. La superficie nueva es pequeña: un filtro, un proveedor de JWT y un
+  controlador de login.
+- **Pierde:** ninguna acción del panel queda atribuida a una persona concreta — si el equipo
+  necesita esa trazabilidad más adelante (por ejemplo, para el Capítulo IV), hay que migrar a cuentas
+  individuales, lo que sí requeriría una entidad de dominio.
+- **Condiciona:** `JwtProvider` valida el secreto de forma perezosa (al usarse, no al arrancar) para
+  que un `JWT_SECRET` sin configurar no tumbe el resto del backend — los endpoints públicos no
+  dependen de esto. `POST /api/veedor/sesion` responde `503` explícito si `JWT_SECRET` o
+  `VEEDOR_PASSWORD_HASH` no están configurados, en vez de fallar con un error críptico.
+- **Fuera de alcance de este PR, señalado para el equipo:** no hay límite de intentos en el login.
+  Con una sola credencial compartida, un ataque de fuerza bruta contra `POST /api/veedor/sesion` no
+  tiene ningún freno todavía. `ContadorReportesPort` (Redis, PR #57) está diseñado para el consenso
+  de M3, no para esto — un rate limiter de login es trabajo aparte, no incluido aquí a propósito
+  para no exceder el alcance de RF019/RNF011.
+
+### Cómo se revierte
+
+Migrando a cuentas individuales: una entidad `Usuario` en `domain/` (decisión de D2), un
+`UsuarioRepository`, y `VeedorAuthController` pasa de comparar un hash fijo a consultar el
+repositorio. `JwtProvider` y `JwtAuthenticationFilter` no cambian.
+
+---
+
+## ADR-017 — `DocumentoCrudo` vive en `infrastructure/ingest/`, no en `domain/`
+
+- **Fecha:** 2026-08-08
+- **Estado:** Aceptada
+- **Decide:** Backend – Infraestructura (D3)
+
+### Contexto
+
+`docs/ingenieria/pipeline-ingesta-datos.md` define `DocumentoCrudo` como la forma normalizada a la
+que convergen todos los colectores, con un campo `hash` (SHA-256) para deduplicar. Es tentador
+tratarlo como un Value Object de dominio —se parece a `Sector` o `Coordenada` en que es inmutable y
+se valida al construirse— pero no representa nada del acueducto: representa la forma de un boletín
+de prensa antes de que la IA decida si le importa al dominio o no. Si `EventoExtraido` alguna vez se
+publica como `CorteAgua`, ahí sí cruza a `domain/` — `DocumentoCrudo` nunca lo hace.
+
+También se decidió el alcance de `DeduplicadorReciente`: el diseño pide dos chequeos, uno rápido en
+Redis y uno autoritativo contra Mongo ("¿el hash ya existe en Mongo? → descartar"). El segundo
+depende de dónde el equipo decida persistir los documentos o eventos procesados —una colección que
+todavía no existe y cuyo dueño (D2 o D3) no se ha discutido—, así que este PR construye solo la
+mitad Redis, deliberadamente no permanente (ventana de 7 días, no un registro definitivo).
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| `DocumentoCrudo` como Value Object en `domain/` | Consistente con `Coordenada`/`VentanaTiempo` | Acopla el dominio a la forma de un boletín de prensa; ArchUnit (Regla de Oro) prohibiría que dependa de nada de infraestructura, y su único propósito es alimentar una llamada a una API externa |
+| **`DocumentoCrudo` en `infrastructure/ingest/`** (elegida) | Refleja lo que es: un DTO interno del pipeline, no un concepto del negocio | Ningún test de ArchUnit lo protege de mutar libremente — pero tampoco lo necesita, no es una invariante del dominio |
+| Deduplicación completa (Redis + Mongo) en este PR | Cierra el diseño de una vez | Obliga a decidir ahora dónde persisten los documentos procesados, una decisión de modelado que no es solo de D3 |
+| **Solo la mitad Redis, con el límite escrito en el código** (elegida) | Entrega valor real (evita reprocesar el mismo boletín en la semana) sin inventar una colección de Mongo que nadie diseñó todavía | La deduplicación no es permanente — un boletín republicado después de 7 días se reprocesaría |
+
+### Decisión
+
+`DocumentoCrudo`, `PrefiltroDeterminista` y `DeduplicadorReciente` viven en
+`infrastructure/ingest/`. `DeduplicadorReciente` cubre solo la ventana reciente vía Redis; el
+chequeo autoritativo contra Mongo queda pendiente de que se diseñe dónde persisten los documentos
+procesados (`BL-004`/`BL-005` en `registro-de-bloqueos.md` cubren lo que falta del pipeline).
+
+### Consecuencias
+
+- **Gana:** Sprint 4 avanza sin inventar una colección de Mongo ni una decisión de modelado que le
+  corresponde discutir al equipo, y sin arriesgar la pureza de `domain/` que protege ArchUnit.
+- **Pierde:** la deduplicación no es definitiva todavía — un reprocesamiento después de 7 días es
+  posible y esperado hasta que exista la mitad Mongo.
+- **Condiciona:** cuando se diseñe la persistencia de documentos/eventos procesados, alguien decide
+  si el chequeo autoritativo va en un nuevo puerto de dominio (como `ContadorReportesPort`, que D3
+  implementaría) o si vive enteramente en infraestructura. Ese es el momento de revisar este ADR.
+
+### Cómo se revierte
+
+Moviendo `DocumentoCrudo` a `domain/` si algún día representa algo que el dominio necesita conocer
+directamente — hoy no es el caso.
+
+---
+
+## ADR-018 — Rate limiting HTTP genérico, opt-in por configuración, clave por IP
+
+- **Fecha:** 2026-08-08
+- **Estado:** Aceptada
+- **Decide:** Backend – Infraestructura (D3)
 
 ### Contexto
 

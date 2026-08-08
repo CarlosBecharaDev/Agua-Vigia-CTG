@@ -26,6 +26,61 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 0
 
+### 2026-08-08 · D3 · `feature/d3-sprint1-mongo-y-api-sectores`
+**Qué:** Entregables de Sprint 1 de D3: adaptador Mongo de `SectorRepository` (índice `2dsphere`,
+conserva la geometría de D5 al guardar), adaptador de `RelojPort`, `GET /api/sectores` y
+`/api/sectores/{id}`, errores RFC 7807 y `backend/openapi.yaml` generado desde la app — **abre C2**.
+`./mvnw clean verify` → 34 pruebas, 0 fallos. `ADR-014` (estado nulo en vez de `CON_SERVICIO` sin
+dato verificado) y `ADR-015` (consultas de lectura van al puerto de salida, sin invadir
+`application/`, que es de D2). Encontrados `BUG-007` (Testcontainers vs. Docker Engine 29, corregido
+aquí mismo) y `BUG-008` (el mapa pinta de verde los 211 sectores sin dato — es de D4).
+**Sigue:** Abrir PR con revisor y avisar a D4 de que C2 abre al fusionarse, con los dos avisos del
+contrato (`estado` anulable, OpenAPI 3.0.1). Sprint 2 de D3: `POST /api/reportes` y rate limiting.
+
+### 2026-08-08 · D3 · `feature/d3-sprint2-redis-consenso`
+**Qué:** Adelanto de Sprint 2 de D3 mientras el PR #56 (Sprint 1) espera revisor: adaptador Redis de
+`ContadorReportesPort` (ventana deslizante con `ZSET`, TTL de retención) para RF009–RF011. Encontrado
+y corregido `BUG-009` (bean `RedisTemplate<String,String>` ambiguo con `stringRedisTemplate` de
+Spring — afectaba a cualquier futura inyección por tipo, no solo a este adaptador).
+`./mvnw clean verify` → 29 pruebas, 0 fallos, incluida integración contra `redis:7-alpine` real.
+**No se tocó** `POST /api/reportes` ni `EvaluarConsensoUseCase`: son casos de uso de `application/`,
+capa de D2, que sigue vacía. El resto del backlog de Sprint 2 (rate limiting HTTP, caché del mapa,
+SSE) sigue pendiente y depende de decisiones de diseño que no me corresponde tomar solo.
+**Sigue:** Rama publicada sin PR todavía — junto con el PR #56, ambos esperan revisor humano. Cuando
+D2 implemente `EvaluarConsensoUseCase`, este adaptador queda listo para conectarse sin cambios.
+
+### 2026-08-08 · D3 · `feature/d3-sprint3-jwt-veedor`
+**Qué:** Adelanto de Sprint 3 de D3, tercer PR de la sesión: infraestructura JWT del panel del
+veedor (RF019, RNF011) — `JwtProvider`, `JwtAuthenticationFilter`, `SecurityConfig`
+(`/api/veedor/**` protegido, el resto público) y `POST /api/veedor/sesion`. `ADR-016`: credencial
+única compartida (BCrypt en `VEEDOR_PASSWORD_HASH`), no cuentas individuales — no existe entidad
+`Usuario` en `domain/` y crearla es decisión de D2. Encontrado y corregido `BUG-010` antes de
+comitear (validación perezosa del secreto que casi tumbaba rutas públicas con 500).
+`./mvnw clean verify` → 35 pruebas, 0 fallos. Verificado además en vivo: login correcto (200+token),
+incorrecto (401), ruta protegida sin token (401), con token válido pasa el filtro (404, no 401/403),
+expiración exacta de 8h, `/actuator/health` sigue público.
+**No se tocó** el CRUD de cortes oficiales ni la moderación de reportes: ambos necesitan casos de
+uso de `application/` (`GestionarCorteOficialUseCase` y uno de moderación aún sin definir), capa de
+D2. Señalado en el ADR, sin construirlo: no hay rate limiting en el login todavía.
+**Sigue:** Rama publicada sin PR todavía — con los PR #56 y #57, van tres esperando revisor humano.
+Cuando D2 defina los casos de uso de M5, el controlador que los use puede vivir bajo `/api/veedor/**`
+sin tocar `SecurityConfig`.
+
+### 2026-08-08 · D3 · `feature/d3-sprint4-prefiltro-dedup`
+**Qué:** Adelanto de Sprint 4 de D3, cuarto PR de la sesión: la parte del pipeline M9 que no toca
+la red — `DocumentoCrudo` (normalización + hash SHA-256), `PrefiltroDeterminista` (9 palabras clave
+ya aprobadas en `pipeline-ingesta-datos.md`, sin ampliarlas por cuenta propia) y
+`DeduplicadorReciente` (Redis, ventana de 7 días). `./mvnw clean verify` → 41 pruebas, 0 fallos.
+**No se construyeron** `AcuacarApiCollector` ni `RssCollector`: `COLLECTOR_USER_AGENT` sigue con un
+correo de contacto literalmente `pendiente`, y hacerles una petición real a Acuacar/Google
+News/Zona Cero con esa identidad sería incoherente con la ética de datos del proyecto —
+`BL-004`, para D1. Tampoco se construyó la capa de IA: sin `ANTHROPIC_API_KEY` no se puede probar
+ni una vez, y el propio diseño avisa que hay que verificar la firma del SDK contra código real
+antes de darla por buena — `BL-005`, para el equipo.
+**Sigue:** Van **cuatro PRs** de esta sesión (#56, #57, #58 y este, sin número todavía) esperando
+revisor humano. En cuanto D1 fije el correo real y alguien configure una clave de Anthropic, los
+colectores y la capa de IA se conectan directo después del prefiltro sin rehacer nada de esto.
+
 ### 2026-08-08 · D3 · `feature/d3-sprint2-rate-limiting-http`
 **Qué:** Quinto PR de la sesión: rate limiting HTTP genérico (Redis `INCR`+`EXPIRE`), pendiente de
 Sprint 2 y hueco señalado en `ADR-016`. `RateLimitingInterceptor` + `RateLimitConfig`, configurable

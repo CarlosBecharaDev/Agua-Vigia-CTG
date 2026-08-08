@@ -1,0 +1,125 @@
+openapi: 3.0.1
+info:
+  title: AguaVigia CTG — API publica
+  description: |-
+    Monitoreo ciudadano del acueducto de Cartagena de Indias.
+
+    Plataforma ciudadana e independiente: no esta afiliada a Aguas de Cartagena
+    S.A. E.S.P. ni a ninguna entidad distrital.
+  contact:
+    name: Equipo AguaVigia CTG — Tecnologico Comfenalco
+  license:
+    name: Proyecto de aula
+  version: 0.1.0
+servers:
+- url: /
+  description: Mismo origen que sirve la API
+tags:
+- name: Sectores
+  description: Estado del servicio de agua por sector de Cartagena
+paths:
+  /api/sectores:
+    get:
+      tags:
+      - Sectores
+      summary: Listar los sectores con su estado conocido
+      description: |-
+        Devuelve los sectores de Cartagena (211 barrios sembrados desde el GeoJSON
+        oficial). `estado` viaja nulo mientras no haya dato verificado del sector —
+        el cliente debe mostrarlo como "sin datos" y no suponer que hay servicio.
+      operationId: listarSectores
+      responses:
+        "200":
+          description: Listado generado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaSectores"
+  /api/sectores/{id}:
+    get:
+      tags:
+      - Sectores
+      summary: Consultar un sector por su identificador
+      operationId: consultarSector
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Sector encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SectorRespuesta"
+        "404":
+          description: No existe un sector con ese id
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+components:
+  schemas:
+    RespuestaSectores:
+      type: object
+      properties:
+        sectores:
+          type: array
+          items:
+            $ref: "#/components/schemas/SectorRespuesta"
+        generadoEn:
+          type: string
+          description: Instante en que el servidor genero esta respuesta (UTC)
+          format: date-time
+      description: Listado de sectores con la hora en que el servidor genero la respuesta
+    SectorRespuesta:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Identificador estable del sector
+          example: bocagrande
+        nombre:
+          type: string
+          description: Nombre del barrio segun el GeoJSON oficial
+          example: BOCAGRANDE
+        estado:
+          type: string
+          description: |-
+            Estado conocido del servicio. **Nulo cuando no hay dato verificado**: no se asume
+            CON_SERVICIO por omision, porque publicar servicio normal sin verificarlo es el
+            falso positivo que el proyecto evita (ADR-014). Presentarlo como "sin datos".
+          nullable: true
+          enum:
+          - CON_SERVICIO
+          - SIN_SERVICIO
+          - PRESION_BAJA
+          - CORTE_PROGRAMADO
+        actualizadoEn:
+          type: string
+          description: Cuando se registro ese estado. Nulo si el sector no tiene estado.
+          format: date-time
+          nullable: true
+      description: Sector de Cartagena con el estado conocido de su servicio de agua
+    ProblemDetail:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+          format: int32
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri
+        properties:
+          type: object
+          additionalProperties:
+            type: object

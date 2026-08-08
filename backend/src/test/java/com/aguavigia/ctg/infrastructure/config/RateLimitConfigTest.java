@@ -11,11 +11,14 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+
+import com.aguavigia.ctg.infrastructure.security.JwtProvider;
 
 import java.util.Objects;
 
@@ -30,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @WebMvcTest(controllers = ControladorDePruebaRateLimit.class)
 @ImportAutoConfiguration(RedisAutoConfiguration.class)
-@Import({RedisConfig.class, RateLimitConfig.class})
+@Import({RedisConfig.class, RateLimitConfig.class, SecurityConfig.class})
 @TestPropertySource(properties = {
         "aguavigia.rate-limit.reglas[0].ruta=/protegida",
         "aguavigia.rate-limit.reglas[0].limite=2",
@@ -45,6 +48,11 @@ class RateLimitConfigTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    // SecurityConfig exige un JwtProvider para construir su SecurityFilterChain, aunque este test
+    // no ejercite autenticacion — sin el, el contexto no levanta.
+    @MockitoBean
+    private JwtProvider jwtProvider;
 
     @Autowired
     @Qualifier("redisTemplate")
