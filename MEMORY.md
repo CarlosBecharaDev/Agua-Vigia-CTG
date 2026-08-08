@@ -71,6 +71,13 @@ nivel que ningún polígono de barrio puede representar. **Relevante para M9 (D3
 (D2)**: el matching texto→polígono necesita tolerancia y un umbral de confianza más bajo para avisos a
 nivel de tramo de calle. Detalle: `data/geoespacial/README.md`.
 
+### 2026-08-08 — Población por barrio verificada; casi se usa la de otro municipio por error
+`datos.gov.co` dataset `rjh5-tyrd` (censo DANE 2018 + CORVIVIENDA) sí es de Cartagena y cubre 184/213
+barrios — casi todos los 27 sin dato son corregimientos rurales/insulares. El primer resultado de
+búsqueda (`x6zm-nfuj`) tenía nombre casi idéntico pero era de La Estrella, Antioquia — se descartó al
+leer el `attribution`, no el título. El campo `poblacion` pierde ceros finales (bug de Socrata);
+corrección documentada en `scripts/sembrar-sectores.mjs`. Detalle: `data/geoespacial/README.md`.
+
 ### 2026-08-06 — GDELT quedó sin verificar
 La API pública de GDELT devolvió `429 Too Many Requests` durante la auditoría (límite compartido de
 su infraestructura, no un bloqueo dirigido). **No está descartada: está pendiente de reintentar** con

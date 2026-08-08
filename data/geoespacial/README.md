@@ -44,8 +44,7 @@ decide citarlo formalmente en el Capítulo II/Anexo 6.
 **Geometría:** `Polygon` o `MultiPolygon` según el barrio. 213 features, 0 geometrías nulas.
 
 **Lo que NO trae:** población por barrio. RF010 (consenso con umbral proporcional a la población)
-va a necesitar cruzarlo con otra fuente — candidato sin verificar:
-`datos.gov.co` → "Déficit Habitacional del Distrito de Cartagena de Indias por Barrio".
+la necesita cruzada de otra fuente — ya verificada, ver `poblacion-barrios.json` más abajo.
 
 ---
 
@@ -91,9 +90,52 @@ confianza más bajo para avisos a nivel de tramo de calle, no de barrio completo
 
 ---
 
+## `poblacion-barrios.json`
+
+**Fuente:** datos.gov.co (Socrata), dataset `rjh5-tyrd` — "Déficit Habitacional del Distrito de
+Cartagena de Indias por Barrio". Atribución: Fondo de Vivienda de Interés Social y Reforma Urbana
+Distrital de Cartagena de Indias, con base en el **Censo DANE 2018** y datos de **CORVIVIENDA**. 187
+filas, campo `poblacion` entre otros.
+
+**Ojo — un candidato descartado por verificar antes de usarlo:** el primer resultado de búsqueda para
+"población por barrios" en datos.gov.co (`x6zm-nfuj`) tiene ese nombre casi idéntico, pero al leer su
+`attribution` real es de **La Estrella, Antioquia** — un municipio distinto, nada que ver con
+Cartagena. Se descartó después de leer el contenido, no el título. Queda como recordatorio de por qué
+este proyecto verifica antes de afirmar (ver `MEMORY.md`, corrección del 2026-08-06 sobre Acuacar).
+
+**Problema de datos encontrado y corregido en el script de siembra:** el campo `poblacion` usa `.`
+como separador de miles (`"10.656"` = 10 656 habitantes), pero en algún punto de la tubería de Socrata
+el valor pasó por un tipo numérico y **perdió los ceros finales** de la última cifra: `"2.450"` quedó
+en `"2.45"`, `"1.080"` en `"1.08"`. Se detecta por la cantidad de dígitos después del punto (134 filas
+con 3 dígitos intactos, 12 con 2, 2 con 1, 39 sin punto porque la población es menor a 1000) y se
+corrige rellenando con ceros a la derecha. Lógica y comentario completo:
+`scripts/sembrar-sectores.mjs` → `corregirPoblacion()`.
+
+**Cobertura:** 184 de los 213 barrios del GeoJSON tienen población en esta fuente. Los 27 que faltan
+son, casi todos, corregimientos rurales e insulares (Bocachica, Barú, Islas del Rosario, Tierra Bomba,
+Pasacaballos, Bayunca, La Boquilla, Punta Canoa...) — la fuente cubre el censo urbano por UCG, no el
+área rural/insular del distrito. 3 nombres del dataset de población no aparecen en el GeoJSON
+(`CIUDAD JARDIN`, `LOS GIRASOLES`, `VILLAS DE ARANJUEZ`) — desarrollos que el GeoJSON no tiene
+delimitados por separado, sin investigar más a fondo todavía.
+
+---
+
+## `scripts/sembrar-sectores.mjs`
+
+Escrito y **probado de verdad** el 2026-08-08 contra una instancia de MongoDB local (no la de
+`docker-compose.yml` — esta máquina no tiene Docker instalado, ver `BL-001`): 211 sectores insertados
+(213 menos las 2 filas duplicadas), 184 con población, 27 sin ella (lista exacta impresa por el
+script), índice `2dsphere` creado y verificado con una consulta `$geoIntersects` real.
+
+**Lo que decide el script:** genera su propio `slug` como identificador (el `CODIGO` de origen no es
+confiable, ver arriba), corrige la población, y **no** siembra `estadoActual` — es estado dinámico de
+la aplicación, no dato de referencia; queda para que D2/D3 decidan el valor inicial en el adaptador de
+`SectorRepository` cuando `/backend` exista.
+
+---
+
 ## Próximo paso
 
-Sprint 1 — D5: escribir el script de siembra con el `CODIGO` deduplicado. Si la cobertura o calidad no
-alcanza para algún caso, aplicar el Plan B de `D5-devops-qa.md` §4 (polígonos simplificados de las 15
-localidades/sectores principales). El hallazgo sobre reportes a nivel de tramo de calle/manzana queda
-para que D2/D3 lo consideren al diseñar el matching de M9 — no es algo que este GeoJSON pueda resolver.
+Falta que D2 confirme cómo debe comportarse `Sector` cuando `poblacion` es `null` (27 barrios) antes
+de que esto se traduzca a Java. El hallazgo sobre reportes a nivel de tramo de calle/manzana queda para
+que D2/D3 lo consideren al diseñar el matching de M9 — no es algo que este GeoJSON pueda resolver.
