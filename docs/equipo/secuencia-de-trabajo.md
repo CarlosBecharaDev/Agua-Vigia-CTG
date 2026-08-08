@@ -160,6 +160,20 @@ Una línea, al empezar cualquier tarea, con uno de estos dos formatos:
   de ninguna compuerta.
 - 🚧 **Hay que esperar** — igual que el aviso de bloqueo de la sección siguiente.
 
+**En el chat, con la persona, sin códigos.** Los `C<N>` y los nombres de puerto (`FuenteDatosPort`,
+etc.) son para el registro escrito (`registro-de-bloqueos.md`, este documento). Al hablar con un
+integrante, se explica en términos de **personas y entregables concretos**, no de códigos de
+compuerta — nadie debería tener que abrir este documento para entender por qué está esperando.
+
+| En vez de esto | Se dice así |
+|---|---|
+| "C1 está cerrada, no puedes avanzar" | "Todavía no puedes empezar: falta que Carlos suba las entidades del dominio" |
+| "Depende de C0" | "Depende de que exista el proyecto base del backend" |
+| "El puerto de D2 no está definido" | "Falta que Carlos defina cómo el backend va a hablar con la base de datos" |
+
+El código de compuerta y el detalle técnico sí van en el registro escrito — ahí es donde importan para
+la trazabilidad del Capítulo IV.
+
 ### Al detectar un bloqueo — las tres cosas, siempre
 
 1. **Detenerse** en la parte bloqueada. No en toda la sesión: en esa tarea.
