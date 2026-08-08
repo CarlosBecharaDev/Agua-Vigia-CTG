@@ -11,6 +11,7 @@
  */
 import { useEffect, useRef, useState } from 'react'
 import type { FC } from 'react'
+// (No se requiere Link aquí)
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { EstadoServicio, Sector } from '../types/tipos-dominio'
@@ -18,9 +19,13 @@ import { COLOR_POR_ESTADO } from '../types/tipos-dominio'
 import { EtiquetaFrescura } from './EtiquetaFrescura'
 import { InsigniaEstado } from './InsigniaEstado'
 
-// Cartagena de Indias — centro y zoom inicial
-const CENTRO: L.LatLngExpression = [10.3910, -75.4794]
-const ZOOM_INICIAL = 12
+// Cartagena de Indias — centro, límites y zoom inicial
+const CENTRO: L.LatLngExpression = [10.3950, -75.4800]
+const ZOOM_INICIAL = 13
+const BOUNDS_CARTAGENA: L.LatLngBoundsExpression = [
+  [10.28, -75.56], // Suroeste más cerrado
+  [10.45, -75.42]  // Noreste más cerrado
+]
 
 interface Props {
   sectores: Sector[]
@@ -28,6 +33,7 @@ interface Props {
   error: string | null
   ultimaActualizacion: string | null
   onSectorSeleccionado?: (sector: Sector) => void
+  onAbrirReporte?: (sectorId: string) => void
 }
 
 /** Convierte el NOMBRE del GeoJSON al id del sector para hacer lookup */
@@ -41,6 +47,7 @@ export const MapaCartagena: FC<Props> = ({
   error,
   ultimaActualizacion,
   onSectorSeleccionado,
+  onAbrirReporte
 }) => {
   const contenedorRef = useRef<HTMLDivElement>(null)
   const mapaRef = useRef<L.Map | null>(null)
@@ -55,6 +62,34 @@ export const MapaCartagena: FC<Props> = ({
     indiceSectores.current = mapa
   }, [sectores])
 
+  // Ref para tener siempre el último valor en cierres (closures) asíncronos
+  const sectorActivoRef = useRef(sectorActivo)
+  useEffect(() => {
+    sectorActivoRef.current = sectorActivo
+  }, [sectorActivo])
+
+  // Actualizar estilos dinámicamente cuando el usuario selecciona un barrio
+  useEffect(() => {
+    if (!capaRef.current) return
+
+    capaRef.current.setStyle((feature) => {
+      const nombre = feature?.properties?.NOMBRE ?? ''
+      const sector = indiceSectores.current.get(normalizarNombre(nombre))
+      const estado: EstadoServicio = sector?.estado ?? 'CON_SERVICIO'
+      const color = COLOR_POR_ESTADO[estado].claro
+      const esActivo = sectorActivo && sector && sectorActivo.id === sector.id
+
+      return {
+        fillColor: color,
+        fillOpacity: sector ? (esActivo ? 0.85 : 0.55) : 0.15,
+        color: '#ffffff',
+        weight: esActivo ? 2 : 1,
+        opacity: esActivo ? 1 : 0.7,
+        className: esActivo ? 'barrio-seleccionado' : ''
+      }
+    })
+  }, [sectorActivo])
+
   // Inicializar el mapa una sola vez
   useEffect(() => {
     if (!contenedorRef.current || mapaRef.current) return
@@ -62,6 +97,9 @@ export const MapaCartagena: FC<Props> = ({
     const mapa = L.map(contenedorRef.current, {
       center: CENTRO,
       zoom: ZOOM_INICIAL,
+      minZoom: 12,
+      maxBounds: BOUNDS_CARTAGENA,
+      maxBoundsViscosity: 1.0,
       zoomControl: true,
       attributionControl: true,
     })
@@ -90,15 +128,16 @@ export const MapaCartagena: FC<Props> = ({
             const nombre = feature?.properties?.NOMBRE ?? ''
             const sector = indiceSectores.current.get(normalizarNombre(nombre))
             const estado: EstadoServicio = sector?.estado ?? 'CON_SERVICIO'
-            // Usamos claro por defecto; el tema oscuro se aplica vía CSS en el contenedor
             const color = COLOR_POR_ESTADO[estado].claro
+            const esActivo = sectorActivoRef.current && sector && sectorActivoRef.current.id === sector.id
 
             return {
               fillColor: color,
-              fillOpacity: sector ? 0.55 : 0.15,
-              color: '#fff',
-              weight: 1,
-              opacity: 0.7,
+              fillOpacity: sector ? (esActivo ? 0.85 : 0.55) : 0.15,
+              color: '#ffffff',
+              weight: esActivo ? 2 : 1,
+              opacity: esActivo ? 1 : 0.7,
+              className: esActivo ? 'barrio-seleccionado' : ''
             }
           },
           onEachFeature: (feature, layer) => {
@@ -134,20 +173,19 @@ export const MapaCartagena: FC<Props> = ({
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
       {/* Barra de estado superior — responde "¿tengo agua?" en < 5 s (DESIGN.md §1) */}
       <div
+        className="panel-glass"
         style={{
           position: 'absolute',
           top: '0.75rem',
           left: '50%',
           transform: 'translateX(-50%)',
           zIndex: 1000,
-          backgroundColor: 'var(--color-superficie)',
-          border: '1px solid var(--color-linea)',
-          borderRadius: 'var(--radio-lg)',
-          padding: '0.4rem 1rem',
+          borderRadius: 'var(--radio-pill)',
+          padding: '0.5rem 1.25rem',
           display: 'flex',
           alignItems: 'center',
           gap: '0.75rem',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           maxWidth: 'calc(100vw - 4rem)',
         }}
       >
@@ -162,14 +200,11 @@ export const MapaCartagena: FC<Props> = ({
           </span>
         )}
         {!cargando && !error && (
-          <>
-            <span style={{ fontSize: '0.85rem', color: 'var(--color-tinta)', fontFamily: 'var(--font-util)' }}>
-              {sectores.length > 0
-                ? `${sectores.filter(s => s.estado === 'SIN_SERVICIO').length} sectores sin servicio`
-                : 'Toca tu barrio en el mapa'}
-            </span>
-            <EtiquetaFrescura timestampIso={ultimaActualizacion} />
-          </>
+          <span style={{ fontSize: '0.85rem', color: 'var(--color-tinta)', fontFamily: 'var(--font-util)' }}>
+            {sectores.length > 0
+              ? `${sectores.filter(s => s.estado === 'SIN_SERVICIO').length} sectores sin servicio`
+              : 'Toca tu barrio en el mapa'}
+          </span>
         )}
       </div>
 
@@ -179,27 +214,31 @@ export const MapaCartagena: FC<Props> = ({
         id="contenedor-mapa"
         role="img"
         aria-label="Mapa interactivo de sectores de Cartagena con estado del servicio de agua"
-        style={{ height: '100%', width: '100%' }}
+        style={{ height: 'calc(100% - 36px)', width: '100%' }}
       />
+
+      {/* Pie del mapa con la frescura de datos */}
+      <div style={{ height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--color-fondo)', borderTop: '1px solid var(--color-linea)' }}>
+        <EtiquetaFrescura timestampIso={ultimaActualizacion} />
+      </div>
 
       {/* Panel de detalle del sector seleccionado */}
       {sectorActivo && (
         <div
           role="dialog"
           aria-label={`Detalle del sector ${sectorActivo.nombre}`}
+          className="panel-glass"
           style={{
             position: 'absolute',
             bottom: '1.5rem',
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 1000,
-            backgroundColor: 'var(--color-superficie)',
-            border: '1px solid var(--color-linea)',
             borderRadius: 'var(--radio-lg)',
             padding: '1rem 1.25rem',
             minWidth: '260px',
             maxWidth: 'calc(100vw - 3rem)',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
@@ -231,9 +270,12 @@ export const MapaCartagena: FC<Props> = ({
           </div>
           <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
             <EtiquetaFrescura timestampIso={sectorActivo.actualizadoEn} />
-            <a
-              href={`/reportar?sector=${sectorActivo.id}`}
+            <button
+              onClick={() => onAbrirReporte?.(sectorActivo.id)}
               style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
                 fontSize: '0.8rem',
                 color: 'var(--color-acento)',
                 textDecoration: 'underline',
@@ -241,10 +283,11 @@ export const MapaCartagena: FC<Props> = ({
                 display: 'inline-flex',
                 alignItems: 'center',
                 minHeight: '44px',
+                padding: '0'
               }}
             >
               Reportar problema en este sector →
-            </a>
+            </button>
           </div>
         </div>
       )}

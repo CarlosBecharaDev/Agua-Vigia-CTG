@@ -3,6 +3,7 @@
  * Sprint 3: UI del panel. Requiere C2 abierta para integrar JWT y endpoints.
  */
 import { useState } from 'react'
+import { Plus, Check, X } from 'lucide-react'
 import type { FC } from 'react'
 
 const PaginaVeedor: FC = () => {
@@ -30,8 +31,10 @@ const PaginaVeedor: FC = () => {
               border: 'none',
               borderRadius: 'var(--radio-md)',
               fontWeight: '600',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(2, 132, 199, 0.3)'
             }}
+            className="hover-glowing"
           >
             Simular ingreso de veedor
           </button>
@@ -50,37 +53,37 @@ const PaginaVeedor: FC = () => {
           </h1>
           <button 
             onClick={() => setAutenticado(false)}
-            style={{ padding: '0.5rem 1rem', borderRadius: 'var(--radio-base)', border: '1px solid var(--color-linea)', background: 'var(--color-superficie)' }}
+            style={{ padding: '0.5rem 1.25rem', borderRadius: 'var(--radio-pill)', border: '1px solid var(--color-linea)', background: 'var(--color-superficie)', backdropFilter: 'blur(10px)' }}
           >
             Salir
           </button>
         </div>
 
         {/* 1. Registrar corte oficial (RF016) */}
-        <section style={{ backgroundColor: 'var(--color-superficie)', padding: '1.5rem', borderRadius: 'var(--radio-md)', border: '1px solid var(--color-linea)', marginBottom: '2rem' }}>
-          <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--color-tinta)' }}>Registrar corte oficial</h2>
+        <section className="panel-glass" style={{ padding: '1.5rem', borderRadius: 'var(--radio-lg)', marginBottom: '2rem' }}>
+          <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--color-tinta)', fontWeight: '600' }}>Registrar corte oficial</h2>
           <p style={{ color: 'var(--color-tinta-2)', fontSize: '0.875rem', marginBottom: '1rem' }}>
             Registra una falla o mantenimiento oficial anunciado por el operador.
           </p>
-          <button style={{ backgroundColor: 'var(--color-estado-sin)', color: '#FFF', padding: '0.75rem 1rem', border: 'none', borderRadius: 'var(--radio-base)', fontWeight: '600' }}>
-            + Nuevo Registro
+          <button className="hover-glowing" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'var(--color-estado-sin)', color: '#FFF', padding: '0.75rem 1.5rem', border: 'none', borderRadius: 'var(--radio-pill)', fontWeight: '600', boxShadow: '0 4px 12px rgba(226, 105, 91, 0.3)' }}>
+            <Plus size={18} /> Nuevo Registro
           </button>
         </section>
 
         {/* 2. Moderar reportes (RF018) */}
-        <section style={{ backgroundColor: 'var(--color-superficie)', padding: '1.5rem', borderRadius: 'var(--radio-md)', border: '1px solid var(--color-linea)' }}>
-          <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--color-tinta)' }}>Reportes ciudadanos dudosos</h2>
+        <section className="panel-glass" style={{ padding: '1.5rem', borderRadius: 'var(--radio-lg)' }}>
+          <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem', color: 'var(--color-tinta)', fontWeight: '600' }}>Reportes ciudadanos dudosos</h2>
           
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {/* Mock data de reportes */}
-            <li style={{ padding: '1rem 0', borderBottom: '1px solid var(--color-linea)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <li className="hover-glowing" style={{ padding: '1rem', borderBottom: '1px solid var(--color-linea)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: 'var(--radio-base)', backgroundColor: 'transparent' }}>
               <div>
                 <strong style={{ display: 'block', color: 'var(--color-tinta)' }}>MANGA</strong>
                 <span style={{ fontSize: '0.875rem', color: 'var(--color-tinta-2)' }}>Reportó SIN AGUA - hace 5 min</span>
               </div>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button style={{ padding: '0.5rem 1rem', border: '1px solid var(--color-estado-con)', color: 'var(--color-estado-con)', backgroundColor: 'transparent', borderRadius: 'var(--radio-base)' }}>Aprobar</button>
-                <button style={{ padding: '0.5rem 1rem', border: '1px solid var(--color-estado-sin)', color: 'var(--color-estado-sin)', backgroundColor: 'transparent', borderRadius: 'var(--radio-base)' }}>Descartar</button>
+                <button className="hover-glowing" aria-label="Aprobar reporte" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px', border: 'none', color: '#FFF', backgroundColor: 'var(--color-estado-con)', borderRadius: 'var(--radio-pill)', boxShadow: '0 2px 8px rgba(34, 197, 94, 0.3)' }}><Check size={20} /></button>
+                <button className="hover-glowing" aria-label="Descartar reporte" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px', border: 'none', color: '#FFF', backgroundColor: 'var(--color-estado-sin)', borderRadius: 'var(--radio-pill)', boxShadow: '0 2px 8px rgba(239, 68, 68, 0.3)' }}><X size={20} /></button>
               </div>
             </li>
           </ul>

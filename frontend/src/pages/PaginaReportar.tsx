@@ -77,7 +77,7 @@ const PaginaReportar: FC = () => {
           Reportar estado
         </h1>
         <p style={{ color: 'var(--color-tinta-2)', marginBottom: '2rem', fontSize: '0.9rem', lineHeight: '1.5' }}>
-          No necesitas registrarte. Solo cuéntanos cómo está el servicio en tu barrio ahora mismo.
+          Por favor, indícanos cómo está el servicio en tu barrio ahora mismo. Tu reporte ayuda a validar el consenso comunitario.
         </p>
 
         <FormularioReporte 

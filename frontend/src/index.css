@@ -7,45 +7,48 @@
    para éxito/error/advertencia/enlace genéricos de la interfaz.
    ============================================================= */
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto:wght@500;700&display=swap');
 @import "tailwindcss";
 
 /* ─── Modo claro (por defecto) ─── */
 :root {
-  /* Acento petróleo — la identidad visual del proyecto */
-  --color-acento:        #0A6C78;
-  --color-acento-vivo:   #0E8A98;
+  /* Acento tech serio (Cyan Profundo / Azul Acero) */
+  --color-acento:        #0284C7; /* Sky 600 */
+  --color-acento-vivo:   #0369A1; /* Sky 700 */
 
-  /* Tinta */
-  --color-tinta:         #0B1F26;
-  --color-tinta-2:       #3E585F;
-  --color-tinta-3:       #6E878D;
+  /* Tinta (Escala Zinc) */
+  --color-tinta:         #18181B; /* Zinc 900 */
+  --color-tinta-2:       #52525B; /* Zinc 500 */
+  --color-tinta-3:       #A1A1AA; /* Zinc 400 */
 
-  /* Superficies */
-  --color-linea:         #C9D9D8;
-  --color-superficie:    #FFFFFF;
-  --color-fondo:         #EEF3F3;
+  /* Superficies (Translucidas para efecto Glass) */
+  --color-linea:         rgba(228, 228, 231, 0.4); /* Zinc 200 con opacidad */
+  --color-superficie:    rgba(255, 255, 255, 0.75);
+  --color-fondo:         #F4F4F5; /* Zinc 100 */
 
   /* ── Colores de ESTADO DEL SERVICIO — reservados, no reutilizar ── */
-  --color-estado-con:    #1C7F55;   /* Con servicio  */
-  --color-estado-sin:    #AE3428;   /* Sin servicio  */
-  --color-estado-baja:   #A87310;   /* Presión baja  */
-  --color-estado-prog:   #2A628F;   /* Corte programado */
+  --color-estado-con:    #15803d;   /* Verde serio */
+  --color-estado-sin:    #b91c1c;   /* Rojo serio  */
+  --color-estado-baja:   #b45309;   /* Ámbar serio */
+  --color-estado-prog:   #475569;   /* Gris pizarra para programado */
 
-  /* Tipografía */
-  --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  --font-cuerpo:  system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Tipografía Profesional */
+  --font-display: 'Roboto', ui-sans-serif, system-ui, sans-serif;
+  --font-cuerpo:  'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-util:    ui-monospace, "Cascadia Mono", Consolas, monospace;
 
-  /* Espaciado base */
-  --radio-base: 0.5rem;
-  --radio-lg:   1rem;
+  /* Espaciado base (radios más ovalados y modernos) */
+  --radio-base: 0.75rem;
+  --radio-md:   1rem;
+  --radio-lg:   1.5rem;
+  --radio-pill: 9999px;
 
   /* Foco — WCAG AA: contorno de 2px visible en teclado */
   --foco-outline: 2px solid var(--color-acento);
   --foco-offset:  2px;
 
   /* Transición suave global */
-  --transicion: 160ms ease;
+  --transicion: 200ms ease-out;
 
   color-scheme: light;
 }
@@ -53,21 +56,21 @@
 /* ─── Modo oscuro — media query del SO ─── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --color-acento:       #45BFCB;
-    --color-acento-vivo:  #6FD6DF;
+    --color-acento:       #38BDF8; /* Sky 400 */
+    --color-acento-vivo:  #7DD3FC; /* Sky 300 */
 
-    --color-tinta:        #E4EFEF;
-    --color-tinta-2:      #9DB8BE;
-    --color-tinta-3:      #6B8C94;
+    --color-tinta:        #FAFAFA; /* Zinc 50 */
+    --color-tinta-2:      #A1A1AA; /* Zinc 400 */
+    --color-tinta-3:      #52525B; /* Zinc 500 */
 
-    --color-linea:        #1B3B45;
-    --color-superficie:   #0C2027;
-    --color-fondo:        #061418;
+    --color-linea:        rgba(39, 39, 42, 0.5); /* Zinc 800 translúcido */
+    --color-superficie:   rgba(24, 24, 27, 0.65); /* Zinc 900 translúcido */
+    --color-fondo:        #09090B; /* Zinc 950 */
 
-    --color-estado-con:   #4FBF89;
-    --color-estado-sin:   #E2695B;
-    --color-estado-baja:  #D9A63C;
-    --color-estado-prog:  #6BA8DA;
+    --color-estado-con:   #22c55e;
+    --color-estado-sin:   #ef4444;
+    --color-estado-baja:  #f59e0b;
+    --color-estado-prog:  #94a3b8;
 
     color-scheme: dark;
   }
@@ -75,42 +78,42 @@
 
 /* ─── Modo oscuro — interruptor manual (gana sobre el SO) ─── */
 :root[data-theme="dark"] {
-  --color-acento:       #45BFCB;
-  --color-acento-vivo:  #6FD6DF;
+  --color-acento:       #38BDF8;
+  --color-acento-vivo:  #7DD3FC;
 
-  --color-tinta:        #E4EFEF;
-  --color-tinta-2:      #9DB8BE;
-  --color-tinta-3:      #6B8C94;
+  --color-tinta:        #FAFAFA;
+  --color-tinta-2:      #A1A1AA;
+  --color-tinta-3:      #52525B;
 
-  --color-linea:        #1B3B45;
-  --color-superficie:   #0C2027;
-  --color-fondo:        #061418;
+  --color-linea:        rgba(39, 39, 42, 0.5);
+  --color-superficie:   rgba(24, 24, 27, 0.65);
+  --color-fondo:        #09090B;
 
-  --color-estado-con:   #4FBF89;
-  --color-estado-sin:   #E2695B;
-  --color-estado-baja:  #D9A63C;
-  --color-estado-prog:  #6BA8DA;
+  --color-estado-con:   #22c55e;
+  --color-estado-sin:   #ef4444;
+  --color-estado-baja:  #f59e0b;
+  --color-estado-prog:  #94a3b8;
 
   color-scheme: dark;
 }
 
 /* ─── Modo claro forzado por interruptor ─── */
 :root[data-theme="light"] {
-  --color-acento:       #0A6C78;
-  --color-acento-vivo:  #0E8A98;
+  --color-acento:        #0284C7;
+  --color-acento-vivo:   #0369A1;
 
-  --color-tinta:        #0B1F26;
-  --color-tinta-2:      #3E585F;
-  --color-tinta-3:      #6E878D;
+  --color-tinta:         #18181B;
+  --color-tinta-2:       #52525B;
+  --color-tinta-3:       #A1A1AA;
 
-  --color-linea:        #C9D9D8;
-  --color-superficie:   #FFFFFF;
-  --color-fondo:        #EEF3F3;
+  --color-linea:         rgba(228, 228, 231, 0.4);
+  --color-superficie:    rgba(255, 255, 255, 0.75);
+  --color-fondo:         #F4F4F5;
 
-  --color-estado-con:   #1C7F55;
-  --color-estado-sin:   #AE3428;
-  --color-estado-baja:  #A87310;
-  --color-estado-prog:  #2A628F;
+  --color-estado-con:    #15803d;
+  --color-estado-sin:    #b91c1c;
+  --color-estado-baja:   #b45309;
+  --color-estado-prog:   #475569;
 
   color-scheme: light;
 }
@@ -195,6 +198,26 @@ select {
   }
 }
 
+/* ─── Scrollbars Futuristas ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-linea);
+  border-radius: 10px;
+  transition: background var(--transicion);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-acento);
+}
+
 /* ─── Utilidades de color del sistema ─── */
 .text-acento    { color: var(--color-acento); }
 .text-tinta-2   { color: var(--color-tinta-2); }
@@ -202,6 +225,120 @@ select {
 .bg-superficie  { background-color: var(--color-superficie); }
 .bg-fondo       { background-color: var(--color-fondo); }
 .border-linea   { border-color: var(--color-linea); }
+
+/* ─── Efecto Glassmorphism ─── */
+.panel-glass {
+  background-color: var(--color-superficie);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-linea);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+}
+
+/* ─── Efectos Interactivos (Hover, Brillo, Escala) ─── */
+.hover-glowing {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s ease, box-shadow 0.3s ease !important;
+  will-change: transform, box-shadow;
+}
+
+.hover-glowing:hover {
+  transform: scale(1.015);
+  border-color: #FFFFFF !important;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.4) !important;
+  z-index: 10;
+}
+
+.hover-glowing:active {
+  transform: scale(0.95) !important;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.2) !important;
+  border-color: var(--color-acento) !important;
+}
+
+.hover-highlight-text {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease !important;
+  will-change: transform, box-shadow, color;
+}
+.hover-highlight-text:hover {
+  transform: scale(1.015);
+  border-color: var(--color-acento) !important;
+  box-shadow: 0 0 12px rgba(2, 132, 199, 0.4) !important;
+  color: var(--color-acento) !important;
+  z-index: 10;
+}
+.hover-highlight-text:active {
+  transform: scale(0.95) !important;
+  box-shadow: 0 0 5px rgba(2, 132, 199, 0.2) !important;
+}
+
+/* En modo claro puro, usamos el acento en lugar de blanco puro para que se note */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .hover-glowing:hover {
+    border-color: var(--color-acento) !important;
+    box-shadow: 0 0 12px rgba(2, 132, 199, 0.3) !important;
+  }
+}
+:root[data-theme="light"] .hover-glowing:hover {
+  border-color: var(--color-acento) !important;
+  box-shadow: 0 0 12px rgba(2, 132, 199, 0.3) !important;
+}
+
+/* ─── Splash Screen Animations ─── */
+@keyframes dropSplash {
+  0% { transform: translateY(-100vh) scale(0.5); opacity: 0; }
+  50% { transform: translateY(0) scale(1); opacity: 1; }
+  65% { transform: scaleY(0.7) scaleX(1.3) translateY(10px); }
+  80% { transform: scaleY(1.1) scaleX(0.9) translateY(-15px); }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes fadeOutSplash {
+  0% { opacity: 1; backdrop-filter: blur(20px); }
+  100% { opacity: 0; visibility: hidden; backdrop-filter: blur(0px); }
+}
+
+@keyframes textReveal {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Mapa Oscuro Futurista (Filtro Inteligente para Leaflet) ─── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .leaflet-layer,
+  :root:not([data-theme="light"]) .leaflet-control-zoom-in,
+  :root:not([data-theme="light"]) .leaflet-control-zoom-out,
+  :root:not([data-theme="light"]) .leaflet-control-attribution {
+    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+  }
+}
+
+:root[data-theme="dark"] .leaflet-layer,
+:root[data-theme="dark"] .leaflet-control-zoom-in,
+:root[data-theme="dark"] .leaflet-control-zoom-out,
+:root[data-theme="dark"] .leaflet-control-attribution {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+/* Reducir el fondo blanco de Leaflet para que no deslumbre al cargar tiles */
+.leaflet-container {
+  background-color: var(--color-fondo) !important;
+}
+
+/* Quitar el outline rectangular punteado al hacer click en un polígono en Leaflet */
+.leaflet-interactive:focus {
+  outline: none !important;
+}
+
+/* Animación de pulso suave para el barrio seleccionado */
+@keyframes pulseSector {
+  0% { fill-opacity: 0.5; stroke-width: 2px; }
+  50% { fill-opacity: 0.85; stroke-width: 4px; }
+  100% { fill-opacity: 0.5; stroke-width: 2px; }
+}
+
+.barrio-seleccionado {
+  animation: pulseSector 2.5s infinite ease-in-out;
+  /* El borde brillante usará el color definido en JavaScript, la animación lo realza */
+}
 
 /* ─── Colores de estado (SOLO para estado del servicio) ─── */
 .estado-con   { color: var(--color-estado-con);  }
