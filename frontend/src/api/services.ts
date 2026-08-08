@@ -21,6 +21,12 @@ export interface KPIEstadisticas {
 }
 
 export const AguaVigiaAPI = {
+  // --- SECTORES (M1) ---
+  obtenerSectores: async () => {
+    const response = await apiClient.get('/sectores');
+    return response.data;
+  },
+
   // --- CIUDADANOS ---
   enviarReporte: async (datos: { sectorId: string, tipo: string, comentario?: string, ubicacionGPS?: boolean }) => {
     const response = await apiClient.post('/reportes', datos);

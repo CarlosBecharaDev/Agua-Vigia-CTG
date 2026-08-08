@@ -18,6 +18,7 @@ import { obtenerClimaActual } from '../api/clima';
 import type { ClimaCartagena } from '../api/clima';
 import { obtenerNoticiasAgua } from '../api/noticias';
 import type { NoticiaAgua } from '../api/noticias';
+import { AguaVigiaAPI } from '../api/services';
 
 // ──────────────────────────────────────────────────────────────
 // DATOS MOCK de respaldo — idénticos a los que venían en PaginaMapa.tsx
@@ -88,57 +89,30 @@ export function useDatosEnVivo(): DatosEnVivo {
 
   /**
    * Convierte los estados de barrios (de los boletines de Acuacar)
-   * al formato Sector[] que el mapa y la lista entienden.
+   * y los combina con la lista real de sectores del backend (C2).
    */
-  const convertirAEstadoSectores = useCallback((estados: EstadoBarrioAcuacar[]): Sector[] => {
+  const combinarSectoresConAcuacar = useCallback((sectoresBackend: Sector[], estadosAcuacar: EstadoBarrioAcuacar[]): Sector[] => {
     // Crear un mapa de barrios afectados (el más reciente gana)
     const mapaEstados = new Map<string, EstadoBarrioAcuacar>();
-    estados.forEach(e => {
+    estadosAcuacar.forEach(e => {
       const existente = mapaEstados.get(e.nombre);
       if (!existente || new Date(e.fechaBoletin) > new Date(existente.fechaBoletin)) {
         mapaEstados.set(e.nombre, e);
       }
     });
 
-    // Convertir a Sector[]
-    const sectoresReales: Sector[] = [];
-    let idCounter = 1;
-
-    mapaEstados.forEach((estado, nombre) => {
-      const estadoServicio: EstadoServicio = estado.esVigente
-        ? estado.estado as EstadoServicio
-        : 'CON_SERVICIO'; // Si el boletín ya no es vigente, se asume restablecido
-
-      sectoresReales.push({
-        id: String(idCounter++),
-        nombre,
-        estado: estadoServicio,
-        actualizadoEn: estado.fechaBoletin,
-      });
-    });
-
-    // Agregar sectores conocidos que NO aparecen en boletines (con servicio normal)
-    const nombresAfectados = new Set(sectoresReales.map(s => s.nombre));
-    const BARRIOS_PRINCIPALES = [
-      'BOCAGRANDE', 'CASTILLOGRANDE', 'EL LAGUITO', 'MANGA',
-      'PIE DE LA POPA', 'GETSEMANI', 'EL CENTRO', 'LA BOQUILLA',
-      'TORICES', 'CRESPO', 'SAN DIEGO', 'DANIEL LEMAITRE',
-      'OLAYA HERRERA', 'NELSON MANDELA', 'EL SOCORRO',
-      'ZARAGOCILLA', 'NUEVO BOSQUE', 'TERNERA', 'PASACABALLOS'
-    ];
-
-    BARRIOS_PRINCIPALES.forEach(nombre => {
-      if (!nombresAfectados.has(nombre)) {
-        sectoresReales.push({
-          id: String(idCounter++),
-          nombre,
-          estado: 'CON_SERVICIO',
-          actualizadoEn: new Date().toISOString(),
-        });
+    return sectoresBackend.map(sector => {
+      const estadoAcuacar = mapaEstados.get(sector.nombre);
+      if (estadoAcuacar) {
+        return {
+          ...sector,
+          estado: estadoAcuacar.esVigente ? (estadoAcuacar.estado as EstadoServicio) : 'CON_SERVICIO',
+          actualizadoEn: estadoAcuacar.fechaBoletin,
+        };
       }
+      // Si el sector no tiene datos en Acuacar, mantiene su estado del backend (que es null por defecto)
+      return sector;
     });
-
-    return sectoresReales;
   }, []);
 
   /**
@@ -149,12 +123,19 @@ export function useDatosEnVivo(): DatosEnVivo {
     setError(null);
 
     try {
-      // Lanzar las 3 peticiones en paralelo
-      const [boletinesRes, climaRes, noticiasRes] = await Promise.allSettled([
+      // Lanzar las peticiones en paralelo (ahora incluyendo el backend real para los 211 sectores)
+      const [sectoresRes, boletinesRes, climaRes, noticiasRes] = await Promise.allSettled([
+        AguaVigiaAPI.obtenerSectores(),
         obtenerBoletinesRecientes(20),
         obtenerClimaActual(),
         obtenerNoticiasAgua(),
       ]);
+
+      let sectoresBackend: Sector[] = [];
+      if (sectoresRes.status === 'fulfilled') {
+        // La API devuelve { sectores, generadoEn }
+        sectoresBackend = sectoresRes.value.sectores || [];
+      }
 
       // Procesar boletines de Acuacar
       if (boletinesRes.status === 'fulfilled' && boletinesRes.value.length > 0) {
@@ -164,11 +145,18 @@ export function useDatosEnVivo(): DatosEnVivo {
         const estados = determinarEstadoBarrios(bols);
         setEstadoBarrios(estados);
 
-        const sectoresReales = convertirAEstadoSectores(estados);
-        if (sectoresReales.length > 0) {
-          setSectores(sectoresReales);
-          setUsandoDatosReales(true);
+        const sectoresCombinados = combinarSectoresConAcuacar(
+          sectoresBackend.length > 0 ? sectoresBackend : SECTORES_MOCK, 
+          estados
+        );
+        if (sectoresCombinados.length > 0) {
+          setSectores(sectoresCombinados);
+          setUsandoDatosReales(sectoresBackend.length > 0);
         }
+      } else if (sectoresBackend.length > 0) {
+        // Si no hay datos de Acuacar, igual mostramos los sectores del backend
+        setSectores(sectoresBackend);
+        setUsandoDatosReales(true);
       }
 
       // Procesar clima
@@ -190,7 +178,7 @@ export function useDatosEnVivo(): DatosEnVivo {
     } finally {
       setCargando(false);
     }
-  }, [convertirAEstadoSectores]);
+  }, [combinarSectoresConAcuacar]);
 
   // Cargar datos al montar y configurar auto-refresh
   useEffect(() => {
