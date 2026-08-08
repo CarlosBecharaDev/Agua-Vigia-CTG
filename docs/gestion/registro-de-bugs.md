@@ -27,6 +27,7 @@ Tres razones concretas, no burocráticas:
 |---|---|---|---|---|---|---|
 | BUG-001 | 2026-08-07 | S2 | CI | Los workflows de CI se disparaban a sí mismos y fallaban | Cerrado | D2 |
 | BUG-002 | 2026-08-07 | S3 | CI | Frontend CI fallaba al asumir un script `test` que el esqueleto no tiene | Cerrado | D2 |
+| BUG-003 | 2026-08-08 | S2 | — (infraestructura) | `docker compose config -q` fallaba en un clon limpio por depender de un `.env` que nunca se versiona | Cerrado | D5 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -62,6 +63,29 @@ lo pone bajo prueba real ese mismo día.
 
 ---
 
+## Nota sobre BUG-003
+
+**Síntoma:** el comando exacto de la compuerta C0 (`docker compose config -q`) fallaba con
+`env file .../.env not found` en cualquier clon recién hecho del repositorio, antes de que la persona
+creara su `.env` a partir de `.env.example`. Contradice el objetivo explícito del Sprint 0
+(`docs/gestion/sprint-0.md`): "que cualquiera de los cinco pueda clonar el repositorio, levantar el
+entorno con un comando".
+
+**Cómo se encontró:** D5 instaló el cliente de Docker (no estaba disponible antes en su máquina) para
+poder correr el comando **literal** de la compuerta en vez de verificar solo la mitad (`ls backend
+frontend`). Al correrlo por primera vez, falló.
+
+**Causa raíz:** el servicio `mongo` de `docker-compose.yml` declaraba `env_file: .env` como referencia
+obligatoria. El resto del archivo ya usaba valores por defecto (`${VAR:-default}`); ese único campo no.
+
+**Corrección:** `docker-compose.yml` — `env_file: .env` cambiado a la sintaxis de Compose Specification
+que lo marca opcional: `env_file: [{path: .env, required: false}]`. Verificado con el comando exacto de
+la compuerta, exit code 0, con y sin `.env` presente.
+**Prueba que impide la regresión:** ninguna automatizada todavía — pendiente agregar
+`docker compose config -q` sobre un checkout limpio como paso de CI. Anotado, no bloqueante.
+
+---
+
 ## Regla especial: bugs que publican información falsa
 
 Un defecto que haga que la plataforma muestre un corte que no existe, o un Índice de Cumplimiento
@@ -86,5 +110,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-001
+Siguiente número disponible: BUG-004
 -->
