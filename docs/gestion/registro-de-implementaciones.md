@@ -58,10 +58,10 @@ Sin `RF` asociado a propósito: es arquitectura base, no funcionalidad (`ADR-009
 | — | proceso | Regularización de `DT-001` a `DT-005` (mocks de frontend autorizados, caducan al cerrar el Sprint 1) y puesta al día de los registros de gestión | D3 | [#41](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/41) | `registro-de-bloqueos.md` §4 · issues [#34](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/34)–[#36](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/36), [#38](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/38), [#39](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/39) abiertos |
 | — | proceso | `ADR-012` propuesto: permiso cruzado entre roles. **Queda en estado Propuesta** — ver nota abajo | D3 | [#42](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/42) | `design-decisions.md` (ADR-012) |
 
-⚠️ **Los PRs #40, #41 y #42 se fusionaron el 2026-08-08 sin ningún revisor registrado**, contra la
-regla 4 de `roles-y-tareas.md`. Verificado con `gh pr view <n> --json reviews` → `reviews: []` en los
-tres. Es relevante en el caso del #42: el propio `ADR-012` condiciona su aprobación a que Carlos,
-José Daniel y Yordy lo aprueben **en el Pull Request**, y eso no ocurrió.
+⚠️ **Los PRs #40, #41 y #42 se fusionaron el 2026-08-08 sin ningún revisor registrado.** Registrado
+como `BUG-005` en `registro-de-bugs.md`, que es donde vive el detalle y la acción pendiente. Es
+relevante en el caso del #42: el propio `ADR-012` condiciona su aprobación a que Carlos, José Daniel y
+Yordy lo aprueben **en el Pull Request**, y eso no ocurrió.
 
 **Cobertura de requisitos del Sprint 0: 0 de 36.** Es lo esperado y no es un retraso: por `ADR-009`
 el Sprint 0 no implementa funcionalidad. Lo de arriba es lo que hace posible implementarla.

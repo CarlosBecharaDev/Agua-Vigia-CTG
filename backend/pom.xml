@@ -78,6 +78,13 @@
       <version>2.3.0</version>
     </dependency>
 
+    <!-- Extraccion estructurada con IA del pipeline de ingesta M9 (D3, Sprint 4) -->
+    <dependency>
+      <groupId>com.anthropic</groupId>
+      <artifactId>anthropic-java</artifactId>
+      <version>2.53.0</version>
+    </dependency>
+
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
