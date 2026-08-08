@@ -236,6 +236,20 @@
   .barra-cab { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem; }
   .barra-cab b.frac { font-family: var(--font-util); font-size: 0.82rem; color: var(--color-tinta-2); font-weight: 400; }
   .nota-caveat { font-size: 0.73rem; color: var(--color-tinta-3); margin-top: 0.5rem; line-height: 1.5; }
+  .fila-avance-stats { display: flex; gap: 1.6rem; flex-wrap: wrap; margin-top: 0.9rem; }
+  .stat-avance { display: flex; flex-direction: column; }
+  .stat-avance b { font-family: var(--font-display); font-size: 1.15rem; color: var(--color-tinta); }
+  .stat-avance span { font-size: 0.68rem; color: var(--color-tinta-3); margin-top: 0.1rem; }
+  .lista-compromisos { display: flex; flex-direction: column; gap: 0.1rem; margin-top: 0.5rem; max-height: 15rem; overflow-y: auto; }
+  .compromiso { display: flex; align-items: baseline; gap: 0.45rem; padding: 0.3rem 0; border-top: 1px dashed var(--color-linea); }
+  .compromiso:first-child { border-top: none; }
+  .compromiso .marca { font-family: var(--font-util); font-size: 0.72rem; flex: none; width: 1rem; text-align: center; }
+  .compromiso.hecho .marca { color: var(--color-estado-con); }
+  .compromiso.parcial .marca { color: var(--color-estado-baja); }
+  .compromiso.pendiente .marca { color: var(--color-tinta-3); }
+  .compromiso .resp { font-family: var(--font-util); font-size: 0.6rem; color: var(--color-tinta-3); flex: none; text-transform: uppercase; }
+  .compromiso .entregable { font-size: 0.7rem; color: var(--color-tinta-2); line-height: 1.4; }
+  .compromiso.hecho .entregable { color: var(--color-tinta); }
   .rf-info { display: flex; gap: 0.65rem; align-items: flex-start; background: var(--color-superficie-2); border-radius: var(--radio-base); padding: 0.8rem; margin-top: 0.7rem; }
   .rf-info .marcador { font-family: var(--font-util); font-size: 0.68rem; color: var(--color-acento); border: 1px solid var(--color-acento); border-radius: 999px; width: 1.3rem; height: 1.3rem; display: flex; align-items: center; justify-content: center; flex: none; }
   .rf-info p { font-size: 0.75rem; color: var(--color-tinta-2); line-height: 1.5; }
@@ -263,7 +277,7 @@
 
   .tira-sprints { display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 0.4rem; scroll-snap-type: x proximity; }
   .tarjeta-sprint { flex: 0 0 200px; background: var(--color-superficie); border: 1px solid var(--color-linea); border-radius: var(--radio-lg); padding: 0.95rem; box-shadow: var(--sombra); scroll-snap-align: start; }
-  .tarjeta-sprint.activo { border-color: var(--color-acento); border-width: 2px; padding: calc(.95rem - 1px); }
+  .tarjeta-sprint.activo { flex-basis: 320px; border-color: var(--color-acento); border-width: 2px; padding: calc(.95rem - 1px); }
   .sprint-num { font-family: var(--font-util); font-size: 0.65rem; color: var(--color-tinta-3); text-transform: uppercase; letter-spacing: .06em; }
   .sprint-enfoque { font-family: var(--font-display); font-size: 0.95rem; margin: 0.3rem 0 0.65rem; line-height: 1.3; }
   .sprint-fila { font-size: 0.68rem; color: var(--color-tinta-2); padding: 0.28rem 0; border-top: 1px dashed var(--color-linea); }
@@ -396,6 +410,16 @@
         <div class="grid-kpi" id="grid-kpi"></div>
       </section>
 
+      <section id="avance">
+        <div class="cab-seccion"><div><h2>Avance del proyecto</h2><p class="desc">Sprints cerrados, más el checklist real del sprint en curso — no una cifra suelta.</p></div></div>
+        <div class="card">
+          <div class="barra-cab"><h3>Avance general</h3><b class="frac num" id="frac-avance">—</b></div>
+          <div class="barra-grande"><i id="barra-avance" style="width:0%"></i></div>
+          <div class="fila-avance-stats" id="stats-avance"></div>
+          <p class="nota-caveat" id="nota-avance"></p>
+        </div>
+      </section>
+
       <section id="compuertas">
         <div class="cab-seccion"><div><h2>Compuertas — jerarquía y flujo de trabajo</h2><p class="desc">Arriba de cada válvula, quién la abre; abajo, a quién habilita a seguir. Nadie construye su capa antes de tiempo.</p></div></div>
         <div class="fila-2">
@@ -507,7 +531,7 @@
             <div><b>Fuentes:</b> gh pr list / gh issue list</div>
             <div>docs/design-decisions.md · docs/gestion/registro-de-bugs.md · docs/gestion/recomendaciones-ia.md</div>
             <div>docs/gestion/registro-de-bloqueos.md · docs/equipo/secuencia-de-trabajo.md</div>
-            <div>docs/gestion/registro-de-implementaciones.md</div>
+            <div>docs/gestion/registro-de-implementaciones.md · docs/gestion/sprint-N.md · git log</div>
           </div>
         </div>
       </footer>
@@ -612,6 +636,10 @@ window.addEventListener("error", function (ev) {
   function fechaLarga(iso) {
     var d = new Date(iso);
     return d.toLocaleString("es-CO", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "America/Bogota" });
+  }
+  function fechaSolo(fechaYMD) {
+    var d = new Date(fechaYMD + "T12:00:00");
+    return d.toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" });
   }
 
   document.getElementById("ts-generado").textContent = fechaLarga(DATA.generadoEn);
@@ -774,6 +802,31 @@ window.addEventListener("error", function (ev) {
     document.getElementById("hidro-rango").textContent = fechaLarga(new Date(inicio).toISOString()) + " → " + fechaLarga(new Date(fin).toISOString());
   })();
 
+  /* ============== Avance del proyecto ============== */
+  (function renderAvance() {
+    var a = DATA.avanceProyecto;
+    document.getElementById("frac-avance").textContent = a.sprintsCerrados + "/" + a.sprintsTotal + " sprints · " + a.porcentaje + "%";
+    document.getElementById("barra-avance").style.width = a.porcentaje + "%";
+
+    var stats = "";
+    if (a.diasTranscurridos !== null) stats += '<div class="stat-avance"><b>' + a.diasTranscurridos + '</b><span>días trabajando</span></div>';
+    stats += '<div class="stat-avance"><b>' + DATA.prsMerged.length + '</b><span>PRs fusionados</span></div>';
+    if (a.ritmoPRsPorDia !== null) stats += '<div class="stat-avance"><b>' + a.ritmoPRsPorDia + '</b><span>PRs / día</span></div>';
+    if (a.sprintActivoNum !== null) {
+      stats += '<div class="stat-avance"><b>Sprint ' + a.sprintActivoNum + '</b><span>en curso' + (a.sprintActivoAbiertoEn ? ", desde " + fechaSolo(a.sprintActivoAbiertoEn) : "") + '</span></div>';
+    }
+    document.getElementById("stats-avance").innerHTML = stats;
+
+    var nota;
+    if (a.fechaEstimada) {
+      nota = "A un ritmo real de " + a.diasPromedioPorSprint + " días por sprint (medido en los sprints ya cerrados), el proyecto termina alrededor del " +
+        fechaSolo(a.fechaEstimada) + ". Es una proyección estadística a partir del ritmo real, no una fecha de entrega — se recalcula sola en cada regeneración.";
+    } else {
+      nota = "Todavía no cerró ningún sprint — y los sprints de este proyecto no tienen duración fija (secuencia-de-trabajo.md), así que no hay todavía un ritmo real del cual proyectar una fecha de cierre. En cuanto cierre el primer sprint, esta nota calcula una fecha estimada a partir de ese dato real, no antes.";
+    }
+    document.getElementById("nota-avance").textContent = nota;
+  })();
+
   /* ============== Progreso: barras grandes ============== */
   (function renderProgreso() {
     var pctC = Math.round((compuertasAbiertas / DATA.compuertas.length) * 100);
@@ -793,10 +846,17 @@ window.addEventListener("error", function (ev) {
 
   /* ============== Sprints ============== */
   (function renderSprints() {
+    var marca = { hecho: "✓", parcial: "◐", pendiente: "○" };
     var html = DATA.sprints.map(function (s) {
       var h = '<div class="tarjeta-sprint' + (s.activo ? " activo" : "") + '">';
       h += '<span class="sprint-num">Sprint ' + s.n + '</span><div class="sprint-enfoque">' + s.enfoque + '</div>';
-      h += s.filas.map(function (f) { return '<div class="sprint-fila"><b>' + f[0] + '</b> ' + f[1] + '</div>'; }).join("");
+      if (s.detalle && s.detalle.compromisos.length) {
+        h += '<div class="lista-compromisos">' + s.detalle.compromisos.map(function (c) {
+          return '<div class="compromiso ' + c.estado + '"><span class="marca">' + marca[c.estado] + '</span><span class="resp">' + escapeHtml(c.resp) + '</span><span class="entregable">' + formatearInline(c.entregable) + '</span></div>';
+        }).join("") + '</div>';
+      } else {
+        h += s.filas.map(function (f) { return '<div class="sprint-fila"><b>' + f[0] + '</b> ' + f[1] + '</div>'; }).join("");
+      }
       if (s.activo) h += '<span class="badge-activo">EN CURSO</span>';
       return h + '</div>';
     }).join("");
