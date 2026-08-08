@@ -77,17 +77,30 @@ deuda técnica disfrazada de permiso.
 
 | ID | Compuerta | Autoriza | Qué se permite exactamente | Caduca | Issue de reconciliación | Estado |
 |---|---|---|---|---|---|---|
-| DT-001 | C2 | ⚠️ **nadie todavía** — lo debe autorizar D3 (titular de C2) | `SECTORES_MOCK` en `/frontend`: datos de sectores escritos a mano donde debería ir `GET /api/sectores`. Introducido por el PR #12 (M1) | *por fijar* | *por abrir* | ⚠️ **Por regularizar** |
+| DT-001 | C2 | ✅ Sebastián Montes Olivera (D3, titular de C2) — 2026-08-08 | `SECTORES_MOCK` en `PaginaMapa.tsx:21`: datos de sectores escritos a mano donde debería ir `GET /api/sectores`. Introducido por el PR #12 (M1) | **2026-09-30** (fin estimado del Sprint 1, cuando D3 debe abrir C2 para `/api/sectores`) | [#34](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/34) | 🟡 **Vigente** |
+| DT-002 | C2 | ✅ Sebastián Montes Olivera (D3, titular de C2) — 2026-08-08 | `SECTORES_MOCK` en `FormularioReporte.tsx:5` (M2): mismo patrón que DT-001, en el formulario de reporte. Introducido por el PR #19 | **2026-09-30** (cuando D3 abra C2 para `POST /api/reportes`) | [#35](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/35) | 🟡 **Vigente** |
+| DT-003 | C2 | ✅ Sebastián Montes Olivera (D3, titular de C2) — 2026-08-08 | "Mock data de reportes" en `PaginaVeedor.tsx:75` (M5): datos de reportes ciudadanos para moderar, escritos a mano. Introducido por el PR #20 | **2026-09-30** (cuando D3 abra C2 para la moderación de reportes) | [#36](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/36) | 🟡 **Vigente** |
+| DT-004 | C2 | ✅ D5 (Yordy Pardo Pajaro) — según confirma Sebastián Montes Olivera (D3) el 2026-08-08, decisión de equipo | "MOCK DATA" en `PaginaEstadisticas.tsx:20` (M7): `roles-y-tareas.md` asigna M7 a D5 | **2026-09-30** | [#38](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/38) | 🟡 **Vigente** |
+| DT-005 | C2 | ✅ D1 (Yordy Pardo Pajaro) — según confirma Sebastián Montes Olivera (D3) el 2026-08-08, decisión de equipo | `MOCK_EVENTOS` en `PaginaBitacora.tsx:10` (M8): módulo de D1 | **2026-09-30** | [#39](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/39) | 🟡 **Vigente** |
 
-**Sobre DT-001.** El PR #12 se fusionó con datos simulados en lugar de la API, que no existe porque
-C2 está cerrada. Es una salida legítima —`secuencia-de-trabajo.md` §5 la contempla— pero requiere
-autorización escrita del titular, caducidad e issue de reconciliación, y ninguna de las tres se
-registró. No es un reproche a D4: el mapa no se podía construir de otro modo y el propio PR declara
-que `SECTORES_MOCK` se reemplaza al abrir C2. Lo que falta es dejarlo escrito, que es justamente lo
-que impide que un dato simulado sobreviva hasta el Sprint 6.
+**Sobre DT-001/002/003.** Los PRs #12, #19 y #20 se fusionaron con datos simulados en lugar de la API,
+que no existe porque C2 está cerrada. Es una salida legítima —`secuencia-de-trabajo.md` §5 la
+contempla— y D3 (titular de C2 para M2 y M5) las autoriza por escrito aquí el 2026-08-08, con
+caducidad al 2026-09-30. No es un reproche a D4: ninguna de las tres pantallas se podía construir de
+otro modo, y los propios PRs declaran que el mock se reemplaza al abrir C2. Issues de reconciliación
+abiertos: [#34](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/34) (DT-001),
+[#35](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/35) (DT-002),
+[#36](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/36) (DT-003).
 
-**Para cerrarlo:** D3 autoriza y fija caducidad (propuesta: al abrir C2), se abre el issue de
-reconciliación y se marca la fila como vigente. Si caduca sin reconciliar, pasa a bug S2.
+**Sobre DT-004 y DT-005.** Se detectaron en la auditoría del 2026-08-08 (mismo patrón: mock
+sustituyendo una API bloqueada por C2). D3 no es su titular formal —M7 (`PaginaEstadisticas.tsx`)
+tiene dueño ambiguo entre D3 y D5 según `roles-y-tareas.md`; M8 (`PaginaBitacora.tsx`) es
+explícitamente de D1—, pero **Sebastián Montes Olivera (D3) confirma que D1 y D5 lo autorizaron
+directamente en una conversación de equipo el 2026-08-08** y pidió dejarlo registrado en su nombre.
+Se deja constancia de que esta autorización queda respaldada por el reporte de D3, no por un mensaje
+escrito de D1/D5 verificable en este repositorio — igual que otras decisiones de equipo ya registradas
+aquí (p. ej. `ADR-010`) se apoyan en la palabra de quien las cuenta. Si D1 o D5 la contradicen más
+adelante, esta fila se corrige en el mismo momento.
 
 Condiciones obligatorias de todo desbloqueo temporal:
 

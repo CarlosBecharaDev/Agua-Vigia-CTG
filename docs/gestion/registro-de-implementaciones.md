@@ -44,6 +44,16 @@ Sin `RF` asociado a propósito: es arquitectura base, no funcionalidad (`ADR-009
 | — | andamio | Reparado el build de frontend en `develop`, roto por un merge de PR anterior al fix | D2 | [#16](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/16) | `npm run build` |
 | — | proceso | Estrategia del plan de pruebas (borrador Anexo 5), trazada a los 20 RNF | D5 | [#17](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/17) | `docs/ingenieria/plan-de-pruebas.md` |
 | — | proceso | Decisión: `Sector.poblacion` nulable, respuesta a la pregunta del PR #13 | D2 | [#18](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/18) | `modelo-de-dominio.md` §3.1 |
+| — | proceso | D2 abre **C1** (dominio y puertos fusionados en el PR #21) y pone al día este registro con los PRs #13–21 | D2 | [#22](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/22) | `registro-de-bloqueos.md` §1 |
+| — | infra | `env_file` opcional en `docker-compose.yml` (corrige `BUG-003`) y declaración formal de **C0** abierta | D5 | [#23](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/23) | `docker compose config -q && ls backend frontend` → exit 0 |
+| — | proceso | Registro de `BUG-004` (contraseña mock en `PaginaVeedor.tsx`), sin corregirlo — es capa de D4 | D5 | [#26](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/26) | `registro-de-bugs.md` |
+| — | infra | Dockerfile multi-etapa del backend + activación del servicio `backend` en `docker-compose.yml` | D5 | [#27](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/27) | `docker compose config -q` en verde, `hadolint backend/Dockerfile` limpio |
+| — | infra | `.gitattributes` fuerza `eol=lf` en `backend/mvnw` — corrige `exec format error` al construir la imagen Docker en Windows | D2 | [#28](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/28) | `docker build -t ctg-backend-test backend/` → BUILD SUCCESS |
+| — | proceso | Causa raíz documentada de por qué el rol `admin` de Yordy no se pudo aplicar (repo personal, sin selector de rol para colaborador existente) | D2 | [#29](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/29) | `registro-de-bloqueos.md` §2 |
+| — | andamio | `BUG-004` corregido: se retira el campo de contraseña mock de `PaginaVeedor.tsx`; se cierra `BL-002` | D5 | [#30](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/30) | `PaginaVeedor.test.tsx` — 2 archivos, 4 pruebas en verde |
+| — | proceso | `ADR-011`: reasignación temporal de D1 a Yordy Pardo Pajaro; cierra `BL-003` | D5 | [#31](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/31) | `design-decisions.md` (ADR-011), `roles-y-tareas.md` |
+| — | proceso | Redacción de Anexos 1 y 2 (encuesta y guion de entrevista), trazados a RF001, RF005/RF008, RF009, RF012–RF014, RF020–RF022 y RNF008 | D1 | [#32](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/32) | `docs/anexos/anexo-1-encuesta.md`, `anexo-2-guion-entrevista.md` |
+| — | infra | Dockerfile del frontend, JaCoCo en `pom.xml` + CI, perfiles de Spring (`dev`/`docker`/`prod`), `/actuator/health` | D5 | [#33](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/33) | `./mvnw verify` → 23/23, JaCoCo 61.1 %; `curl localhost:8080/actuator/health` → `mongo: UP` |
 
 **Cobertura de requisitos del Sprint 0: 0 de 36.** Es lo esperado y no es un retraso: por `ADR-009`
 el Sprint 0 no implementa funcionalidad. Lo de arriba es lo que hace posible implementarla.
@@ -70,6 +80,23 @@ real; la tabla de cobertura sigue en 0%.
 **El PR #21 lleva `andamio`, no `func`:** define contratos (interfaces `port/in`) y entidades, pero
 ningún caso de uso está implementado todavía — eso es Sprint 2 en `docs/equipo/D2-backend-dominio.md`.
 La cobertura de requisitos sigue en 0% hasta que exista una implementación real detrás de un `port/in`.
+
+---
+
+## Trabajo de UI adelantado por D4 (Sprints 2–5, sin API real)
+
+D4 maquetó varias pantallas de sprints futuros mientras **C2** seguía cerrada, con el mismo patrón que
+el PR #12: datos escritos a mano en vez de la API. Ninguna de estas filas suma a la cobertura de
+requisitos —son `andamio`, no `func`— hasta que consuman la API real. Estado de cada mock en
+`registro-de-bloqueos.md` §4 (`DT-001` a `DT-005`).
+
+| RF/RNF | Tipo | Qué | Resp. | PR | Prueba |
+|---|---|---|---|---|---|
+| RF005, RF007, RF008 | andamio | M2: `FormularioReporte` accesible — flujo sin registro, preselección de sector por URL (`?sector=X`), consentimiento de geolocalización | D4 | [#19](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/19) | `tsc --noEmit` en verde · ⚠️ usa `SECTORES_MOCK` (`DT-002`, vigente) |
+| RF016, RF018 | andamio | M5: `PaginaVeedor` — acceso simulado, registro de cortes oficiales, moderación de reportes ciudadanos | D4 | [#20](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/20) | `tsc --noEmit` en verde · ⚠️ mock de reportes (`DT-003`, vigente) |
+| RF023, RF024 | andamio | M7: `PaginaEstadisticas` — gráficos de Índice de Cumplimiento y sectores afectados (ECharts), botón de exportación | D4 | [#20](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/20) | `tsc --noEmit` en verde · ⚠️ mock regularizado (`DT-004`, autorizado por D5 según confirma D3) |
+| RF026, RF027 | andamio | M8: `PaginaBitacora` — línea de tiempo vertical de eventos | D4 | [#25](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/25) | `tsc --noEmit` en verde · ⚠️ `MOCK_EVENTOS` regularizado (`DT-005`, autorizado por D1 según confirma D3) |
+| RNF020 (parcial) | andamio | PWA offline (`vite-plugin-pwa`, cachea el GeoJSON local) + primera prueba unitaria con Vitest (`InsigniaEstado.test.tsx`) | D4 | [#24](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/24) | `npm test` en verde |
 
 ---
 

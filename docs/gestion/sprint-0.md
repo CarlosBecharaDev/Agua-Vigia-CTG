@@ -57,7 +57,7 @@ Solo queda `BL-002` (D4 instala Docker en su máquina — tarea suya, no depende
 | BL-001 | C0 (parcial) | D5 | 0 | Rol `admin` concedido; branch protection descartada como control técnico (`ADR-010`) |
 | BL-002 | C0 | D4 | en curso | Abierto — ya solo falta Docker Desktop en la máquina de D4 |
 | BL-003 | — | D1 (vacante) | en curso | Abierto — no es técnico: falta la persona |
-| DT-001 | C2 | — | — | Desbloqueo temporal **sin registrar**: `SECTORES_MOCK` del PR #12. Por regularizar con D3 |
+| DT-001 a DT-005 | C2 | — | — | Regularizados el 2026-08-08, caducan 2026-09-30. DT-001/002/003 por D3 (titular); DT-004/005 (M7, M8) autorizados por D5/D1 según confirma D3. Detalle: `registro-de-bloqueos.md` §4 |
 
 ---
 
@@ -77,11 +77,11 @@ Solo queda `BL-002` (D4 instala Docker en su máquina — tarea suya, no depende
 | Métrica | Valor |
 |---|---|
 | Requisitos entregados / comprometidos | 0 / 0 — el Sprint 0 no entrega requisitos |
-| PRs fusionados | 11 al 2026-08-07 |
-| PRs fusionados **sin revisor registrado** | 7 de 11 (#2, #4, #6, #7, #10, #11, #12) — control de `ADR-010` |
-| Bugs abiertos / cerrados | 0 / 2 (BUG-001, BUG-002) |
-| Desbloqueos temporales sin registrar | 1 (DT-001, `SECTORES_MOCK` del PR #12) |
-| Cobertura `domain/` + `application/` | n/a — no existe código de dominio todavía |
+| PRs fusionados | 32 al 2026-08-08 (numeración #1–33, el #9 no llegó a fusionarse) |
+| PRs fusionados **sin revisor registrado** | 18 de 32 — control de `ADR-010`, reverificado con `gh pr view --json reviews` el 2026-08-08 |
+| Bugs abiertos / cerrados | 0 / 4 (BUG-001, BUG-002, BUG-003, BUG-004) |
+| Desbloqueos temporales sin registrar | 0 — DT-001 a 005 regularizados y autorizados el 2026-08-08 (issues [#34](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/34)–[#36](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/36), [#38](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/38), [#39](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/39)) — ver `registro-de-bloqueos.md` §4 |
+| Cobertura `domain/` + `application/` | `domain/` tiene 16 archivos (entidades, VOs, puertos) desde el PR #21; `application/` sigue vacío — es Sprint 2 |
 | Build en verde al cierre | Frontend CI ✅ · Backend CI ✅ desde el PR #10 |
 
 ---
