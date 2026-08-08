@@ -15,7 +15,7 @@ repositorio se usa el código (`D1`–`D5`); si necesitas el nombre, vuelve aqu�
 
 | Rol | Integrante | Responsabilidad en una línea |
 |---|---|---|
-| **D1** | ⚠️ *por asignar — 5.º integrante* | Notificaciones, bitácora pública y documentación académica asistida por IA |
+| **D1** | **Yordy Pardo Pajaro** ⚠️ *interino, además de D5 — ver nota* | Notificaciones, bitácora pública y documentación académica asistida por IA |
 | **D2** | **Carlos Bechara Arias** | Dominio y casos de uso: Java puro, responde por la Regla de Oro |
 | **D3** | **Sebastián Montes Olivera** | Infraestructura e integraciones: MongoDB, Redis, ingesta con IA, contrato OpenAPI |
 | **D4** | **José Daniel Zambrano** | Frontend: SPA React, mapas, accesibilidad |
@@ -24,6 +24,12 @@ repositorio se usa el código (`D1`–`D5`); si necesitas el nombre, vuelve aqu�
 **La asignación es firme, no indicativa.** Cada quien responde por su rol ante el docente en la
 sustentación, y el registro de contribución individual (commits, PRs, registros de `docs/gestion/`)
 es evidencia evaluable. Un cambio de rol se acuerda en equipo y se escribe aquí el mismo día.
+
+⚠️ **D1 es una reasignación temporal, no una vacante cubierta.** El equipo sigue en cuatro
+integrantes reales; Yordy absorbió D1 el 2026-08-08 para destrabar `BL-003` (plantilla del informe,
+solicitud a ICPSR, Anexos 1–3, Scrum Master del Sprint 0). Detalle y alternativas consideradas:
+`ADR-011`. El día que se confirme un 5.º integrante, esta fila vuelve a la persona nueva y el ADR
+pasa a *Reemplazada*.
 
 ---
 
@@ -53,12 +59,13 @@ No hay un Scrum Master fijo: **el rol rota cada sprint**, en orden D1 → D2 →
 
 | Sprint | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
 |---|---|---|---|---|---|---|---|
-| **Scrum Master** | D1 ⚠️ | D2 | D3 | D4 | D5 | D1 ⚠️ | D2 |
+| **Scrum Master** | D1 (Yordy, interino) | D2 | D3 | D4 | D5 | D1 ⚠️ | D2 |
 
-⚠️ **D1 no tiene titular, así que el Sprint 0 va sin Scrum Master.** No es un detalle de forma: es la
-razón de que nadie convocara planning, de que `sprint-0.md` no existiera hasta el 2026-08-07 y de que
-la creación de `/backend` pasara dos sesiones sin dueño. Registrado como **BL-003**; mientras la
-vacante siga, el equipo designa un Scrum Master interino entre los cuatro titulares.
+**Sprint 0 ya tiene Scrum Master interino: Yordy (D1 + D5), desde el 2026-08-08 (`ADR-011`).** Antes
+de eso el Sprint 0 fue sin Scrum Master — razón de que nadie convocara planning, de que
+`sprint-0.md` no existiera hasta el 2026-08-07 y de que la creación de `/backend` pasara dos
+sesiones sin dueño (`BL-003`, cerrado). El Sprint 5 sigue marcado ⚠️: si para entonces no hay un 5.º
+integrante real, el equipo vuelve a designar un interino.
 
 **Por qué rota:** son 5 estudiantes con la misma carga académica; un Scrum Master fijo pierde un
 desarrollador y concentra en una persona el aprendizaje de la gestión, que también se evalúa.

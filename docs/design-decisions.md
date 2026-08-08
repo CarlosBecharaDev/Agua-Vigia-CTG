@@ -407,8 +407,51 @@ Activando las reglas de protección en GitHub. D5 ya tiene el rol `admin` necesa
 
 ---
 
+## ADR-011 — D1 se reasigna temporalmente a Yordy Pardo Pajaro (D5), además de su rol
+
+- **Fecha:** 2026-08-08
+- **Estado:** Aceptada
+- **Decide:** Yordy Pardo Pajaro (D5), como resolución de `BL-003`
+
+### Contexto
+`BL-003` lleva abierto desde 2026-08-07: D1 sigue **vacante** (`roles-y-tareas.md` lo marca *"por
+asignar — 5.º integrante"*). Eso detiene, sin rodeo posible, cuatro cosas del Sprint 0: la solicitud
+de la **plantilla oficial** del informe al docente, la solicitud de **Meta Content Library** vía
+ICPSR, los **Anexos 1–3** (de los que depende el Alfa de Cronbach ≥ 0.75), y el **Scrum Master del
+Sprint 0**, que la rotación (`D1 → D2 → D3 → D4 → D5`) asigna a D1. El equipo sigue en cuatro
+integrantes; no hay un 5.º confirmado.
+
+### Alternativas consideradas
+| Opción | A favor | En contra |
+|---|---|---|
+| Dejar D1 vacante, esperar al 5.º integrante | No compromete a nadie de más | Bloquea el Sprint 0 indefinidamente; ya lleva 1 día parado y no tiene fecha de resolución |
+| Repartir las tareas de D1 entre los 4 titulares actuales | Reparte la carga | Diluye la responsabilidad — nadie responde por M4/M8 ni por el informe ante el docente, justo lo que `roles-y-tareas.md` quiere evitar |
+| **Reasignación temporal completa a un solo titular (D5)** | Responsabilidad clara y trazable; D5 ya venía haciendo de facto el trabajo de auditoría y verificación de compuertas que este bloqueo necesitaba; reversible sin fricción | Concentra el riesgo en una persona que ahora sostiene dos roles completos; puede diluir el tiempo que D5 dedica a M7/infraestructura |
+
+### Decisión
+D1 se reasigna **temporalmente** a Yordy Pardo Pajaro, que pasa a responder también por M4
+(alertas), M8 (bitácora pública) y la documentación académica asistida por IA, además de su rol D5.
+Yordy queda además como **Scrum Master interino del Sprint 0** (la rotación se lo asignaba a D1).
+Se actualiza `docs/equipo/roles-y-tareas.md` y `docs/equipo/D1-notificaciones-bitacora.md` el mismo
+día, y se cierra `BL-003` en el registro de bloqueos.
+
+### Consecuencias
+- **Gana:** el Sprint 0 deja de estar bloqueado por una vacante; los dos correos pendientes
+  (plantilla, ICPSR) y los Anexos 1–3 tienen dueño; hay Scrum Master para el Sprint 0.
+- **Pierde:** una sola persona concentra dos roles completos — riesgo real de cuello de botella y de
+  que el registro de contribución individual (evidencia evaluable) se vuelva menos legible por rol.
+  Se mitiga dejando explícito en cada commit/PR/registro bajo qué rol se hizo el trabajo.
+- **Condiciona:** si aparece un 5.º integrante real, este ADR pasa a *Reemplazada* y D1 se reasigna a
+  esa persona sin negociación — es la salida prevista, no una más entre varias.
+
+### Cómo se revierte
+El día que el equipo confirme al 5.º integrante: se actualiza `roles-y-tareas.md` con su nombre, se
+marca este ADR como *Reemplazada por ADR-NNN*, y Yordy vuelve a responder solo por D5.
+
+---
+
 <!--
-Siguiente número disponible: ADR-011
+Siguiente número disponible: ADR-012
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->

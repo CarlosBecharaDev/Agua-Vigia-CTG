@@ -1,7 +1,8 @@
 # D1 — Desarrollador Full-Stack (Notificaciones & Bitácora) / Documentación Asistida por IA
 
-> ⚠️ **Titular: por asignar** — es el 5.º integrante del equipo. Mientras esta línea diga *por
-> asignar*, no hay nadie que responda por M4, M8 ni por el informe metodológico.
+> ⚠️ **Titular interino: Yordy Pardo Pajaro (D5), desde 2026-08-08** — reasignación temporal
+> mientras no exista un 5.º integrante real. Detalle y alternativas: `ADR-011`. Cuando se confirme
+> el 5.º integrante, esta línea vuelve a su nombre y el ADR pasa a *Reemplazada*.
 > **Responsable de Código:** M4 (Alertas por correo) y M8 (Bitácora pública inmutable).
 > **Responsable de Documentación:** Generación y validación del informe metodológico y anexos académicos **utilizando Inteligencia Artificial**.
 > **Capa del código:** `/backend/src/main/java/com/aguavigia/ctg/infrastructure/mail`, `/backend/src/main/java/com/aguavigia/ctg/api` y `/frontend/src/components/bitacora` & `suscripcion`.
