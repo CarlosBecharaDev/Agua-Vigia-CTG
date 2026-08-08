@@ -23,7 +23,7 @@
 
 | Entidad | Campos clave | Nota |
 |---|---|---|
-| `Sector` | `id`, `nombre`, `poblacion: int`, `estadoActual: EstadoServicio` | La geometría GeoJSON es dato de infraestructura (D3); el dominio solo necesita identidad, población y estado. |
+| `Sector` | `id`, `nombre`, `poblacion: Integer?`, `estadoActual: EstadoServicio` | La geometría GeoJSON es dato de infraestructura (D3); el dominio solo necesita identidad, población y estado. `poblacion` es nulable: §3.1. |
 | `CorteAgua` | `id`, `sectoresAfectados: List<SectorId>`, `ventana: VentanaTiempo`, `causa`, `origen` (`OFICIAL_ACUACAR`\|`INGESTA_IA`\|`VEEDOR`), `estado` (`ANUNCIADO`\|`CONFIRMADO`\|`RESTABLECIDO`) | Se construye con **Builder** — impide `finPrometido < inicio` (recomendación explícita de `D2-backend-dominio.md` §4). |
 | `ReporteCiudadano` | `id`, `sectorId`, `tipo` (`SIN_AGUA`\|`PRESION_BAJA`\|`SERVICIO_RESTABLECIDO`), `coordenada?`, `huella: HuellaDispositivo`, `timestamp` | RF005–RF007. |
 | `EventoBitacora` | `id`, `tipo`, `sectorId?`, `corteId?`, `timestamp`, `descripcion` | Inmutable, solo anexado. Se crea únicamente vía Factory Method, nunca por constructor público — RF026–028. |
@@ -36,6 +36,17 @@
 | **Builder** | `CorteAgua.Builder` | RF016 · Sprint 3 |
 | **Factory Method** | `EventoBitacoraFactory` | RF026 · Sprint 4 |
 | **Specification** *(pendiente)* | Filtros de M7 (estadísticas) | Sprint 4, no urgente ahora |
+
+### 3.1 Decisión — `Sector.poblacion` es nulable
+
+El PR #13 (D5, siembra de sectores) encontró que **27 de 211 barrios no tienen población** en la
+fuente censal (DANE 2018 + CORVIVIENDA) — corregimientos rurales/insulares que el censo no cubre. No
+se inventa un número.
+
+**Decisión:** `poblacion` es `Integer` nulable, no `int`. `UmbralProporcionalEstrategia` (RF010) cae a
+la misma lógica que `UmbralFijoEstrategia` cuando `poblacion == null` — un sector sin dato censal no
+se queda sin consenso posible, usa el umbral fijo como respaldo. Se documenta así en vez de con un
+`0` centinela, que sería indistinguible de un barrio real sin habitantes.
 
 ## 4. Puertos — lo que abre C1
 
@@ -63,7 +74,7 @@
 `D1-notificaciones-bitacora.md`, dueño real de M4 (tabla "Resumen del equipo" en `roles-y-tareas.md`:
 D1 posee `application/`, `infrastructure/mail/`, `api/` y `frontend/` para M4 completo, suscripción
 incluida). Era un error de copiado al armar las tablas de sprint, no una decisión entre alternativas.
-**Corregido 2026-08-08**: se quitó la línea de `D2-backend-dominio.md`. D2 no toca `SuscribirseService`.
+**Corregido 2026-08-07**: se quitó la línea de `D2-backend-dominio.md`. D2 no toca `SuscribirseService`.
 
 ## 6. Diagrama de clases (borrador)
 
@@ -73,7 +84,7 @@ classDiagram
   class VentanaTiempo { <<record>> +Instant inicio +Instant finPrometido +Instant finReal }
   class EstadoServicio { <<enumeration>> CON_SERVICIO SIN_SERVICIO PRESION_BAJA CORTE_PROGRAMADO }
 
-  class Sector { +SectorId id +String nombre +int poblacion +EstadoServicio estadoActual }
+  class Sector { +SectorId id +String nombre +Integer poblacion +EstadoServicio estadoActual }
   class CorteAgua { +CorteId id +List~SectorId~ sectoresAfectados +VentanaTiempo ventana +String causa +OrigenCorte origen +EstadoCorte estado }
   class ReporteCiudadano { +ReporteId id +SectorId sectorId +TipoReporte tipo +Coordenada coordenada +HuellaDispositivo huella +Instant timestamp }
   class EventoBitacora { +EventoId id +TipoEvento tipo +Instant timestamp +String descripcion }

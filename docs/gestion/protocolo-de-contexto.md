@@ -76,6 +76,10 @@ Estas reglas están escritas para que el agente las siga, y para que el humano s
 7. **Nunca pegues código en documentos de gestión.** Referencia `archivo:línea`. El código cambia; la
    copia pegada queda mintiendo.
 8. **Un dato, un lugar.** Ver §2.
+9. **Las fechas van en hora local de Cartagena (UTC-5), nunca en UTC.** Un agente que toma la fecha
+   del sistema en UTC escribe el día siguiente cada noche después de las 7 p.m., y el registro queda
+   con fechas futuras. La auditoría del 2026-08-07 encontró seis entradas así. Verifica con `date`,
+   no con la fecha que traigas en contexto.
 
 ### Al cerrar
 

@@ -17,6 +17,10 @@ repositorio.
 este índice y corregir lo que difiera. El docente evalúa contra la plantilla real; los títulos de
 sección **no se inventan ni se renombran**.
 
+🚧 **Sin titular de D1, nadie la tiene asignada** — registrado como `BL-003` en
+[`../gestion/registro-de-bloqueos.md`](../gestion/registro-de-bloqueos.md). Cada semana que pasa se
+escribe más contenido contra un índice que puede no coincidir con el de la plantilla.
+
 Mientras eso no ocurra, cada archivo de capítulo debe llevar arriba la marca
 `> ESTRUCTURA SIN VALIDAR CONTRA LA PLANTILLA OFICIAL`.
 

@@ -26,14 +26,24 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 0
 
-### 2026-08-08 · D2 · `feature/d2-backend-base`
+### 2026-08-07 · D3 · `docs/alistamiento-sprint0`
+**Qué:** Auditoría de coherencia de todo el repositorio (8 PRs, 4 ramas, 20 documentos). Corregidas 10
+contradicciones entre documentos y la realidad del repositorio: `ADR-009` (el Sprint 0 admite
+andamiaje, no funcionalidad) y `ADR-010` (branch protection es política, no candado). Registrados los
+8 PRs del Sprint 0, `BUG-001` y `BUG-002` —encontrados en revisión y nunca registrados— y `BL-003`
+(D1 sin titular). Creado `sprint-0.md`. Normalizadas 6 fechas escritas en UTC a hora de Cartagena.
+**Sigue:** Que D5 verifique y declare C0 abierta —el PR #10 ya la habilitó— y que se regularice el
+desbloqueo temporal de `SECTORES_MOCK` del PR #12. En paralelo, designar Scrum Master interino y
+enviar los dos correos de `BL-003` (plantilla al docente, ICPSR).
+
+### 2026-08-07 · D2 · `feature/d2-backend-base`
 **Qué:** Creado el proyecto base de `/backend` (issue #9, PR #10): Maven, Java 21, Spring Boot 3.4.1,
 estructura vacía de Arquitectura Limpia. `./mvnw verify` → BUILD SUCCESS local y en CI. El comando de
 C0 (`docker compose config -q && ls backend frontend`) ya pasa completo.
 **Sigue:** Avisar a D5 (Yordy) para que verifique C0 con su comando y la marque abierta en
 `registro-de-bloqueos.md` §1 — no la abre D2, el titular de esa compuerta es D5.
 
-### 2026-08-08 · D2 · `docs/d2-diseno-dominio-sprint0`
+### 2026-08-07 · D2 · `docs/d2-diseno-dominio-sprint0`
 **Qué:** Diseño adelantado del dominio de M3/M6 (`docs/ingenieria/modelo-de-dominio.md`) mientras C0
 sigue cerrada. Corregida la duplicación de `SuscribirseService` entre D1 y D2 (era de D1 por M4).
 **Sigue:** Resolver quién crea el esqueleto de `/backend` en Sprint 0 para poder abrir C0.

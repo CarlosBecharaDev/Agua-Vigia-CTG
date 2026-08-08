@@ -312,8 +312,103 @@ sigue siendo evidencia válida para el informe.
 
 ---
 
+## ADR-009 — El Sprint 0 admite esqueletos e infraestructura, no funcionalidad
+
+- **Fecha:** 2026-08-07
+- **Estado:** Aceptada
+- **Decide:** Equipo completo
+
+### Contexto
+El acuerdo del 2026-08-06 (`MEMORY.md`) dice que **no se escribe código de la aplicación** hasta
+autorización explícita del equipo. Al día siguiente se fusionaron el PR #1 (Docker Compose, CI),
+el PR #2 (GeoJSON) y el PR #5 (proyecto `/frontend` con React 19, Vite, TypeScript, Tailwind,
+componentes y rutas). Nadie objetó, y con razón: sin eso el Sprint 0 no puede cerrar.
+
+Pero el acuerdo quedó escrito como una prohibición absoluta, así que el repositorio pasó a
+contradecirse solo. Tres archivos afirmaban que el código no había iniciado mientras el código ya
+estaba fusionado. Un agente que lee `CLAUDE.md` literalmente se detiene ante una tarea legítima; uno
+que lo ignora pierde la regla entera.
+
+### Alternativas consideradas
+| Opción | A favor | En contra |
+|---|---|---|
+| Mantener la prohibición literal y revertir `/frontend` | Coherente con el acuerdo | Destruye trabajo válido y deja el Sprint 0 sin poder cerrar; C0 exige que `/frontend` exista |
+| Quitar la restricción: código libre desde ya | Sin fricción | Se pierde lo que la regla protegía: que nadie implemente un RF antes de que el requisito y el dominio estén cerrados |
+| Autorización caso por caso en el chat | Flexible | No queda escrita; el siguiente agente no la encuentra y vuelve a preguntar |
+| **Distinguir esqueleto de funcionalidad, con un criterio verificable** | Conserva la protección real y desbloquea el Sprint 0; el criterio se puede aplicar sin discutir | Hay que juzgar los casos de frontera |
+
+### Decisión
+En el Sprint 0 se permite **andamiaje**: estructura de proyecto, configuración, tokens visuales,
+rutas vacías, infraestructura y CI. Se prohíbe la **funcionalidad**.
+
+**Criterio que los separa, en una pregunta:** *¿este código implementa un `RF` de
+`docs/product-requirements.md`?* Si la respuesta es sí, no va en el Sprint 0. Si es no, sí va.
+
+Ejemplos resueltos con el criterio: una ruta `/mapa` que muestra un marcador de posición **sí**; esa
+misma ruta pintando sectores desde la API **no** (RF001). Los tokens de `DESIGN.md` **sí**; el
+cálculo del Índice de Cumplimiento **no** (RF021).
+
+La restricción de fondo no cambia y sigue siendo la importante: **no se implementa un RF antes de que
+su dominio esté modelado y su compuerta abierta.**
+
+### Consecuencias
+- **Gana:** el Sprint 0 puede cerrar; `CLAUDE.md` deja de contradecir al repositorio; el criterio se
+  aplica solo, sin pedir permiso en cada tarea.
+- **Pierde:** los casos de frontera necesitan juicio. Ante la duda, se pregunta al equipo.
+- **Condiciona:** el andamiaje del Sprint 0 se registra en `registro-de-implementaciones.md` con
+  `RF = —`, para que la cobertura de requisitos siga contando 0/36 mientras no haya funcionalidad.
+
+### Cómo se revierte
+Volviendo a la prohibición absoluta. Lo ya fusionado no se revierte: es andamiaje necesario.
+
+---
+
+## ADR-010 — La protección de ramas es política documentada, no control técnico
+
+- **Fecha:** 2026-08-07
+- **Estado:** Aceptada
+- **Decide:** Equipo completo (cierre de BL-001)
+
+### Contexto
+`CLAUDE.md` afirma que *"nadie hace push directo a `main`"* y `D5-devops-qa.md` encarga a D5
+*"garantizar la protección de ramas"*. Al intentarlo, D5 descubrió que no tenía rol `admin` en el
+repositorio remoto y registró **BL-001**. El bloqueo se cerró dándole `admin`, pero el equipo acordó
+no configurar branch protection técnica en GitHub.
+
+El problema no es la decisión, es lo que quedó escrito: dos documentos siguen prometiendo una red que
+no existe. Y ya falló: **7 de los 11 PRs fusionados hasta el 2026-08-07 no registran revisor**
+(#2, #4, #6, #7, #10, #11 y #12), contra la regla de 1 revisor mínimo.
+
+### Alternativas consideradas
+| Opción | A favor | En contra |
+|---|---|---|
+| Configurar branch protection en GitHub | Se cumple sola, sin depender de nadie | En repositorios privados de plan gratuito las reglas son limitadas; puede estorbar en una demo o una corrección urgente |
+| **Política documentada, sin bloqueo técnico** | Cero fricción; el equipo aprende a sostener el acuerdo | Depende de disciplina, y la disciplina ya falló en la mitad de los PRs del Sprint 0 |
+| Ninguna regla | Honesto | Deja el proyecto sin revisión por pares, que es criterio evaluable |
+
+### Decisión
+La regla **"todo entra por PR con al menos 1 revisor, nadie hace push directo a `main` ni a
+`develop`"** se mantiene como **política del equipo**, sin refuerzo técnico. Se documenta como tal en
+`CLAUDE.md` para que nadie confíe en una protección inexistente.
+
+**Control compensatorio:** el Scrum Master del sprint revisa en el review los PRs fusionados sin
+revisor y los anota en la retrospectiva. Un PR sin revisor no es un delito, pero sí un dato del
+Capítulo IV.
+
+### Consecuencias
+- **Gana:** el repositorio deja de prometer lo que no cumple; la regla se sostiene por acuerdo, y el
+  incumplimiento queda medido en vez de invisible.
+- **Pierde:** nada impide un push directo. Es un riesgo aceptado conscientemente.
+- **Condiciona:** si se vuelve a incumplir de forma sistemática, se activa branch protection y esta
+  decisión pasa a *Reemplazada*.
+
+### Cómo se revierte
+Activando las reglas de protección en GitHub. D5 ya tiene el rol `admin` necesario.
+
+---
+
 <!--
-Siguiente número disponible: ADR-009
+Siguiente número disponible: ADR-011
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->
