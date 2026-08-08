@@ -42,22 +42,10 @@ una invitación nueva. Carlos decidió no hacerlo: la interrupción no vale la p
 de BL-001 ya es política documentada, sin bloqueo técnico (`ADR-010`). Yordy queda en `write`
 permanentemente, por decisión explícita, no por un permiso que falló en aplicarse.
 
-### BL-002 — D4 no puede integrar el frontend con el entorno Docker ni con el backend
+### BL-002 — D4 no puede integrar el frontend con el entorno Docker ni con el backend *(cerrado, ver §3)*
 
 - **Fecha:** 2026-08-07 · **Rol bloqueado:** D4 · **Compuerta:** C0 · **Titular que la abre:** D5 (Yordy Pardo Pajaro)
-- **Estado:** Abierto
-
-**Tarea detenida:** Integrar el proyecto `/frontend` con `docker compose` (backend + Redis + MongoDB corriendo). Sin entorno reproducible no se puede validar el flujo completo.
-**Insumo que falta** *(actualizado el 2026-08-07 tras la auditoría)*: **ninguno del lado del equipo.** Solo falta que D5 declare C0 abierta, y que D4 instale Docker Desktop en su máquina — tarea suya, que no depende de nadie.
-**Ya no falta:** el PR #1 de D5 (fusionado en `43cb22d`), `/frontend` (PR #5) ni `/backend` (PR #10).
-**Verificación** *(2026-08-07, contra `develop` al día)*:
-```
-> ls backend frontend
-backend  frontend
-```
-**Avisado en el chat:** Sí · a José Daniel Zambrano (D4).
-**Trabajo alterno tomado:** Esqueleto de `/frontend` creado (React 19 + Vite + TypeScript + Tailwind CSS v4), tokens de `DESIGN.md` como custom properties CSS, selector de tema claro/oscuro, rutas placeholder para M1/M2/M7/M8 — todo trabajo de Sprint 0 que no cruza ninguna compuerta.
-**Cierre:** —
+- **Estado:** Cerrado — ver tabla §3
 
 ---
 
@@ -94,6 +82,7 @@ backend  frontend
 |---|---|---|---|---|---|
 | BL-001 | 2026-08-07 | D5 | C0 (tarea parcial) | 0 | El equipo acordó no configurar branch protection técnica: la regla "no se hace push directo a `main`/`develop` sin PR revisado" queda como **política documentada**, formalizado en `ADR-010`. Yordy queda en `write`, no `admin` — en un repo personal no hay forma de subir el rol de un colaborador existente sin quitarlo y reinvitarlo, y Carlos decidió no interrumpirlo por esto (ver nota en §2). No bloquea nada porque la resolución fue política, no técnica. |
 | — | 2026-08-08 | D5 (verificación de C0) | C0 | 1 | Mientras tanto, Carlos (D2, dueño del repo) había corrido el comando completo en su máquina y autorizó por escrito empezar el dominio sin esperar la declaración formal de D5 — excepción registrada, no un rodeo silencioso. D5 instaló el cliente de Docker (no lo tenía) para verificar por su cuenta con el comando **literal** de la compuerta. Al correrlo encontró un bug real (`BUG-003`): fallaba en cualquier clon limpio por depender de un `.env` no versionado. Lo corrigió (`env_file` opcional), volvió a correr `docker compose config -q && ls backend frontend` → **exit code 0**, y declaró C0 abierta formalmente. |
+| BL-002 | 2026-08-07 | D4 | C0 | 1 | El único insumo pendiente era que D5 declarara C0 abierta (ya ocurrió el 2026-08-08, ver fila anterior) y que D4 instalara Docker Desktop — tarea propia, sin dependencia de nadie. Reverificado el 2026-08-08: `docker compose config -q && ls backend frontend` → exit code 0, `backend/` y `frontend/` presentes. D4 ya puede integrar el frontend contra el entorno Docker. |
 
 **Los días detenidos son un dato del Capítulo IV**, no un reproche. Miden si la secuencia funcionó.
 
