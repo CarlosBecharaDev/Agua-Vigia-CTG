@@ -19,7 +19,7 @@ el repositorio no.
 | Compuerta | La abre | Habilita a | Comando de verificación | Estado | Abierta el |
 |---|---|---|---|---|---|
 | **C0** · Entorno reproducible | D5 (verifica y declara) · D2 aportó `/backend`, D4 aportó `/frontend` | Todos | `docker compose config -q && ls backend frontend` | 🟡 Parcial — el comando completo ya pasó en la máquina de D2 (ver detalle abajo); falta que D5 lo confirme en la suya y declare | — |
-| **C1** · Dominio y puertos | D2 | D3 · D1 | `ls backend/src/main/java/com/aguavigia/ctg/domain/port/out` | 🔴 Cerrada | — |
+| **C1** · Dominio y puertos | D2 | D3 · D1 | `ls backend/src/main/java/com/aguavigia/ctg/domain/port/out` | 🟢 Abierta — entidades, VOs y `domain/port/**` en `develop` (PR #21), ArchUnit en verde | 2026-08-08 |
 | **C2** · Contrato OpenAPI | D3 · D1 | D4 | `git show develop:backend/openapi.yaml \| head -5` | 🔴 Cerrada | — |
 | **C3** · SPA integrada contra API real | D4 | D5 (E2E · despliegue) | `cd frontend && npm run build` | 🔴 Cerrada | — |
 
