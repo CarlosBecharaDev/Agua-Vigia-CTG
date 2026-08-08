@@ -1,0 +1,61 @@
+name: Sala de control
+
+# Regenera y publica el dashboard del proyecto (docs/gestion/ en forma de pagina)
+# en cada push a develop, y se puede disparar a mano desde Actions.
+# El generador (scripts/generar-dashboard.mjs) lee PRs/issues reales con `gh`
+# y parsea los registros en docs/ — no inventa datos.
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - "docs/design-decisions.md"
+      - "docs/gestion/registro-de-bugs.md"
+      - "docs/gestion/registro-de-bloqueos.md"
+      - "docs/gestion/registro-de-implementaciones.md"
+      - "docs/equipo/secuencia-de-trabajo.md"
+      - "scripts/generar-dashboard.mjs"
+      - "scripts/dashboard-template.html"
+      - ".github/workflows/dashboard.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  generar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Generar la sala de control
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/generar-dashboard.mjs
+
+      - name: Subir artefacto de Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist-dashboard
+
+  publicar:
+    needs: generar
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar en GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

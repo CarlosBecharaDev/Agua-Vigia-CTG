@@ -55,3 +55,6 @@ redis-data/
 # ─── Resultados de pruebas ───
 playwright-report/
 test-results/
+
+# ─── Sala de control (se genera en CI, no se comitea) ───
+dist-dashboard/
