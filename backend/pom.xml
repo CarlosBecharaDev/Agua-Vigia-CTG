@@ -111,7 +111,7 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- Pruebas de integración de adaptadores Mongo (DoD de D3) -->
+    <!-- Pruebas de integración de adaptadores Mongo/Redis (DoD de D3) -->
     <!-- Aporta @ServiceConnection: apunta Spring al contenedor sin @DynamicPropertySource -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

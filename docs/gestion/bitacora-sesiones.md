@@ -37,6 +37,18 @@ aquí mismo) y `BUG-008` (el mapa pinta de verde los 211 sectores sin dato — e
 **Sigue:** Abrir PR con revisor y avisar a D4 de que C2 abre al fusionarse, con los dos avisos del
 contrato (`estado` anulable, OpenAPI 3.0.1). Sprint 2 de D3: `POST /api/reportes` y rate limiting.
 
+### 2026-08-08 · D3 · `feature/d3-sprint2-redis-consenso`
+**Qué:** Adelanto de Sprint 2 de D3 mientras el PR #56 (Sprint 1) espera revisor: adaptador Redis de
+`ContadorReportesPort` (ventana deslizante con `ZSET`, TTL de retención) para RF009–RF011. Encontrado
+y corregido `BUG-009` (bean `RedisTemplate<String,String>` ambiguo con `stringRedisTemplate` de
+Spring — afectaba a cualquier futura inyección por tipo, no solo a este adaptador).
+`./mvnw clean verify` → 29 pruebas, 0 fallos, incluida integración contra `redis:7-alpine` real.
+**No se tocó** `POST /api/reportes` ni `EvaluarConsensoUseCase`: son casos de uso de `application/`,
+capa de D2, que sigue vacía. El resto del backlog de Sprint 2 (rate limiting HTTP, caché del mapa,
+SSE) sigue pendiente y depende de decisiones de diseño que no me corresponde tomar solo.
+**Sigue:** Rama publicada sin PR todavía — junto con el PR #56, ambos esperan revisor humano. Cuando
+D2 implemente `EvaluarConsensoUseCase`, este adaptador queda listo para conectarse sin cambios.
+
 ### 2026-08-08 · D5 · `feature/d5-dockerfile-frontend-y-jacoco`
 **Qué:** Registrados en `registro-de-implementaciones.md` los PRs #27 y #33 (Dockerfiles backend/frontend,
 JaCoCo, perfiles de Spring, `/actuator/health`), fusionados sin registrar. Actualizados `docs/anexos/README.md`
