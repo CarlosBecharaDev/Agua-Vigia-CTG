@@ -26,6 +26,14 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 0
 
+### 2026-08-08 · D5 · `feature/d5-dockerfile-frontend-y-jacoco`
+**Qué:** Registrados en `registro-de-implementaciones.md` los PRs #27 y #33 (Dockerfiles backend/frontend,
+JaCoCo, perfiles de Spring, `/actuator/health`), fusionados sin registrar. Actualizados `docs/anexos/README.md`
+y `docs/gestion/sprint-0.md` (BL-002/BL-003 cerrados, Scrum Master interino, 32 PRs, 4 bugs cerrados),
+desactualizados desde el 2026-08-07. Confirmado que `ReglaDeOroArchitectureTest` ya falla el Backend CI.
+**Sigue:** Testcontainers espera a que D3 cree el primer adaptador real de infraestructura (Sprint 2).
+Correos pendientes (plantilla al docente, ICPSR) — Yordy decidió dejarlos para otra sesión.
+
 ### 2026-08-08 · D5 · `feature/d5-dockerfile-backend`
 **Qué:** Declarada C0 abierta con evidencia real (encontró y corrigió `BUG-003` en el camino). Resueltos
 los conflictos de los PR #19, #24 y #25 verificando build/tests después de cada uno. Registrado `BUG-004`

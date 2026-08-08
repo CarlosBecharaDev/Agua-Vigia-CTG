@@ -1,7 +1,7 @@
 # Sprint 0 — Preparación e infraestructura
 
 **Fechas:** 2026-08-06 → 2026-09-02 *(4 semanas · confirmar en el planning)* · **Scrum Master del
-sprint:** ⚠️ por designar — corresponde a D1, que no tiene titular (`BL-003`)
+sprint:** Yordy Pardo Pajaro (D5), interino desde 2026-08-08 (`ADR-011`, `BL-003` cerrado)
 
 > Este archivo se creó tarde, en la auditoría del 2026-08-07, cuando el sprint ya llevaba dos días
 > corriendo. Su ausencia tuvo un costo medible: la creación de `/backend` —lo único que bloquea a los
@@ -30,9 +30,10 @@ arrancar sin fricción. Qué se permite escribir y qué no: `ADR-009`.
 | D2 | — | **Proyecto base de `/backend`**: Maven, Java 21, Spring Boot 3.4.1, paquetes vacíos de Arquitectura Limpia | — | ✅ PR #10 |
 | D2 | — | Diseño del dominio de M3/M6 en `docs/ingenieria/modelo-de-dominio.md` | — | ✅ PR #4 |
 | D4 | — | Esqueleto de `/frontend`: React 19 + Vite + TS + Tailwind, tokens de `DESIGN.md`, rutas vacías | — | ✅ PR #5 |
-| D4 | — | Docker Desktop instalado y `docker compose up` corriendo en su máquina | — | 🟡 `BL-002` — solo falta esto |
+| D4 | — | Docker Desktop instalado y `docker compose up` corriendo en su máquina | — | ✅ `BL-002` cerrado 2026-08-08 |
 | D3 | — | Sin compromisos de código en el Sprint 0 — entra con **C1** | C1 | — |
-| D1 | — | Anexos 1–3 · plantilla oficial del informe · solicitud a Meta Content Library | **Titular de D1** | 🔴 `BL-003` |
+| D1 (Yordy, interino) | — | Anexos 1–2 redactados; Anexo 3 pendiente de datos reales · plantilla oficial del informe · solicitud a Meta Content Library | — | 🟡 Anexos 1–2 ✅ PR #32 · plantilla e ICPSR aún sin enviar |
+| D5 | — | Dockerfile multi-etapa backend y frontend, JaCoCo en CI, perfiles de Spring, `/actuator/health` | — | ✅ PRs #27 y #33 |
 
 La columna **Depende de** es la importante: es donde se ven los bloqueos antes de que ocurran.
 Cadena de dependencias y compuertas: [`../equipo/secuencia-de-trabajo.md`](../equipo/secuencia-de-trabajo.md) §1 y §2.
@@ -54,9 +55,9 @@ Solo queda `BL-002` (D4 instala Docker en su máquina — tarea suya, no depende
 
 | ID | Compuerta | Quién quedó detenido | Días | Cómo se resolvió |
 |---|---|---|---|---|
-| BL-001 | C0 (parcial) | D5 | 0 | Rol `admin` concedido; branch protection descartada como control técnico (`ADR-010`) |
-| BL-002 | C0 | D4 | en curso | Abierto — ya solo falta Docker Desktop en la máquina de D4 |
-| BL-003 | — | D1 (vacante) | en curso | Abierto — no es técnico: falta la persona |
+| BL-001 | C0 (parcial) | D5 | 0 | Branch protection descartada como control técnico, política documentada (`ADR-010`). Yordy queda en `write`, no `admin` — GitHub no permite subir el rol de un colaborador existente en un repo personal |
+| BL-002 | C0 | D4 | 1 | Cerrado 2026-08-08 — D5 declaró C0 abierta y D4 instaló Docker Desktop |
+| BL-003 | — | D1 (vacante) | 1 | Cerrado 2026-08-08 — D1 reasignado temporalmente a Yordy Pardo Pajaro (D5), `ADR-011` |
 | DT-001 a DT-005 | C2 | — | — | Regularizados el 2026-08-08, caducan 2026-09-30. DT-001/002/003 por D3 (titular); DT-004/005 (M7, M8) autorizados por D5/D1 según confirma D3. Detalle: `registro-de-bloqueos.md` §4 |
 
 ---
@@ -80,9 +81,10 @@ Solo queda `BL-002` (D4 instala Docker en su máquina — tarea suya, no depende
 | PRs fusionados | 32 al 2026-08-08 (numeración #1–33, el #9 no llegó a fusionarse) |
 | PRs fusionados **sin revisor registrado** | 18 de 32 — control de `ADR-010`, reverificado con `gh pr view --json reviews` el 2026-08-08 |
 | Bugs abiertos / cerrados | 0 / 4 (BUG-001, BUG-002, BUG-003, BUG-004) |
+| Bloqueos abiertos / cerrados | 0 / 3 (BL-001, BL-002, BL-003) |
 | Desbloqueos temporales sin registrar | 0 — DT-001 a 005 regularizados y autorizados el 2026-08-08 (issues [#34](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/34)–[#36](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/36), [#38](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/38), [#39](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/39)) — ver `registro-de-bloqueos.md` §4 |
 | Cobertura `domain/` + `application/` | `domain/` tiene 16 archivos (entidades, VOs, puertos) desde el PR #21; `application/` sigue vacío — es Sprint 2 |
-| Build en verde al cierre | Frontend CI ✅ · Backend CI ✅ desde el PR #10 |
+| Build en verde al cierre | Frontend CI ✅ · Backend CI ✅ · Escaneo de secretos ✅ |
 
 ---
 
