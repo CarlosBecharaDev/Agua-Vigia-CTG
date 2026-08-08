@@ -61,30 +61,10 @@ backend  frontend
 
 ---
 
-### BL-003 — Nadie puede ejecutar las tareas de D1 ni ser Scrum Master del Sprint 0
+### BL-003 — Nadie puede ejecutar las tareas de D1 ni ser Scrum Master del Sprint 0 *(cerrado, ver §3)*
 
 - **Fecha:** 2026-08-07 · **Rol bloqueado:** D1 (vacante) · **Compuerta:** ninguna · **Titular que lo resuelve:** el equipo
-- **Estado:** Abierto
-
-**Tarea detenida:** todo el Sprint 0 de D1 y la conducción del sprint. Concretamente:
-
-| Qué está detenido | Por qué urge |
-|---|---|
-| Conseguir la **plantilla oficial** del informe | Marcada como *bloqueante* en `CLAUDE.md`, `informe-metodologico/README.md` y `anexos/README.md`. Los 4 capítulos y los 6 anexos son hoy una reconstrucción sin validar |
-| Solicitar **Meta Content Library** vía ICPSR | `MEMORY.md` advierte que *puede tardar semanas y puede no aprobarse*. Cada día sin enviarla es riesgo puro sobre el alcance |
-| **Anexos 1–3** (encuesta, guion de entrevista, validación) | Vencen en el Sprint 0; el Alfa de Cronbach ≥ 0.75 depende de que el instrumento exista a tiempo |
-| **Scrum Master del Sprint 0** | `roles-y-tareas.md` lo asigna a D1. Sin él, nadie convoca planning ni llena `sprint-0.md` — que es justamente por lo que la creación de `/backend` pasó dos sesiones sin dueño |
-
-**Insumo que falta:** el 5.º integrante, o una reasignación temporal acordada. `roles-y-tareas.md` marca D1 como *"por asignar"* desde el 2026-08-07.
-**Verificación:**
-```
-> grep "por asignar" docs/equipo/roles-y-tareas.md
-| **D1** | ⚠️ *por asignar — 5.º integrante* | Notificaciones, bitácora pública y ...
-```
-**Avisado en el chat:** Sí · al equipo, en la auditoría del 2026-08-07.
-**Trabajo alterno tomado:** ninguno posible — no es un bloqueo técnico que se pueda rodear trabajando en otra cosa: es una vacante.
-**Lo mínimo para destrabar hoy**, sin esperar al 5.º integrante: que un titular cualquiera envíe los dos correos (plantilla al docente, solicitud a ICPSR) y que el equipo designe Scrum Master del Sprint 0 entre los cuatro. Ambas cosas toman minutos y destraban meses.
-**Cierre:** —
+- **Estado:** Cerrado — ver tabla §3 y `ADR-011`
 
 ---
 
@@ -94,6 +74,7 @@ backend  frontend
 |---|---|---|---|---|---|
 | BL-001 | 2026-08-07 | D5 | C0 (tarea parcial) | 0 | El equipo acordó no configurar branch protection técnica: la regla "no se hace push directo a `main`/`develop` sin PR revisado" queda como **política documentada**, formalizado en `ADR-010`. Yordy queda en `write`, no `admin` — en un repo personal no hay forma de subir el rol de un colaborador existente sin quitarlo y reinvitarlo, y Carlos decidió no interrumpirlo por esto (ver nota en §2). No bloquea nada porque la resolución fue política, no técnica. |
 | — | 2026-08-08 | D5 (verificación de C0) | C0 | 1 | Mientras tanto, Carlos (D2, dueño del repo) había corrido el comando completo en su máquina y autorizó por escrito empezar el dominio sin esperar la declaración formal de D5 — excepción registrada, no un rodeo silencioso. D5 instaló el cliente de Docker (no lo tenía) para verificar por su cuenta con el comando **literal** de la compuerta. Al correrlo encontró un bug real (`BUG-003`): fallaba en cualquier clon limpio por depender de un `.env` no versionado. Lo corrigió (`env_file` opcional), volvió a correr `docker compose config -q && ls backend frontend` → **exit code 0**, y declaró C0 abierta formalmente. |
+| BL-003 | 2026-08-07 | D1 (vacante) | ninguna | 1 | D1 se reasigna temporalmente a Yordy Pardo Pajaro (D5), efectivo 2026-08-08 — `ADR-011`. Yordy pasa a responder también por M4, M8, documentación académica con IA y Scrum Master interino del Sprint 0. Reverificado: `grep "por asignar" docs/equipo/roles-y-tareas.md docs/equipo/D1-notificaciones-bitacora.md` → sin coincidencias. Sigue pendiente, pero ya no como bloqueo sino como trabajo por hacer de D1: enviar los dos correos (plantilla oficial, ICPSR) y producir los Anexos 1–3. |
 
 **Los días detenidos son un dato del Capítulo IV**, no un reproche. Miden si la secuencia funcionó.
 
