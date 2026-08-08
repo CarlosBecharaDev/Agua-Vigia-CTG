@@ -249,17 +249,71 @@ select {
 
 /* ─── Efectos Interactivos (Sutiles al estilo Apple) ─── */
 .hover-glowing {
-  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease !important;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease, box-shadow 0.2s ease !important;
   will-change: transform;
 }
-
 .hover-glowing:hover {
-  transform: scale(1.02);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+.hover-glowing:active {
+  transform: translateY(1px) scale(0.98);
 }
 
-.hover-glowing:active {
-  transform: scale(0.97) !important;
-  opacity: 0.85 !important;
+/* ─── Efecto Líquido / Agua (Para el menú) ─── */
+.ola-agua {
+  position: absolute;
+  background: radial-gradient(circle, rgba(41, 151, 255, 0.8) 0%, rgba(0, 212, 255, 0.4) 100%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  animation: ripple-agua 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  pointer-events: none;
+  z-index: 0;
+}
+@keyframes ripple-agua {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(30);
+    opacity: 0;
+  }
+}
+
+.efecto-agua-cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: -1;
+  border-radius: inherit;
+  transition: opacity 0.3s ease;
+}
+
+/* Efecto Físico de Gotas (Gooey effect) */
+.gota-agua {
+  border-radius: 50%;
+  background-color: var(--color-acento);
+  transform: translate(-50%, -50%);
+  animation: evaporar-gota 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  pointer-events: none;
+}
+
+@keyframes evaporar-gota {
+  0% {
+    transform: translate(-50%, -50%) scale(0.2);
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0;
+  }
 }
 
 .hover-highlight-text {
