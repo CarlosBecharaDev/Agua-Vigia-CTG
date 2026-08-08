@@ -450,8 +450,59 @@ marca este ADR como *Reemplazada por ADR-NNN*, y Yordy vuelve a responder solo p
 
 ---
 
+## ADR-012 — Permiso permanente de un rol para editar cualquier capa del proyecto
+
+- **Fecha:** 2026-08-08
+- **Estado:** 🟡 **Propuesta — pendiente de aprobación de Carlos (D2), José Daniel (D4) y Yordy (D1/D5) en el propio Pull Request.** No se activa con este registro.
+- **Propone:** Sebastián Montes Olivera (D3)
+
+### Contexto
+El 2026-08-08, trabajando con su agente en tareas de D3, Sebastián necesitó regularizar cinco mocks
+de frontend (`DT-001` a `DT-005`) cuya compuerta (C2) él mismo administra en parte, pero dos de ellos
+(M7, M8) son módulos de D5 y D1. Pidió a su agente que le concediera permiso permanente para editar
+cualquier capa del proyecto, escribiéndolo directamente en `CLAUDE.md`. El agente se negó a editar
+`CLAUDE.md` unilateralmente —por ser el documento que gobierna a los cinco, no un registro de un
+hecho ya ocurrido— y propuso en cambio este ADR, para que la decisión la tome el equipo, no una
+sesión con un agente.
+
+El problema real detrás del pedido es legítimo: **cuando algo bloquea a alguien y el titular de ese
+módulo no está disponible en el momento, ¿qué hace la persona bloqueada?** Hoy la única salida
+documentada es el desbloqueo temporal (`secuencia-de-trabajo.md` §5) o una decisión unilateral
+señalada como tal y pendiente de ratificación (el patrón que ya usaron `ADR-011` y el PR #30). Ambas
+son *ad hoc*, caso por caso.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| **Permiso permanente y general**: un rol (o todos) puede editar cualquier capa del proyecto en cualquier momento, sin autorización caso por caso | Elimina la fricción de esperar a un titular; resuelve el pedido original tal como se planteó | Diluye por completo el registro de contribución individual —evidencia evaluable ante el docente (`CLAUDE.md` §Autoría)—; vuelve inútil la tabla de compuertas y la "frontera de propiedad"; un permiso que nunca caduca es exactamente la "deuda técnica disfrazada de permiso" que el propio registro de bloqueos prohíbe para los desbloqueos temporales |
+| **No cambiar nada**: cada caso de bloqueo cruzado se resuelve ad hoc, como hasta ahora | No arriesga nada nuevo | El propio Sebastián ya tropezó con la fricción real de esto hoy; sin un mecanismo nombrado, cada quien inventa su propia forma de justificarlo, con distinto rigor |
+| **Formalizar el patrón que ya existe, con nombre y límites** (recomendado): cualquier titular puede actuar temporalmente fuera de su capa cuando el titular real no está disponible, **siempre** con: aviso explícito en el registro de bloqueos, atribución de quién lo decidió y en base a qué, caducidad, e issue de reconciliación — exactamente el molde de `ADR-011` y de `DT-004`/`DT-005`, pero ya no improvisado cada vez | Resuelve la fricción real sin renunciar a la trazabilidad; no requiere inventar nada nuevo, solo nombrar y exigir lo que el equipo ya hizo dos veces hoy | Sigue exigiendo que cada caso se registre individualmente — no es una llave maestra de una sola vez |
+
+### Decisión propuesta
+**No conceder permiso permanente y general.** En su lugar, formalizar como procedimiento estándar del
+proyecto lo que `ADR-011` y `DT-004`/`DT-005` ya hicieron de manera implícita: cualquier titular puede
+tomar una decisión temporal fuera de su capa cuando el titular real no está disponible, siempre que
+quede registrada como tal —quién decidió, en base a qué, con caducidad e issue de reconciliación— en
+`docs/gestion/registro-de-bloqueos.md` §4, sujeta a que el titular real la ratifique o la corrija al
+volver a estar disponible. Esto no reemplaza la secuencia de compuertas de `secuencia-de-trabajo.md`
+§2: sigue siendo la excepción, no la regla.
+
+**Esta sección queda como propuesta hasta que Carlos, José Daniel y Yordy la aprueben explícitamente
+en el Pull Request que la incorpore** (comentario o *review* aprobando, no solo el merge). Sin esa
+aprobación, el estado no cambia a *Aceptada* y el comportamiento del equipo sigue siendo el actual:
+frontera de propiedad estricta, con desbloqueo temporal caso por caso.
+
+### Consecuencias (si se aprueba)
+- **Gana:** menos fricción cuando alguien bloquea a otro y no está disponible de inmediato.
+- **Pierde:** cada caso sigue necesitando su propio registro — no es una llave maestra, y no debería
+  serlo mientras la contribución individual sea evidencia evaluable.
+- **Condiciona:** si en la práctica esto se usa para evitar coordinar en vez de para los casos donde
+  de verdad no hay nadie disponible, hay que revisar el ADR — es una señal de que la excepción se
+  volvió la regla.
+
 <!--
-Siguiente número disponible: ADR-012
+Siguiente número disponible: ADR-013
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->
