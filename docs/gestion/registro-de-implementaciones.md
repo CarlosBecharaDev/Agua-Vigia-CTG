@@ -38,6 +38,12 @@ Sin `RF` asociado a propósito: es arquitectura base, no funcionalidad (`ADR-009
 | — | proceso | Asignación a D2 del proyecto base de `/backend`, tarea que nadie tenía y sin la cual C0 no abre | D2 | [#8](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/8) | `D2-backend-dominio.md` §2, fila Sprint 0 |
 | — | andamio | Proyecto base de `/backend`: Maven, Java 21, Spring Boot 3.4.1, estructura vacía de Arquitectura Limpia (`domain/`, `application/`, `infrastructure/`, `api/`) | D2 | [#10](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/10) | `./mvnw verify` → BUILD SUCCESS, local y en Backend CI |
 | — | proceso | Registro del proyecto base de `/backend` en implementaciones y bitácora | D2 | [#11](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/11) | esta tabla |
+| — | proceso | Auditoría de coherencia del repositorio: 10 contradicciones corregidas, `ADR-009`, `ADR-010`, `BUG-001`, `BUG-002`, `BL-003`, `sprint-0.md` | D3 | [#14](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/14) | `wc -l`/`grep` verificados en la revisión |
+| — | datos | Población real por barrio (DANE 2018 + CORVIVIENDA) + script de siembra en Mongo, probado contra Mongo real | D5 | [#13](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/13) | 211 sectores sembrados, `$geoIntersects` verificado |
+| — | proceso | Verificación parcial de C0 (falta Docker en la máquina de D5); confirmado que el `admin` de Yordy no se aplicó pese a 2 intentos | D5 | [#15](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/15) | `docker compose config -q` en máquina de D2 |
+| — | andamio | Reparado el build de frontend en `develop`, roto por un merge de PR anterior al fix | D2 | [#16](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/16) | `npm run build` |
+| — | proceso | Estrategia del plan de pruebas (borrador Anexo 5), trazada a los 20 RNF | D5 | [#17](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/17) | `docs/ingenieria/plan-de-pruebas.md` |
+| — | proceso | Decisión: `Sector.poblacion` nulable, respuesta a la pregunta del PR #13 | D2 | [#18](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/18) | `modelo-de-dominio.md` §3.1 |
 
 **Cobertura de requisitos del Sprint 0: 0 de 36.** Es lo esperado y no es un retraso: por `ADR-009`
 el Sprint 0 no implementa funcionalidad. Lo de arriba es lo que hace posible implementarla.
@@ -52,6 +58,7 @@ no la abre quien la produce el insumo, la abre su titular (`secuencia-de-trabajo
 | RF/RNF | Tipo | Qué | Resp. | PR | Prueba |
 |---|---|---|---|---|---|
 | RF001 · RF004 | func | M1: `MapaCartagena` (Leaflet + los 213 barrios reales), `ListaSectores` accesible, `InsigniaEstado`, `EtiquetaFrescura` | D4 | [#12](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/12) | `npm run build` en verde · ⚠️ **se alimenta de `SECTORES_MOCK`, no de la API** |
+| RF009–RF011, RF016–RF017, RF020–RF022 | andamio | Dominio de M3/M6: Value Objects, entidades (`CorteAgua` con Builder), `domain/port/in` y `port/out`, test de ArchUnit. Abre **C1** | D2 | [#21](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/21) | `./mvnw verify` → 23 pruebas, 0 fallos, ArchUnit incluido |
 
 ⚠️ **El PR #12 introdujo datos simulados sin desbloqueo temporal registrado.** `SECTORES_MOCK`
 sustituye a `GET /api/sectores`, que no existe porque C2 está cerrada. La regla del proyecto
@@ -59,6 +66,10 @@ sustituye a `GET /api/sectores`, que no existe porque C2 está cerrada. La regla
 titular de la compuerta, caducidad e issue de reconciliación. Registrado como pendiente de regularizar
 en `registro-de-bloqueos.md` §4. No cuenta como RF001/RF004 implementados hasta que consuma la API
 real; la tabla de cobertura sigue en 0%.
+
+**El PR #21 lleva `andamio`, no `func`:** define contratos (interfaces `port/in`) y entidades, pero
+ningún caso de uso está implementado todavía — eso es Sprint 2 en `docs/equipo/D2-backend-dominio.md`.
+La cobertura de requisitos sigue en 0% hasta que exista una implementación real detrás de un `port/in`.
 
 ---
 

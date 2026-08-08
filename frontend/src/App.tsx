@@ -12,6 +12,7 @@ import PaginaMapa from './pages/PaginaMapa'
 import PaginaReportar from './pages/PaginaReportar'
 import PaginaEstadisticas from './pages/PaginaEstadisticas'
 import PaginaBitacora from './pages/PaginaBitacora'
+import PaginaVeedor from './pages/PaginaVeedor'
 
 function App() {
   const { temaActivo, alternarTema } = useTheme()
@@ -54,6 +55,7 @@ function App() {
         <Route path="/reportar"      element={<PaginaReportar />} />
         <Route path="/estadisticas"  element={<PaginaEstadisticas />} />
         <Route path="/bitacora"      element={<PaginaBitacora />} />
+        <Route path="/veedor"        element={<PaginaVeedor />} />
       </Routes>
     </BrowserRouter>
   )
