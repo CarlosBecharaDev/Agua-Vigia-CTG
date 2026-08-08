@@ -20,6 +20,7 @@ const ENLACES = [
   { a: '/reportar',  etiqueta: 'Reportar' },
   { a: '/estadisticas', etiqueta: 'Estadísticas' },
   { a: '/bitacora',  etiqueta: 'Bitácora' },
+  { a: '/veedor',    etiqueta: 'Veedor' },
 ]
 
 const estiloNavLink = ({ isActive }: { isActive: boolean }): React.CSSProperties => ({
