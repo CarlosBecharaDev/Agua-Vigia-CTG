@@ -28,6 +28,7 @@ Tres razones concretas, no burocráticas:
 | BUG-001 | 2026-08-07 | S2 | CI | Los workflows de CI se disparaban a sí mismos y fallaban | Cerrado | D2 |
 | BUG-002 | 2026-08-07 | S3 | CI | Frontend CI fallaba al asumir un script `test` que el esqueleto no tiene | Cerrado | D2 |
 | BUG-003 | 2026-08-08 | S2 | — (infraestructura) | `docker compose config -q` fallaba en un clon limpio por depender de un `.env` que nunca se versiona | Cerrado | D5 |
+| BUG-004 | 2026-08-08 | S2 | M5 | `PaginaVeedor.tsx` compara el acceso contra la contraseña `'1234'` escrita en el código fuente | Abierto | D4 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -37,8 +38,23 @@ Tres razones concretas, no burocráticas:
 
 ## Bugs abiertos — detalle
 
-*(Vacío. Los bugs abiertos se detallan completos aquí; al cerrarse, el detalle se reduce a su fila en
-la tabla de arriba — ver `protocolo-de-contexto.md` §5.)*
+### BUG-004 — `PaginaVeedor.tsx` compara el acceso contra una contraseña escrita en el código
+
+- **Fecha:** 2026-08-08 · **Severidad:** S2 · **Módulo:** M5 (Panel del Veedor) · **Responsable:** D4
+- **Estado:** Abierto
+
+**Síntoma:** `frontend/src/pages/PaginaVeedor.tsx` compara la "autenticación" contra la cadena literal
+`'1234'` escrita en el código (`if (contraseña === '1234')`), con un placeholder que dice
+"MOCK: usa 1234". Fusionado a `develop` con el PR #20.
+**Reproducción:** abrir `frontend/src/pages/PaginaVeedor.tsx`, ver el componente `PaginaVeedor`.
+**Esperado:** ninguna credencial, ni de mock, debería quedar como literal comparable en el código
+fuente — mismo espíritu de RNF010/RNF011. Ya avisado en el PR #20 con una sugerencia concreta:
+reemplazar el campo de contraseña por un botón "Simular ingreso de veedor" que no parezca una
+credencial real.
+**Causa raíz:** al maquetar el panel con datos mock (Sprint 3, C2 todavía cerrada), el gate de acceso
+se modeló como un formulario de contraseña real en vez de un simulador explícito.
+**Corrección:** pendiente — es capa de D4, no se corrige aquí sin que su titular decida la
+implementación exacta del reemplazo.
 
 ---
 
@@ -110,5 +126,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-004
+Siguiente número disponible: BUG-005
 -->
