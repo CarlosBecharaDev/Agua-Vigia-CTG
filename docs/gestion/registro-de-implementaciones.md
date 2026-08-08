@@ -54,6 +54,14 @@ Sin `RF` asociado a propósito: es arquitectura base, no funcionalidad (`ADR-009
 | — | proceso | `ADR-011`: reasignación temporal de D1 a Yordy Pardo Pajaro; cierra `BL-003` | D5 | [#31](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/31) | `design-decisions.md` (ADR-011), `roles-y-tareas.md` |
 | — | proceso | Redacción de Anexos 1 y 2 (encuesta y guion de entrevista), trazados a RF001, RF005/RF008, RF009, RF012–RF014, RF020–RF022 y RNF008 | D1 | [#32](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/32) | `docs/anexos/anexo-1-encuesta.md`, `anexo-2-guion-entrevista.md` |
 | — | infra | Dockerfile del frontend, JaCoCo en `pom.xml` + CI, perfiles de Spring (`dev`/`docker`/`prod`), `/actuator/health` | D5 | [#33](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/33) | `./mvnw verify` → 23/23, JaCoCo 61.1 %; `curl localhost:8080/actuator/health` → `mongo: UP` |
+| — | andamio | Andamiaje de D3: dependencias de build en `pom.xml` (Testcontainers, MapStruct, `springdoc-openapi`, Resilience4j, Lombok), `RedisConfig` y paquetes vacíos de `infrastructure/persistence` | D3 | [#40](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/40) | `./mvnw verify` en verde en Backend CI |
+| — | proceso | Regularización de `DT-001` a `DT-005` (mocks de frontend autorizados, caducan al cerrar el Sprint 1) y puesta al día de los registros de gestión | D3 | [#41](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/41) | `registro-de-bloqueos.md` §4 · issues [#34](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/34)–[#36](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/36), [#38](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/38), [#39](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/39) abiertos |
+| — | proceso | `ADR-012` propuesto: permiso cruzado entre roles. **Queda en estado Propuesta** — ver nota abajo | D3 | [#42](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/42) | `design-decisions.md` (ADR-012) |
+
+⚠️ **Los PRs #40, #41 y #42 se fusionaron el 2026-08-08 sin ningún revisor registrado**, contra la
+regla 4 de `roles-y-tareas.md`. Verificado con `gh pr view <n> --json reviews` → `reviews: []` en los
+tres. Es relevante en el caso del #42: el propio `ADR-012` condiciona su aprobación a que Carlos,
+José Daniel y Yordy lo aprueben **en el Pull Request**, y eso no ocurrió.
 
 **Cobertura de requisitos del Sprint 0: 0 de 36.** Es lo esperado y no es un retraso: por `ADR-009`
 el Sprint 0 no implementa funcionalidad. Lo de arriba es lo que hace posible implementarla.
@@ -94,7 +102,7 @@ requisitos —son `andamio`, no `func`— hasta que consuman la API real. Estado
 |---|---|---|---|---|---|
 | RF005, RF007, RF008 | andamio | M2: `FormularioReporte` accesible — flujo sin registro, preselección de sector por URL (`?sector=X`), consentimiento de geolocalización | D4 | [#19](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/19) | `tsc --noEmit` en verde · ⚠️ usa `SECTORES_MOCK` (`DT-002`, vigente) |
 | RF016, RF018 | andamio | M5: `PaginaVeedor` — acceso simulado, registro de cortes oficiales, moderación de reportes ciudadanos | D4 | [#20](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/20) | `tsc --noEmit` en verde · ⚠️ mock de reportes (`DT-003`, vigente) |
-| RF023, RF024 | andamio | M7: `PaginaEstadisticas` — gráficos de Índice de Cumplimiento y sectores afectados (ECharts), botón de exportación | D4 | [#20](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/20) | `tsc --noEmit` en verde · ⚠️ mock regularizado (`DT-004`, autorizado por D5 según confirma D3) |
+| RF023, RF024 | andamio | M7: `PaginaEstadisticas` — gráficos de Índice de Cumplimiento y sectores afectados (Recharts), botón de exportación | D4 | [#20](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/20) | `tsc --noEmit` en verde · ⚠️ mock regularizado (`DT-004`, autorizado por D5 según confirma D3) |
 | RF026, RF027 | andamio | M8: `PaginaBitacora` — línea de tiempo vertical de eventos | D4 | [#25](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/25) | `tsc --noEmit` en verde · ⚠️ `MOCK_EVENTOS` regularizado (`DT-005`, autorizado por D1 según confirma D3) |
 | RNF020 (parcial) | andamio | PWA offline (`vite-plugin-pwa`, cachea el GeoJSON local) + primera prueba unitaria con Vitest (`InsigniaEstado.test.tsx`) | D4 | [#24](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/24) | `npm test` en verde |
 

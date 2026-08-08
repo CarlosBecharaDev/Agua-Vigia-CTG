@@ -118,10 +118,13 @@ Detalle en `CLAUDE.md`, en `docs/design-decisions.md` (ADR-005, ADR-008) y en
 
 ## Ritmo de trabajo
 
-**7 sprints de ~4 semanas:** Sprint 0 de preparación + Sprints 1–6 de construcción. 5 integrantes,
-metodología Scrum.
+**7 sprints:** Sprint 0 de preparación + Sprints 1–6 de construcción. 5 integrantes, metodología Scrum.
 
-- Calendario, ceremonias y definición de terminado: [`docs/gestion/README.md`](docs/gestion/README.md)
+**Un sprint no dura un número fijo de semanas: dura hasta que su entregable se demuestra funcionando.**
+Cerrar por calendario obliga a arrastrar lo que no alcanzó o a inventar trabajo para llenar la semana;
+cerrar por entregable deja el avance medido en lo único que se puede demostrar ante el docente.
+
+- Entregables, ceremonias y definición de terminado: [`docs/gestion/README.md`](docs/gestion/README.md)
 - Quién habilita a quién y en qué orden: [`docs/equipo/secuencia-de-trabajo.md`](docs/equipo/secuencia-de-trabajo.md)
 - Tareas por persona: [`docs/equipo/`](docs/equipo/)
 

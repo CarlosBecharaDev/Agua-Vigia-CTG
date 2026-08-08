@@ -23,7 +23,8 @@ vacío de información que multiplica el daño. Toda decisión de alcance se juz
 tokens visuales y rutas vacías. Se prohíbe la funcionalidad: **si el código implementa un `RF`, no va
 en el Sprint 0** (`ADR-009`). Ante un caso de frontera, pregunta antes de escribirlo.
 
-**7 sprints de ~4 semanas: Sprint 0 (preparación) + Sprints 1–6.** Calendario en `docs/gestion/README.md`.
+**7 sprints: Sprint 0 (preparación) + Sprints 1–6. Un sprint no cierra por calendario: cierra cuando
+su entregable se demuestra funcionando.** Los 7 entregables, en `docs/gestion/README.md`.
 
 ---
 
@@ -183,6 +184,10 @@ No es opcional: es parte de la definición de terminado y el insumo del Capítul
 | Se elige entre alternativas técnicas | `docs/design-decisions.md` | `registrar-decision` |
 | Se verifica una fuente de datos | `docs/ingenieria/auditoria-fuentes-de-datos.md` | `verificar-fuente` |
 | Una tarea no puede avanzar por falta del insumo de otro rol | `docs/gestion/registro-de-bloqueos.md` **+ aviso en el chat** | `registrar-bloqueo` |
+| Cambia el estado de un sprint, una compuerta o un bloqueo | **el tablero HTML de estado del equipo**, en el mismo PR | — *(lo sube D2 — ruta por confirmar)* |
+
+**El tablero HTML es obligatorio para los agentes.** Es lo que los cinco miran para saber cómo van sin
+abrir el repositorio; si el código cambia y el tablero no, el tablero miente y deja de servir.
 
 ---
 
