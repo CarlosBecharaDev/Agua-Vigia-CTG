@@ -9,36 +9,109 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'barrios-cartagena.geojson'],
+      includeAssets: ['favicon.svg', 'favicon.ico', 'barrios-cartagena.geojson', 'pwa-192x192.svg', 'pwa-512x512.svg'],
       manifest: {
-        name: 'AguaVigía CTG',
+        name: 'AguaVigía CTG — Monitoreo del Agua en Cartagena',
         short_name: 'AguaVigía',
-        description: 'Monitoreo ciudadano del servicio de agua en Cartagena',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
+        description: 'Monitoreo ciudadano del servicio de agua en Cartagena de Indias. Consulta el estado en tu barrio, reporta cortes y revisa estadísticas.',
+        theme_color: '#0066cc',
+        background_color: '#f5f5f7',
         display: 'standalone',
+        orientation: 'portrait-primary',
+        scope: '/',
+        start_url: '/',
+        categories: ['utilities', 'social'],
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: 'pwa-192x192.svg',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/svg+xml'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'pwa-512x512.svg',
             sizes: '512x512',
-            type: 'image/png',
+            type: 'image/svg+xml',
             purpose: 'any maskable'
+          },
+          {
+            src: 'favicon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml'
           }
         ]
       },
       workbox: {
-        // Cachear el GeoJSON local para que funcione offline
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,geojson}']
+        // Cachear assets estáticos incluyendo el GeoJSON de barrios
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,geojson,woff2}'],
+        // Caché en runtime para tiles de mapa y APIs externas
+        runtimeCaching: [
+          {
+            // Tiles de OpenStreetMap — CacheFirst para funcionar offline
+            urlPattern: /^https:\/\/[abc]\.tile\.openstreetmap\.org/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'osm-tiles',
+              expiration: {
+                maxEntries: 500,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 días
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
+            // GeoJSON local (por si se carga dinámicamente)
+            urlPattern: /barrios-cartagena\.geojson$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'geojson-barrios',
+              expiration: {
+                maxEntries: 5,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 días
+              }
+            }
+          },
+          {
+            // API de clima Open-Meteo — NetworkFirst con fallback
+            urlPattern: /^https:\/\/api\.open-meteo\.com/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'weather-api',
+              networkTimeoutSeconds: 5,
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 30, // 30 minutos
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          }
+        ]
       }
     })
   ],
   server: {
     port: 5173,
+    proxy: {
+      '/acuacar-api': {
+        target: 'https://www.acuacar.com/wp-json/wp/v2',
+        changeOrigin: true,
+        secure: false,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'application/json'
+        },
+        rewrite: (path) => path.replace(/^\/acuacar-api/, ''),
+      },
+      '/google-news-rss': {
+        target: 'https://news.google.com/rss',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/google-news-rss/, ''),
+      },
+    },
   },
   // @ts-ignore - Vitest types
   test: {
