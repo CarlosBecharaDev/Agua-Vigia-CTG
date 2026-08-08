@@ -66,6 +66,21 @@ D2. Señalado en el ADR, sin construirlo: no hay rate limiting en el login todav
 Cuando D2 defina los casos de uso de M5, el controlador que los use puede vivir bajo `/api/veedor/**`
 sin tocar `SecurityConfig`.
 
+### 2026-08-08 · D3 · `feature/d3-sprint4-prefiltro-dedup`
+**Qué:** Adelanto de Sprint 4 de D3, cuarto PR de la sesión: la parte del pipeline M9 que no toca
+la red — `DocumentoCrudo` (normalización + hash SHA-256), `PrefiltroDeterminista` (9 palabras clave
+ya aprobadas en `pipeline-ingesta-datos.md`, sin ampliarlas por cuenta propia) y
+`DeduplicadorReciente` (Redis, ventana de 7 días). `./mvnw clean verify` → 41 pruebas, 0 fallos.
+**No se construyeron** `AcuacarApiCollector` ni `RssCollector`: `COLLECTOR_USER_AGENT` sigue con un
+correo de contacto literalmente `pendiente`, y hacerles una petición real a Acuacar/Google
+News/Zona Cero con esa identidad sería incoherente con la ética de datos del proyecto —
+`BL-004`, para D1. Tampoco se construyó la capa de IA: sin `ANTHROPIC_API_KEY` no se puede probar
+ni una vez, y el propio diseño avisa que hay que verificar la firma del SDK contra código real
+antes de darla por buena — `BL-005`, para el equipo.
+**Sigue:** Van **cuatro PRs** de esta sesión (#56, #57, #58 y este, sin número todavía) esperando
+revisor humano. En cuanto D1 fije el correo real y alguien configure una clave de Anthropic, los
+colectores y la capa de IA se conectan directo después del prefiltro sin rehacer nada de esto.
+
 ### 2026-08-08 · D5 · `feature/d5-dockerfile-frontend-y-jacoco`
 **Qué:** Registrados en `registro-de-implementaciones.md` los PRs #27 y #33 (Dockerfiles backend/frontend,
 JaCoCo, perfiles de Spring, `/actuator/health`), fusionados sin registrar. Actualizados `docs/anexos/README.md`
