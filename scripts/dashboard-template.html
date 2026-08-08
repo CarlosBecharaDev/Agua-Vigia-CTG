@@ -179,7 +179,7 @@
   .nodo-fuente .icono { width: 30px; height: 30px; border-radius: 999px; border: 2px solid var(--color-tinta-3); display: flex; align-items: center; justify-content: center; color: var(--color-tinta-2); }
   .nodo-fuente .icono .ic { width: 0.95rem; height: 0.95rem; }
   .nodo-fuente span { font-size: 0.6rem; color: var(--color-tinta-3); margin-top: 0.35rem; text-align: center; }
-  .col-compuerta { flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 150px; }
+  .col-compuerta { flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 190px; }
   .segmento { height: 7px; flex: 1; border-radius: 999px; background: var(--color-linea); position: relative; margin: 0 -2px; align-self: center; overflow: hidden; }
   .segmento.fluye { background: color-mix(in srgb, var(--color-acento) 22%, var(--color-linea)); }
   .segmento.fluye::after {
@@ -209,6 +209,16 @@
   .chip-estado.abierta { background: var(--color-estado-con-bg); color: var(--color-estado-con); }
   .chip-estado.parcial { background: var(--color-estado-baja-bg); color: var(--color-estado-baja); }
   .chip-estado.cerrada { background: var(--color-estado-sin-bg); color: var(--color-estado-sin); }
+
+  .lista-detalle-compuertas { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.9rem; }
+  @media (max-width: 780px) { .lista-detalle-compuertas { grid-template-columns: 1fr; } }
+  .detalle-compuerta { background: var(--color-superficie-2); border: 1px solid var(--color-linea); border-radius: var(--radio-base); padding: 0.85rem 1rem; }
+  .dc-cab { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.55rem; }
+  .dc-id { font-family: var(--font-util); font-size: 0.78rem; font-weight: 700; color: var(--color-acento); }
+  .dc-nombre { font-family: var(--font-display); font-size: 0.92rem; font-weight: 600; flex: 1; }
+  .dc-fila { font-size: 0.76rem; color: var(--color-tinta-2); line-height: 1.55; margin-top: 0.3rem; }
+  .dc-fila b { color: var(--color-tinta-3); font-weight: 600; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  .dc-nota { color: var(--color-tinta-3); font-style: italic; }
 
   .donut-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 0.4rem; }
   .donut-centro { font-family: var(--font-display); font-size: 1.5rem; }
@@ -440,6 +450,10 @@
             </div>
           </div>
         </div>
+        <div class="card" style="margin-top:1rem">
+          <div class="card-cab"><h3>Detalle de cada compuerta</h3><span class="tag">quién la abre, a quién habilita y cómo se verifica</span></div>
+          <div class="lista-detalle-compuertas" id="detalle-compuertas"></div>
+        </div>
       </section>
 
       <section id="equipo">
@@ -650,6 +664,18 @@ window.addEventListener("error", function (ev) {
   /* ============== Datos derivados ============== */
   var ROSTER = DATA.roster;
   var logins = Object.keys(ROSTER);
+  var NOMBRE_POR_ROL = {};
+  logins.forEach(function (l) {
+    ROSTER[l].roles.forEach(function (r) {
+      var codigo = r.split(" ")[0];
+      if (!NOMBRE_POR_ROL[codigo]) NOMBRE_POR_ROL[codigo] = ROSTER[l].nombre;
+    });
+  });
+  function conNombres(texto) {
+    return texto.replace(/\bD[1-5]\b/g, function (m) {
+      return NOMBRE_POR_ROL[m] ? m + " (" + NOMBRE_POR_ROL[m] + ")" : m;
+    });
+  }
   var conteos = {};
   logins.forEach(function (l) { conteos[l] = { merged: 0, abiertos: 0, ultimaIso: null }; });
   DATA.prsMerged.forEach(function (p) {
@@ -704,18 +730,33 @@ window.addEventListener("error", function (ev) {
       var clase = c.estado === "abierta" ? "abierta" : (c.estado === "parcial" ? "parcial" : "cerrada");
       var represada = (c.estado !== "abierta") && previaAbierta;
       html += '<div class="col-compuerta">';
-      html += '  <div class="arriba-persona"><span class="etiqueta-rol">Abre</span><span class="nombre-rol">' + c.abre + '</span></div>';
+      html += '  <div class="arriba-persona"><span class="etiqueta-rol">Abre</span><span class="nombre-rol">' + escapeHtml(conNombres(c.abre)) + '</span></div>';
       html += '  <div class="valvula-wrap" style="position:relative;display:flex;flex-direction:column;align-items:center">';
       html += '    <div class="valvula ' + clase + (represada ? " represada" : "") + '" tabindex="0" aria-label="' + c.id + ' ' + c.nombre + ', ' + c.estado + '"><div class="manija"></div></div>';
       html += '    <span class="compuerta-id">' + c.id + '</span>';
       html += '    <span class="compuerta-nombre">' + c.nombre + '</span>';
       html += '    <span class="chip-estado ' + clase + '">' + (c.estado === "abierta" ? ("abierta" + (c.fecha ? " · " + c.fecha : "")) : c.estado) + '</span>';
       html += '  </div>';
-      html += '  <div class="abajo-persona"><span class="etiqueta-rol">Habilita a</span><span class="nombre-rol">' + c.habilita + '</span></div>';
+      html += '  <div class="abajo-persona"><span class="etiqueta-rol">Habilita a</span><span class="nombre-rol">' + escapeHtml(conNombres(c.habilita)) + '</span></div>';
       html += '</div>';
     });
     cont.innerHTML = html;
     pintarIconos(cont);
+  })();
+
+  /* ============== Detalle de cada compuerta ============== */
+  (function renderDetalleCompuertas() {
+    var claseChip = { abierta: "abierta", parcial: "parcial", cerrada: "cerrada" };
+    var html = DATA.compuertas.map(function (c) {
+      var h = '<div class="detalle-compuerta"><div class="dc-cab"><span class="dc-id">' + c.id + '</span><span class="dc-nombre">' + escapeHtml(c.nombre) + '</span>';
+      h += '<span class="chip-estado ' + claseChip[c.estado] + '">' + (c.estado === "abierta" ? ("abierta" + (c.fecha ? " · " + c.fecha : "")) : c.estado) + '</span></div>';
+      h += '<div class="dc-fila"><b>Abre:</b> ' + formatearInline(conNombres(c.abre)) + '</div>';
+      h += '<div class="dc-fila"><b>Habilita a:</b> ' + formatearInline(conNombres(c.habilita)) + '</div>';
+      h += '<div class="dc-fila"><b>Verificación:</b> <span class="mono">' + escapeHtml(c.comando) + '</span></div>';
+      if (c.detalle) h += '<div class="dc-fila dc-nota">' + formatearInline(c.detalle) + '</div>';
+      return h + '</div>';
+    }).join("");
+    document.getElementById("detalle-compuertas").innerHTML = html;
   })();
 
   /* ============== Donut ============== */
