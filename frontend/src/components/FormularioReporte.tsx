@@ -81,7 +81,7 @@ export const FormularioReporte: FC<Props> = ({ sectorPreseleccionado, onReporteE
                 alignItems: 'center',
                 gap: '0.75rem',
                 padding: '1rem',
-                border: tipo === opcion.valor ? \`2px solid \${opcion.color}\` : '1px solid var(--color-linea)',
+                border: tipo === opcion.valor ? `2px solid ${opcion.color}` : '1px solid var(--color-linea)',
                 borderRadius: 'var(--radio-md)',
                 cursor: 'pointer',
                 backgroundColor: tipo === opcion.valor ? 'var(--color-superficie)' : 'transparent',
