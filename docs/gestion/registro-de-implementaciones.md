@@ -44,6 +44,8 @@ Sin `RF` asociado a propósito: es arquitectura base, no funcionalidad (`ADR-009
 | — | andamio | Reparado el build de frontend en `develop`, roto por un merge de PR anterior al fix | D2 | [#16](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/16) | `npm run build` |
 | — | proceso | Estrategia del plan de pruebas (borrador Anexo 5), trazada a los 20 RNF | D5 | [#17](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/17) | `docs/ingenieria/plan-de-pruebas.md` |
 | — | proceso | Decisión: `Sector.poblacion` nulable, respuesta a la pregunta del PR #13 | D2 | [#18](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/18) | `modelo-de-dominio.md` §3.1 |
+| — | infra | Dockerfile multi-etapa del backend (Spring Boot), activado como servicio en `docker-compose.yml` | D5 | [#27](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/27) | `docker compose build backend` |
+| — | infra | Dockerfile multi-etapa del frontend (React Vite → Nginx), cobertura de código JaCoCo integrada al Backend CI, perfiles de Spring (`dev`/`docker`/`prod`) y endpoint `/actuator/health` expuesto | D5 | [#33](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/33) | 3 checks en verde en CI: Backend CI (compilar, ArchUnit, tests), Frontend CI (lint, tests, build) y Escaneo de secretos (gitleaks) |
 
 **Cobertura de requisitos del Sprint 0: 0 de 36.** Es lo esperado y no es un retraso: por `ADR-009`
 el Sprint 0 no implementa funcionalidad. Lo de arriba es lo que hace posible implementarla.

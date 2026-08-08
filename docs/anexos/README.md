@@ -14,10 +14,10 @@ repositorio.
 **Tarea bloqueante del Sprint 0 (D1):** validar esta lista contra el documento del docente y corregir
 lo que difiera. Ver [`../informe-metodologico/README.md`](../informe-metodologico/README.md).
 
-🚧 **Nadie la está haciendo: D1 no tiene titular** (`BL-003` en
-[`../gestion/registro-de-bloqueos.md`](../gestion/registro-de-bloqueos.md)). Los Anexos 1–3 vencen en
-el Sprint 0 y no tienen responsable. Pedirle la plantilla al docente es un correo y destraba los diez
-documentos de esta lista.
+**D1 ya tiene titular:** Yordy Pardo Pajaro (D5) lo asumió temporalmente el 2026-08-08 (`ADR-011`,
+`BL-003` cerrado). Los Anexos 1 y 2 ya están redactados: [PR #32](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/32).
+Sigue pendiente enviar el correo con la plantilla oficial al docente — sin eso, la numeración de esta
+tabla no se puede validar.
 
 ---
 
