@@ -19,7 +19,7 @@ el repositorio no.
 | Compuerta | La abre | Habilita a | Comando de verificación | Estado | Abierta el |
 |---|---|---|---|---|---|
 | **C0** · Entorno reproducible | D5 (verifica y declara) · D2 aportó `/backend`, D4 aportó `/frontend` | Todos | `docker compose config -q && ls backend frontend` | 🟡 Parcial — el comando completo ya pasó en la máquina de D2 (ver detalle abajo); falta que D5 lo confirme en la suya y declare | — |
-| **C1** · Dominio y puertos | D2 | D3 · D1 | `ls backend/src/main/java/com/aguavigia/ctg/domain/port/out` | 🔴 Cerrada | — |
+| **C1** · Dominio y puertos | D2 | D3 · D1 | `ls backend/src/main/java/com/aguavigia/ctg/domain/port/out` | 🟢 Abierta — entidades, VOs y `domain/port/**` en `develop` (PR #21), ArchUnit en verde | 2026-08-08 |
 | **C2** · Contrato OpenAPI | D3 · D1 | D4 | `git show develop:backend/openapi.yaml \| head -5` | 🔴 Cerrada | — |
 | **C3** · SPA integrada contra API real | D4 | D5 (E2E · despliegue) | `cd frontend && npm run build` | 🔴 Cerrada | — |
 
@@ -39,6 +39,14 @@ José Daniel ya tenía `/frontend` desde Sprint 0). D5 no tiene Docker en su má
 `docker compose config -q`. **D2 sí lo tiene y corrió el comando completo** (`docker compose config -q
 && ls backend frontend`, con un `.env` temporal a partir de `.env.example`, no comiteado) → sin
 errores. Falta que D5 lo confirme en su entorno y declare C0 — no lo hace D2, D2 no es el titular.
+
+**Excepción registrada, 2026-08-08:** Carlos (dueño del repositorio, rol D2) autoriza explícitamente
+empezar el trabajo de dominio de Sprint 1 sin esperar la declaración formal de D5, porque el criterio
+técnico de C0 ya se verificó dos veces con el comando exacto de la compuerta. No es un desbloqueo
+temporal de los de §4 (esos aplican a datos simulados con caducidad) — es la persona con autoridad
+sobre el proyecto decidiendo avanzar con el riesgo ya medido, y queda escrito aquí para que no sea un
+rodeo silencioso. **Pendiente:** D5 sigue debiendo declarar C0 formalmente cuando pueda verificarla en
+su propio entorno; si al hacerlo encuentra algo distinto a lo que reportó D2, se reabre como bug.
 
 **Nota aparte, no bloqueante — actualizada:** el cierre de BL-001 (tabla §3) dice que Carlos le dio rol
 `admin` a Yordy, pero **sigue sin verificarse de verdad**: `gh api
