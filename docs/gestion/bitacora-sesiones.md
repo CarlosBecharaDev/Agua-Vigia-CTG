@@ -26,6 +26,12 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 0
 
+### 2026-08-08 · D2 · `feature/d2-dominio-sprint1`
+**Qué:** Modelado el dominio de M3/M6 (PR #21): Value Objects, entidades (`CorteAgua` con Builder),
+`domain/port/in` y `port/out`, test de ArchUnit. 23 pruebas, 0 fallos. Abierta **C1**. Adelantado con
+autorización explícita de Carlos porque C0 seguía en 🟡 (criterio técnico ya verificado dos veces).
+**Sigue:** D3 y D1 ya pueden empezar a implementar los puertos de infraestructura contra `domain/port/out`.
+
 ### 2026-08-07 · D3 · `docs/alistamiento-sprint0`
 **Qué:** Auditoría de coherencia de todo el repositorio (8 PRs, 4 ramas, 20 documentos). Corregidas 10
 contradicciones entre documentos y la realidad del repositorio: `ADR-009` (el Sprint 0 admite
