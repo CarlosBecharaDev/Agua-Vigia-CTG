@@ -26,6 +26,14 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 0
 
+### 2026-08-07 · D5 · `feature/d5-sprint0-infraestructura`
+**Qué:** Creada `develop`, `.env.example`, `docker-compose.yml` base (Mongo+Redis+Mailhog) y workflows
+de GitHub Actions (backend-ci, frontend-ci, secret-scan). Abierto PR #1 hacia `develop`. Registrado
+BL-001: sin permiso `admin` en el repo remoto, no se pudo configurar branch protection.
+**Sigue:** Que alguien con revisión apruebe/fusione el PR #1, y que Carlos (dueño del repo) configure
+branch protection o le dé admin a Yordy para cerrar BL-001. C0 sigue cerrada: falta que existan
+`/backend` y `/frontend` (sin dueño explícito de esa tarea en Sprint 0 — a discutir en planning).
+
 ### 2026-08-07 · Todos · `main`
 **Qué:** Auditoría completa de la documentación. Se unificó `equipo/` dentro de `docs/equipo/`, se
 crearon `docs/gestion/`, `docs/anexos/` e `docs/informe-metodologico/`, se estableció el sistema de
