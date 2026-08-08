@@ -15,7 +15,7 @@ import type { FC } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { EstadoServicio, Sector } from '../types/tipos-dominio'
-import { COLOR_POR_ESTADO } from '../types/tipos-dominio'
+import { COLOR_POR_ESTADO, COLOR_SIN_DATOS } from '../types/tipos-dominio'
 import { EtiquetaFrescura } from './EtiquetaFrescura'
 import { InsigniaEstado } from './InsigniaEstado'
 
@@ -76,13 +76,17 @@ export const MapaCartagena: FC<Props> = ({
     capaRef.current.setStyle((feature) => {
       const nombre = feature?.properties?.NOMBRE ?? ''
       const sector = indiceSectores.current.get(normalizarNombre(nombre))
-      const estado: EstadoServicio = sector?.estado ?? 'CON_SERVICIO'
-      const color = COLOR_POR_ESTADO[estado].claro
+      
+      let color = COLOR_SIN_DATOS.claro;
+      if (sector) {
+        color = sector.estado ? COLOR_POR_ESTADO[sector.estado].claro : COLOR_SIN_DATOS.claro;
+      }
+      
       const esActivo = sectorActivo && sector && sectorActivo.id === sector.id
 
       return {
         fillColor: color,
-        fillOpacity: sector ? (esActivo ? 0.85 : 0.55) : 0.15,
+        fillOpacity: sector ? (esActivo ? 0.85 : (sector.estado ? 0.55 : 0.3)) : 0.15,
         color: '#ffffff',
         weight: esActivo ? 2 : 1,
         opacity: esActivo ? 1 : 0.7,

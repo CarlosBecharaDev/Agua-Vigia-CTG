@@ -17,9 +17,9 @@ export type EstadoServicio =
 export interface Sector {
   id: string
   nombre: string
-  estado: EstadoServicio
+  estado: EstadoServicio | null
   /** Timestamp ISO de la última actualización del estado */
-  actualizadoEn: string
+  actualizadoEn: string | null
 }
 
 /** Resultado de GET /api/sectores — forma esperada cuando C2 abra */
@@ -35,6 +35,8 @@ export const COLOR_POR_ESTADO: Record<EstadoServicio, { claro: string; oscuro: s
   PRESION_BAJA:     { claro: '#A87310', oscuro: '#D9A63C', etiqueta: 'Presión baja' },
   CORTE_PROGRAMADO: { claro: '#2A628F', oscuro: '#6BA8DA', etiqueta: 'Corte programado' },
 }
+
+export const COLOR_SIN_DATOS = { claro: '#788290', oscuro: '#8B95A5', etiqueta: 'Sin datos (Pendiente verificación)' }
 
 /** Cuántos minutos antes de que un dato se considere "fresco" */
 export const MINUTOS_FRESCURA = 15

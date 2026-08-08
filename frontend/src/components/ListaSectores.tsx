@@ -9,7 +9,7 @@
  */
 import type { FC } from 'react'
 import type { Sector } from '../types/tipos-dominio'
-import { COLOR_POR_ESTADO } from '../types/tipos-dominio'
+import { COLOR_POR_ESTADO, COLOR_SIN_DATOS } from '../types/tipos-dominio'
 import { InsigniaEstado } from './InsigniaEstado'
 import { EtiquetaFrescura } from './EtiquetaFrescura'
 import { MessageSquareWarning } from 'lucide-react'
@@ -43,12 +43,14 @@ export const ListaSectores: FC<Props> = ({ sectores, cargando, error, onSectorSe
   const programados   = sectores.filter(s => s.estado === 'CORTE_PROGRAMADO')
   const presionBaja   = sectores.filter(s => s.estado === 'PRESION_BAJA')
   const conServicio   = sectores.filter(s => s.estado === 'CON_SERVICIO')
+  const sinDatos      = sectores.filter(s => s.estado === null)
 
   const grupos = [
     { sectores: sinServicio,   estado: 'SIN_SERVICIO'     as const },
     { sectores: programados,   estado: 'CORTE_PROGRAMADO' as const },
     { sectores: presionBaja,   estado: 'PRESION_BAJA'     as const },
     { sectores: conServicio,   estado: 'CON_SERVICIO'     as const },
+    { sectores: sinDatos,      estado: null },
   ].filter(g => g.sectores.length > 0)
 
   if (error) {
@@ -92,8 +94,10 @@ export const ListaSectores: FC<Props> = ({ sectores, cargando, error, onSectorSe
         </p>
       )}
 
-      {!cargando && grupos.map(({ sectores: grupo, estado }) => (
-        <div key={estado} style={{ marginBottom: '1.25rem' }}>
+      {!cargando && grupos.map(({ sectores: grupo, estado }) => {
+        const color = estado ? COLOR_POR_ESTADO[estado].claro : COLOR_SIN_DATOS.claro;
+        return (
+        <div key={estado || 'sin-datos'} style={{ marginBottom: '1.25rem' }}>
           {/* Cabecera del grupo */}
           <div
             style={{
@@ -101,7 +105,7 @@ export const ListaSectores: FC<Props> = ({ sectores, cargando, error, onSectorSe
               alignItems: 'center',
               gap: '0.5rem',
               marginBottom: '0.5rem',
-              borderBottom: `2px solid ${COLOR_POR_ESTADO[estado].claro}`,
+              borderBottom: `2px solid ${color}`,
               paddingBottom: '0.35rem',
             }}
           >
@@ -171,7 +175,8 @@ export const ListaSectores: FC<Props> = ({ sectores, cargando, error, onSectorSe
             ))}
           </ul>
         </div>
-      ))}
+        );
+      })}
     </section>
   )
 }
