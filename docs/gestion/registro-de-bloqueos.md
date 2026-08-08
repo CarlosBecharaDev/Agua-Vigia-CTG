@@ -32,13 +32,15 @@ Una compuerta abierta y no anunciada deja a un compañero bloqueado sin motivo.
 
 ## 2. Bloqueos abiertos — detalle
 
-**Nota aparte, no bloqueante — actualizada:** el cierre de BL-001 (tabla §3) dice que Carlos le dio rol
-`admin` a Yordy, pero **sigue sin verificarse de verdad**: `gh api
-repos/.../collaborators/Jordy-Lv/permission` devuelve `write`, no `admin`, incluso después de repetir
-el `PUT` de concesión dos veces (ambas responden `204 No Content`, pero el permiso no cambia — no hay
-invitación pendiente que lo explique). No afecta la resolución acordada (política documentada, sin
-bloqueo técnico de GitHub — `ADR-010`), pero el dato de BL-001/§3 es impreciso: falta que alguien lo
-confirme o corrija manualmente desde Settings → Collaborators.
+**Nota aparte, no bloqueante — cerrada, 2026-08-08:** el cierre de BL-001 (tabla §3) decía que Carlos
+le había dado rol `admin` a Yordy. **Causa raíz encontrada:** en un repositorio personal (no una
+organización), GitHub no ofrece forma de cambiar el rol de un colaborador ya existente — ni por API
+(`PUT .../collaborators/{user}` responde `204` pero no aplica el cambio) ni por la UI de Settings →
+Collaborators, que solo muestra un botón para quitar el acceso, no un selector de rol. La única vía es
+quitar a la persona y volver a invitarla con el rol nuevo, lo que le revoca el acceso hasta que acepte
+una invitación nueva. Carlos decidió no hacerlo: la interrupción no vale la pena porque la resolución
+de BL-001 ya es política documentada, sin bloqueo técnico (`ADR-010`). Yordy queda en `write`
+permanentemente, por decisión explícita, no por un permiso que falló en aplicarse.
 
 ### BL-002 — D4 no puede integrar el frontend con el entorno Docker ni con el backend
 
@@ -90,7 +92,7 @@ backend  frontend
 
 | ID | Fecha | Rol bloqueado | Compuerta | Días detenido | Cómo se resolvió |
 |---|---|---|---|---|---|
-| BL-001 | 2026-08-07 | D5 | C0 (tarea parcial) | 0 | El equipo acordó no configurar branch protection técnica: la regla "no se hace push directo a `main`/`develop` sin PR revisado" queda como **política documentada**, formalizado en `ADR-010`. Carlos intentó darle rol `admin` a Yordy (2 veces, `204 No Content` ambas) pero la API sigue reportando `write` — sin confirmar, ver nota en §2. No bloquea nada porque la resolución fue política, no técnica. |
+| BL-001 | 2026-08-07 | D5 | C0 (tarea parcial) | 0 | El equipo acordó no configurar branch protection técnica: la regla "no se hace push directo a `main`/`develop` sin PR revisado" queda como **política documentada**, formalizado en `ADR-010`. Yordy queda en `write`, no `admin` — en un repo personal no hay forma de subir el rol de un colaborador existente sin quitarlo y reinvitarlo, y Carlos decidió no interrumpirlo por esto (ver nota en §2). No bloquea nada porque la resolución fue política, no técnica. |
 | — | 2026-08-08 | D5 (verificación de C0) | C0 | 1 | Mientras tanto, Carlos (D2, dueño del repo) había corrido el comando completo en su máquina y autorizó por escrito empezar el dominio sin esperar la declaración formal de D5 — excepción registrada, no un rodeo silencioso. D5 instaló el cliente de Docker (no lo tenía) para verificar por su cuenta con el comando **literal** de la compuerta. Al correrlo encontró un bug real (`BUG-003`): fallaba en cualquier clon limpio por depender de un `.env` no versionado. Lo corrigió (`env_file` opcional), volvió a correr `docker compose config -q && ls backend frontend` → **exit code 0**, y declaró C0 abierta formalmente. |
 
 **Los días detenidos son un dato del Capítulo IV**, no un reproche. Miden si la secuencia funcionó.
