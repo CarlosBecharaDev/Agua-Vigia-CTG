@@ -1,0 +1,18 @@
+# Backend corriendo nativo (./mvnw spring-boot:run) contra Mongo/Redis
+# expuestos por docker-compose en localhost. Perfil por defecto.
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/aguavigia}
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.aguavigia.ctg: DEBUG

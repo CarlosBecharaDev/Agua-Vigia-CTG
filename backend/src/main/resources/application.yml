@@ -1,12 +1,17 @@
 spring:
   application:
     name: aguavigia-ctg
-  data:
-    mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/aguavigia}
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
 
 server:
   port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never

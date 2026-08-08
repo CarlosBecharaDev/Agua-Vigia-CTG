@@ -1,0 +1,18 @@
+# Sin defaults a proposito: si falta una variable de entorno en produccion,
+# el arranque debe fallar ruidosamente, no conectar en silencio a localhost.
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
+management:
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    com.aguavigia.ctg: INFO
