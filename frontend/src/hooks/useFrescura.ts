@@ -30,7 +30,7 @@ export function useFrescura(timestampIso: string | null): ResultadoFrescura {
   const degradado = minutos >= MINUTOS_FRESCURA
 
   let etiqueta: string
-  if (minutos < 1)        etiqueta = 'actualizado ahora'
+  if (minutos < 1)        etiqueta = 'hace un momento'
   else if (minutos === 1) etiqueta = 'actualizado hace 1 min'
   else if (minutos < 60)  etiqueta = `actualizado hace ${minutos} min`
   else {

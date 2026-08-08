@@ -7,6 +7,7 @@
  */
 import type { FC } from 'react'
 import { useFrescura } from '../hooks/useFrescura'
+import { AlertTriangle } from 'lucide-react'
 
 interface Props {
   timestampIso: string | null
@@ -22,14 +23,20 @@ export const EtiquetaFrescura: FC<Props> = ({ timestampIso }) => {
       style={{
         fontSize: '0.75rem',
         fontFamily: 'var(--font-util)',
-        color: degradado ? 'var(--color-estado-baja)' : 'var(--color-tinta-3)',
+        color: degradado ? 'var(--color-estado-baja)' : 'var(--color-tinta-2)',
+        backgroundColor: 'var(--color-superficie)',
+        padding: '0.2rem 0.5rem',
+        borderRadius: 'var(--radio-base)',
+        border: '1px solid var(--color-linea)',
         display: 'inline-flex',
         alignItems: 'center',
         gap: '0.3rem',
+        fontWeight: '500',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
       }}
     >
       {degradado && (
-        <span aria-hidden="true" title="Dato posiblemente desactualizado">⚠️</span>
+        <AlertTriangle size={14} aria-hidden="true" />
       )}
       {etiqueta}
     </span>

@@ -7,110 +7,113 @@
    para éxito/error/advertencia/enlace genéricos de la interfaz.
    ============================================================= */
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto:wght@500;700&display=swap');
 @import "tailwindcss";
 
-/* ─── Modo claro (por defecto) ─── */
+/* ─── Modo claro (por defecto - Apple Style) ─── */
 :root {
-  /* Acento petróleo — la identidad visual del proyecto */
-  --color-acento:        #0A6C78;
-  --color-acento-vivo:   #0E8A98;
+  /* Apple Blue */
+  --color-acento:        #0066cc;
+  --color-acento-vivo:   #0071e3;
 
-  /* Tinta */
-  --color-tinta:         #0B1F26;
-  --color-tinta-2:       #3E585F;
-  --color-tinta-3:       #6E878D;
+  /* Apple Ink */
+  --color-tinta:         #1d1d1f;
+  --color-tinta-2:       #7a7a7a;
+  --color-tinta-3:       #cccccc;
 
-  /* Superficies */
-  --color-linea:         #C9D9D8;
-  --color-superficie:    #FFFFFF;
-  --color-fondo:         #EEF3F3;
+  /* Superficies Apple planas (sin glassmorphism) */
+  --color-linea:         #e0e0e0;
+  --color-superficie:    #ffffff;
+  --color-fondo:         #f5f5f7;
 
-  /* ── Colores de ESTADO DEL SERVICIO — reservados, no reutilizar ── */
-  --color-estado-con:    #1C7F55;   /* Con servicio  */
-  --color-estado-sin:    #AE3428;   /* Sin servicio  */
-  --color-estado-baja:   #A87310;   /* Presión baja  */
-  --color-estado-prog:   #2A628F;   /* Corte programado */
+  /* ── Colores de ESTADO DEL SERVICIO ── */
+  --color-estado-con:    #34c759;   /* Apple Green */
+  --color-estado-sin:    #ff3b30;   /* Apple Red  */
+  --color-estado-baja:   #ff9500;   /* Apple Orange */
+  --color-estado-prog:   #8e8e93;   /* Apple Gray */
 
-  /* Tipografía */
-  --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  --font-cuerpo:  system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-util:    ui-monospace, "Cascadia Mono", Consolas, monospace;
+  /* Tipografía Apple */
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+  --font-cuerpo:  -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --font-util:    "SF Mono", ui-monospace, monospace;
 
-  /* Espaciado base */
-  --radio-base: 0.5rem;
-  --radio-lg:   1rem;
+  /* Espaciado base (Apple Corners) */
+  --radio-base: 8px;
+  --radio-md:   11px;
+  --radio-lg:   18px;
+  --radio-pill: 9999px;
 
   /* Foco — WCAG AA: contorno de 2px visible en teclado */
   --foco-outline: 2px solid var(--color-acento);
   --foco-offset:  2px;
 
   /* Transición suave global */
-  --transicion: 160ms ease;
+  --transicion: 200ms ease-out;
 
   color-scheme: light;
 }
 
-/* ─── Modo oscuro — media query del SO ─── */
+/* ─── Modo oscuro — media query del SO (Apple Dark Mode) ─── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --color-acento:       #45BFCB;
-    --color-acento-vivo:  #6FD6DF;
+    --color-acento:       #2997ff;
+    --color-acento-vivo:  #0071e3;
 
-    --color-tinta:        #E4EFEF;
-    --color-tinta-2:      #9DB8BE;
-    --color-tinta-3:      #6B8C94;
+    --color-tinta:        #ffffff;
+    --color-tinta-2:      #a1a1a6;
+    --color-tinta-3:      #6e6e73;
 
-    --color-linea:        #1B3B45;
-    --color-superficie:   #0C2027;
-    --color-fondo:        #061418;
+    --color-linea:        #38383a;
+    --color-superficie:   #1c1c1e;
+    --color-fondo:        #000000;
 
-    --color-estado-con:   #4FBF89;
-    --color-estado-sin:   #E2695B;
-    --color-estado-baja:  #D9A63C;
-    --color-estado-prog:  #6BA8DA;
+    --color-estado-con:   #30d158;
+    --color-estado-sin:   #ff453a;
+    --color-estado-baja:  #ff9f0a;
+    --color-estado-prog:  #98989d;
 
     color-scheme: dark;
   }
 }
 
-/* ─── Modo oscuro — interruptor manual (gana sobre el SO) ─── */
+/* ─── Modo oscuro — interruptor manual (Apple) ─── */
 :root[data-theme="dark"] {
-  --color-acento:       #45BFCB;
-  --color-acento-vivo:  #6FD6DF;
+  --color-acento:       #2997ff;
+  --color-acento-vivo:  #0071e3;
 
-  --color-tinta:        #E4EFEF;
-  --color-tinta-2:      #9DB8BE;
-  --color-tinta-3:      #6B8C94;
+  --color-tinta:        #ffffff;
+  --color-tinta-2:      #a1a1a6;
+  --color-tinta-3:      #6e6e73;
 
-  --color-linea:        #1B3B45;
-  --color-superficie:   #0C2027;
-  --color-fondo:        #061418;
+  --color-linea:        #38383a;
+  --color-superficie:   #1c1c1e;
+  --color-fondo:        #000000;
 
-  --color-estado-con:   #4FBF89;
-  --color-estado-sin:   #E2695B;
-  --color-estado-baja:  #D9A63C;
-  --color-estado-prog:  #6BA8DA;
+  --color-estado-con:   #30d158;
+  --color-estado-sin:   #ff453a;
+  --color-estado-baja:  #ff9f0a;
+  --color-estado-prog:  #98989d;
 
   color-scheme: dark;
 }
 
-/* ─── Modo claro forzado por interruptor ─── */
+/* ─── Modo claro forzado por interruptor (Apple) ─── */
 :root[data-theme="light"] {
-  --color-acento:       #0A6C78;
-  --color-acento-vivo:  #0E8A98;
+  --color-acento:        #0066cc;
+  --color-acento-vivo:   #0071e3;
 
-  --color-tinta:        #0B1F26;
-  --color-tinta-2:      #3E585F;
-  --color-tinta-3:      #6E878D;
+  --color-tinta:         #1d1d1f;
+  --color-tinta-2:       #7a7a7a;
+  --color-tinta-3:       #cccccc;
 
-  --color-linea:        #C9D9D8;
-  --color-superficie:   #FFFFFF;
-  --color-fondo:        #EEF3F3;
+  --color-linea:         #e0e0e0;
+  --color-superficie:    #ffffff;
+  --color-fondo:         #f5f5f7;
 
-  --color-estado-con:   #1C7F55;
-  --color-estado-sin:   #AE3428;
-  --color-estado-baja:  #A87310;
-  --color-estado-prog:  #2A628F;
+  --color-estado-con:    #34c759;
+  --color-estado-sin:    #ff3b30;
+  --color-estado-baja:   #ff9500;
+  --color-estado-prog:   #8e8e93;
 
   color-scheme: light;
 }
@@ -195,6 +198,26 @@ select {
   }
 }
 
+/* ─── Scrollbars Futuristas ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-linea);
+  border-radius: 10px;
+  transition: background var(--transicion);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-acento);
+}
+
 /* ─── Utilidades de color del sistema ─── */
 .text-acento    { color: var(--color-acento); }
 .text-tinta-2   { color: var(--color-tinta-2); }
@@ -202,6 +225,160 @@ select {
 .bg-superficie  { background-color: var(--color-superficie); }
 .bg-fondo       { background-color: var(--color-fondo); }
 .border-linea   { border-color: var(--color-linea); }
+
+/* ─── Tarjetas y Paneles (Glassmorphism Apple-style) ─── */
+.panel-glass {
+  background: linear-gradient(135deg, rgba(var(--glass-r), var(--glass-g), var(--glass-b), 0.7) 0%, rgba(var(--glass-r), var(--glass-g), var(--glass-b), 0.4) 100%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .panel-glass {
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+}
+
+:root[data-theme="dark"] .panel-glass {
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+/* ─── Efectos Interactivos (Sutiles al estilo Apple) ─── */
+.hover-glowing {
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease, box-shadow 0.2s ease !important;
+  will-change: transform;
+}
+.hover-glowing:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+.hover-glowing:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* ─── Efecto Líquido / Agua (Para el menú) ─── */
+.ola-agua {
+  position: absolute;
+  background: radial-gradient(circle, rgba(41, 151, 255, 0.8) 0%, rgba(0, 212, 255, 0.4) 100%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  animation: ripple-agua 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  pointer-events: none;
+  z-index: 0;
+}
+@keyframes ripple-agua {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(30);
+    opacity: 0;
+  }
+}
+
+.efecto-agua-cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: -1;
+  border-radius: inherit;
+  transition: opacity 0.3s ease;
+}
+
+
+.hover-highlight-text {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease !important;
+  will-change: transform, box-shadow, color;
+}
+.hover-highlight-text:hover {
+  transform: scale(1.015);
+  border-color: var(--color-acento) !important;
+  box-shadow: 0 0 12px rgba(2, 132, 199, 0.4) !important;
+  color: var(--color-acento) !important;
+  z-index: 10;
+}
+.hover-highlight-text:active {
+  transform: scale(0.95) !important;
+  box-shadow: 0 0 5px rgba(2, 132, 199, 0.2) !important;
+}
+
+/* En modo claro puro, usamos el acento en lugar de blanco puro para que se note */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .hover-glowing:hover {
+    border-color: var(--color-acento) !important;
+    box-shadow: 0 0 12px rgba(2, 132, 199, 0.3) !important;
+  }
+}
+:root[data-theme="light"] .hover-glowing:hover {
+  border-color: var(--color-acento) !important;
+  box-shadow: 0 0 12px rgba(2, 132, 199, 0.3) !important;
+}
+
+/* ─── Splash Screen Animations ─── */
+@keyframes dropSplash {
+  0% { transform: translateY(-100vh) scale(0.5); opacity: 0; }
+  50% { transform: translateY(0) scale(1); opacity: 1; }
+  65% { transform: scaleY(0.7) scaleX(1.3) translateY(10px); }
+  80% { transform: scaleY(1.1) scaleX(0.9) translateY(-15px); }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes fadeOutSplash {
+  0% { opacity: 1; backdrop-filter: blur(20px); }
+  100% { opacity: 0; visibility: hidden; backdrop-filter: blur(0px); }
+}
+
+@keyframes textReveal {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Mapa Oscuro Futurista (Filtro Inteligente para Leaflet) ─── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .leaflet-layer,
+  :root:not([data-theme="light"]) .leaflet-control-zoom-in,
+  :root:not([data-theme="light"]) .leaflet-control-zoom-out,
+  :root:not([data-theme="light"]) .leaflet-control-attribution {
+    filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+  }
+}
+
+:root[data-theme="dark"] .leaflet-layer,
+:root[data-theme="dark"] .leaflet-control-zoom-in,
+:root[data-theme="dark"] .leaflet-control-zoom-out,
+:root[data-theme="dark"] .leaflet-control-attribution {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+/* Reducir el fondo blanco de Leaflet para que no deslumbre al cargar tiles */
+.leaflet-container {
+  background-color: var(--color-fondo) !important;
+}
+
+/* Quitar el outline rectangular punteado al hacer click en un polígono en Leaflet */
+.leaflet-interactive:focus {
+  outline: none !important;
+}
+
+/* Animación de pulso suave para el barrio seleccionado */
+@keyframes pulseSector {
+  0% { fill-opacity: 0.5; stroke-width: 2px; }
+  50% { fill-opacity: 0.85; stroke-width: 4px; }
+  100% { fill-opacity: 0.5; stroke-width: 2px; }
+}
+
+.barrio-seleccionado {
+  animation: pulseSector 2.5s infinite ease-in-out;
+  /* El borde brillante usará el color definido en JavaScript, la animación lo realza */
+}
 
 /* ─── Colores de estado (SOLO para estado del servicio) ─── */
 .estado-con   { color: var(--color-estado-con);  }
@@ -240,4 +417,234 @@ select {
 .tabla-scroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* ─── Recharts Outline Fix ─── */
+.recharts-wrapper,
+.recharts-surface,
+.recharts-cartesian-grid,
+.recharts-bar-rectangle {
+  outline: none !important;
+}
+.recharts-wrapper *:focus {
+  outline: none !important;
+}
+
+/* ─── Glassmorphism support variables ─── */
+:root {
+  --glass-r: 255;
+  --glass-g: 255;
+  --glass-b: 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --glass-r: 28;
+    --glass-g: 28;
+    --glass-b: 30;
+  }
+}
+
+:root[data-theme="dark"] {
+  --glass-r: 28;
+  --glass-g: 28;
+  --glass-b: 30;
+}
+
+:root[data-theme="light"] {
+  --glass-r: 255;
+  --glass-g: 255;
+  --glass-b: 255;
+}
+
+/* ─── Animación pulso en vivo (indicador Live) ─── */
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.15); }
+}
+
+/* ─── Animación de aparición desde abajo (formularios) ─── */
+@keyframes aparecerAbajo {
+  0% { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Pulse Dot (indicador de conexión en vivo) ─── */
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50% { box-shadow: 0 0 0 6px transparent; }
+}
+
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MISIÓN MÓVIL — Auditoría de Pantallas Pequeñas
+   Media Queries para responsive perfecto en celulares
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Tablets y pantallas medianas (≤ 768px) ── */
+@media (max-width: 768px) {
+  /* Encabezado: ocultar etiquetas de nav, solo iconos */
+  header[role="banner"] nav {
+    gap: 0.1rem !important;
+  }
+
+  header[role="banner"] nav a {
+    padding: 0.4rem 0.5rem !important;
+    font-size: 0 !important; /* Oculta el texto */
+  }
+
+  header[role="banner"] nav a svg {
+    margin-right: 0 !important;
+  }
+
+  /* Logo: más compacto */
+  #logo-aguavigia span {
+    font-size: 1.1rem !important;
+  }
+
+  /* Mapa: más espacio vertical */
+  #panel-mapa, #panel-lista {
+    min-height: 300px !important;
+  }
+
+  /* Estadísticas: KPIs en 1 columna fluida */
+  .grid.md\:grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Gráficos: reducir altura */
+  .recharts-responsive-container {
+    min-height: 240px;
+  }
+}
+
+/* ── Celulares pequeños (≤ 480px) ── */
+@media (max-width: 480px) {
+  /* Encabezado compacto */
+  header[role="banner"] {
+    padding: 0 0.5rem !important;
+    min-height: 52px !important;
+    gap: 0.25rem !important;
+  }
+
+  /* Ocultar el reloj en móvil para ganar espacio */
+  header[role="banner"] .hover-highlight-text {
+    display: none !important;
+  }
+
+  /* Navegación: iconos centrados */
+  header[role="banner"] nav a {
+    min-width: 40px !important;
+    min-height: 40px !important;
+    padding: 0.35rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Logo: solo icono de gota */
+  #logo-aguavigia span {
+    display: none !important;
+  }
+
+  /* Contenido principal: padding reducido y forzado contra inline styles */
+  main > div {
+    padding: 1rem 0.75rem !important;
+  }
+
+  /* Títulos adaptados a pantalla pequeña */
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  h2 {
+    font-size: 1.1rem !important;
+  }
+
+  /* KPIs de estadísticas: más compactos */
+  .grid.md\:grid-cols-3 > div {
+    padding: 1rem !important;
+    border-radius: 1rem !important;
+  }
+
+  /* Panel de detalle del mapa: ancho completo */
+  [role="dialog"] {
+    left: 0.5rem !important;
+    right: 0.5rem !important;
+    transform: none !important;
+    min-width: auto !important;
+    max-width: none !important;
+  }
+
+  /* Barra superior del mapa: compacta */
+  #contenedor-mapa + div,
+  .panel-glass[style*="position: absolute"][style*="top"] {
+    padding: 0.35rem 0.75rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* Gráficos: más compactos */
+  section[style*="borderRadius: '2rem'"] {
+    padding: 1rem !important;
+    border-radius: 1.25rem !important;
+  }
+
+  /* Formulario: botón de envío a ancho completo */
+  form button[type="submit"] {
+    width: 100% !important;
+  }
+
+  /* Botón exportar: ancho completo */
+  button[style*="Exportar"] {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Filtro de periodo: stack vertical si no cabe */
+  div[style*="borderRadius: 'var(--radio-pill)'"][style*="padding: '0.25rem'"] {
+    flex-wrap: wrap;
+  }
+
+  /* Feed de comentarios y bitácora: menos padding */
+  article {
+    padding: 1rem !important;
+  }
+
+  /* Panel veedor: KPIs más compactos */
+  .grid.md\:grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Botón de moderación: texto más pequeño */
+  section button[style*="borderRadius: 'var(--radio-pill)'"] {
+    font-size: 0.8rem !important;
+    padding: 0.6rem 1rem !important;
+  }
+}
+
+/* ── Ajustes para landscape en móvil ── */
+@media (max-height: 500px) and (orientation: landscape) {
+  /* Reducir alturas fijas del mapa para landscape */
+  #panel-mapa {
+    min-height: 250px !important;
+  }
+
+  /* Header más delgado */
+  header[role="banner"] {
+    min-height: 44px !important;
+  }
+}
+
+/* ── Safe area para dispositivos con notch ── */
+@supports (padding-top: env(safe-area-inset-top)) {
+  header[role="banner"] {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  main {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }

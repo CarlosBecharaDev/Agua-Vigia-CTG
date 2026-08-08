@@ -13,12 +13,14 @@ import PaginaReportar from './pages/PaginaReportar'
 import PaginaEstadisticas from './pages/PaginaEstadisticas'
 import PaginaBitacora from './pages/PaginaBitacora'
 import PaginaVeedor from './pages/PaginaVeedor'
+import { SplashScreen } from './components/SplashScreen'
 
 function App() {
   const { temaActivo, alternarTema } = useTheme()
 
   return (
     <BrowserRouter>
+      <SplashScreen />
       <a
         href="#contenido-principal"
         id="saltar-al-contenido"
