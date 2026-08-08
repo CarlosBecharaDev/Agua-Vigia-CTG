@@ -58,6 +58,10 @@ C0 (`docker compose config -q && ls backend frontend`) ya pasa completo.
 sigue cerrada. Corregida la duplicación de `SuscribirseService` entre D1 y D2 (era de D1 por M4).
 **Sigue:** Resolver quién crea el esqueleto de `/backend` en Sprint 0 para poder abrir C0.
 
+### 2026-08-07 · D4 · `feature/d4-sprint3-bitacora`
+**Qué:** M8 (Bitácora - UI) maquetada. Componente `PaginaBitacora` con formato de línea de tiempo y componentes `InsigniaEstado`. Cumple RF026 y RF027 visualmente usando datos mock.
+**Sigue:** Esperar que D1 publique la API en C2 para integrar `GET /api/bitacora` real.
+
 ### 2026-08-07 · D4 · `feature/d4-sprint3-panel-veedor`
 **Qué:** M5 (Panel Veedor UI) y M7 (Dashboard Recharts) maquetados. Componente `PaginaVeedor` con auth simulada y `PaginaEstadisticas` con gráficos (RF023, RF024). Agregado enlace en Encabezado. Todo usando datos mock.
 **Sigue:** Crear PR a `develop` y esperar C2 para integrar APIs.
