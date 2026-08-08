@@ -48,7 +48,11 @@ C0 (`docker compose config -q && ls backend frontend`) ya pasa completo.
 sigue cerrada. Corregida la duplicación de `SuscribirseService` entre D1 y D2 (era de D1 por M4).
 **Sigue:** Resolver quién crea el esqueleto de `/backend` en Sprint 0 para poder abrir C0.
 
-### 2026-08-07 · D4 · `feature/d4-sprint1-mapa`
+### 2026-08-07 · D4 · `feature/d4-sprint3-panel-veedor`
+**Qué:** M5 (Panel Veedor UI) y M7 (Dashboard Recharts) maquetados. Componente `PaginaVeedor` con auth simulada y `PaginaEstadisticas` con gráficos (RF023, RF024). Agregado enlace en Encabezado. Todo usando datos mock.
+**Sigue:** Crear PR a `develop` y esperar C2 para integrar APIs.
+
+### 2026-08-07 · D4 · `feature/d4-sprint2-reportar`
 **Qué:** M1 completado: MapaCartagena (Leaflet + GeoJSON 213 barrios de D5), ListaSectores (RF004), InsigniaEstado, EtiquetaFrescura, useFrescura, tipos-dominio. PR #12 abierto a develop.
 **Sigue:** Que Carlos (D2) apruebe PR #12. Cuando C2 abra, reemplazar SECTORES_MOCK con TanStack Query → GET /api/sectores.
 
