@@ -38,7 +38,6 @@
     --radio-sm: 0.4rem;
     --radio-base: 0.65rem;
     --radio-lg: 1rem;
-    --sidebar-w: 240px;
     --foco-outline: 2px solid var(--color-acento);
     --foco-offset: 2px;
     --transicion: 160ms ease;
@@ -109,38 +108,20 @@
   .ic { width: 1em; height: 1em; display: inline-block; vertical-align: -0.15em; }
   svg.ic-svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
-  .app { display: flex; min-height: 100vh; align-items: flex-start; }
-  .sidebar {
-    width: var(--sidebar-w); flex: none; position: sticky; top: 0; height: 100vh;
-    background: var(--color-superficie); border-right: 1px solid var(--color-linea);
-    display: flex; flex-direction: column; padding: 1.25rem 0.9rem;
-  }
-  .sb-marca { display: flex; align-items: center; gap: 0.55rem; padding: 0 0.4rem 1.4rem; }
-  .sb-marca .gota { font-size: 1.3rem; }
-  .sb-marca .txt strong { display: block; font-family: var(--font-display); font-size: 1rem; line-height: 1.1; }
-  .sb-marca .txt span { display: block; font-family: var(--font-util); font-size: 0.62rem; color: var(--color-tinta-3); text-transform: uppercase; letter-spacing: 0.07em; margin-top: 0.15rem; }
-  .sb-nav { display: flex; flex-direction: column; gap: 0.15rem; flex: 1; }
-  .sb-link {
-    display: flex; align-items: center; gap: 0.7rem; padding: 0.55rem 0.65rem; border-radius: var(--radio-base);
-    color: var(--color-tinta-2); text-decoration: none; font-size: 0.83rem; font-weight: 500; transition: background var(--transicion), color var(--transicion);
-  }
-  .sb-link .ic { width: 1.05rem; height: 1.05rem; color: var(--color-tinta-3); }
-  .sb-link:hover { background: var(--color-superficie-2); color: var(--color-tinta); }
-  .sb-link.activo { background: var(--color-acento-suave); color: var(--color-acento); }
-  .sb-link.activo .ic { color: var(--color-acento); }
-  .sb-pie { border-top: 1px solid var(--color-linea); padding-top: 0.9rem; margin-top: 0.9rem; }
-  .sb-repo { font-size: 0.68rem; color: var(--color-tinta-3); line-height: 1.5; }
-  .sb-repo a { color: var(--color-tinta-2); }
-
-  .contenido { flex: 1; min-width: 0; }
+  .app { display: block; min-height: 100vh; }
   .topbar {
     position: sticky; top: 0; z-index: 30; background: color-mix(in srgb, var(--color-fondo) 88%, transparent);
     backdrop-filter: blur(8px); border-bottom: 1px solid var(--color-linea);
-    display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.9rem 1.6rem; flex-wrap: wrap;
+    display: flex; align-items: center; justify-content: space-between; gap: 1.2rem; padding: 0.85rem 1.6rem; flex-wrap: wrap;
   }
-  .tb-titulo h1 { font-size: 1.05rem; }
+  .tb-marca { display: flex; align-items: center; gap: 0.55rem; flex: none; }
+  .tb-marca .gota { font-size: 1.25rem; }
+  .tb-marca .txt strong { display: block; font-family: var(--font-display); font-size: 0.95rem; line-height: 1.1; }
+  .tb-marca .txt span { display: block; font-family: var(--font-util); font-size: 0.58rem; color: var(--color-tinta-3); text-transform: uppercase; letter-spacing: 0.07em; margin-top: 0.1rem; }
+  .tb-titulo { flex: 1; min-width: 200px; }
+  .tb-titulo h1 { font-size: 1.02rem; }
   .tb-titulo p { font-size: 0.74rem; color: var(--color-tinta-3); margin-top: 0.15rem; }
-  .tb-derecha { display: flex; align-items: center; gap: 0.9rem; }
+  .tb-derecha { display: flex; align-items: center; gap: 0.9rem; flex: none; }
   .reloj { font-family: var(--font-util); font-size: 0.78rem; color: var(--color-tinta-2); white-space: nowrap; }
   .reloj strong { color: var(--color-tinta); font-weight: 600; }
   .btn-tema {
@@ -148,8 +129,23 @@
     display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--sombra-sm);
   }
 
-  main { padding: 1.6rem 1.6rem 4rem; max-width: 1360px; }
-  section { scroll-margin-top: 4.2rem; margin-top: 2.4rem; }
+  .topnav {
+    position: sticky; top: 3.7rem; z-index: 29; background: var(--color-superficie); border-bottom: 1px solid var(--color-linea);
+    display: flex; align-items: center; gap: 0.25rem; padding: 0.5rem 1.6rem; overflow-x: auto;
+  }
+  .sb-link {
+    display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: var(--radio-base); flex: none;
+    color: var(--color-tinta-2); text-decoration: none; font-size: 0.8rem; font-weight: 500; white-space: nowrap; transition: background var(--transicion), color var(--transicion);
+  }
+  .sb-link .ic { width: 1rem; height: 1rem; color: var(--color-tinta-3); }
+  .sb-link:hover { background: var(--color-superficie-2); color: var(--color-tinta); }
+  .sb-link.activo { background: var(--color-acento-suave); color: var(--color-acento); }
+  .sb-link.activo .ic { color: var(--color-acento); }
+  .tn-repo { margin-left: auto; flex: none; font-family: var(--font-util); font-size: 0.68rem; color: var(--color-tinta-3); text-decoration: none; white-space: nowrap; padding-left: 1rem; }
+  .tn-repo:hover { color: var(--color-acento); }
+
+  main { padding: 1.6rem 1.6rem 4rem; max-width: 1360px; margin: 0 auto; }
+  section { scroll-margin-top: 7.5rem; margin-top: 2.4rem; }
   section:first-of-type { margin-top: 0; }
   .cab-seccion { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
   .cab-seccion h2 { font-size: 1.15rem; }
@@ -357,51 +353,44 @@
   .fuentes b { color: var(--color-tinta-2); }
 
   @media (max-width: 860px) {
-    .app { flex-direction: column; }
-    .sidebar { width: 100%; height: auto; position: sticky; flex-direction: row; align-items: center; overflow-x: auto; padding: 0.7rem; gap: .5rem; }
-    .sb-marca { padding: 0 0.6rem 0 0.2rem; flex: none; }
-    .sb-nav { flex-direction: row; flex: none; }
+    .tb-titulo { order: 3; width: 100%; }
+    .topnav { top: 6.5rem; }
     .sb-link span.lbl { display: none; }
-    .sb-pie { display: none; }
+    .tn-repo { display: none; }
     main { padding: 1.1rem 1rem 3rem; }
   }
 </style>
 
 <div class="app">
-  <aside class="sidebar">
-    <div class="sb-marca">
+  <header class="topbar">
+    <div class="tb-marca">
       <span class="gota">💧</span>
       <div class="txt"><strong>AguaVigía CTG</strong><span>Sala de control</span></div>
     </div>
-    <nav class="sb-nav" id="sb-nav">
-      <a class="sb-link" href="#resumen" data-sec="resumen"><span class="ic" data-icon="home"></span><span class="lbl">Resumen</span></a>
-      <a class="sb-link" href="#compuertas" data-sec="compuertas"><span class="ic" data-icon="layers"></span><span class="lbl">Compuertas</span></a>
-      <a class="sb-link" href="#equipo" data-sec="equipo"><span class="ic" data-icon="users"></span><span class="lbl">Equipo</span></a>
-      <a class="sb-link" href="#progreso" data-sec="progreso"><span class="ic" data-icon="trending-up"></span><span class="lbl">Progreso</span></a>
-      <a class="sb-link" href="#sprints" data-sec="sprints"><span class="ic" data-icon="calendar"></span><span class="lbl">Sprints</span></a>
-      <a class="sb-link" href="#actividad" data-sec="actividad"><span class="ic" data-icon="activity"></span><span class="lbl">Actividad</span></a>
-      <a class="sb-link" href="#decisiones" data-sec="decisiones"><span class="ic" data-icon="file-text"></span><span class="lbl">Decisiones</span></a>
-      <a class="sb-link" href="#notas" data-sec="notas"><span class="ic" data-icon="edit-3"></span><span class="lbl">Ideas</span></a>
-      <a class="sb-link" href="#recomendaciones" data-sec="recomendaciones"><span class="ic" data-icon="trending-up"></span><span class="lbl">Recomendaciones</span></a>
-    </nav>
-    <div class="sb-pie">
-      <div class="sb-repo">Repositorio<br><a id="lnk-repo" href="#" target="_blank" rel="noopener">—</a></div>
+    <div class="tb-titulo">
+      <h1>Cómo va el equipo</h1>
+      <p>Sala de control generada automáticamente · instantánea <span class="mono" id="ts-generado">—</span> (<span id="fresh-generado">—</span>)</p>
     </div>
-  </aside>
+    <div class="tb-derecha">
+      <span class="reloj" id="reloj-cartagena">— Cartagena</span>
+      <button class="btn-tema" id="btn-tema" aria-label="Cambiar tema claro/oscuro" title="Cambiar tema"><span aria-hidden="true">🌓</span></button>
+    </div>
+  </header>
 
-  <div class="contenido">
-    <header class="topbar">
-      <div class="tb-titulo">
-        <h1>Cómo va el equipo</h1>
-        <p>Sala de control generada automáticamente · instantánea <span class="mono" id="ts-generado">—</span> (<span id="fresh-generado">—</span>)</p>
-      </div>
-      <div class="tb-derecha">
-        <span class="reloj" id="reloj-cartagena">— Cartagena</span>
-        <button class="btn-tema" id="btn-tema" aria-label="Cambiar tema claro/oscuro" title="Cambiar tema"><span aria-hidden="true">🌓</span></button>
-      </div>
-    </header>
+  <nav class="topnav" id="sb-nav">
+    <a class="sb-link" href="#resumen" data-sec="resumen"><span class="ic" data-icon="home"></span><span class="lbl">Resumen</span></a>
+    <a class="sb-link" href="#compuertas" data-sec="compuertas"><span class="ic" data-icon="layers"></span><span class="lbl">Compuertas</span></a>
+    <a class="sb-link" href="#equipo" data-sec="equipo"><span class="ic" data-icon="users"></span><span class="lbl">Equipo</span></a>
+    <a class="sb-link" href="#progreso" data-sec="progreso"><span class="ic" data-icon="trending-up"></span><span class="lbl">Progreso</span></a>
+    <a class="sb-link" href="#sprints" data-sec="sprints"><span class="ic" data-icon="calendar"></span><span class="lbl">Sprints</span></a>
+    <a class="sb-link" href="#actividad" data-sec="actividad"><span class="ic" data-icon="activity"></span><span class="lbl">Actividad</span></a>
+    <a class="sb-link" href="#decisiones" data-sec="decisiones"><span class="ic" data-icon="file-text"></span><span class="lbl">Decisiones</span></a>
+    <a class="sb-link" href="#notas" data-sec="notas"><span class="ic" data-icon="edit-3"></span><span class="lbl">Ideas</span></a>
+    <a class="sb-link" href="#recomendaciones" data-sec="recomendaciones"><span class="ic" data-icon="trending-up"></span><span class="lbl">Recomendaciones</span></a>
+    <a class="tn-repo" id="lnk-repo" href="#" target="_blank" rel="noopener">—</a>
+  </nav>
 
-    <main>
+  <main>
 
       <section id="resumen">
         <div class="grid-kpi" id="grid-kpi"></div>
@@ -523,8 +512,7 @@
         </div>
       </footer>
 
-    </main>
-  </div>
+  </main>
 </div>
 
 <script>
