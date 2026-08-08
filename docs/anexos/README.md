@@ -24,7 +24,7 @@ lo que difiera. Ver [`../informe-metodologico/README.md`](../informe-metodologic
 | **2** | Guion de entrevista a actores clave | Veedores ciudadanos, líderes comunales, comerciantes. Preguntas semiestructuradas | D1 | 0 |
 | **3** | Validación de instrumentos | Juicio de expertos, cálculo del Alfa de Cronbach, tabulación de resultados | D1 | 0 → 4 |
 | **4** | Historias de usuario | Formato Gherkin (`Dado / Cuando / Entonces`), trazadas a los `RF` de `docs/product-requirements.md` | D1 | 1 |
-| **5** | Plan e informe de pruebas | Estrategia, casos de prueba, resultados de E2E, cobertura JaCoCo, prueba de caos | D5 | 5 → 6 |
+| **5** | Plan e informe de pruebas | Estrategia, casos de prueba, resultados de E2E, cobertura JaCoCo, prueba de caos. Estrategia adelantada en Sprint 0: [`../ingenieria/plan-de-pruebas.md`](../ingenieria/plan-de-pruebas.md) | D5 | 5 → 6 |
 | **6** | Modelo de datos | Colecciones de MongoDB, índices (`2dsphere`), estructuras en Redis, diccionario de datos, diagrama E-R | D3 | 6 |
 
 **Entregables complementarios** (no numerados como anexos; su ubicación se confirma con la plantilla):
