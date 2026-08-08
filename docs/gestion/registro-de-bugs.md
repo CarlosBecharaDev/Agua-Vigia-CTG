@@ -31,6 +31,11 @@ Tres razones concretas, no burocráticas:
 | BUG-004 | 2026-08-08 | S2 | M5 | `PaginaVeedor.tsx` compara el acceso contra la contraseña `'1234'` escrita en el código fuente | Cerrado | D5 |
 | BUG-005 | 2026-08-08 | S3 | — (proceso) | Los PRs se siguen fusionando sin revisor, y el patrón empeora en vez de mejorar | Abierto | Equipo |
 | BUG-006 | 2026-08-08 | S2 | M5 | La rama `vista-previa-total` vuelve a comparar contra `'1234'` y borra la prueba que cerró `BUG-004` | Abierto | D4 |
+| BUG-007 | 2026-08-08 | S2 | — (pruebas) | Testcontainers no encuentra Docker: Engine 29 exige API ≥ 1.40 y docker-java negocia 1.32 | Cerrado | D3 |
+| BUG-008 | 2026-08-08 | S2 | M1 | El mapa pinta como "con servicio" los 211 sectores de los que no tiene dato | Abierto | D4 |
+| BUG-009 | 2026-08-08 | S2 | — (infraestructura) | `RedisTemplate<String,String>` es ambiguo entre el bean propio y `stringRedisTemplate` de Spring | Cerrado | D3 |
+| BUG-010 | 2026-08-08 | S2 | M5 | `JwtProvider.validarYObtenerSujeto` habría podido tumbar con 500 cualquier ruta pública si `JWT_SECRET` no estaba configurado | Cerrado | D3 |
+| BUG-011 | 2026-08-08 | S2 | M1/M5 | `ManejadorGlobalDeErrores` devolvía 500 en vez de 400/404 para validación de `@Valid` y rutas sin handler; solo aparecía al fusionar los PR #56 y #58 juntos | Cerrado | Equipo (fusión) |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -39,6 +44,184 @@ Tres razones concretas, no burocráticas:
 ---
 
 ## Bugs abiertos — detalle
+
+### BUG-011 — `ManejadorGlobalDeErrores` devolvía 500 donde correspondía 400/404, solo al combinar dos PRs
+
+- **Fecha:** 2026-08-08 · **Severidad:** S2 · **Módulo:** M1/M5 (transversal, capa `api/error`) ·
+  **Responsable:** Equipo (encontrado y corregido resolviendo el merge del PR #58)
+- **Estado:** Cerrado — corregido antes de fusionar, ninguno de los dos PRs lo tenía por separado
+
+**Síntoma:** al combinar el PR #56 (`ManejadorGlobalDeErrores`, `SectorControllerTest`) con el PR #58
+(JWT, `spring-boot-starter-security`), `./mvnw clean verify` pasó de 0 a 6 pruebas fallidas:
+`SectorControllerTest` (4, todas `esperado 200/404, recibido 401`) y `VeedorAuthControllerTest` (2,
+`esperado 400/404, recibido 500`).
+
+**Reproducción:** consistente, solo con ambos PRs presentes a la vez.
+
+1. `ManejadorGlobalDeErrores` tiene `@ExceptionHandler(Exception.class)` como catch-all. No
+   distinguía `MethodArgumentNotValidException` (debía ser 400) ni `NoResourceFoundException` (debía
+   ser 404) de un error interno real, así que las devolvía como 500 genérico. El PR #56 nunca lo
+   notó porque `SectorController` no tenía ningún `@Valid` en el cuerpo; el PR #58 sí lo introdujo
+   (`CredencialVeedor`), pero en su propia rama —sin `ManejadorGlobalDeErrores`, que es del PR #56—
+   Spring maneja esas excepciones con su comportamiento por defecto (400/404), así que su prueba
+   pasaba igual, por una razón distinta a la que el código final necesitaba.
+2. `SectorControllerTest` (`@WebMvcTest`) no importaba `SecurityConfig`. Sin `spring-boot-starter-
+   security` en el classpath (el estado del PR #56 solo) eso no importaba nada — no había Security
+   que autoconfigurar. En cuanto el PR #58 agrega esa dependencia al `pom.xml` del proyecto,
+   cualquier *slice* de prueba sin una `SecurityFilterChain` explícita cae en la autoconfiguración
+   por defecto de Spring Security ("todo requiere autenticación"), y las 4 pruebas de un controlador
+   público empezaron a recibir 401.
+
+**Esperado:** que `GET /api/sectores` sin token siga público (RF019: solo `/api/veedor/**` protegido)
+y que un `@Valid` rechazado devuelva 400, no 500.
+
+**Causa raíz:** ninguno de los dos autores podía haberlo visto solo. El PR #56 escribió el manejador
+de errores antes de que existiera ningún endpoint con `@Valid`. El PR #58 escribió su propia prueba
+contra una rama que todavía no tenía `ManejadorGlobalDeErrores` ni `SectorControllerTest`. El defecto
+solo existe en la intersección de ambos — es responsabilidad de quien resuelve el merge, no de
+ninguno de los dos PRs por separado.
+
+**Corrección:**
+- `ManejadorGlobalDeErrores.java` — nuevos `@ExceptionHandler` para `MethodArgumentNotValidException`
+  (400, con el detalle de los campos) y `NoResourceFoundException` (404), antes del catch-all.
+- `SectorControllerTest.java` — `@Import(SecurityConfig.class)` y `@MockitoBean JwtProvider`, igual
+  que ya hacía `VeedorAuthControllerTest`.
+
+Verificado: `./mvnw clean verify` → 52 pruebas, 0 fallos, ArchUnit incluido.
+
+---
+
+### BUG-010 — Un `JWT_SECRET` sin configurar habría podido tumbar con 500 cualquier ruta pública
+
+- **Fecha:** 2026-08-08 · **Severidad:** S2 · **Módulo:** M5 · **Responsable:** D3
+- **Estado:** Cerrado — corregido antes de comitear, capturado escribiendo la prueba
+
+**Síntoma (en el diseño original, nunca llegó a `develop`):** `JwtAuthenticationFilter` llama a
+`JwtProvider.validarYObtenerSujeto(token)` en **toda** petición que traiga un header `Authorization`,
+sin importar si la ruta exige autenticación o no (RF019: el resto de la plataforma es público). La
+primera versión de ese método solo capturaba `JwtException` e `IllegalArgumentException`; la
+validación del secreto (`clave()`) lanza `IllegalStateException` cuando `JWT_SECRET` no está
+configurado, y esa excepción no estaba cubierta.
+
+**Reproducción:** con `JWT_SECRET` vacío (el valor por defecto de `.env.example`, sin configurar
+todavía), cualquier petición a una ruta pública —incluida `GET /api/sectores`— con un header
+`Authorization: Bearer cualquier-cosa` habría propagado `IllegalStateException` sin capturar,
+devolviendo un 500 en una ruta que ni siquiera exige token.
+
+**Esperado:** que un `JWT_SECRET` sin configurar afecte solo al login del veedor (`503` explícito,
+ya cubierto por `VeedorAuthController`), nunca a rutas públicas.
+
+**Causa raíz:** al escribir `validarYObtenerSujeto` no se distinguió entre "token inválido" (debe
+devolver vacío) y "el servidor no puede validar nada porque está mal configurado" (debía devolver
+vacío también, pero se decidió tratarlo como una excepción de configuración sin pensar en quién
+llama al método).
+
+**Corrección:** `JwtProvider.java` — se agregó `IllegalStateException` a la captura de
+`validarYObtenerSujeto`. Cubierto por `JwtProviderTest.validarNoDebeLanzarAunqueElSecretoEsteMalConfigurado`
+y verificado en vivo: con `JWT_SECRET` configurado, `GET /api/veedor/lo-que-sea` sin token → 401;
+con token válido → 404 (pasó el filtro, no hay handler todavía) — nunca 500.
+
+---
+
+### BUG-009 — `RedisTemplate<String,String>` es ambiguo entre el bean propio y `stringRedisTemplate` de Spring
+
+- **Fecha:** 2026-08-08 · **Severidad:** S2 · **Módulo:** — (infraestructura) · **Responsable:** D3
+- **Estado:** Cerrado — corregido en el mismo PR que lo encontró
+
+**Síntoma:** al inyectar `RedisTemplate<String, String>` por tipo en `RedisContadorReportesAdapter`,
+Spring falla al arrancar el contexto de prueba con
+`NoUniqueBeanDefinitionException: ... expected single matching bean but found 2: redisTemplate,stringRedisTemplate`.
+
+**Reproducción:** consistente. `RedisConfig.java` (Sprint 0) define un bean `redisTemplate` de tipo
+`RedisTemplate<String, String>`. La autoconfiguración de Spring Boot registra además
+`stringRedisTemplate` — de tipo `StringRedisTemplate`, que **extiende** `RedisTemplate<String, String>`
+y por eso también encaja en cualquier inyección por ese tipo. La autoconfiguración de este segundo
+bean no está condicionada a que falte el primero, así que los dos siempre coexisten.
+
+**Esperado:** que inyectar el `RedisTemplate<String, String>` de `RedisConfig` sea inequívoco.
+
+**Causa raíz:** ningún código había consumido ese bean por tipo hasta este PR — `RedisConfig` existía
+desde el Sprint 0/1 como andamiaje, sin consumidor que expusiera la ambigüedad. Le iba a pasar al
+primer `@Autowired RedisTemplate<String,String>` que alguien del equipo escribiera, en cualquier capa.
+
+**Corrección:** `RedisContadorReportesAdapter` — parámetro de constructor calificado con
+`@Qualifier("redisTemplate")`. Cubierto por la propia suite de integración de
+`RedisContadorReportesAdapterTest`: si el contexto no puede resolver el bean, las 6 pruebas fallan al
+arrancar (ya lo hicieron, en el diagnóstico de este bug).
+
+---
+
+### BUG-008 — El mapa pinta como "con servicio" los sectores de los que no tiene ningún dato
+
+- **Fecha:** 2026-08-08 · **Severidad:** S2 · **Módulo:** M1 · **Responsable:** D4
+- **Estado:** Abierto — encontrado por D3 al construir el contrato de `GET /api/sectores`
+
+**Síntoma:** `frontend/src/components/MapaCartagena.tsx:92` hace
+`const estado: EstadoServicio = sector?.estado ?? 'CON_SERVICIO'`. Todo barrio sin dato se dibuja con
+el color de servicio normal. Con los datos reales esto no es un caso raro: **son 211 de 211 los
+sectores sin estado registrado** hasta que M3 (consenso) empiece a escribirlos en el Sprint 2.
+
+**Reproducción:** consistente. Con el backend sirviendo datos reales, `GET /api/sectores` devuelve
+`"estado": null` en los 211 sectores; el mapa los muestra todos en verde.
+
+```
+curl -s http://localhost:8080/api/sectores | grep -c '"estado":null'   → 211
+```
+
+**Esperado:** que un sector sin dato se distinga visualmente de uno verificado con servicio. La
+plataforma no debe afirmar lo que no ha verificado — es el acuerdo del 2026-08-06 en `MEMORY.md`
+("falsos positivos son peores que falsos negativos") y la razón de `ADR-014`. Un vecino que ve su
+barrio en verde y no tiene agua deja de creerle a la plataforma, que es su único activo.
+
+**Causa raíz:** el frontend se construyó contra `SECTORES_MOCK`, donde todos los sectores traían
+estado. El `?? 'CON_SERVICIO'` era un relleno razonable para un dato que en los mocks nunca faltaba;
+con datos reales se vuelve una afirmación falsa. Es el costo de `DT-001`/`DT-002` que el propio
+registro de desbloqueos anticipaba.
+
+**Corrección:** pendiente. Es de D4: `MapaCartagena.tsx:92` (color neutro para nulo) e
+`InsigniaEstado` (que hoy no acepta nulo y rompería en `colores.etiqueta`). El contrato ya declara
+`estado` como anulable, así que el cliente generado obligará a tratar el caso.
+
+---
+
+### BUG-007 — Las pruebas con Testcontainers no encuentran Docker aunque Docker esté corriendo
+
+- **Fecha:** 2026-08-08 · **Severidad:** S2 · **Módulo:** — (infraestructura de pruebas) · **Responsable:** D3
+- **Estado:** Cerrado — corregido en el mismo PR que lo encontró
+
+**Síntoma:** `./mvnw verify` falla con
+`IllegalState Could not find a valid Docker environment. Please see logs and check configuration`,
+con Docker Desktop 4.82 corriendo y `docker ps` funcionando sin problema. El mensaje no menciona el
+motivo real, que es una versión de API incompatible.
+
+**Reproducción:** consistente, en toda ejecución. Diagnóstico contra el socket real:
+
+```
+docker version  →  ApiVersion 1.55, MinAPIVersion 1.40
+GET //./pipe/docker_engine /v1.44/info  →  200
+GET //./pipe/docker_engine /v1.32/info  →  400   (cuerpo idéntico al del error de Testcontainers)
+```
+
+**Esperado:** que las pruebas de integración del adaptador Mongo corran, porque son parte de la
+definición de terminado de D3 (`D3-backend-infraestructura.md` §3).
+
+**Causa raíz:** Docker Engine 29 subió su `MinAPIVersion` a 1.40 y dejó de aceptar versiones
+anteriores. docker-java, dentro de Testcontainers 1.21.3 (**la última publicada** — no hay versión a
+la que actualizar), sigue negociando 1.32 y recibe 400. No es un problema de esta máquina: le va a
+pasar a todo el equipo en cuanto actualice Docker Desktop.
+
+Descartado por comprobación: no es el sandbox (falla igual fuera de él), no es el pipe (ambos
+responden 200 desde otros clientes), no es filtrado del daemon (Node obtiene 200), y las variables
+`DOCKER_HOST` y `DOCKER_API_VERSION` no lo corrigen — esa ruta de configuración las ignora.
+
+**Corrección:** `backend/pom.xml` — propiedad `docker.api.version` (1.41, la ventana más ancha:
+soportada desde Docker 20.10 y por encima del mínimo de 29) inyectada al JVM de pruebas como la
+propiedad `api.version` que docker-java sí lee, vía `maven-surefire-plugin`. Verificado:
+`./mvnw clean verify` sin banderas ni variables de entorno → **34 pruebas, 0 fallos**, incluidas las
+7 de `SectorMongoAdapterTest` contra un contenedor `mongo:7.0` real. Se quita cuando Testcontainers
+publique una versión que negocie sola.
+
+---
 
 ### BUG-006 — La rama `vista-previa-total` vuelve a pedir la contraseña `'1234'` y borra la prueba que lo impedía
 
@@ -82,6 +265,28 @@ Carlos (D2) en un lapso de 30 segundos (07:37:03–07:37:33 UTC), con `reviews: 
 verificado con `gh pr view --json reviews,comments`. Esto es relevante en particular para el PR #42
 (propuesta de `ADR-012`), cuyo propio texto pedía explícitamente aprobación por comentario antes de
 fusionarse — la fusión no la sustituye, y el ADR se mantiene en estado *Propuesta* por esa razón.
+**Verificado el 2026-08-08:** el patrón se repitió una cuarta vez — el PR
+[#45](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/45), que es justamente el que registra
+este bug y propone `ADR-013`, se fusionó también con `reviews: []` (`gh pr view 45 --json reviews`),
+fusionado por Carlos (D2). Por la misma razón que el PR #42, `ADR-013` sigue en estado *Propuesta*: su
+condición de ratificación no se cumplió con la fusión.
+**Verificado el 2026-08-08, quinta ocurrencia:** el PR
+[#57](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/57) (adaptador Redis de
+`ContadorReportesPort`, D3) se fusionó también con `reviews: []`. Diferencia con las cuatro anteriores:
+antes de fusionar, Carlos (D2) le pidió explícitamente al agente que revisara el código y resolviera
+los conflictos con `develop` — el agente hizo una revisión real (arquitectura, tests, casos de borde,
+`./mvnw clean verify` en verde) y la reportó en el chat antes de fusionar, en vez de fusionar a ciegas.
+Sigue sin ser un segundo humano revisando, que es lo que pide la política — pero ya no es fusionar sin
+ninguna revisión.
+**Verificado el 2026-08-08, sexta ocurrencia:** el PR
+[#58](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/58) (infraestructura JWT del panel del
+veedor, D3) se fusionó también con `reviews: []`, misma diferencia que la quinta ocurrencia: el agente
+revisó el código antes de fusionar. Esta vez la revisión sí encontró algo que un merge automático
+habría dejado pasar — `BUG-011`, un error 500 que solo existía en la combinación de este PR con los
+PR #56 y #57 ya fusionados, no en ninguno de los tres por separado. Es evidencia de que el segundo par
+de ojos, aunque no sea humano, está encontrando defectos reales de integración — pero no reemplaza la
+razón original por la que la política pide un revisor: que alguien del equipo, no solo quien fusiona,
+entienda y respalde el cambio.
 **Reproducción:** cualquier PR abierto en este repositorio puede fusionarse sin que nadie deje un
 comentario o *review* — no hay protección de rama configurada (`ADR-010`, decisión deliberada: es
 política, no candado técnico).
@@ -180,5 +385,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-007
+Siguiente número disponible: BUG-009
 -->

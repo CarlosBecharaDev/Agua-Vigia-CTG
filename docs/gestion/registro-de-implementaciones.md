@@ -77,6 +77,9 @@ no la abre quien la produce el insumo, la abre su titular (`secuencia-de-trabajo
 |---|---|---|---|---|---|
 | RF001 · RF004 | func | M1: `MapaCartagena` (Leaflet + los 213 barrios reales), `ListaSectores` accesible, `InsigniaEstado`, `EtiquetaFrescura` | D4 | [#12](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/12) | `npm run build` en verde · ⚠️ **se alimenta de `SECTORES_MOCK`, no de la API** |
 | RF009–RF011, RF016–RF017, RF020–RF022 | andamio | Dominio de M3/M6: Value Objects, entidades (`CorteAgua` con Builder), `domain/port/in` y `port/out`, test de ArchUnit. Abre **C1** | D2 | [#21](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/21) | `./mvnw verify` → 23 pruebas, 0 fallos, ArchUnit incluido |
+| RF001 · RF002 · RF004 | func | M1 backend: adaptador Mongo de `SectorRepository` (índice `2dsphere`, geometría preservada al guardar), adaptador de `RelojPort`, `GET /api/sectores` y `/api/sectores/{id}`, errores RFC 7807, contrato OpenAPI publicado. **Abre C2** | D3 | [#56](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/56) | `./mvnw clean verify` → **34 pruebas, 0 fallos**, ArchUnit incluido · verificado además contra Mongo real: 211 sectores servidos, 404 en `application/problem+json` |
+| RF009–RF011 | infra | M3: adaptador Redis de `ContadorReportesPort` — ventana deslizante de reportes por sector sobre un `ZSET` (score = instante epoch millis), TTL de retención de 24h. No deduplica por `HuellaDispositivo` a propósito (responsabilidad del rate limiting HTTP, todavía sin construir). Sin consumidor todavía: `EvaluarConsensoUseCase` sigue sin existir en `application/` (capa de D2) | D3 | [#57](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/57) | `./mvnw clean verify` → 40 pruebas, 0 fallos, ArchUnit incluido · `RedisContadorReportesAdapterTest` — 6 pruebas de integración contra `redis:7-alpine` real (Testcontainers) |
+| RF019 · RNF011 | func | M5: infraestructura JWT del panel del veedor — `POST /api/veedor/sesion` (credencial única BCrypt, RF019), `SecurityConfig` protege `/api/veedor/**` y deja el resto público, token expira a las 8h exactas (RNF011). Sin CRUD de cortes ni moderación todavía: necesitan casos de uso de `application/`, capa de D2 | D3 | [#58](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/58) | `./mvnw clean verify` → 52 pruebas, 0 fallos, ArchUnit incluido · `JwtProviderTest` (6), `VeedorAuthControllerTest` (8) · verificado además en vivo: login, 401/404 según corresponda, expiración exacta de 8h |
 
 ⚠️ **El PR #12 introdujo datos simulados sin desbloqueo temporal registrado.** `SECTORES_MOCK`
 sustituye a `GET /api/sectores`, que no existe porque C2 está cerrada. La regla del proyecto
@@ -85,9 +88,38 @@ titular de la compuerta, caducidad e issue de reconciliación. Registrado como p
 en `registro-de-bloqueos.md` §4. No cuenta como RF001/RF004 implementados hasta que consuma la API
 real; la tabla de cobertura sigue en 0%.
 
+**El trabajo de D3 abre C2 pero no mueve la cobertura a más de 0%.** El backend ya sirve los 211
+sectores reales, pero `PaginaMapa.tsx` sigue leyendo `SECTORES_MOCK`: mientras el frontend no consuma
+`GET /api/sectores`, RF001–RF004 no están cubiertos de extremo a extremo. La fila va como `func`
+porque el backend sí está terminado y probado; la cobertura la mueve D4 al conectar y retirar
+`DT-001`/`DT-002`. Contar antes sería inflar el Capítulo IV.
+
 **El PR #21 lleva `andamio`, no `func`:** define contratos (interfaces `port/in`) y entidades, pero
 ningún caso de uso está implementado todavía — eso es Sprint 2 en `docs/equipo/D2-backend-dominio.md`.
 La cobertura de requisitos sigue en 0% hasta que exista una implementación real detrás de un `port/in`.
+
+**El PR #57 lleva `infra`, no `func`:** implementa un adaptador de salida contra un puerto que ya
+existía (`ContadorReportesPort`, de `port/out`), pero ningún caso de uso lo invoca todavía —
+`EvaluarConsensoUseCase` sigue sin escribirse en `application/`. La cobertura de RF009–RF011 sigue en
+0% hasta que exista ese caso de uso.
+
+⚠️ **El PR #57 se fusionó sin ningún revisor humano** (`reviews: []`), el mismo patrón que `BUG-005`
+—quinta ocurrencia registrada. Antes de fusionar, el agente revisó el código (arquitectura, tests,
+casos de borde) y resolvió los conflictos contra `develop` (que ya traía el PR #56 fusionado); la
+decisión de fusionar sin un segundo humano fue autorización explícita de Carlos (D2) en el chat, no
+un rodeo silencioso de la política. Detalle de la recurrencia en `registro-de-bugs.md` (`BUG-005`).
+
+**El PR #58 lleva `func`:** a diferencia del PR #57, sí expone un endpoint que funciona de extremo a
+extremo — `POST /api/veedor/sesion` emite un JWT real y `SecurityConfig` lo exige de verdad en
+`/api/veedor/**`, verificado en vivo. **Aun así la cobertura de RF019 sigue en 0%:** `PaginaVeedor.tsx`
+todavía usa el botón "Simular ingreso" (`BUG-004`), no el login real — falta que D4 lo conecte.
+
+⚠️ **El PR #58 se fusionó sin ningún revisor humano** (`reviews: []`) — sexta ocurrencia de `BUG-005`.
+Al resolver el merge contra `develop` (que ya traía los PR #56 y #57) apareció `BUG-011`: un error 500
+que no existía en ninguno de los dos PRs por separado, solo en su combinación (`ManejadorGlobalDeErrores`
+sin manejar `MethodArgumentNotValidException`/`NoResourceFoundException`, y `SectorControllerTest` sin
+`@Import(SecurityConfig.class)`). Se corrigió antes de fusionar; detalle en `registro-de-bugs.md`
+(`BUG-011`).
 
 ---
 
