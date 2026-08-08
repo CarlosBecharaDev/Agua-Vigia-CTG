@@ -1,22 +1,16 @@
 name: Sala de control
 
-# Regenera y publica el dashboard del proyecto (docs/gestion/ en forma de pagina)
-# en cada push a develop, y se puede disparar a mano desde Actions.
-# El generador (scripts/generar-dashboard.mjs) lee PRs/issues reales con `gh`
-# y parsea los registros en docs/ — no inventa datos.
+# Regenera y publica el dashboard del proyecto en CADA push a develop —
+# es decir, en cada PR que se fusiona — y se puede disparar a mano desde
+# Actions. Sin filtro de rutas a proposito: los conteos de PRs, issues y
+# el grafico de caudal salen de `gh pr list`/`gh issue list` en vivo, no
+# solo de los archivos markdown, asi que cualquier fusion los cambia aunque
+# no toque docs/. El generador (scripts/generar-dashboard.mjs) no inventa
+# datos: lee PRs/issues reales con `gh` y parsea los registros en docs/.
 
 on:
   push:
     branches: [develop]
-    paths:
-      - "docs/design-decisions.md"
-      - "docs/gestion/registro-de-bugs.md"
-      - "docs/gestion/registro-de-bloqueos.md"
-      - "docs/gestion/registro-de-implementaciones.md"
-      - "docs/equipo/secuencia-de-trabajo.md"
-      - "scripts/generar-dashboard.mjs"
-      - "scripts/dashboard-template.html"
-      - ".github/workflows/dashboard.yml"
   workflow_dispatch: {}
 
 permissions:
