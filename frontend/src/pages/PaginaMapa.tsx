@@ -19,7 +19,7 @@ import { Megaphone, RefreshCw, Database, ServerCrash, Droplet } from 'lucide-rea
 import { useDatosEnVivo } from '../hooks/useDatosEnVivo'
 
 const PaginaMapa: FC = () => {
-  const { sectores, clima, cargando, error, ultimaActualizacion, recargar } = useDatosEnVivo();
+  const { sectores, clima, cargando, error, ultimaActualizacion, usandoDatosReales, recargar } = useDatosEnVivo();
 
   const [sectorActivo, setSectorActivo] = useState<Sector | null>(null)
   const [modalAbierto, setModalAbierto] = useState(false)
@@ -58,7 +58,7 @@ const PaginaMapa: FC = () => {
               <span style={{ fontWeight: '500', color: 'var(--color-tinta)' }}>Sin conexión</span>
               <span style={{ color: 'var(--color-tinta-3)' }}>· Simulación</span>
             </>
-          ) : sectores.some(s => s.id === '1') ? (
+          ) : !usandoDatosReales ? (
             <>
               <Database size={14} color="var(--color-estado-baja)" />
               <span style={{ fontWeight: '500', color: 'var(--color-tinta)' }}>Acuacar inactivo</span>

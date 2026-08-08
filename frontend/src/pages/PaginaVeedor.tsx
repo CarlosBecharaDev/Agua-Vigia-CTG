@@ -233,7 +233,7 @@ const PaginaVeedor: FC = () => {
               </div>
             ) : (
               reportes.map(rep => (
-                <div key={rep.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.5rem', backgroundColor: 'var(--color-superficie)', border: '1px solid var(--color-linea)', borderRadius: '1rem', transition: 'all 0.3s ease' }}>
+                <div key={rep.id} className="panel-glass hover-glowing" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.5rem', borderRadius: '1rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                       <strong style={{ color: 'var(--color-tinta)', fontSize: '1.1rem' }}>{rep.barrio}</strong>

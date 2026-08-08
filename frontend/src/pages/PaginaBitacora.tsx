@@ -149,15 +149,13 @@ const PaginaBitacora: FC = () => {
               return (
                 <article 
                   key={boletin.id}
+                  className="panel-glass hover-glowing"
                   style={{
                     display: 'flex',
                     gap: '1rem',
-                    backgroundColor: 'var(--color-superficie)',
                     padding: '1.5rem',
                     borderRadius: 'var(--radio-md)',
-                    border: '1px solid var(--color-linea)',
                     position: 'relative',
-                    transition: 'all 0.3s ease'
                   }}
                 >
                   {/* Línea vertical decorativa con color del estado */}
@@ -241,13 +239,12 @@ const PaginaBitacora: FC = () => {
             MOCK_EVENTOS.map(evento => (
               <article 
                 key={evento.id}
+                className="panel-glass hover-glowing"
                 style={{
                   display: 'flex',
                   gap: '1rem',
-                  backgroundColor: 'var(--color-superficie)',
                   padding: '1.5rem',
                   borderRadius: 'var(--radio-md)',
-                  border: '1px solid var(--color-linea)',
                   position: 'relative'
                 }}
               >

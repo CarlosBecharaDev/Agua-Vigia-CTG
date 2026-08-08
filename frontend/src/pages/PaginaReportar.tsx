@@ -80,10 +80,12 @@ const PaginaReportar: FC = () => {
           Por favor, indícanos cómo está el servicio en tu barrio ahora mismo. Tu reporte ayuda a validar el consenso comunitario.
         </p>
 
-        <FormularioReporte 
-          sectorPreseleccionado={sectorPreseleccionado}
-          onReporteEnviado={() => setExito(true)}
-        />
+        <div className="panel-glass" style={{ padding: '2rem', borderRadius: '1.5rem', marginTop: '1rem', border: '1px solid var(--color-linea)' }}>
+          <FormularioReporte 
+            sectorPreseleccionado={sectorPreseleccionado}
+            onReporteEnviado={() => setExito(true)}
+          />
+        </div>
 
         <p style={{ color: 'var(--color-tinta-3)', fontSize: '0.75rem', marginTop: '2.5rem', textAlign: 'center' }}>
           Tus datos son anónimos. Si tienes una emergencia o daño grave, contacta a Acuacar directamente al 604 660 3030.

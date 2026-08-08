@@ -226,11 +226,25 @@ select {
 .bg-fondo       { background-color: var(--color-fondo); }
 .border-linea   { border-color: var(--color-linea); }
 
-/* ─── Efecto Superficie Apple (Sin Glassmorphism) ─── */
+/* ─── Tarjetas y Paneles (Glassmorphism Apple-style) ─── */
 .panel-glass {
-  background-color: var(--color-superficie);
-  border: 1px solid var(--color-linea);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  background: linear-gradient(135deg, rgba(var(--glass-r), var(--glass-g), var(--glass-b), 0.7) 0%, rgba(var(--glass-r), var(--glass-g), var(--glass-b), 0.4) 100%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255,255,255,0.2);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .panel-glass {
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+}
+
+:root[data-theme="dark"] .panel-glass {
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.05);
 }
 
 /* ─── Efectos Interactivos (Sutiles al estilo Apple) ─── */
@@ -371,4 +385,234 @@ select {
 .tabla-scroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* ─── Recharts Outline Fix ─── */
+.recharts-wrapper,
+.recharts-surface,
+.recharts-cartesian-grid,
+.recharts-bar-rectangle {
+  outline: none !important;
+}
+.recharts-wrapper *:focus {
+  outline: none !important;
+}
+
+/* ─── Glassmorphism support variables ─── */
+:root {
+  --glass-r: 255;
+  --glass-g: 255;
+  --glass-b: 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --glass-r: 28;
+    --glass-g: 28;
+    --glass-b: 30;
+  }
+}
+
+:root[data-theme="dark"] {
+  --glass-r: 28;
+  --glass-g: 28;
+  --glass-b: 30;
+}
+
+:root[data-theme="light"] {
+  --glass-r: 255;
+  --glass-g: 255;
+  --glass-b: 255;
+}
+
+/* ─── Animación pulso en vivo (indicador Live) ─── */
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.15); }
+}
+
+/* ─── Animación de aparición desde abajo (formularios) ─── */
+@keyframes aparecerAbajo {
+  0% { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Pulse Dot (indicador de conexión en vivo) ─── */
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50% { box-shadow: 0 0 0 6px transparent; }
+}
+
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MISIÓN MÓVIL — Auditoría de Pantallas Pequeñas
+   Media Queries para responsive perfecto en celulares
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Tablets y pantallas medianas (≤ 768px) ── */
+@media (max-width: 768px) {
+  /* Encabezado: ocultar etiquetas de nav, solo iconos */
+  header[role="banner"] nav {
+    gap: 0.1rem !important;
+  }
+
+  header[role="banner"] nav a {
+    padding: 0.4rem 0.5rem !important;
+    font-size: 0 !important; /* Oculta el texto */
+  }
+
+  header[role="banner"] nav a svg {
+    margin-right: 0 !important;
+  }
+
+  /* Logo: más compacto */
+  #logo-aguavigia span {
+    font-size: 1.1rem !important;
+  }
+
+  /* Mapa: más espacio vertical */
+  #panel-mapa, #panel-lista {
+    min-height: 300px !important;
+  }
+
+  /* Estadísticas: KPIs en 1 columna fluida */
+  .grid.md\:grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Gráficos: reducir altura */
+  .recharts-responsive-container {
+    min-height: 240px;
+  }
+}
+
+/* ── Celulares pequeños (≤ 480px) ── */
+@media (max-width: 480px) {
+  /* Encabezado compacto */
+  header[role="banner"] {
+    padding: 0 0.5rem !important;
+    min-height: 52px !important;
+    gap: 0.25rem !important;
+  }
+
+  /* Ocultar el reloj en móvil para ganar espacio */
+  header[role="banner"] .hover-highlight-text {
+    display: none !important;
+  }
+
+  /* Navegación: iconos centrados */
+  header[role="banner"] nav a {
+    min-width: 40px !important;
+    min-height: 40px !important;
+    padding: 0.35rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Logo: solo icono de gota */
+  #logo-aguavigia span {
+    display: none !important;
+  }
+
+  /* Contenido principal: padding reducido y forzado contra inline styles */
+  main > div {
+    padding: 1rem 0.75rem !important;
+  }
+
+  /* Títulos adaptados a pantalla pequeña */
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  h2 {
+    font-size: 1.1rem !important;
+  }
+
+  /* KPIs de estadísticas: más compactos */
+  .grid.md\:grid-cols-3 > div {
+    padding: 1rem !important;
+    border-radius: 1rem !important;
+  }
+
+  /* Panel de detalle del mapa: ancho completo */
+  [role="dialog"] {
+    left: 0.5rem !important;
+    right: 0.5rem !important;
+    transform: none !important;
+    min-width: auto !important;
+    max-width: none !important;
+  }
+
+  /* Barra superior del mapa: compacta */
+  #contenedor-mapa + div,
+  .panel-glass[style*="position: absolute"][style*="top"] {
+    padding: 0.35rem 0.75rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* Gráficos: más compactos */
+  section[style*="borderRadius: '2rem'"] {
+    padding: 1rem !important;
+    border-radius: 1.25rem !important;
+  }
+
+  /* Formulario: botón de envío a ancho completo */
+  form button[type="submit"] {
+    width: 100% !important;
+  }
+
+  /* Botón exportar: ancho completo */
+  button[style*="Exportar"] {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Filtro de periodo: stack vertical si no cabe */
+  div[style*="borderRadius: 'var(--radio-pill)'"][style*="padding: '0.25rem'"] {
+    flex-wrap: wrap;
+  }
+
+  /* Feed de comentarios y bitácora: menos padding */
+  article {
+    padding: 1rem !important;
+  }
+
+  /* Panel veedor: KPIs más compactos */
+  .grid.md\:grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Botón de moderación: texto más pequeño */
+  section button[style*="borderRadius: 'var(--radio-pill)'"] {
+    font-size: 0.8rem !important;
+    padding: 0.6rem 1rem !important;
+  }
+}
+
+/* ── Ajustes para landscape en móvil ── */
+@media (max-height: 500px) and (orientation: landscape) {
+  /* Reducir alturas fijas del mapa para landscape */
+  #panel-mapa {
+    min-height: 250px !important;
+  }
+
+  /* Header más delgado */
+  header[role="banner"] {
+    min-height: 44px !important;
+  }
+}
+
+/* ── Safe area para dispositivos con notch ── */
+@supports (padding-top: env(safe-area-inset-top)) {
+  header[role="banner"] {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  main {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
