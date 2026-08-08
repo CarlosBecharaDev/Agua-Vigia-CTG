@@ -35,6 +35,7 @@ Tres razones concretas, no burocráticas:
 | BUG-008 | 2026-08-08 | S2 | M1 | El mapa pinta como "con servicio" los 211 sectores de los que no tiene dato | Abierto | D4 |
 | BUG-009 | 2026-08-08 | S2 | — (infraestructura) | `RedisTemplate<String,String>` es ambiguo entre el bean propio y `stringRedisTemplate` de Spring | Cerrado | D3 |
 | BUG-010 | 2026-08-08 | S2 | M5 | `JwtProvider.validarYObtenerSujeto` habría podido tumbar con 500 cualquier ruta pública si `JWT_SECRET` no estaba configurado | Cerrado | D3 |
+| BUG-011 | 2026-08-08 | S2 | M1/M5 | `ManejadorGlobalDeErrores` devolvía 500 en vez de 400/404 para validación de `@Valid` y rutas sin handler; solo aparecía al fusionar los PR #56 y #58 juntos | Cerrado | Equipo (fusión) |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -43,6 +44,52 @@ Tres razones concretas, no burocráticas:
 ---
 
 ## Bugs abiertos — detalle
+
+### BUG-011 — `ManejadorGlobalDeErrores` devolvía 500 donde correspondía 400/404, solo al combinar dos PRs
+
+- **Fecha:** 2026-08-08 · **Severidad:** S2 · **Módulo:** M1/M5 (transversal, capa `api/error`) ·
+  **Responsable:** Equipo (encontrado y corregido resolviendo el merge del PR #58)
+- **Estado:** Cerrado — corregido antes de fusionar, ninguno de los dos PRs lo tenía por separado
+
+**Síntoma:** al combinar el PR #56 (`ManejadorGlobalDeErrores`, `SectorControllerTest`) con el PR #58
+(JWT, `spring-boot-starter-security`), `./mvnw clean verify` pasó de 0 a 6 pruebas fallidas:
+`SectorControllerTest` (4, todas `esperado 200/404, recibido 401`) y `VeedorAuthControllerTest` (2,
+`esperado 400/404, recibido 500`).
+
+**Reproducción:** consistente, solo con ambos PRs presentes a la vez.
+
+1. `ManejadorGlobalDeErrores` tiene `@ExceptionHandler(Exception.class)` como catch-all. No
+   distinguía `MethodArgumentNotValidException` (debía ser 400) ni `NoResourceFoundException` (debía
+   ser 404) de un error interno real, así que las devolvía como 500 genérico. El PR #56 nunca lo
+   notó porque `SectorController` no tenía ningún `@Valid` en el cuerpo; el PR #58 sí lo introdujo
+   (`CredencialVeedor`), pero en su propia rama —sin `ManejadorGlobalDeErrores`, que es del PR #56—
+   Spring maneja esas excepciones con su comportamiento por defecto (400/404), así que su prueba
+   pasaba igual, por una razón distinta a la que el código final necesitaba.
+2. `SectorControllerTest` (`@WebMvcTest`) no importaba `SecurityConfig`. Sin `spring-boot-starter-
+   security` en el classpath (el estado del PR #56 solo) eso no importaba nada — no había Security
+   que autoconfigurar. En cuanto el PR #58 agrega esa dependencia al `pom.xml` del proyecto,
+   cualquier *slice* de prueba sin una `SecurityFilterChain` explícita cae en la autoconfiguración
+   por defecto de Spring Security ("todo requiere autenticación"), y las 4 pruebas de un controlador
+   público empezaron a recibir 401.
+
+**Esperado:** que `GET /api/sectores` sin token siga público (RF019: solo `/api/veedor/**` protegido)
+y que un `@Valid` rechazado devuelva 400, no 500.
+
+**Causa raíz:** ninguno de los dos autores podía haberlo visto solo. El PR #56 escribió el manejador
+de errores antes de que existiera ningún endpoint con `@Valid`. El PR #58 escribió su propia prueba
+contra una rama que todavía no tenía `ManejadorGlobalDeErrores` ni `SectorControllerTest`. El defecto
+solo existe en la intersección de ambos — es responsabilidad de quien resuelve el merge, no de
+ninguno de los dos PRs por separado.
+
+**Corrección:**
+- `ManejadorGlobalDeErrores.java` — nuevos `@ExceptionHandler` para `MethodArgumentNotValidException`
+  (400, con el detalle de los campos) y `NoResourceFoundException` (404), antes del catch-all.
+- `SectorControllerTest.java` — `@Import(SecurityConfig.class)` y `@MockitoBean JwtProvider`, igual
+  que ya hacía `VeedorAuthControllerTest`.
+
+Verificado: `./mvnw clean verify` → 52 pruebas, 0 fallos, ArchUnit incluido.
+
+---
 
 ### BUG-010 — Un `JWT_SECRET` sin configurar habría podido tumbar con 500 cualquier ruta pública
 
