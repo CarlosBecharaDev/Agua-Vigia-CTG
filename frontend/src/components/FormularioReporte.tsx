@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import type { FC } from 'react'
-import type { Sector } from '../types/tipos-dominio'
 
 // TODO: Reemplazar con datos de la API cuando C2 abra
 const SECTORES_MOCK = [
