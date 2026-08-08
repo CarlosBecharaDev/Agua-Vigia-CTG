@@ -55,19 +55,45 @@ El archivo se guarda **tal como lo entrega la fuente** — no se alteran datos s
 decida. Quien construya el seed de Sprint 1 debe resolver esto explícitamente:
 
 1. **3 `CODIGO` duplicados de 213:**
-   - `1250` → dos barrios distintos: `NARIÑO` (FID 21, UCG 2) y `CHAMBACU` (FID 145, UCG 1). Error de
-     origen: son barrios diferentes con el mismo código.
-   - `1959` y `1960` → `OLAYA ST. LA PUNTILLA` y `OLAYA ST. PLAYA BLANCA` aparecen **duplicados
-     exactos** (mismos `Shape__Area`/`Shape__Length`, FID 160/212 y 166/213). Parecen filas repetidas
-     en la fuente, no dos barrios reales.
+   - `1250` → dos barrios **distintos**: `NARIÑO` (FID 21, UCG 2) y `CHAMBACU` (FID 145, UCG 1). Error
+     de origen: son barrios diferentes con el mismo código.
+   - `1959` y `1960` → `OLAYA ST. LA PUNTILLA` y `OLAYA ST. PLAYA BLANCA` aparecen **cada una dos
+     veces, como fila literalmente repetida** (mismos `Shape__Area`/`Shape__Length`, FID 160/212 y
+     166/213). Confirmado contra un boletín real de Acuacar (ver abajo): **sí son lugares reales**,
+     el problema es solo que la fila está duplicada — al deduplicar, conservar una de las dos.
 2. **Consecuencia práctica:** `CODIGO` no sirve como clave primaria tal cual. El seed necesita generar
    su propio identificador (p. ej. slug de `NOMBRE`) o deduplicar antes de insertar en Mongo.
 
 ---
 
+## Validado contra boletines reales de Acuacar (2026-08-08)
+
+Se compararon los nombres de este GeoJSON contra el contenido real de varios boletines de
+`acuacar.com` (API REST, ver `MEMORY.md`), incluida la programación detallada de suspensiones
+rotativas de mayo 2026 (boletines #2785 y #2787).
+
+**Coincide bien:** `CASTILLOGRANDE`, `BOCAGRANDE`, `LA BOQUILLA` y, sobre todo, `OLAYA HERRERA` — el
+GeoJSON ya la modela como **11 sub-sectores separados** (`OLAYA ST. RICAURTE`, `OLAYA ST. CENTRAL`,
+`OLAYA ST. LA MAGDALENA`, `OLAYA ST. PLAYA BLANCA`, `OLAYA ST. ZARABANDA`, etc.), y esos mismos
+nombres de sub-sector aparecen **literalmente** en el boletín #2785: *"Olaya Herrera, sectores:
+Ricaurte, Central, Progreso, La Magdalena, Playa Blanca, Zarabanda…"*. El propio boletín #2785 lo
+confirma como práctica habitual: *"si un barrio de Cartagena aparece más de una vez a la semana en la
+programación de suspensión de agua, se debe a que ha sido dividido en varios sectores diferentes."*
+
+**Hallazgo importante para M9 (ingesta con IA) y para el modelo de dominio de `Sector`:** Acuacar a
+veces reporta a un nivel **más fino que cualquier polígono de barrio/sub-sector**, por tramo de calle
+o manzana — ejemplos textuales reales del boletín #2787: *"La Candelaria entre carrera 34 a la 38 y
+calle 31 a la Vía Perimetral"*, o del boletín #2547: *"Chiquinquirá, Mz 01 hasta Mz 05, Mz 11 hasta Mz
+25…"*. Este GeoJSON **no puede representar ese nivel de detalle**. D3 (pipeline M9) y D2 (dominio de
+`Sector`) deberían tenerlo en cuenta al diseñar la extracción: el matching texto-libre → polígono va a
+necesitar tolerancia (fuzzy match al barrio/sub-sector contenedor) y probablemente un umbral de
+confianza más bajo para avisos a nivel de tramo de calle, no de barrio completo.
+
+---
+
 ## Próximo paso
 
-Sprint 1 — D5: validar este archivo contra los boletines reales de Acuacar (¿los nombres de barrio
-coinciden con los que usa Acuacar en sus avisos?) y escribir el script de siembra. Si la cobertura o
-calidad no alcanza, aplicar el Plan B de `D5-devops-qa.md` §4 (polígonos simplificados de las 15
-localidades/sectores principales).
+Sprint 1 — D5: escribir el script de siembra con el `CODIGO` deduplicado. Si la cobertura o calidad no
+alcanza para algún caso, aplicar el Plan B de `D5-devops-qa.md` §4 (polígonos simplificados de las 15
+localidades/sectores principales). El hallazgo sobre reportes a nivel de tramo de calle/manzana queda
+para que D2/D3 lo consideren al diseñar el matching de M9 — no es algo que este GeoJSON pueda resolver.
