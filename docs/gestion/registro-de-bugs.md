@@ -278,6 +278,15 @@ los conflictos con `develop` — el agente hizo una revisión real (arquitectura
 `./mvnw clean verify` en verde) y la reportó en el chat antes de fusionar, en vez de fusionar a ciegas.
 Sigue sin ser un segundo humano revisando, que es lo que pide la política — pero ya no es fusionar sin
 ninguna revisión.
+**Verificado el 2026-08-08, sexta ocurrencia:** el PR
+[#58](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/58) (infraestructura JWT del panel del
+veedor, D3) se fusionó también con `reviews: []`, misma diferencia que la quinta ocurrencia: el agente
+revisó el código antes de fusionar. Esta vez la revisión sí encontró algo que un merge automático
+habría dejado pasar — `BUG-011`, un error 500 que solo existía en la combinación de este PR con los
+PR #56 y #57 ya fusionados, no en ninguno de los tres por separado. Es evidencia de que el segundo par
+de ojos, aunque no sea humano, está encontrando defectos reales de integración — pero no reemplaza la
+razón original por la que la política pide un revisor: que alguien del equipo, no solo quien fusiona,
+entienda y respalde el cambio.
 **Reproducción:** cualquier PR abierto en este repositorio puede fusionarse sin que nadie deje un
 comentario o *review* — no hay protección de rama configurada (`ADR-010`, decisión deliberada: es
 política, no candado técnico).
