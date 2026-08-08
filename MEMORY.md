@@ -85,6 +85,10 @@ throttling propio en el Sprint 0.
 | 2026-08-06 | Se respetan los bloqueos de `robots.txt` a agentes de IA aunque sean técnicamente evadibles. Es coherencia con la tesis del proyecto, no una limitación. |
 | 2026-08-06 | Nada extraído por IA llega al mapa público sin que el modelo cite la frase textual del boletín que lo respalda. Verificable automáticamente. |
 | 2026-08-06 | Falsos positivos son peores que falsos negativos: un corte inventado destruye la credibilidad; uno omitido lo reporta la comunidad. El umbral de confianza se calibra sesgado hacia la precisión. |
+| 2026-08-07 | Toda implementación, bug y sesión de trabajo con IA se registra en `docs/gestion/`. Es parte de la definición de terminado y es el insumo del Capítulo IV. Ver `ADR-008`. |
+| 2026-08-07 | Una información vive en **un solo archivo**. Los archivos permanentes tienen presupuesto: `CLAUDE.md` ≤ 200 líneas, `MEMORY.md` ≤ 150, `DESIGN.md` ≤ 200. Ver `docs/gestion/protocolo-de-contexto.md`. |
+| 2026-08-07 | El Scrum Master rota cada sprint (D1→D2→D3→D4→D5). Cierra el sprint y rota los registros. |
+| 2026-08-07 | **El agente nunca figura como colaborador del repositorio**: sin `Co-Authored-By`, sin firmas en commits o PRs. La autoría es de las 5 personas. Forzado con `includeCoAuthoredBy: false`. Ver `CLAUDE.md` § Convenciones de Git. |
 
 ---
 
@@ -108,6 +112,9 @@ throttling propio en el Sprint 0.
 - Buscar RSS de El Universal en rutas estándar (`/rss.xml`, `/feed/`, `/seccion/local/rss.xml`) →
   404 o conexión cerrada. Usa Arc Publishing y su API `/pf/api/v3/*` está deshabilitada en
   `robots.txt`. **Además el sitio bloquea agentes de IA: no insistir.**
+- **Servidor MCP de git en npm**: `@modelcontextprotocol/server-git` **no existe** (npm devuelve E404,
+  verificado 2026-08-07). El oficial es de Python (`uvx mcp-server-git`). No se agrega: el historial
+  ya está disponible vía `Bash(git log/diff/show)`, permitidos en `.claude/settings.json`.
 - `datos.gov.co`: el endpoint `/api/views/metadata/v1` agota el tiempo de espera. **Usar en su lugar
   la API de catálogo de Socrata:** `https://api.us.socrata.com/api/catalog/v1?q=...` (responde bien).
   La búsqueda genérica por "acueducto" da 322 datasets nacionales, ninguno específico de

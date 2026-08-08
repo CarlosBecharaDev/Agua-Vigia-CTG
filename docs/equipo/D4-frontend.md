@@ -11,7 +11,7 @@
 - Construye la interfaz web optimizada para dispositivos móviles (responsive desde 360px de ancho).
 - Integra mapas interactivos con **Leaflet / React-Leaflet** renderizando polígonos geoespaciales por estado.
 - **Genera el cliente HTTP tipado** a partir de la especificación OpenAPI publicada por D3 y D1.
-- Enforza los principios visuales de [`DESIGN.md`](file:///C:/Users/Usuario/Desktop/aguavigia-ctg/DESIGN.md):
+- Hace cumplir los principios visuales de [`DESIGN.md`](../../DESIGN.md):
   - Respuesta a *"¿Tengo agua?"* en menos de 5 segundos.
   - Paleta cromática estricta de 4 estados (Verde, Rojo, Ámbar, Azul) con respaldo táctil/textual.
   - Modo Claro y Oscuro nativos.

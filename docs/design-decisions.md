@@ -254,8 +254,66 @@ Agregando autenticación opcional para reportes "verificados" sin quitar la vía
 
 ---
 
+## ADR-008 — Registrar implementaciones, bugs y sesiones en el repositorio, no en la conversación
+
+- **Fecha:** 2026-08-07
+- **Estado:** Aceptada
+- **Decide:** Equipo completo
+
+### Contexto
+Cinco personas trabajan el mismo repositorio, cada una con su propia sesión de agente de IA. Nada de
+lo que ocurre en una conversación sobrevive a su cierre: ni el bug que se encontró y se arregló, ni
+el motivo por el que un endpoint quedó como quedó, ni en qué punto quedó el trabajo.
+
+Dos consecuencias concretas, no hipotéticas:
+
+1. **El Capítulo IV del informe exige resultados medibles** (defectos encontrados, requisitos
+   cubiertos, cobertura). Reconstruir eso en el Sprint 6, seis meses después, es imposible: se
+   termina inventando.
+2. **El contexto de IA tiene un costo real.** Sin un lugar acordado donde vive cada dato, cada sesión
+   vuelve a explicar el proyecto, y cada archivo permanente crece hasta que leerlo cuesta más que el
+   trabajo mismo.
+
+La auditoría de documentación del 2026-08-07 encontró además el síntoma: la misma información
+duplicada en dos carpetas `equipo/`, tres carpetas declaradas en `CLAUDE.md` que no existían, y
+referencias a archivos nunca creados.
+
+### Alternativas consideradas
+| Opción | A favor | En contra |
+|---|---|---|
+| Confiar en el historial de Git y en los PRs | Cero esfuerzo adicional | Un commit dice *qué* cambió, no *por qué* ni qué falló antes; no hay causa raíz ni siguiente paso |
+| Llevarlo todo en GitHub Issues/Projects | Herramienta hecha para eso; buena para tareas | El agente no lo lee sin conectar el MCP; se pierde al cerrar el tablero; no sirve como fuente del informe |
+| Documento único de bitácora | Simple | Crece sin control y mezcla cosas de naturaleza distinta; nadie lo lee a los dos meses |
+| **Tres registros separados + protocolo de contexto y rotación** | Cada registro tiene formato, dueño y límite; el agente puede llenarlos con skills | Disciplina diaria; si nadie registra, queda peor que no tenerlo |
+
+### Decisión
+Tres registros en `docs/gestion/`, cada uno con su skill que lo llena:
+`registro-de-implementaciones.md` (`registrar-implementacion`), `registro-de-bugs.md`
+(`registrar-bug`) y `bitacora-sesiones.md` (`cerrar-sesion`).
+
+Los gobierna `docs/gestion/protocolo-de-contexto.md`, que fija tres cosas: **una información vive en
+un solo archivo**, los archivos permanentes tienen **presupuesto de líneas** (`CLAUDE.md` ≤ 200,
+`MEMORY.md` ≤ 150, `DESIGN.md` ≤ 200), y los registros **rotan** al superar su límite.
+
+Registrar pasa a ser parte de la definición de terminado.
+
+### Consecuencias
+- **Gana:** el Capítulo IV se construye desde datos reales acumulados, no desde la memoria; una
+  sesión nueva arranca en tres líneas; los bugs dejan de repetirse porque quedan con causa raíz y
+  prueba; las cinco sesiones paralelas del equipo comparten los mismos hechos.
+- **Pierde:** disciplina diaria. Un registro que se llena a medias es peor que no tenerlo, porque da
+  falsa sensación de trazabilidad. Las skills existen justamente para bajar ese costo.
+- **Condiciona:** obliga a rotar los registros al cerrar cada sprint; es tarea del Scrum Master del
+  sprint (`docs/equipo/roles-y-tareas.md`).
+
+### Cómo se revierte
+Se dejan de usar las skills y los archivos quedan como histórico. No se borran: lo ya registrado
+sigue siendo evidencia válida para el informe.
+
+---
+
 <!--
-Siguiente número disponible: ADR-008
+Siguiente número disponible: ADR-009
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->

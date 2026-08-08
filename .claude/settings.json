@@ -5,6 +5,15 @@
     "de solo lectura o inofensivas. Todo lo destructivo queda fuera a proposito."
   ],
 
+  "$comment_autoria": [
+    "includeCoAuthoredBy en false: el agente NO se firma como coautor en los commits",
+    "ni en los Pull Requests. La autoria del repositorio es de las 5 personas del equipo,",
+    "que son quienes responden por el proyecto ante el docente y en la sustentacion.",
+    "La IA es una herramienta y se documenta como tal en el informe (Capitulo III),",
+    "no como integrante. Ver CLAUDE.md, seccion Convenciones de Git."
+  ],
+  "includeCoAuthoredBy": false,
+
   "permissions": {
     "allow": [
       "Read(**)",

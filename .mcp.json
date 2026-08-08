@@ -20,16 +20,14 @@
       ]
     },
 
-    "git": {
-      "$comment": "Historial del repositorio: quien cambio que y cuando. Util para el informe de gestion y las retrospectivas.",
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-git",
-        "--repository",
-        "."
-      ]
-    },
+    "$comment_git": [
+      "NO hay servidor MCP de git aqui a proposito. El paquete npm",
+      "@modelcontextprotocol/server-git NO existe (verificado 2026-08-07: npm devuelve E404);",
+      "el servidor oficial es de Python (uvx mcp-server-git) y agregaria una dependencia",
+      "de Python al entorno de las 5 personas del equipo.",
+      "El historial de git ya esta disponible via Bash(git log/diff/show), permitidos en",
+      "settings.json. No reintroducir sin verificar que el paquete exista."
+    ],
 
     "$disabled_mongodb": {
       "$comment": "ACTIVAR EN SPRINT 1, cuando exista la base de datos. Permite consultar sectores y cortes directamente. Definir MONGODB_URI en el .env local.",

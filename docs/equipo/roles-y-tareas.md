@@ -1,78 +1,137 @@
 # Roles y tareas por desarrollador
 
-> Quién hace qué, con qué entregables y en qué sprint. Cada persona es **dueña** de sus módulos de código:
+> Quién hace qué, con qué entregables y en qué sprint. Cada persona es **dueña** de sus módulos:
 > nadie más los toca sin avisar, y nadie más responde por ellos en la sustentación.
 >
-> **Nota de organización:** Todos los 5 integrantes del equipo escriben código de producción. La documentación académica y metodológica de D1 se apalanca y elabora eficientemente con Inteligencia Artificial.
+> **Los 5 integrantes escriben código de producción.** La documentación académica se elabora con
+> asistencia de IA, pero la valida y la firma una persona.
 
 ---
 
-## Resumen del equipo (100% Desarrolladores de Código)
+## Resumen del equipo
 
-| # | Rol | Módulos de Código | Capas del código | Entregables académicos / Documentación |
+| # | Rol | Módulos | Capas del código | Entregables académicos |
 |---|---|---|---|---|
-| **D1** | Full-Stack (Notificaciones y Bitácora) / Docs con IA | **M4** (Alertas correo), **M8** (Bitácora pública) | `application/`, `infrastructure/mail/`, `api/`, `frontend/` | Informe metodológico, Anexos 1–4, encuestas (Generados con IA) |
-| **D2** | Backend · Dominio y Aplicación | **M3** (Consenso), **M6** (Índice Cumplimiento ⭐) | `domain/`, `application/` | Diagrama de clases, patrones y demostración SOLID |
-| **D3** | Backend · Infraestructura e Integraciones | **M2** (Reporte Back), **M5** (Veedor Back), **M9** (IA Ingesta ⭐) | `infrastructure/`, `api/` | Anexo 6 (Base de datos), diagramas de componentes, OpenAPI |
-| **D4** | Frontend | **M1** (Mapa), **M2** (Reporte UI), **M5** (Veedor UI) | `frontend/` (React 19 + TS) | Prototipos, manual de usuario, accesibilidad WCAG AA |
-| **D5** | DevOps / QA / Datos geoespaciales | **M7** (Estadísticas) + Infraestructura global | Docker, CI/CD, E2E | Plan de pruebas, manual técnico, GeoJSON |
+| **D1** | Full-Stack · Notificaciones y Bitácora | **M4** Alertas · **M8** Bitácora | `application/`, `infrastructure/mail/`, `api/`, `frontend/` | Informe metodológico (Cap. I–IV), Anexos 1–4 |
+| **D2** | Backend · Dominio y Aplicación | **M3** Consenso · **M6** Índice de Cumplimiento ⭐ | `domain/`, `application/` | Diagrama de clases, patrones y demostración SOLID |
+| **D3** | Backend · Infraestructura e Integraciones | **M2** Reporte · **M5** Veedor · **M9** Ingesta IA ⭐ | `infrastructure/`, `api/` | Anexo 6 (modelo de datos), diagramas de componentes, OpenAPI |
+| **D4** | Frontend | **M1** Mapa · **M2** UI · **M5** UI | `frontend/` (React 19 + TS) | Prototipos, manual de usuario, accesibilidad WCAG AA |
+| **D5** | DevOps · QA · Datos geoespaciales | **M7** Estadísticas + infraestructura global | Docker, CI/CD, E2E, GeoJSON | Anexo 5 (plan de pruebas), manual técnico |
+
+**Ficha detallada de cada rol** — especificación, tareas por sprint y definición de terminado:
+
+| [D1](D1-notificaciones-bitacora.md) | [D2](D2-backend-dominio.md) | [D3](D3-backend-infraestructura.md) | [D4](D4-frontend.md) | [D5](D5-devops-qa.md) |
+|---|---|---|---|---|
+
+**Orden de trabajo y dependencias entre roles:** [`secuencia-de-trabajo.md`](secuencia-de-trabajo.md)
 
 ---
 
-## D1 — Desarrollador Full-Stack (Notificaciones & Bitácora) / Documentación Asistida por IA
+## Scrum Master — rotativo
 
-**Es dueño de:** M4 (Alertas por correo y suscripciones) y M8 (Bitácora pública inmutable).
-**Desarrolla código de producción** en backend y frontend. Utiliza herramientas de IA agéntica para generar el informe metodológico institucional.
+No hay un Scrum Master fijo: **el rol rota cada sprint**, en orden D1 → D2 → D3 → D4 → D5 → D1 → D2.
 
-### Especificación del rol
-- Implementa el sistema de suscripciones a sectores y envío de alertas por correo con Spring Mail, doble opt-in (Ley 1581/2012) y desuscripción de 1-clic.
-- Implementa la vista y servicios de la Bitácora Pública de solo anexado.
-- Utiliza la IA para la redacción acelerada del Informe Metodológico (Capítulos I a IV) y Anexos (1 a 4).
+| Sprint | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
+|---|---|---|---|---|---|---|---|
+| **Scrum Master** | D1 | D2 | D3 | D4 | D5 | D1 | D2 |
 
-### Tareas por sprint
+**Por qué rota:** son 5 estudiantes con la misma carga académica; un Scrum Master fijo pierde un
+desarrollador y concentra en una persona el aprendizaje de la gestión, que también se evalúa.
 
-| Sprint | Tareas de Código | Tareas de Documentación con IA |
+**Qué hace el Scrum Master del sprint** (además de sus propias tareas de código):
+
+1. Convoca planning, review y retrospectiva, y deja `docs/gestion/sprint-N.md` lleno.
+2. Persigue los bloqueos de la tabla §3 de ese archivo. **No los resuelve él: los desatasca.**
+3. Al cerrar el sprint, rota los registros que superaron su límite
+   (`docs/gestion/protocolo-de-contexto.md` §5) y actualiza la matriz de trazabilidad.
+
+Trámites externos que arranca el Scrum Master del Sprint 0: solicitud de acceso a **Meta Content
+Library** vía ICPSR (ver `docs/ingenieria/pipeline-ingesta-datos.md` §5).
+
+---
+
+## Reglas de colaboración
+
+1. **Todos escriben código.** Ningún integrante está excluido del desarrollo.
+2. **Contrato primero.** D3 y D1 publican su especificación OpenAPI **antes** de que D4 construya los
+   componentes que la consumen. Sin contrato publicado, D4 está bloqueado — y eso es un bloqueo que
+   se reporta, no que se rodea inventando el tipo a mano.
+3. **Independencia del dominio.** D2 garantiza que `domain/` no importe Spring ni MongoDB. ArchUnit lo
+   verifica en CI: no es un acuerdo, es una restricción del sistema.
+4. **Nada entra directo a `main` ni a `develop`.** Todo por Pull Request con al menos 1 revisor,
+   enlazando su issue y su `RF`.
+5. **Dueño ≠ propietario exclusivo.** Puedes leer y proponer cambios sobre el módulo de cualquiera;
+   lo que no puedes es fusionarlos sin que su dueño revise.
+
+---
+
+## Qué registra cada quien
+
+Aplica a los cinco, sin excepción. Detalle en [`../gestion/README.md`](../gestion/README.md).
+
+| Cuándo | Qué haces | Skill |
 |---|---|---|
-| **0** | Configurar infraestructura de correo y plantillas HTML. | Generar Anexos 1, 2 y 3 mediante prompts de IA. Solicitar Meta Content Library. |
-| **1** | Endpoint `POST /api/suscripciones` y servicio asíncrono `@Async`. | Generar Capítulo I del informe (Problema, justificación, objetivos) y Anexo 4 (Historias de Usuario). |
-| **2** | Lógica de confirmación doble opt-in y baja en 1-clic. | Generar Capítulo II (Marco teórico, conceptual, legal). |
-| **3** | Backend de Bitácora Pública (M8) (`GET /api/bitacora`). | Generar Capítulo III (Metodología) y encuestas de satisfacción. |
-| **4** | Frontend de Bitácora Pública (timeline en React) y formulario de suscripción. | Tabulación de encuestas e integración en el dataset dorado. |
-| **5** | Pruebas de integración del flujo de correo y bitácora. | Generar informe de pruebas y matriz de trazabilidad. |
-| **6** | Optimización de envío masivo y pulido visual. | Generar Capítulo IV (Resultados y Conclusiones) y consolidación final. |
+| Fusionas un PR a `develop` | Fila en `registro-de-implementaciones.md` | `registrar-implementacion` |
+| Encuentras un bug, aunque lo arregles en el acto | Entrada en `registro-de-bugs.md` | `registrar-bug` |
+| Terminas una sesión de trabajo con IA | 3 líneas en `bitacora-sesiones.md` | `cerrar-sesion` |
+| Eliges entre alternativas técnicas | ADR en `design-decisions.md` | `registrar-decision` |
+| Evalúas una fuente de datos nueva | Entrada en la auditoría de fuentes | `verificar-fuente` |
+
+**Esto no es burocracia: es el Capítulo IV.** Los resultados del informe se construyen desde estos
+registros. Quien no registre durante el sprint tendrá que inventarlo en el Sprint 6, y eso se nota.
+
+---
+
+## D1 — Full-Stack · Notificaciones y Bitácora
+
+**Dueño de:** M4 (alertas por correo y suscripciones), M8 (bitácora pública inmutable).
+**Además:** coordina el informe metodológico y los Anexos 1–4, apoyándose en IA para la redacción y
+validando personalmente cada cita APA 7.
+
+| Sprint | Código | Documentación |
+|---|---|---|
+| **0** | Infraestructura de correo y plantillas HTML | Anexos 1–3 · conseguir la **plantilla oficial** del informe (bloqueante) · solicitar Meta Content Library |
+| **1** | `POST /api/suscripciones` y envío `@Async` | Capítulo I · Anexo 4 (historias de usuario) |
+| **2** | Doble opt-in y baja en 1 clic | Capítulo II (marco teórico, conceptual y legal) |
+| **3** | Backend de la bitácora (`GET /api/bitacora`) | Capítulo III (metodología) · encuestas de satisfacción |
+| **4** | Frontend de la bitácora y formulario de suscripción | Tabulación de encuestas · etiquetado del conjunto dorado |
+| **5** | Pruebas de integración de correo y bitácora | Informe de pruebas · matriz de trazabilidad |
+| **6** | Envío masivo optimizado · pulido visual | Capítulo IV y consolidación final |
+
+Detalle: [`D1-notificaciones-bitacora.md`](D1-notificaciones-bitacora.md)
 
 ---
 
 ## D2 — Backend · Dominio y Aplicación
 
-**Es dueño de:** M3 (consenso automático) y M6 (Índice de Cumplimiento ⭐).
-**Capa:** `domain/` y `application/`.
+**Dueño de:** M3 (consenso automático), M6 (Índice de Cumplimiento ⭐).
+**Capas:** `domain/`, `application/`. Es quien responde por la Regla de Oro de la arquitectura.
 
-*(Ver detalle de tareas en `equipo/D2-backend-dominio.md`)*
+Detalle y tareas por sprint: [`D2-backend-dominio.md`](D2-backend-dominio.md)
 
 ---
 
 ## D3 — Backend · Infraestructura e Integraciones
 
-**Es dueño de:** M2 (reporte backend), M5 (panel veedor backend), M9 (pipeline de ingesta con IA ⭐).
-**Capa:** `infrastructure/` y `api/`.
+**Dueño de:** M2 (backend), M5 (backend), M9 (pipeline de ingesta con IA ⭐).
+**Capas:** `infrastructure/`, `api/`. Publica el contrato OpenAPI del que depende D4.
 
-*(Ver detalle de tareas en `equipo/D3-backend-infraestructura.md`)*
+Detalle y tareas por sprint: [`D3-backend-infraestructura.md`](D3-backend-infraestructura.md)
 
 ---
 
 ## D4 — Frontend
 
-**Es dueño de:** M1 (mapa en vivo), M2 (reporte UI), M5 (panel veedor UI).
-**Capa:** `frontend/` (React 19 + Vite + TypeScript).
+**Dueño de:** M1 (mapa en vivo), M2 (UI de reporte), M5 (UI del panel del veedor).
+**Capa:** `frontend/` (React 19 + Vite + TypeScript). Responde por el cumplimiento de `DESIGN.md`.
 
-*(Ver detalle de tareas en `equipo/D4-frontend.md`)*
+Detalle y tareas por sprint: [`D4-frontend.md`](D4-frontend.md)
 
 ---
 
-## D5 — DevOps / QA / Datos geoespaciales
+## D5 — DevOps · QA · Datos geoespaciales
 
-**Es dueño de:** M7 (estadísticas) + infraestructura global.
-**Capa:** Docker, CI/CD, GeoJSON, Playwright.
+**Dueño de:** M7 (estadísticas) e infraestructura global.
+**Capas:** Docker, CI/CD, GeoJSON, Playwright. Es quien habilita a todos los demás en el Sprint 0.
 
-*(Ver detalle de tareas en `equipo/D5-devops-qa.md`)*
+Detalle y tareas por sprint: [`D5-devops-qa.md`](D5-devops-qa.md)

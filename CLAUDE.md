@@ -7,12 +7,10 @@
 
 ## Qué es este proyecto
 
-Plataforma web ciudadana de monitoreo y trazabilidad del servicio de acueducto en **Cartagena de
-Indias, Colombia**. Cruza los avisos oficiales de Acuacar con reportes ciudadanos georreferenciados y
-publica un **Índice de Cumplimiento** que compara la duración prometida de cada corte con la real.
-
-**Proyecto de aula** — Fundación Universitaria Tecnológico Comfenalco, Tecnología en Desarrollo de
-Software. Equipo de 5 personas, 6 meses, metodología Scrum.
+Plataforma web ciudadana de monitoreo y trazabilidad del acueducto en **Cartagena de Indias,
+Colombia**. Cruza los avisos oficiales de Acuacar con reportes ciudadanos georreferenciados y publica
+un **Índice de Cumplimiento** que compara la duración prometida de cada corte con la real.
+**Proyecto de aula** — Tecnológico Comfenalco, 5 personas, 6 meses, Scrum. Detalle en `docs/brief.md`.
 
 **El problema que resuelve no es hidráulico, es informativo.** No reparamos tuberías; cerramos el
 vacío de información que multiplica el daño. Toda decisión de alcance se juzga contra eso.
@@ -21,28 +19,25 @@ vacío de información que multiplica el daño. Toda decisión de alcance se juz
 
 ## Estado actual
 
-**Fase: DOCUMENTACIÓN.** No se escribe código de la aplicación hasta que el equipo lo autorice
-explícitamente. Si una tarea parece requerir código de producción, confirma antes de escribirlo.
+**Sprint 0 · Fase: DOCUMENTACIÓN.** No se escribe código de la aplicación hasta que el equipo lo
+autorice explícitamente. Si una tarea parece requerir código de producción, confirma antes de
+escribirlo.
 
 Lo que sí se puede hacer ahora: documentos, diagramas, especificaciones, plantillas, configuración
 del repositorio.
+
+**7 sprints de ~4 semanas: Sprint 0 (preparación) + Sprints 1–6 (construcción).** Calendario y
+ceremonias en `docs/gestion/README.md`.
 
 ---
 
 ## Stack
 
-| Capa | Tecnología |
-|---|---|
-| Backend | Spring Boot 3.4 · Java 21 · Maven |
-| Base de datos | MongoDB (documentos + geoespacial `2dsphere`) |
-| Caché / tiempo real | Redis (caché, rate limiting, ventana de consenso, pub/sub) |
-| Frontend | React 19 · Vite · TypeScript · Tailwind |
-| Mapa | Leaflet / react-leaflet |
-| Gráficas | Recharts |
-| Estado servidor | TanStack Query |
-| IA | Anthropic Java SDK (`com.anthropic:anthropic-java`), modelo `claude-opus-5` |
-| Contenedores | Docker multi-etapa + docker compose |
-| CI | GitHub Actions |
+**Backend** Spring Boot 3.4 · Java 21 · Maven · MongoDB (documentos + geoespacial `2dsphere`) ·
+Redis (caché, rate limiting, ventana de consenso, pub/sub) · Anthropic Java SDK
+(`com.anthropic:anthropic-java`, modelo `claude-opus-5`)
+**Frontend** React 19 · Vite · TypeScript · Tailwind · Leaflet/react-leaflet · Recharts · TanStack Query
+**Infraestructura** Docker multi-etapa + docker compose · GitHub Actions
 
 **Backend y frontend son proyectos separados** dentro del mismo repositorio (`/backend`, `/frontend`).
 
@@ -100,56 +95,64 @@ Al proponer código, verifica mentalmente esta regla antes de escribir el import
 - Todo cambio entra por Pull Request con al menos **1 revisor**.
 - Cada PR enlaza el issue y la historia de usuario que implementa.
 
+### Autoría — regla no negociable
+
+**El agente nunca figura como colaborador del repositorio**: ni un trailer `Co-Authored-By`, ni una
+firma *"Generated with Claude Code"*, ni como autor o revisor de un PR, issue o comentario. En
+commits, PRs y todo lo demás. Refuerzo mecánico: `includeCoAuthoredBy: false` en
+`.claude/settings.json`; si aun así ves un trailer de coautoría en un mensaje que vas a escribir,
+quítalo.
+
+**Por qué:** la autoría es de las cinco personas, que responden por el proyecto ante el docente. La IA
+es una herramienta y se documenta como tal en el Capítulo III — no como integrante. Firmar los commits
+enturbiaría el registro de contribución individual, que es evidencia evaluable. Esto **no** oculta el
+uso de IA: está declarado en la documentación académica y en el rol de D1.
+
 ---
 
 ## Ética de datos — no negociable
 
-Esto no es una preferencia de estilo; es la coherencia del proyecto.
+Es la coherencia del proyecto, no una preferencia de estilo. Detalle en `ADR-005` y `ADR-006`.
 
-1. **Se respeta `robots.txt` siempre**, incluso cuando técnicamente podríamos evadirlo. Varios medios
-   (El Universal, El Tiempo, El Heraldo, Blu Radio) bloquean explícitamente a `anthropic-ai`,
-   `Claude-Web` y `GPTBot`. **No se scrapean, no se disfraza el `User-Agent`, no se discute.**
-   Exigirle transparencia a Acuacar y colarse por la puerta trasera de otro medio sería incoherente.
-2. **No se scrapea Facebook, Instagram ni X.** Viola sus términos. La vía legítima es Meta Content
-   Library con acceso académico. Si no se aprueba, la capa de reportes ciudadanos lo reemplaza.
+1. **Se respeta `robots.txt` siempre**, aunque técnicamente pudiéramos evadirlo. El Universal, El
+   Tiempo, El Heraldo y Blu Radio bloquean a `anthropic-ai` / `Claude-Web` / `GPTBot`: **no se
+   scrapean, no se disfraza el `User-Agent`, no se discute.** Exigirle transparencia a Acuacar y
+   colarse por la puerta trasera de otro medio sería incoherente.
+2. **No se scrapea Facebook, Instagram ni X.** Vía legítima: Meta Content Library con acceso
+   académico; si no se aprueba, la capa de reportes ciudadanos la reemplaza.
 3. **El colector se identifica siempre**: `User-Agent` con nombre del proyecto y correo de contacto.
-4. **Nada llega al mapa público sin verificación.** La IA extrae, pero si no puede citar la frase
-   exacta del boletín que respalda su extracción, no se publica. Un corte inventado destruiría la
-   credibilidad del proyecto entero.
+4. **Nada llega al mapa público sin verificación.** Si la IA no puede citar la frase exacta del
+   boletín que respalda su extracción, no se publica. Un corte inventado destruiría la credibilidad
+   del proyecto entero.
 
 ---
 
-## Fuentes de datos verificadas
+## Fuentes de datos
 
-| Fuente | Endpoint | Estado |
-|---|---|---|
-| Acuacar (oficial) | `GET https://www.acuacar.com/wp-json/wp/v2/posts` | ✅ HTTP 200, 307 boletines JSON |
-| Acuacar RSS | `https://www.acuacar.com/feed/` | ✅ Funcional |
-| Google News RSS | `https://news.google.com/rss/search?q=...&hl=es-419&gl=CO` | ✅ 100 ítems/consulta |
-| Zona Cero | `https://zonacero.com/rss.xml` | ✅ Funcional |
+En uso y verificadas: **Acuacar** (API REST de WordPress + RSS), **Google News RSS** y **Zona Cero
+RSS**. Las 18 evaluadas, con veredicto y motivo de descarte: `docs/ingenieria/auditoria-fuentes-de-datos.md`.
 
-Detalle completo, incluidas las fuentes descartadas y por qué:
-`docs/ingenieria/auditoria-fuentes-de-datos.md`.
-
-**Antes de afirmar que una fuente está bloqueada o disponible, verifícalo con una petición real.**
-Este proyecto ya tuvo un error por asumir el contenido de un `robots.txt` sin leerlo.
+**Antes de afirmar que una fuente está bloqueada o disponible, verifícalo con una petición real**
+(skill `verificar-fuente`). Este proyecto ya tuvo un error por asumir el contenido de un `robots.txt`
+sin leerlo.
 
 ---
 
 ## Dónde está cada cosa
 
 ```
-/                          CLAUDE.md · DESIGN.md · MEMORY.md · .mcp.json
+/                          CLAUDE.md · DESIGN.md · MEMORY.md · README.md · .mcp.json
 .claude/                   skills/ · agents/ · settings.json
 docs/
-├── brief.md               Qué es el producto y para quién
-├── product-requirements.md Requisitos funcionales y no funcionales
-├── design-decisions.md    Bitácora de decisiones (ADR)
-├── equipo/                Roles, tareas y especificaciones por desarrollador
-├── ingenieria/            Pipeline de datos, auditoría de fuentes, arquitectura
-├── informe-metodologico/  Los 4 capítulos del entregable académico
-├── anexos/                Los 6 anexos exigidos por el programa
-└── gestion/               Scrum: planning, review, retrospectiva por sprint
+├── brief.md                Qué es el producto y para quién
+├── product-requirements.md 36 RF y 20 RNF con id, prioridad y origen
+├── design-decisions.md     Bitácora de decisiones (ADR)
+├── equipo/                 Roles, tareas y especificación por desarrollador (D1–D5)
+├── ingenieria/             Pipeline de datos, auditoría de fuentes, matriz de trazabilidad
+├── gestion/                Scrum, bitácora de sesiones, bugs, implementaciones
+├── informe-metodologico/   Los 4 capítulos del entregable académico
+├── anexos/                 Los 6 anexos exigidos por el programa
+└── index.html              Presentación del proyecto
 backend/                   (pendiente) Spring Boot
 frontend/                  (pendiente) React + Vite
 ```
@@ -158,21 +161,40 @@ frontend/                  (pendiente) React + Vite
 
 ## Formato académico obligatorio
 
-El entregable principal sigue la plantilla del Tecnológico Comfenalco:
-**4 capítulos + 6 anexos + referencias APA 7**. La estructura exacta está en
-`docs/informe-metodologico/`. No inventes secciones ni las renombres — el docente evalúa contra
-esa plantilla.
+Plantilla del Tecnológico Comfenalco: **4 capítulos + 6 anexos + referencias APA 7**. No inventes
+secciones ni las renombres — el docente evalúa contra esa plantilla.
 
-Enfoque investigativo declarado: **proyectiva, mixta**, validada con **Alfa de Cronbach ≥ 0.75**.
+⚠️ **La plantilla oficial aún no está en el repositorio**; el índice de
+`docs/informe-metodologico/README.md` es una reconstrucción marcada como tal, y validarla es tarea
+bloqueante de D1 en el Sprint 0.
+
+Enfoque investigativo: **proyectiva, mixta**, validada con **Alfa de Cronbach ≥ 0.75**.
+
+---
+
+## Qué se registra siempre — regla del proyecto
+
+No es opcional: es parte de la definición de terminado y el insumo del Capítulo IV.
+
+| Ocurre | Se registra en | Con la skill |
+|---|---|---|
+| Se fusiona un PR a `develop` | `docs/gestion/registro-de-implementaciones.md` | `registrar-implementacion` |
+| Se encuentra un bug (aunque se arregle en el acto) | `docs/gestion/registro-de-bugs.md` | `registrar-bug` |
+| Termina una sesión de trabajo con IA | `docs/gestion/bitacora-sesiones.md` | `cerrar-sesion` |
+| Se elige entre alternativas técnicas | `docs/design-decisions.md` | `registrar-decision` |
+| Se verifica una fuente de datos | `docs/ingenieria/auditoria-fuentes-de-datos.md` | `verificar-fuente` |
 
 ---
 
 ## Cómo colaborar conmigo (el equipo, contigo el agente)
 
-- **No repitas contexto**: si algo se decidió, está en `docs/design-decisions.md`. Léelo antes de
-  proponer una alternativa que ya se descartó.
-- **Al terminar algo relevante**, registra la decisión en `docs/design-decisions.md` y, si cambia el
-  entendimiento del producto, en `MEMORY.md`.
+- **Antes de tu primera sesión, lee `docs/gestion/protocolo-de-contexto.md`**: dónde vive cada dato,
+  el presupuesto de líneas de los archivos permanentes y cómo no desperdiciar contexto. Cinco personas
+  comparten este repositorio; cada línea que agregues aquí la pagan las cinco, en cada sesión.
+- **Un dato vive en un solo archivo.** Si lo encuentras duplicado, es un defecto: detalle en uno,
+  puntero en el otro.
+- **No repitas contexto**: lo decidido está en `docs/design-decisions.md`. Léelo antes de proponer una
+  alternativa ya descartada.
 - **No generes código de producción en fase de documentación** sin confirmarlo.
 - **Verifica antes de afirmar.** Si dices que un endpoint funciona, pruébalo.
-- Si detectas que un documento contradice a otro, **dilo en vez de elegir en silencio**.
+- Si un documento contradice a otro, **dilo en vez de elegir en silencio**.

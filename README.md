@@ -8,7 +8,7 @@ Cruza los avisos oficiales de Acuacar con reportes ciudadanos georreferenciados 
 > Proyecto de aula · Fundación Universitaria Tecnológico Comfenalco
 > Tecnología en Desarrollo de Software · Cartagena de Indias D.T. y C. · 2026
 
-**Estado actual: fase de documentación.** El código de la aplicación aún no se ha iniciado.
+**Estado actual: Sprint 0 — fase de documentación.** El código de la aplicación aún no se ha iniciado.
 
 ---
 
@@ -21,7 +21,7 @@ que el agente de IA lee automáticamente, en vez de repetirse en cada conversaci
 aguavigia-ctg/
 │
 ├── CLAUDE.md              ← Instrucciones del proyecto para el agente. Se versiona.
-├── CLAUDE.local.md        ← Tus instrucciones personales. NO se versiona.
+├── CLAUDE.local.md        ← Tus instrucciones personales. NO se versiona (plantilla: .example)
 ├── DESIGN.md              ← Sistema de diseño: color, tipografía, voz, accesibilidad.
 ├── MEMORY.md              ← Memoria persistente: hallazgos verificados y restricciones.
 ├── .mcp.json              ← Conectores MCP compartidos por el equipo.
@@ -30,26 +30,23 @@ aguavigia-ctg/
 │   ├── settings.json        ← Permisos compartidos. Se versiona.
 │   ├── settings.local.json  ← Tus permisos. NO se versiona.
 │   ├── skills/              ← Habilidades reutilizables
-│   │   ├── verificar-arquitectura/
-│   │   ├── verificar-fuente/
-│   │   └── registrar-decision/
+│   │   ├── verificar-arquitectura/   verificar-fuente/
+│   │   ├── registrar-decision/       registrar-bug/
+│   │   └── registrar-implementacion/ cerrar-sesion/
 │   └── agents/              ← Subagentes especializados
-│       ├── revisor-dominio.md
-│       ├── analista-requisitos.md
+│       ├── revisor-dominio.md      analista-requisitos.md
 │       └── explorador-fuentes.md
 │
 ├── docs/
 │   ├── brief.md                    ← Qué construimos y para quién
-│   ├── product-requirements.md     ← RF y RNF con id, prioridad y origen
+│   ├── product-requirements.md     ← 36 RF y 20 RNF con id, prioridad y origen
 │   ├── design-decisions.md         ← Bitácora de decisiones (ADR)
-│   ├── equipo/
-│   │   └── roles-y-tareas.md       ← Quién hace qué, sprint por sprint
-│   ├── ingenieria/
-│   │   ├── pipeline-ingesta-datos.md
-│   │   └── auditoria-fuentes-de-datos.md
-│   ├── informe-metodologico/       ← (pendiente) 4 capítulos académicos
-│   ├── anexos/                     ← (pendiente) 6 anexos institucionales
-│   └── presentacion-proyecto.html  ← Presentación del proyecto
+│   ├── equipo/                     ← Roles, secuencia de trabajo y ficha de cada rol
+│   ├── ingenieria/                 ← Pipeline, auditoría de fuentes, matriz de trazabilidad
+│   ├── gestion/                    ← Scrum, bitácora de sesiones, bugs, implementaciones
+│   ├── informe-metodologico/       ← Los 4 capítulos académicos
+│   ├── anexos/                     ← Los 6 anexos institucionales
+│   └── index.html                  ← Presentación del proyecto
 │
 ├── backend/               ← (pendiente) Spring Boot 3.4 · Java 21
 └── frontend/              ← (pendiente) React 19 · Vite · TypeScript
@@ -61,13 +58,16 @@ aguavigia-ctg/
 
 **Si eres nuevo en el equipo, lee en este orden:**
 
-1. `docs/brief.md` — entiende qué construimos y por qué
-2. `docs/equipo/roles-y-tareas.md` — encuentra tu rol y tus tareas
-3. `CLAUDE.md` — cómo se trabaja aquí (reglas de arquitectura, convenciones, ética de datos)
-4. `DESIGN.md` — si vas a tocar interfaz
-5. `docs/design-decisions.md` — qué ya se decidió y qué se descartó
+1. [`docs/brief.md`](docs/brief.md) — entiende qué construimos y por qué
+2. [`docs/equipo/roles-y-tareas.md`](docs/equipo/roles-y-tareas.md) — encuentra tu rol y tus tareas
+3. [`CLAUDE.md`](CLAUDE.md) — cómo se trabaja aquí (arquitectura, convenciones, ética de datos)
+4. [`docs/gestion/protocolo-de-contexto.md`](docs/gestion/protocolo-de-contexto.md) — **cómo trabajar
+   con IA sin desperdiciar contexto, y qué se registra siempre**
+5. [`DESIGN.md`](DESIGN.md) — si vas a tocar interfaz
+6. [`docs/design-decisions.md`](docs/design-decisions.md) — qué ya se decidió y qué se descartó
 
-**Después:** copia `CLAUDE.local.md`, ajústalo a tu rol y tu máquina. No se sube al repositorio.
+**Después:** copia `CLAUDE.local.md.example` a `CLAUDE.local.md` y ajústalo a tu rol y tu máquina.
+No se sube al repositorio.
 
 ---
 
@@ -76,14 +76,14 @@ aguavigia-ctg/
 | # | Módulo | Responsable |
 |---|---|---|
 | M1 | Mapa en vivo | D4 Frontend |
-| M2 | Reporte ciudadano | D3 + D4 |
+| M2 | Reporte ciudadano | D3 (backend) + D4 (UI) |
 | M3 | Consenso automático | D2 Dominio |
-| M4 | Alertas por correo | D3 Infraestructura |
-| M5 | Panel del veedor | D3 + D4 |
+| M4 | Alertas por correo | D1 |
+| M5 | Panel del veedor | D3 (backend) + D4 (UI) |
 | M6 | **Índice de Cumplimiento** ⭐ | D2 Dominio |
-| M7 | Estadísticas | D5 + D4 |
-| M8 | Bitácora pública | D4 Frontend |
-| M9 | Ingesta automática con IA | D3 Infraestructura |
+| M7 | Estadísticas | D5 (datos) + D4 (UI) |
+| M8 | Bitácora pública | D1 |
+| M9 | Ingesta automática con IA ⭐ | D3 Infraestructura |
 
 ---
 
@@ -97,7 +97,7 @@ Arquitectura Limpia (puertos y adaptadores), verificada automáticamente con Arc
 
 ---
 
-## Dos reglas que no se negocian
+## Tres reglas que no se negocian
 
 **1. `domain/` es Java puro.** Si importa `org.springframework` o `com.mongodb`, la build falla.
 No es criterio de nadie: hay un test que lo verifica.
@@ -107,7 +107,23 @@ medios bloquean explícitamente a los rastreadores de IA. No se scrapean, no se 
 `User-Agent`, no se discute. Exigirle transparencia a un operador de servicios públicos y colarse
 por la puerta trasera de un periódico sería incoherente.
 
-Detalle en `CLAUDE.md` y en `docs/design-decisions.md` (ADR-005).
+**3. Todo se registra: implementaciones, bugs y sesiones de trabajo.** Un bug arreglado sin registrar
+es un bug que el equipo no aprendió, y el Capítulo IV del informe se construye desde esos registros —
+en el Sprint 6 ya es tarde para reconstruirlos.
+
+Detalle en `CLAUDE.md`, en `docs/design-decisions.md` (ADR-005, ADR-008) y en
+`docs/gestion/protocolo-de-contexto.md`.
+
+---
+
+## Ritmo de trabajo
+
+**7 sprints de ~4 semanas:** Sprint 0 de preparación + Sprints 1–6 de construcción. 5 integrantes,
+metodología Scrum.
+
+- Calendario, ceremonias y definición de terminado: [`docs/gestion/README.md`](docs/gestion/README.md)
+- Quién habilita a quién y en qué orden: [`docs/equipo/secuencia-de-trabajo.md`](docs/equipo/secuencia-de-trabajo.md)
+- Tareas por persona: [`docs/equipo/`](docs/equipo/)
 
 ---
 
@@ -119,13 +135,6 @@ Detalle en `CLAUDE.md` y en `docs/design-decisions.md` (ADR-005).
 cp .env.example .env     # ajusta tus variables
 docker compose up        # Mongo + Redis + Mailhog + backend + frontend
 ```
-
----
-
-## Equipo
-
-5 integrantes · 6 sprints de ~4 semanas · Metodología Scrum.
-Roles y tareas detalladas en `docs/equipo/roles-y-tareas.md`.
 
 ---
 

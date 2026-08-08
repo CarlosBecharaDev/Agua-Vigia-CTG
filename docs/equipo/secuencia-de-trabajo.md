@@ -60,6 +60,10 @@ graph TD
 
 ## 3. Hoja de Ruta Resumida por Sprint
 
+> Esta tabla detalla **qué hace cada persona** en cada sprint. El objetivo del sprint, el entregable
+> que lo cierra y las ceremonias están en [`../gestion/README.md`](../gestion/README.md); no se
+> repiten aquí.
+
 | Sprint | Enfoque Principal del Sprint | D5 (DevOps/QA) | D2 (Dominio) | D3 (Infra/IA) | D1 (Full-Stack/IA Docs) | D4 (Frontend) |
 |---|---|---|---|---|---|---|
 | **Sprint 0** | Configuración e Infraestructura | Repositorio, Docker Compose, CI/CD | — | — | Plantillas de correo, Prompts IA (Anexos 1–3) | Esqueleto React + Vite, tokens CSS |
