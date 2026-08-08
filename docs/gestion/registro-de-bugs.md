@@ -190,6 +190,14 @@ fusionarse — la fusión no la sustituye, y el ADR se mantiene en estado *Propu
 este bug y propone `ADR-013`, se fusionó también con `reviews: []` (`gh pr view 45 --json reviews`),
 fusionado por Carlos (D2). Por la misma razón que el PR #42, `ADR-013` sigue en estado *Propuesta*: su
 condición de ratificación no se cumplió con la fusión.
+**Verificado el 2026-08-08, quinta ocurrencia:** el PR
+[#57](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/57) (adaptador Redis de
+`ContadorReportesPort`, D3) se fusionó también con `reviews: []`. Diferencia con las cuatro anteriores:
+antes de fusionar, Carlos (D2) le pidió explícitamente al agente que revisara el código y resolviera
+los conflictos con `develop` — el agente hizo una revisión real (arquitectura, tests, casos de borde,
+`./mvnw clean verify` en verde) y la reportó en el chat antes de fusionar, en vez de fusionar a ciegas.
+Sigue sin ser un segundo humano revisando, que es lo que pide la política — pero ya no es fusionar sin
+ninguna revisión.
 **Reproducción:** cualquier PR abierto en este repositorio puede fusionarse sin que nadie deje un
 comentario o *review* — no hay protección de rama configurada (`ADR-010`, decisión deliberada: es
 política, no candado técnico).

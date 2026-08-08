@@ -77,7 +77,8 @@ no la abre quien la produce el insumo, la abre su titular (`secuencia-de-trabajo
 |---|---|---|---|---|---|
 | RF001 · RF004 | func | M1: `MapaCartagena` (Leaflet + los 213 barrios reales), `ListaSectores` accesible, `InsigniaEstado`, `EtiquetaFrescura` | D4 | [#12](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/12) | `npm run build` en verde · ⚠️ **se alimenta de `SECTORES_MOCK`, no de la API** |
 | RF009–RF011, RF016–RF017, RF020–RF022 | andamio | Dominio de M3/M6: Value Objects, entidades (`CorteAgua` con Builder), `domain/port/in` y `port/out`, test de ArchUnit. Abre **C1** | D2 | [#21](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/21) | `./mvnw verify` → 23 pruebas, 0 fallos, ArchUnit incluido |
-| RF001 · RF002 · RF004 | func | M1 backend: adaptador Mongo de `SectorRepository` (índice `2dsphere`, geometría preservada al guardar), adaptador de `RelojPort`, `GET /api/sectores` y `/api/sectores/{id}`, errores RFC 7807, contrato OpenAPI publicado. **Abre C2** | D3 | *(pendiente de PR)* | `./mvnw clean verify` → **34 pruebas, 0 fallos**, ArchUnit incluido · verificado además contra Mongo real: 211 sectores servidos, 404 en `application/problem+json` |
+| RF001 · RF002 · RF004 | func | M1 backend: adaptador Mongo de `SectorRepository` (índice `2dsphere`, geometría preservada al guardar), adaptador de `RelojPort`, `GET /api/sectores` y `/api/sectores/{id}`, errores RFC 7807, contrato OpenAPI publicado. **Abre C2** | D3 | [#56](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/56) | `./mvnw clean verify` → **34 pruebas, 0 fallos**, ArchUnit incluido · verificado además contra Mongo real: 211 sectores servidos, 404 en `application/problem+json` |
+| RF009–RF011 | infra | M3: adaptador Redis de `ContadorReportesPort` — ventana deslizante de reportes por sector sobre un `ZSET` (score = instante epoch millis), TTL de retención de 24h. No deduplica por `HuellaDispositivo` a propósito (responsabilidad del rate limiting HTTP, todavía sin construir). Sin consumidor todavía: `EvaluarConsensoUseCase` sigue sin existir en `application/` (capa de D2) | D3 | [#57](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/57) | `./mvnw clean verify` → 40 pruebas, 0 fallos, ArchUnit incluido · `RedisContadorReportesAdapterTest` — 6 pruebas de integración contra `redis:7-alpine` real (Testcontainers) |
 
 ⚠️ **El PR #12 introdujo datos simulados sin desbloqueo temporal registrado.** `SECTORES_MOCK`
 sustituye a `GET /api/sectores`, que no existe porque C2 está cerrada. La regla del proyecto
@@ -95,6 +96,17 @@ porque el backend sí está terminado y probado; la cobertura la mueve D4 al con
 **El PR #21 lleva `andamio`, no `func`:** define contratos (interfaces `port/in`) y entidades, pero
 ningún caso de uso está implementado todavía — eso es Sprint 2 en `docs/equipo/D2-backend-dominio.md`.
 La cobertura de requisitos sigue en 0% hasta que exista una implementación real detrás de un `port/in`.
+
+**El PR #57 lleva `infra`, no `func`:** implementa un adaptador de salida contra un puerto que ya
+existía (`ContadorReportesPort`, de `port/out`), pero ningún caso de uso lo invoca todavía —
+`EvaluarConsensoUseCase` sigue sin escribirse en `application/`. La cobertura de RF009–RF011 sigue en
+0% hasta que exista ese caso de uso.
+
+⚠️ **El PR #57 se fusionó sin ningún revisor humano** (`reviews: []`), el mismo patrón que `BUG-005`
+—quinta ocurrencia registrada. Antes de fusionar, el agente revisó el código (arquitectura, tests,
+casos de borde) y resolvió los conflictos contra `develop` (que ya traía el PR #56 fusionado); la
+decisión de fusionar sin un segundo humano fue autorización explícita de Carlos (D2) en el chat, no
+un rodeo silencioso de la política. Detalle de la recurrencia en `registro-de-bugs.md` (`BUG-005`).
 
 ---
 
