@@ -15,9 +15,12 @@ repositorio.
 lo que difiera. Ver [`../informe-metodologico/README.md`](../informe-metodologico/README.md).
 
 **D1 ya tiene titular:** Yordy Pardo Pajaro (D5) lo asumió temporalmente el 2026-08-08 (`ADR-011`,
-`BL-003` cerrado). Los Anexos 1 y 2 ya están redactados: [PR #32](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/32).
-Sigue pendiente enviar el correo con la plantilla oficial al docente — sin eso, la numeración de esta
-tabla no se puede validar.
+`BL-003` cerrado). Los Anexos 1 y 2 ya están redactados —
+[`anexo-1-encuesta.md`](anexo-1-encuesta.md) · [`anexo-2-guion-entrevista.md`](anexo-2-guion-entrevista.md),
+[PR #32](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/32). Enviar el correo con la
+plantilla oficial al docente queda deliberadamente **pendiente, fuera de esta sesión** — sin eso, la
+numeración de esta tabla sigue siendo provisional. Anexo 3 tampoco se puede escribir todavía: exige
+aplicar esos instrumentos a población real, no es un bloqueo de equipo sino de calendario.
 
 ---
 

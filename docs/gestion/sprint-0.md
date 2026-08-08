@@ -58,7 +58,7 @@ Solo queda `BL-002` (D4 instala Docker en su máquina — tarea suya, no depende
 | BL-001 | C0 (parcial) | D5 | 0 | Branch protection descartada como control técnico, política documentada (`ADR-010`). Yordy queda en `write`, no `admin` — GitHub no permite subir el rol de un colaborador existente en un repo personal |
 | BL-002 | C0 | D4 | 1 | Cerrado 2026-08-08 — D5 declaró C0 abierta y D4 instaló Docker Desktop |
 | BL-003 | — | D1 (vacante) | 1 | Cerrado 2026-08-08 — D1 reasignado temporalmente a Yordy Pardo Pajaro (D5), `ADR-011` |
-| DT-001 | C2 | — | — | Desbloqueo temporal **sin regularizar**: `SECTORES_MOCK` del PR #12. Pendiente autorización de D3, titular de C2 |
+| DT-001 a DT-005 | C2 | — | — | Regularizados el 2026-08-08, caducan 2026-09-30. DT-001/002/003 por D3 (titular); DT-004/005 (M7, M8) autorizados por D5/D1 según confirma D3. Detalle: `registro-de-bloqueos.md` §4 |
 
 ---
 
@@ -78,12 +78,12 @@ Solo queda `BL-002` (D4 instala Docker en su máquina — tarea suya, no depende
 | Métrica | Valor |
 |---|---|
 | Requisitos entregados / comprometidos | 0 / 0 — el Sprint 0 no entrega requisitos |
-| PRs fusionados | 32 al 2026-08-08 |
-| PRs fusionados **sin revisor registrado** | 18 de 32 — control de `ADR-010` |
-| Bugs abiertos / cerrados | 0 / 3 (BUG-001, BUG-002, BUG-003) — BUG-004 también cerrado |
+| PRs fusionados | 32 al 2026-08-08 (numeración #1–33, el #9 no llegó a fusionarse) |
+| PRs fusionados **sin revisor registrado** | 18 de 32 — control de `ADR-010`, reverificado con `gh pr view --json reviews` el 2026-08-08 |
+| Bugs abiertos / cerrados | 0 / 4 (BUG-001, BUG-002, BUG-003, BUG-004) |
 | Bloqueos abiertos / cerrados | 0 / 3 (BL-001, BL-002, BL-003) |
-| Desbloqueos temporales sin regularizar | 1 (DT-001, `SECTORES_MOCK` del PR #12) |
-| Cobertura `domain/` + `application/` | n/a — todavía sin casos de uso implementados (`port/in` es andamio, PR #21) |
+| Desbloqueos temporales sin registrar | 0 — DT-001 a 005 regularizados y autorizados el 2026-08-08 (issues [#34](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/34)–[#36](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/36), [#38](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/38), [#39](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/39)) — ver `registro-de-bloqueos.md` §4 |
+| Cobertura `domain/` + `application/` | `domain/` tiene 16 archivos (entidades, VOs, puertos) desde el PR #21; `application/` sigue vacío — es Sprint 2 |
 | Build en verde al cierre | Frontend CI ✅ · Backend CI ✅ · Escaneo de secretos ✅ |
 
 ---
