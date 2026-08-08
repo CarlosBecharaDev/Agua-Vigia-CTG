@@ -7,6 +7,16 @@ spring:
 server:
   port: ${SERVER_PORT:8080}
 
+aguavigia:
+  jwt:
+    # HS256 exige >= 32 bytes. Vacio por defecto: JwtProvider valida al usarse, no al arrancar
+    # (ver su comentario), para que el resto del backend no dependa de esto para levantar.
+    secret: ${JWT_SECRET:}
+  veedor:
+    # Hash BCrypt de la clave del veedor (RF019). Vacio por defecto: el login del veedor responde
+    # 503 hasta que se configure, en vez de arrancar con una clave por defecto insegura.
+    password-hash: ${VEEDOR_PASSWORD_HASH:}
+
 springdoc:
   api-docs:
     path: /v3/api-docs

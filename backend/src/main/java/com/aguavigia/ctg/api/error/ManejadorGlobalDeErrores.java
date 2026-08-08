@@ -5,8 +5,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.net.URI;
 
@@ -37,6 +39,32 @@ public class ManejadorGlobalDeErrores {
         ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
         problema.setTitle("Peticion invalida");
         problema.setType(URI.create(BASE_TIPO + "peticion-invalida"));
+        return problema;
+    }
+
+    /** `@Valid` en un DTO de entrada rechaza el cuerpo antes de que el controlador lo vea. */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ProblemDetail camposInvalidos(MethodArgumentNotValidException e) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+                "Uno o mas campos no son validos.");
+        problema.setTitle("Peticion invalida");
+        problema.setType(URI.create(BASE_TIPO + "peticion-invalida"));
+        problema.setProperty("errores", e.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .toList());
+        return problema;
+    }
+
+    /**
+     * Sin esto, una ruta sin controlador (ej. "/api/veedor/x" protegida sin handler todavia)
+     * caeria en el catch-all de abajo y responderia 500 en vez del 404 que le corresponde.
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ProblemDetail rutaNoEncontrada(NoResourceFoundException e) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND,
+                "El recurso solicitado no existe.");
+        problema.setTitle("Recurso no encontrado");
+        problema.setType(URI.create(BASE_TIPO + "recurso-no-encontrado"));
         return problema;
     }
 

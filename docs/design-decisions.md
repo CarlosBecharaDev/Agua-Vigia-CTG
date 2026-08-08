@@ -664,8 +664,67 @@ y el contrato no cambian.
 
 ---
 
+## ADR-016 — El panel del veedor usa una sola credencial compartida, no cuentas individuales
+
+- **Fecha:** 2026-08-08
+- **Estado:** Aceptada
+- **Decide:** Backend – Infraestructura (D3)
+
+### Contexto
+
+RF019 exige que el panel del veedor requiera autenticación con token; RNF011 fija la expiración
+máxima en 8 horas. Ninguno de los dos dice si hay una cuenta por veedor o una credencial compartida
+— y el dominio tampoco lo decide: no existe una entidad `Usuario` ni `Veedor` en `domain/`, y crearla
+sería una decisión de D2, no algo que D3 pueda inventar en su propia capa.
+
+El propio frontend ya venía asumiendo una credencial única: `PaginaVeedor.tsx` comparaba el acceso
+contra una contraseña literal en el código (`'1234'`, `BUG-004`) antes de que D5 la reemplazara por
+un botón "Simular ingreso" sin credencial real, a la espera de JWT server-side (comentario en el
+propio archivo: *"Requiere C2 abierta para integrar JWT y endpoints"*).
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| **Credencial única compartida** (elegida) | No requiere entidad `Usuario`; RF019 habla de "un usuario autenticado" en singular; coincide con el patrón que ya asumía el frontend | No hay auditoría de qué persona del equipo hizo qué cambio como veedor |
+| Cuenta por integrante del equipo | Trazabilidad individual de acciones administrativas | Exige modelar `Usuario`/`Veedor` en `domain/` (decisión de D2), gestión de altas/bajas y recuperación de contraseña — desproporcionado para 5 personas en un proyecto de aula de 6 meses |
+| Delegar la decisión a D2 y bloquear Sprint 3 mientras tanto | Máximo respeto a la frontera de propiedad | RF019/RNF011 son requisitos claros y no ambiguos; no hay nada que preguntar sobre "si" debe haber JWT, solo sobre el modelo de cuentas — bloquear por eso habría sido esperar sin necesidad |
+
+### Decisión
+
+Una sola clave, cuyo hash BCrypt vive en la variable de entorno `VEEDOR_PASSWORD_HASH` (nunca la
+clave en texto plano). `POST /api/veedor/sesion` la valida y devuelve un JWT firmado con
+`JWT_SECRET`, válido 8 horas. `SecurityConfig` protege `/api/veedor/**` (menos el propio login) y
+deja todo lo demás público, siguiendo la letra de RF019.
+
+### Consecuencias
+
+- **Gana:** Sprint 3 no queda detenido esperando que D2 diseñe un modelo de usuarios que ningún
+  requisito pide todavía. La superficie nueva es pequeña: un filtro, un proveedor de JWT y un
+  controlador de login.
+- **Pierde:** ninguna acción del panel queda atribuida a una persona concreta — si el equipo
+  necesita esa trazabilidad más adelante (por ejemplo, para el Capítulo IV), hay que migrar a cuentas
+  individuales, lo que sí requeriría una entidad de dominio.
+- **Condiciona:** `JwtProvider` valida el secreto de forma perezosa (al usarse, no al arrancar) para
+  que un `JWT_SECRET` sin configurar no tumbe el resto del backend — los endpoints públicos no
+  dependen de esto. `POST /api/veedor/sesion` responde `503` explícito si `JWT_SECRET` o
+  `VEEDOR_PASSWORD_HASH` no están configurados, en vez de fallar con un error críptico.
+- **Fuera de alcance de este PR, señalado para el equipo:** no hay límite de intentos en el login.
+  Con una sola credencial compartida, un ataque de fuerza bruta contra `POST /api/veedor/sesion` no
+  tiene ningún freno todavía. `ContadorReportesPort` (Redis, PR #57) está diseñado para el consenso
+  de M3, no para esto — un rate limiter de login es trabajo aparte, no incluido aquí a propósito
+  para no exceder el alcance de RF019/RNF011.
+
+### Cómo se revierte
+
+Migrando a cuentas individuales: una entidad `Usuario` en `domain/` (decisión de D2), un
+`UsuarioRepository`, y `VeedorAuthController` pasa de comparar un hash fijo a consultar el
+repositorio. `JwtProvider` y `JwtAuthenticationFilter` no cambian.
+
+---
+
 <!--
-Siguiente número disponible: ADR-016
+Siguiente número disponible: ADR-017
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->

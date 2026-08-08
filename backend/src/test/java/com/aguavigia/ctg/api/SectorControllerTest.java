@@ -7,6 +7,8 @@ import com.aguavigia.ctg.domain.Sector;
 import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.port.out.RelojPort;
 import com.aguavigia.ctg.domain.port.out.SectorRepository;
+import com.aguavigia.ctg.infrastructure.config.SecurityConfig;
+import com.aguavigia.ctg.infrastructure.security.JwtProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -26,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(SectorController.class)
-@Import({SectorApiMapperImpl.class, ManejadorGlobalDeErrores.class})
+@Import({SectorApiMapperImpl.class, ManejadorGlobalDeErrores.class, SecurityConfig.class})
 class SectorControllerTest {
 
     private static final Instant INSTANTE_FIJO = Instant.parse("2026-08-08T15:30:00Z");
@@ -39,6 +41,9 @@ class SectorControllerTest {
 
     @MockitoBean
     private RelojPort reloj;
+
+    @MockitoBean
+    private JwtProvider jwtProvider;
 
     @Test
     void debeDevolverElListadoConLaHoraEnQueSeGenero() throws Exception {

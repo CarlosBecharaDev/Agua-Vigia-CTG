@@ -49,6 +49,23 @@ SSE) sigue pendiente y depende de decisiones de diseño que no me corresponde to
 **Sigue:** Rama publicada sin PR todavía — junto con el PR #56, ambos esperan revisor humano. Cuando
 D2 implemente `EvaluarConsensoUseCase`, este adaptador queda listo para conectarse sin cambios.
 
+### 2026-08-08 · D3 · `feature/d3-sprint3-jwt-veedor`
+**Qué:** Adelanto de Sprint 3 de D3, tercer PR de la sesión: infraestructura JWT del panel del
+veedor (RF019, RNF011) — `JwtProvider`, `JwtAuthenticationFilter`, `SecurityConfig`
+(`/api/veedor/**` protegido, el resto público) y `POST /api/veedor/sesion`. `ADR-016`: credencial
+única compartida (BCrypt en `VEEDOR_PASSWORD_HASH`), no cuentas individuales — no existe entidad
+`Usuario` en `domain/` y crearla es decisión de D2. Encontrado y corregido `BUG-010` antes de
+comitear (validación perezosa del secreto que casi tumbaba rutas públicas con 500).
+`./mvnw clean verify` → 35 pruebas, 0 fallos. Verificado además en vivo: login correcto (200+token),
+incorrecto (401), ruta protegida sin token (401), con token válido pasa el filtro (404, no 401/403),
+expiración exacta de 8h, `/actuator/health` sigue público.
+**No se tocó** el CRUD de cortes oficiales ni la moderación de reportes: ambos necesitan casos de
+uso de `application/` (`GestionarCorteOficialUseCase` y uno de moderación aún sin definir), capa de
+D2. Señalado en el ADR, sin construirlo: no hay rate limiting en el login todavía.
+**Sigue:** Rama publicada sin PR todavía — con los PR #56 y #57, van tres esperando revisor humano.
+Cuando D2 defina los casos de uso de M5, el controlador que los use puede vivir bajo `/api/veedor/**`
+sin tocar `SecurityConfig`.
+
 ### 2026-08-08 · D5 · `feature/d5-dockerfile-frontend-y-jacoco`
 **Qué:** Registrados en `registro-de-implementaciones.md` los PRs #27 y #33 (Dockerfiles backend/frontend,
 JaCoCo, perfiles de Spring, `/actuator/health`), fusionados sin registrar. Actualizados `docs/anexos/README.md`
