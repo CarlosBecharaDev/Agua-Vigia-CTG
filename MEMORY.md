@@ -97,6 +97,7 @@ throttling propio en el Sprint 0.
 | 2026-08-07 | Roles asignados por nombre: **D2** Carlos Bechara Arias · **D3** Sebastián Montes Olivera · **D4** José Daniel Zambrano · **D5** Yordy Pardo Pajaro. **D1 sigue sin titular.** Fuente única: `docs/equipo/roles-y-tareas.md`. |
 | 2026-08-07 | La secuencia **D5 → D2 → D3 y D1 → D4 → D5 (QA)** es obligatoria y se controla con **4 compuertas verificables** (C0–C3). Un rol bloqueado se detiene, registra en `docs/gestion/registro-de-bloqueos.md` y **avisa en el chat**; nunca rodea el bloqueo inventando el insumo que falta. |
 | 2026-08-07 | **El agente nunca figura como colaborador del repositorio**: sin `Co-Authored-By`, sin firmas en commits o PRs. La autoría es de las 5 personas. Forzado con `includeCoAuthoredBy: false`. Ver `CLAUDE.md` § Convenciones de Git. |
+| 2026-08-08 | En **toda tarea**, el agente anuncia si se puede avanzar o hay que esperar a otro rol — no solo cuando bloquea. Ver `docs/equipo/secuencia-de-trabajo.md` §5. |
 
 ---
 

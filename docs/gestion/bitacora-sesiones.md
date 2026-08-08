@@ -26,6 +26,11 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 0
 
+### 2026-08-08 · D2 · `docs/d2-diseno-dominio-sprint0`
+**Qué:** Diseño adelantado del dominio de M3/M6 (`docs/ingenieria/modelo-de-dominio.md`) mientras C0
+sigue cerrada. Corregida la duplicación de `SuscribirseService` entre D1 y D2 (era de D1 por M4).
+**Sigue:** Resolver quién crea el esqueleto de `/backend` en Sprint 0 para poder abrir C0.
+
 ### 2026-08-07 · D4 · `feature/d4-sprint0-esqueleto`
 **Qué:** Esqueleto de `/frontend` creado: React 19 + Vite + TypeScript + Tailwind CSS v4. Tokens de `DESIGN.md` como custom properties CSS (paleta, temas claro/oscuro, tipografía, estado del servicio). `useTheme` hook + `SelectorTema` + `Encabezado` + rutas placeholder para M1, M2, M7, M8. `BL-002` registrado (D4 bloqueado por C0). Dev server en `localhost:5173`.
 **Sigue:** Fusionar PR a `develop` con al menos 1 revisor, y esperar que D5 (Yordy) cierre BL-001 para que C0 quede abierta.
