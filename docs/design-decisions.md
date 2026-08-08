@@ -828,8 +828,72 @@ Vaciando `aguavigia.rate-limit.reglas`. El interceptor no se registra si la list
 
 ---
 
+## ADR-019 — Bot de resumen diario por WhatsApp, con librería no oficial sobre un número dedicado
+
+- **Fecha:** 2026-08-08
+- **Estado:** Aceptada
+- **Decide:** Carlos Bechara Arias (D2), en conversación directa con el agente
+
+### Contexto
+
+El equipo pidió un bot que avise al grupo de WhatsApp sobre bugs graves, bloqueos y trabajo
+pendiente — la misma información que ya muestra la Sala de control, pero empujada al chat en vez de
+esperar a que alguien la revise. WhatsApp fue la plataforma elegida explícitamente, aunque se avisó
+que Telegram o Discord serían más simples y sin riesgo.
+
+Se investigó la API oficial de negocios de Meta antes de construir nada (no se asumió): en 2026 existe
+una *Groups API*, pero exige una **Official Business Account** con verificación de negocio real —
+inviable para un proyecto de aula sin entidad legal registrada — y aun así solo sirve para crear
+grupos nuevos propios del negocio, no para publicar en el grupo que el equipo ya tiene armado entre
+los cinco. La única forma de publicar ahí es automatizar una cuenta de WhatsApp normal con una
+librería no oficial (`Baileys`), lo que viola los términos de uso de WhatsApp para comportamiento
+automatizado.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| API oficial de Meta (Groups API) | Sin riesgo de bloqueo, soportada | Requiere negocio verificado que el equipo no tiene; no puede publicar en el grupo ya existente, solo en uno nuevo creado por la API |
+| Telegram o Discord en vez de WhatsApp | API oficial gratis, cero riesgo | El equipo pidió específicamente WhatsApp — es donde ya está el grupo real que usan |
+| **Baileys sobre un número dedicado** | Publica en el grupo que ya existe, sin costo de infraestructura nueva | Viola los términos de uso de WhatsApp; riesgo real de bloqueo del número |
+| Baileys sobre el número personal de alguien del equipo | Más simple de arrancar | Si WhatsApp lo bloquea, esa persona pierde su WhatsApp normal (contactos, chats) — costo inaceptable para una herramienta interna |
+
+### Decisión
+
+Se construye con **Baileys**, sobre un **número dedicado nuevo** que no es el personal de nadie del
+equipo — así, si WhatsApp lo bloquea (el riesgo aceptado de esta decisión), no se pierde nada más que
+el bot. El envío corre como **job programado de GitHub Actions** (`.github/workflows/whatsapp-bot.yml`,
+diario a las 8:00 a.m. hora de Cartagena) en vez de un servidor siempre encendido: el bot solo manda
+mensajes, nunca necesita escuchar en tiempo real, así que reconectar-enviar-desconectar una vez al día
+alcanza — evita depender de un hospedaje pago o de un servidor propio del equipo. La sesión vinculada
+se persiste entre corridas con `actions/cache`, no con un secreto de repositorio.
+
+Los datos del mensaje se leen de `scripts/lib/datos-proyecto.mjs` — el mismo módulo que ya usa la Sala
+de control, extraído de `generar-dashboard.mjs` en este mismo cambio para que ningún dato se calcule
+dos veces (`protocolo-de-contexto.md` §2). El bot no inventa ni resume con criterio propio: bugs
+graves (S1/S2), bloqueos abiertos y PRs sin revisar, tal como ya se muestran en el dashboard.
+
+### Consecuencias
+
+- **Gana:** el equipo recibe avisos activos en el canal que ya usa, sin esperar a que alguien abra el
+  dashboard. Cero costo de hospedaje nuevo — reutiliza GitHub Actions, igual que la Sala de control.
+- **Pierde:** el patrón de reconectar una vez al día en vez de mantenerse siempre conectado es
+  experimental — no hay certeza de cómo lo interpreta la detección de comportamiento automatizado de
+  WhatsApp. Si el número dedicado se bloquea, hay que repetir la vinculación con un número nuevo
+  (`bot-whatsapp/README.md`, sección "Si el número se bloquea").
+- **Condiciona:** la sesión vinculada (`bot-whatsapp/sesion/`) nunca se comitea — quien la tenga puede
+  enviar mensajes como el número vinculado. Vive solo en `actions/cache` del repositorio.
+
+### Cómo se revierte
+
+Borrar `.github/workflows/whatsapp-bot.yml` y `.github/workflows/whatsapp-vincular.yml`, la carpeta
+`bot-whatsapp/` y el secreto `WHATSAPP_GROUP_JID`. `scripts/lib/datos-proyecto.mjs` se queda —
+`generar-dashboard.mjs` lo sigue necesitando.
+
+---
+
 <!--
-Siguiente número disponible: ADR-019
+Siguiente número disponible: ADR-020
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->
