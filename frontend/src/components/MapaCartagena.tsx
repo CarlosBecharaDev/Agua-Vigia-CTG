@@ -222,7 +222,7 @@ export const MapaCartagena: FC<Props> = ({
             Cargando sectores…
           </span>
         )}
-        {error && (
+        {error && sectores.length === 0 && (
           <span style={{ color: 'var(--color-estado-sin)', fontSize: '0.85rem', fontFamily: 'var(--font-util)' }}>
             No pudimos cargar los sectores. Revisa tu conexión.
           </span>

@@ -1,3 +1,5 @@
+import { fetchWithTimeout } from './fetchWithTimeout'
+
 /**
  * acuacar.ts — Servicio para consumir la API REST pública de Acuacar (WordPress).
  *
@@ -70,7 +72,7 @@ export async function obtenerBoletinesRecientes(cantidad: number = 15): Promise<
     const baseUrl = import.meta.env.VITE_ACUACAR_API_URL || '/acuacar-api';
     const url = `${baseUrl}/posts?per_page=${cantidad}&_fields=id,date,title,content,link`;
 
-    const res = await fetch(url);
+    const res = await fetchWithTimeout(url);
     if (!res.ok) throw new Error(`Acuacar API respondió ${res.status}`);
 
     const posts = await res.json();

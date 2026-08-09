@@ -1,3 +1,5 @@
+import { fetchWithTimeout } from './fetchWithTimeout'
+
 /**
  * noticias.ts — Servicio de noticias en tiempo real sobre el agua en Cartagena.
  * 
@@ -22,7 +24,7 @@ export async function obtenerNoticiasAgua(): Promise<NoticiaAgua[]> {
     const query = encodeURIComponent('"acueducto Cartagena" OR "agua Cartagena" OR "Acuacar"');
     const url = `/google-news-rss/search?q=${query}&hl=es-CO&gl=CO&ceid=CO:es`;
 
-    const res = await fetch(url);
+    const res = await fetchWithTimeout(url);
     if (!res.ok) throw new Error(`RSS respondió ${res.status}`);
 
     const textoXML = await res.text();
