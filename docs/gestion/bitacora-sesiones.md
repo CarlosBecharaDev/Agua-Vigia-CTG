@@ -27,8 +27,8 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 ## Sprint 2
 
 ### 2026-08-09 · D4 (José) · `feat/panel-veedor-api`
-**Qué:** Conectados los últimos módulos que el frontend mantenía bloqueados pese a existir sus contratos: moderación y cortes del veedor, índice de cumplimiento global/sector y bitácora pública. Todo consume las API reales, sin mocks; PR #132.
-**Sigue:** Revisión humana y fusión del PR #132. Después, validar el recorrido completo contra el entorno Docker con datos reales.
+**Qué:** Conectados los últimos módulos que el frontend mantenía bloqueados pese a existir sus contratos: moderación y cortes del veedor (PR #132), índice de cumplimiento global/sector y bitácora pública (PR #133). Todo consume las API reales, sin mocks.
+**Sigue:** Revisión humana y fusión del PR #133. Después, validar el recorrido completo contra el entorno Docker con datos reales.
 
 ### 2026-08-09 · D4 (José) · `feat/redeseno-profesional-limpio`
 **Qué:** Reemplazado el rediseño roto del PR #128 por un shell lateral responsive sobre `develop`, sin tocar API ni funcionalidad; actualizado el cierre documental del PR #129. API check, lint, 28 pruebas y build en verde.
