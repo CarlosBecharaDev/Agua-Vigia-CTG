@@ -104,6 +104,22 @@ function obtenerADRs() {
 }
 
 // ─── Bugs: docs/gestion/registro-de-bugs.md, tabla de estado ───
+// La columna Estado a veces trae solo la palabra (`Abierto`, `Cerrado`) y a veces una nota larga
+// (ej. BUG-029: "🟡 Parcial — ítems 1, 2, 4 y 5 (sala de control) cerrados; ítem 3 ... sigue abierto").
+// Se separa en un balde corto para mostrar en un badge, y el texto largo aparte — igual que ya se
+// hace con las compuertas (estado vs. detalle) en obtenerCompuertas().
+function normalizarEstadoBug(estadoRaw) {
+  const texto = estadoRaw.trim();
+  let estado = "Abierto";
+  if (/^cerrado/i.test(texto)) estado = "Cerrado";
+  else if (/^en curso/i.test(texto)) estado = "En curso";
+  else if (/^no se corrige/i.test(texto)) estado = "No se corrige";
+  else if (/parcial/i.test(texto)) estado = "Parcial";
+  const notaMatch = texto.match(/—\s*(.*)$/);
+  const notaEstado = notaMatch ? notaMatch[1].trim() : (texto === estado ? null : texto.replace(/^[🟡🟢🔴]\s*/, ""));
+  return { estado, notaEstado };
+}
+
 function obtenerBugs() {
   const texto = leer("docs/gestion/registro-de-bugs.md");
   const tabla = texto.match(/\| ID \| Fecha \| Sev \|.*?\n\|---.*?\n([\s\S]*?)\n\n/);
@@ -111,8 +127,9 @@ function obtenerBugs() {
   const filas = tabla[1].trim().split("\n").filter((l) => l.startsWith("| BUG-"));
   return filas.map((f) => {
     const cols = columnasDeFila(f).filter((_, i, arr) => i > 0 && i < arr.length - 1);
-    const [id, fecha, sev, modulo, titulo, estado, responsable] = cols;
-    return { id, fecha, sev, modulo, titulo, estado, responsable };
+    const [id, fecha, sev, modulo, titulo, estadoRaw, responsable] = cols;
+    const { estado, notaEstado } = normalizarEstadoBug(estadoRaw);
+    return { id, fecha, sev, modulo, titulo, estado, notaEstado, responsable };
   });
 }
 
