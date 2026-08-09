@@ -7,8 +7,8 @@
  *  3. Google News RSS → noticias relevantes
  *
  * Expone un estado unificado que las páginas consumen directamente.
- * Si CUALQUIER API falla, se usan los datos mock como fallback
- * para que la app nunca se vea vacía.
+ * Si una fuente falla, esa parte del estado queda vacía — nunca se inventa un valor
+ * de respaldo (ética de datos, CLAUDE.md: "nada llega al mapa público sin verificación").
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Sector, EstadoServicio } from '../types/tipos-dominio';
@@ -19,23 +19,6 @@ import type { ClimaCartagena } from '../api/clima';
 import { obtenerNoticiasAgua } from '../api/noticias';
 import type { NoticiaAgua } from '../api/noticias';
 import { AguaVigiaAPI } from '../api/services';
-
-// ──────────────────────────────────────────────────────────────
-// DATOS MOCK de respaldo — idénticos a los que venían en PaginaMapa.tsx
-// Se usan SOLO si la API de Acuacar no responde.
-// ──────────────────────────────────────────────────────────────
-const SECTORES_MOCK: Sector[] = [
-  { id: '1', nombre: 'BOCAGRANDE',         estado: 'CON_SERVICIO',     actualizadoEn: new Date(Date.now() - 5 * 60_000).toISOString() },
-  { id: '2', nombre: 'CASTILLOGRANDE',     estado: 'SIN_SERVICIO',     actualizadoEn: new Date(Date.now() - 2 * 60_000).toISOString() },
-  { id: '3', nombre: 'EL LAGUITO',         estado: 'PRESION_BAJA',     actualizadoEn: new Date(Date.now() - 8 * 60_000).toISOString() },
-  { id: '4', nombre: 'MANGA',              estado: 'CORTE_PROGRAMADO', actualizadoEn: new Date(Date.now() - 1 * 60_000).toISOString() },
-  { id: '5', nombre: 'PIE DE LA POPA',     estado: 'CON_SERVICIO',     actualizadoEn: new Date(Date.now() - 12 * 60_000).toISOString() },
-  { id: '6', nombre: 'OLAYA HERRERA',      estado: 'SIN_SERVICIO',     actualizadoEn: new Date(Date.now() - 3 * 60_000).toISOString() },
-  { id: '7', nombre: 'GETSEMANI',          estado: 'CON_SERVICIO',     actualizadoEn: new Date(Date.now() - 6 * 60_000).toISOString() },
-  { id: '8', nombre: 'EL CENTRO',          estado: 'PRESION_BAJA',     actualizadoEn: new Date(Date.now() - 20 * 60_000).toISOString() },
-  { id: '9', nombre: 'LA BOQUILLA',        estado: 'CON_SERVICIO',     actualizadoEn: new Date(Date.now() - 4 * 60_000).toISOString() },
-  { id: '10', nombre: 'TORICES',           estado: 'CON_SERVICIO',     actualizadoEn: new Date(Date.now() - 15 * 60_000).toISOString() },
-];
 
 /** Intervalo de actualización automática (5 minutos) */
 const INTERVALO_ACTUALIZACION_MS = 5 * 60 * 1000;
@@ -78,7 +61,7 @@ export function useDatosEnVivo(): DatosEnVivo {
   const [error, setError] = useState<string | null>(null);
   const [usandoDatosReales, setUsandoDatosReales] = useState(false);
 
-  const [sectores, setSectores] = useState<Sector[]>(SECTORES_MOCK);
+  const [sectores, setSectores] = useState<Sector[]>([]);
   const [boletines, setBoletines] = useState<BoletinAcuacar[]>([]);
   const [estadoBarrios, setEstadoBarrios] = useState<EstadoBarrioAcuacar[]>([]);
   const [clima, setClima] = useState<ClimaCartagena | null>(null);
@@ -144,7 +127,7 @@ export function useDatosEnVivo(): DatosEnVivo {
       // constancia del estado para que la interfaz pueda mostrar el fallback
       // sin confundirlo con datos oficiales.
       setError(!sectoresDisponibles && !boletinesDisponibles
-        ? 'No hay conexion con las fuentes oficiales. Mostrando datos de demostracion.'
+        ? 'No hay conexion con las fuentes oficiales.'
         : null);
 
       // Procesar boletines de Acuacar
@@ -155,14 +138,10 @@ export function useDatosEnVivo(): DatosEnVivo {
         const estados = determinarEstadoBarrios(bols);
         setEstadoBarrios(estados);
 
-        const sectoresCombinados = combinarSectoresConAcuacar(
-          sectoresBackend.length > 0 ? sectoresBackend : SECTORES_MOCK, 
-          estados
-        );
-        if (sectoresCombinados.length > 0) {
-          setSectores(sectoresCombinados);
-          setUsandoDatosReales(sectoresDisponibles || boletinesDisponibles);
+        if (sectoresDisponibles) {
+          setSectores(combinarSectoresConAcuacar(sectoresBackend, estados));
         }
+        setUsandoDatosReales(sectoresDisponibles || boletinesDisponibles);
       } else if (sectoresBackend.length > 0) {
         // Si no hay datos de Acuacar, igual mostramos los sectores del backend
         setSectores(sectoresBackend);
@@ -181,9 +160,9 @@ export function useDatosEnVivo(): DatosEnVivo {
 
       setUltimaActualizacion(new Date().toISOString());
     } catch (err) {
-      console.warn('Error cargando datos en vivo, usando fallback:', err);
-      setError('No pudimos conectar con las fuentes de datos. Mostrando datos de demostración.');
-      setSectores(SECTORES_MOCK);
+      console.warn('Error cargando datos en vivo:', err);
+      setError('No pudimos conectar con las fuentes de datos.');
+      setSectores([]);
       setUsandoDatosReales(false);
     } finally {
       setCargando(false);
@@ -216,7 +195,7 @@ export function useDatosEnVivo(): DatosEnVivo {
     estadoBarrios,
     clima,
     noticias,
-    totalReportesMes: boletines.length > 0 ? boletines.length : 15,
+    totalReportesMes: boletines.length,
     barriosAfectados: sectoresConCorte.length,
     sectoresConCorte,
     recargar: cargarDatos,
