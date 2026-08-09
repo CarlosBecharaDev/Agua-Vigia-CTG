@@ -1,5 +1,6 @@
 package com.aguavigia.ctg.api.error;
 
+import com.aguavigia.ctg.domain.LimiteReportesExcedidoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -39,6 +40,15 @@ public class ManejadorGlobalDeErrores {
         ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
         problema.setTitle("Peticion invalida");
         problema.setType(URI.create(BASE_TIPO + "peticion-invalida"));
+        return problema;
+    }
+
+    /** RF006 — el dispositivo superó el límite de reportes en la ventana vigente. */
+    @ExceptionHandler(LimiteReportesExcedidoException.class)
+    public ProblemDetail limiteExcedido(LimiteReportesExcedidoException e) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, e.getMessage());
+        problema.setTitle("Límite de reportes excedido");
+        problema.setType(URI.create(BASE_TIPO + "limite-reportes-excedido"));
         return problema;
     }
 
