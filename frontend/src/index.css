@@ -22,6 +22,10 @@
   --color-superficie:    #ffffff;
   --color-fondo:         #f3f8f7;
 
+  /* Sombras Premium Apple */
+  --sombra-suave: 0 4px 20px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.03);
+  --sombra-elevada: 0 12px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
+
   /* ── Colores de ESTADO DEL SERVICIO ── */
   --color-estado-con:    #34c759;
   --color-estado-sin:    #ff453a;
@@ -64,6 +68,9 @@
     --color-superficie:   #063b52;
     --color-fondo:        #002436;
 
+    --sombra-suave: 0 4px 20px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15);
+    --sombra-elevada: 0 12px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
+
     --color-estado-con:   #30d158;
     --color-estado-sin:   #ff453a;
     --color-estado-baja:  #ff9f0a;
@@ -87,6 +94,9 @@
   --color-linea:        #185975;
   --color-superficie:   #063b52;
   --color-fondo:        #002436;
+
+  --sombra-suave: 0 4px 20px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15);
+  --sombra-elevada: 0 12px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
 
   --color-estado-con:   #30d158;
   --color-estado-sin:   #ff453a;
@@ -113,6 +123,10 @@
   --color-linea:         #dce8e8;
   --color-superficie:    #ffffff;
   --color-fondo:         #f3f8f7;
+
+  /* Sombras Premium Apple */
+  --sombra-suave: 0 4px 20px rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.03);
+  --sombra-elevada: 0 12px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
 
   --color-estado-con:    #34c759;
   --color-estado-sin:    #ff453a;
@@ -158,6 +172,7 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   line-height: 1.25;
+  letter-spacing: -0.03em;
   text-wrap: balance;
   color: var(--color-tinta);
 }
