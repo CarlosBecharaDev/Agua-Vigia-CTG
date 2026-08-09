@@ -64,7 +64,7 @@ Tres razones concretas, no burocráticas:
 | BUG-037 | 2026-08-09 | S2 | M1 | En 360×800 y 390×844 el mapa empezaba debajo del primer viewport | Cerrado | D4 |
 | BUG-038 | 2026-08-09 | S3 | M1 | Una URL inexistente mostraba solo el encabezado sin mensaje ni salida | Cerrado | D4 |
 | BUG-039 | 2026-08-09 | S2 | — (CI/integración) | CI del PR #105 fallaba en "Verificar cliente OpenAPI": `schema.ts` desactualizado tras avanzar `develop` con `/api/reportes` | Cerrado | Equipo (fusión) |
-| BUG-040 | 2026-08-09 | S3 | M7 | `index.css` redeclara los tokens de color del tema (`--color-acento` y compañía) en un segundo bloque `:root`/`:root[data-theme]` posterior — editar el primer bloque no cambia nada visualmente | Cerrado | D5 (Yordy) |
+| BUG-040 | 2026-08-09 | S3 | M7 | `index.css` redeclara los tokens de color del tema (`--color-acento` y compañía) en un segundo bloque `:root`/`:root[data-theme]` posterior — editar el primer bloque no cambia nada visualmente | Cerrado — duplicación eliminada, no solo resincronizada | D5 (Yordy) |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -780,6 +780,14 @@ está atrasado y por qué) se fusionó también con `reviews: []`. Fusión con a
 explícitamente con el usuario para actuar como revisor/release manager: la decisión de no esperar un
 segundo humano fue deliberada, no un descuido — pero la revisión humana de respaldo que exige esta
 misma sección sigue pendiente y queda anotada en el propio PR.
+**Verificado el 2026-08-09, undécima ocurrencia:** el PR
+[#105](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/105) (estabilización de la integración
+frontend-backend, hardening de estados) se fusionó también con `reviews: []` y sin issue enlazado
+(`closingIssuesReferences: []`), fusionado por Yordy (D5) mientras `develop` avanzaba en paralelo con
+varios PRs y commits de estilo — la sesión incluyó tres fusiones sucesivas de `develop` dentro de la
+misma rama para resolver conflictos de color, y terminó fusionándose sin que quedara registrada una
+revisión de un segundo integrante. Dejó además una recurrencia de `BUG-040` (ver esa entrada) que una
+revisión humana adicional probablemente habría detectado antes de fusionar.
 **Reproducción:** cualquier PR abierto en este repositorio puede fusionarse sin que nadie deje un
 comentario o *review* — no hay protección de rama configurada (`ADR-010`, decisión deliberada: es
 política, no candado técnico).
@@ -1006,7 +1014,7 @@ el merge. Confirmado en CI real tras el push: los 3 checks del PR #105 pasan
 ### BUG-040 — Tokens de color del tema duplicados en `index.css`: el primer bloque es letra muerta
 
 - **Fecha:** 2026-08-09 · **Severidad:** S3 · **Módulo:** M7 · **Responsable:** D5 (Yordy)
-- **Estado:** Cerrado — corregido en el acto
+- **Estado:** Cerrado — la segunda vez, se eliminó la duplicación en vez de resincronizarla
 
 **Síntoma:** `frontend/src/index.css` declara `--color-acento` y el resto de tokens de tema dos veces:
 una vez cerca del inicio del archivo (`:root`, `:root[data-theme="dark"]`,
@@ -1033,6 +1041,34 @@ turquesa del bloque de arriba. Verificado: `dist/assets/index-*.css` contiene `#
 cero ocurrencias de `#0A6C78`/`#45BFCB` tras `npm run build`. **Pendiente para el equipo:** unificar
 ambos bloques en uno solo (eliminar la duplicación) — no se hizo aquí para no ampliar el alcance del
 merge del PR #105.
+
+**Reincidencia (verificada en `develop`, post-merge del PR #105):** los commits `527fe5c` ("ajustar
+fondo del modo oscuro a un azul caribeño profundo") y `0528389` ("arreglar selectores manuales de
+tema para la paleta caribeña") actualizaron el bloque de arriba pero no el bloque `REDISEÑO
+AGUAVIGÍA`, que sigue ganando por orden de cascada. Confirmado con `grep`/lectura directa de
+`frontend/src/index.css` en `develop`: el modo oscuro (sistema y manual) renderiza
+`--color-fondo: #071f26` / `--color-superficie: #102f36` (paleta vieja, bloque `REDISEÑO`) en vez de
+`#002436` / `#063b52` (paleta "caribeña" nueva, bloque de arriba). El modo claro sí quedó consistente
+entre ambos bloques. Se detectaron dos inconsistencias más de la misma familia mientras se diagnosticaba
+esta: `--glass-r/g/b` duplicado en el bloque `REDISEÑO` (`16,47,54`) contra el bloque canónico dedicado
+de glassmorphism (`28,28,30`), y `--color-marino` con un valor distinto en cada bloque para modo oscuro
+manual (`#061b22` vs `#001824`) — ambos solo se manifestaban con el interruptor manual de tema, no con
+la preferencia del sistema.
+
+**Corrección definitiva (PR de seguimiento, rama `fix/unificar-tokens-color-index-css`):** se eliminó
+la duplicación en la raíz, no se volvió a resincronizar. El bloque `REDISEÑO AGUAVIGÍA` ya no declara
+ningún token de color de tema (`--color-acento*`, `--color-tinta*`, `--color-linea`,
+`--color-superficie`, `--color-fondo`, `--color-marino`, `--color-estado-*`) ni `--glass-r/g/b` —
+esos viven ahora en un único lugar cada uno. Lo único que conserva el bloque `REDISEÑO` es lo que le
+es propio y no se duplica en ningún otro sitio: `--color-coral`/`--color-coral-oscuro`, tipografía,
+radios y sombras. Verificado: `dist/assets/index-*.css` tiene exactamente un valor por token de color
+en cada uno de los 4 contextos (claro/oscuro × sistema/manual) —
+`grep -c` sobre el CSS compilado confirma 2 ocurrencias por color (una por regla de especificidad
+`:root`/`:root[data-theme]`, cero por duplicación) en vez de las 2+2 con valores distintos de antes.
+`npm run lint`, `npm run test -- --run` (23/23), `npm run build` y `npm run api:check` en verde.
+**Nota para el equipo:** si se vuelve a necesitar una sección de "rediseño" con sus propios tokens,
+que reutilice los del bloque de arriba (`var(--color-acento)`, etc.) en vez de redeclararlos — este
+bug ya reincidió una vez por hacerlo así.
 
 ---
 
