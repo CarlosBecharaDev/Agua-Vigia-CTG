@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { apiClient } from './client'
-import { cerrarCorteOficial, crearCorteOficial, crearReporte, listarCortesPorSector, listarReportesPendientes, moderarReporte, validarRespuestaSectores } from './services'
+import { cerrarCorteOficial, crearCorteOficial, crearReporte, listarCortesPorSector, listarReportesPendientes, moderarReporte, registrarReporteCiudadano, validarRespuestaSectores } from './services'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -25,6 +25,18 @@ describe('reportes ciudadanos', () => {
 
     await expect(crearReporte(solicitud)).resolves.toEqual({ id: 'reporte-1' })
     expect(post).toHaveBeenCalledWith('/reportes', solicitud)
+  })
+
+  it('permite reportar desde el mapa con una huella anónima', async () => {
+    const post = vi.spyOn(apiClient, 'post').mockResolvedValue({ data: { id: 'reporte-2' } })
+
+    await registrarReporteCiudadano('manga', 'PRESION_BAJA')
+
+    expect(post).toHaveBeenCalledWith('/reportes', expect.objectContaining({
+      sectorId: 'manga',
+      tipo: 'PRESION_BAJA',
+      huella: expect.any(String),
+    }))
   })
 })
 

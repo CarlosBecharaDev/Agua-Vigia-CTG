@@ -1,19 +1,29 @@
-import { useCallback, useMemo, useState } from 'react'
-import { Database, LocateFixed, Map, Megaphone, RefreshCw, Users } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { LocateFixed, Map, RefreshCw, Users } from 'lucide-react'
 import { MapaCartagena } from '../components/MapaCartagena'
 import { ListaSectores } from '../components/ListaSectores'
-import { FormularioSuscripcion } from '../components/FormularioSuscripcion'
 import { ErrorRecurso } from '../components/EstadoPagina'
 import type { Sector } from '../types/tipos-dominio'
 import { useDatosEnVivo } from '../hooks/useDatosEnVivo'
 import { PageWrapper } from '../components/PageWrapper'
+import { PanelSectorSeleccionado } from '../components/PanelSectorSeleccionado'
+
+const ContadorAnimado = ({ valor, cargando }: { valor: number; cargando: boolean }) => (
+  <span key={valor} className="contador-animado">{cargando ? '—' : valor}</span>
+)
 
 export default function PaginaMapa() {
   const { estado, sectores, cargando, error, ultimaActualizacion, recargar } = useDatosEnVivo()
   const [sectorActivo, setSectorActivo] = useState<Sector | null>(null)
   const [vistaMovil, setVistaMovil] = useState<'mapa' | 'lista'>('mapa')
-  const navigate = useNavigate()
+  const [esMovil, setEsMovil] = useState(() => window.matchMedia('(max-width: 899px)').matches)
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 899px)')
+    const actualizar = () => setEsMovil(media.matches)
+    media.addEventListener('change', actualizar)
+    return () => media.removeEventListener('change', actualizar)
+  }, [])
 
   const resumen = useMemo(() => ({
     afectados: sectores.filter((sector) => sector.estado === 'SIN_SERVICIO' || sector.estado === 'PRESION_BAJA' || sector.estado === 'CORTE_PROGRAMADO').length,
@@ -24,7 +34,15 @@ export default function PaginaMapa() {
 
   const seleccionarSector = useCallback((sector: Sector | null) => {
     setSectorActivo(sector)
-    if (sector && window.matchMedia('(max-width: 899px)').matches) setVistaMovil('mapa')
+    if (sector && window.matchMedia('(max-width: 899px)').matches) {
+      setVistaMovil('mapa')
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        document.getElementById('panel-mapa')?.scrollIntoView({
+          behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+          block: 'start',
+        })
+      }))
+    }
   }, [])
 
   return (
@@ -37,16 +55,10 @@ export default function PaginaMapa() {
             <p>Busca tu sector. “Sin datos” significa que el sistema todavía no puede confirmarlo.</p>
           </div>
           <dl className="resumen-compacto">
-            <div><dt>Novedades</dt><dd>{cargando ? '—' : resumen.afectados}</dd></div>
-            <div><dt>Sin agua</dt><dd>{cargando ? '—' : resumen.sinServicio}</dd></div>
-            <div><dt>Sin datos</dt><dd>{cargando ? '—' : resumen.sinDatos}</dd></div>
+            <div><dt>Novedades</dt><dd><ContadorAnimado valor={resumen.afectados} cargando={cargando} /></dd></div>
+            <div><dt>Sin agua</dt><dd><ContadorAnimado valor={resumen.sinServicio} cargando={cargando} /></dd></div>
+            <div><dt>Sin datos</dt><dd><ContadorAnimado valor={resumen.sinDatos} cargando={cargando} /></dd></div>
           </dl>
-        </section>
-
-        <section className="barra-contexto" aria-label="Fuente y actualización de datos">
-          <div className="contexto-item"><Database size={17} /><span><small>Fuente</small><strong>Backend AguaVigía</strong></span></div>
-          <span className={`estado-conexion estado-${estado}`}>{estado === 'stale' ? 'Datos desactualizados' : estado === 'error' ? 'Sin conexión' : estado === 'empty' ? 'Sin sectores cargados' : 'Datos del contrato oficial'}</span>
-          <button type="button" onClick={recargar} className="boton-actualizar" disabled={cargando}><RefreshCw size={16} className={cargando ? 'girando' : ''} />{cargando ? 'Actualizando' : 'Actualizar'}</button>
         </section>
 
         {error && estado === 'error' && <ErrorRecurso mensaje={error} onReintentar={recargar} />}
@@ -57,25 +69,29 @@ export default function PaginaMapa() {
         </div>
 
         <section className="centro-monitoreo" aria-label="Centro de monitoreo">
-          <article className={`tarjeta-mapa vista-${vistaMovil}`}>
+          <article id="panel-mapa" className={`tarjeta-mapa vista-${vistaMovil}`}>
             <header className="cabecera-panel">
               <div><span className="eyebrow"><LocateFixed size={14} /> Estado georreferenciado</span><h2>Mapa de servicio</h2></div>
-              <div className="leyenda-mapa" aria-label="Leyenda del mapa">
-                <span><i className="estado-con-bg" /> Con agua</span><span><i className="estado-baja-bg" /> Baja presión</span><span><i className="estado-sin-bg" /> Sin agua</span><span><i className="estado-desconocido-bg" /> Sin datos</span>
+              <div className="mapa-acciones">
+                <div className="leyenda-mapa" aria-label="Leyenda del mapa">
+                  <span><i className="estado-con-bg" /> Con agua</span><span><i className="estado-baja-bg" /> Baja presión</span><span><i className="estado-sin-bg" /> Sin agua</span><span><i className="estado-desconocido-bg" /> Sin datos</span>
+                </div>
+                <button type="button" onClick={recargar} className="boton-actualizar" disabled={cargando} aria-label={cargando ? 'Actualizando mapa' : 'Actualizar mapa'}><RefreshCw size={16} className={cargando ? 'girando' : ''} /><span>{cargando ? 'Actualizando' : 'Actualizar'}</span></button>
               </div>
             </header>
             <div className="marco-mapa">
-              <MapaCartagena sectores={sectores} cargando={cargando} error={error} ultimaActualizacion={ultimaActualizacion} sectorActivo={sectorActivo} onSectorSeleccionado={seleccionarSector} onAbrirReporte={() => navigate('/reportar')} />
+              <MapaCartagena sectores={sectores} cargando={cargando} error={error} ultimaActualizacion={ultimaActualizacion} sectorActivo={sectorActivo} onSectorSeleccionado={seleccionarSector} />
             </div>
+            {sectorActivo && esMovil && <PanelSectorSeleccionado integrado sector={sectorActivo} onCerrar={() => seleccionarSector(null)} />}
           </article>
 
           <aside className={`panel-barrios vista-${vistaMovil}`} aria-label="Barrios monitoreados">
-            <div className="cabecera-barrios"><span className="eyebrow">Alternativa textual</span><h2>Barrios monitoreados</h2><p>{resumen.estables} con servicio confirmado; {resumen.sinDatos} todavía sin datos.</p><button type="button" className="boton boton-secundario boton-ancho" onClick={() => navigate('/reportar')}><Megaphone size={18} /> Consultar reportes</button></div>
-            <div className="lista-barrios-scroll"><ListaSectores sectores={sectores} cargando={cargando} error={error} onSectorSeleccionado={seleccionarSector} /></div>
+            {sectorActivo && !esMovil && <PanelSectorSeleccionado integrado sector={sectorActivo} onCerrar={() => seleccionarSector(null)} />}
+            <div className="cabecera-barrios"><span className="eyebrow">Explorador de servicio</span><h2>Barrios monitoreados</h2><p>{sectores.length - resumen.sinDatos} con estado reportado; {resumen.afectados} con novedades.</p></div>
+            <div className="lista-barrios-scroll"><ListaSectores sectores={sectores} cargando={cargando} error={error} sectorActivo={sectorActivo} onSectorSeleccionado={seleccionarSector} /></div>
           </aside>
         </section>
 
-        <section className="bloque-suscripcion" aria-label="Avisos por correo"><FormularioSuscripcion sectores={sectores} /></section>
       </main>
     </PageWrapper>
   )

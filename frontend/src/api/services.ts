@@ -1,5 +1,6 @@
 import type { components } from './generated/schema'
 import { apiClient, sesionVeedor } from './client'
+import { obtenerHuellaDispositivo } from '../utils/huellaDispositivo'
 
 type SectorApi = components['schemas']['SectorRespuesta']
 type RespuestaSectoresApi = components['schemas']['RespuestaSectores']
@@ -9,6 +10,7 @@ type SolicitudReporteApi = components['schemas']['SolicitudReporte']
 export type SolicitudReporte = Required<Pick<SolicitudReporteApi, 'sectorId' | 'tipo' | 'huella'>> &
   Pick<SolicitudReporteApi, 'coordenada'>
 export type ReporteRespuesta = components['schemas']['ReporteRespuesta']
+export type TipoReporte = 'SIN_AGUA' | 'PRESION_BAJA' | 'SERVICIO_RESTABLECIDO'
 type ReporteModeracionApi = components['schemas']['ReporteModeracionRespuesta']
 export type ReporteModeracion = Required<Pick<ReporteModeracionApi, 'id' | 'sectorId' | 'tipo' | 'timestamp' | 'estadoModeracion'>> &
   Pick<ReporteModeracionApi, 'coordenada'>
@@ -62,6 +64,15 @@ export async function crearSuscripcion(datos: SolicitudSuscripcion): Promise<Sus
 export async function crearReporte(datos: SolicitudReporte): Promise<ReporteRespuesta> {
   const { data } = await apiClient.post<ReporteRespuesta>('/reportes', datos)
   return data
+}
+
+/** Flujo ciudadano abreviado usado desde el mapa y la pantalla de reporte. */
+export async function registrarReporteCiudadano(sectorId: string, tipo: TipoReporte): Promise<ReporteRespuesta> {
+  return crearReporte({
+    sectorId,
+    tipo,
+    huella: await obtenerHuellaDispositivo(),
+  })
 }
 
 export async function listarReportesPendientes(): Promise<ReporteModeracion[]> {
