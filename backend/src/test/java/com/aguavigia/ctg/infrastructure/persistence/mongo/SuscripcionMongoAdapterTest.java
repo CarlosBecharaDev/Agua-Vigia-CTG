@@ -79,4 +79,19 @@ class SuscripcionMongoAdapterTest {
 
         assertThat(resultado).isEqualTo(suscripcion);
     }
+
+    @Test
+    void debeRecuperarPorTokenLoQueSeGuardo() {
+        Suscripcion suscripcion = new Suscripcion(
+                new SuscripcionId("s3"),
+                new CorreoElectronico("vecino@correo.com"),
+                List.of(new SectorId("bocagrande")),
+                EstadoSuscripcion.PENDIENTE_CONFIRMACION,
+                "token-3",
+                AHORA);
+        adaptador.guardar(suscripcion);
+
+        assertThat(adaptador.buscarPorTokenConfirmacion("token-3")).contains(suscripcion);
+        assertThat(adaptador.buscarPorTokenConfirmacion("token-nunca-usado")).isEmpty();
+    }
 }

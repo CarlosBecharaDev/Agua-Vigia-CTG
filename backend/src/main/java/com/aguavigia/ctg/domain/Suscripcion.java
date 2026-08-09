@@ -34,4 +34,23 @@ public record Suscripcion(
         }
         sectorIds = List.copyOf(sectorIds);
     }
+
+    /** RF013 — el token de confirmación es de un solo uso: se rechaza confirmar algo que no esté pendiente. */
+    public Suscripcion confirmar() {
+        if (estado != EstadoSuscripcion.PENDIENTE_CONFIRMACION) {
+            throw new IllegalArgumentException("La suscripción ya no está pendiente de confirmación");
+        }
+        return new Suscripcion(id, correo, sectorIds, EstadoSuscripcion.CONFIRMADA, tokenConfirmacion, creadaEn);
+    }
+
+    /**
+     * RF015 — la baja es idempotente a propósito: un vecino puede volver a abrir un correo viejo
+     * o un enlace ya usado, y cancelar algo ya cancelado no debe ser un error sino la misma respuesta.
+     */
+    public Suscripcion cancelar() {
+        if (estado == EstadoSuscripcion.CANCELADA) {
+            return this;
+        }
+        return new Suscripcion(id, correo, sectorIds, EstadoSuscripcion.CANCELADA, tokenConfirmacion, creadaEn);
+    }
 }

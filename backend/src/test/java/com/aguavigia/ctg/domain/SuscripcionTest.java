@@ -46,4 +46,35 @@ class SuscripcionTest {
                 EstadoSuscripcion.PENDIENTE_CONFIRMACION, "token-1", AHORA))
                 .isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void debePasarDeConfirmadaACancelada() {
+        Suscripcion confirmada = new Suscripcion(
+                new SuscripcionId("s1"), CORREO, List.of(new SectorId("bocagrande")),
+                EstadoSuscripcion.CONFIRMADA, "token-1", AHORA);
+
+        Suscripcion cancelada = confirmada.cancelar();
+
+        assertThat(cancelada.estado()).isEqualTo(EstadoSuscripcion.CANCELADA);
+    }
+
+    @Test
+    void debePoderCancelarseAntesDeConfirmar() {
+        Suscripcion pendiente = new Suscripcion(
+                new SuscripcionId("s1"), CORREO, List.of(new SectorId("bocagrande")),
+                EstadoSuscripcion.PENDIENTE_CONFIRMACION, "token-1", AHORA);
+
+        Suscripcion cancelada = pendiente.cancelar();
+
+        assertThat(cancelada.estado()).isEqualTo(EstadoSuscripcion.CANCELADA);
+    }
+
+    @Test
+    void laCancelacionEsIdempotenteAlReabrirUnCorreoViejo() {
+        Suscripcion cancelada = new Suscripcion(
+                new SuscripcionId("s1"), CORREO, List.of(new SectorId("bocagrande")),
+                EstadoSuscripcion.CANCELADA, "token-1", AHORA);
+
+        assertThat(cancelada.cancelar()).isEqualTo(cancelada);
+    }
 }
