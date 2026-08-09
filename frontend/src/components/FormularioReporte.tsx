@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import type { FC } from 'react'
 import { DropletOff, ArrowDownToLine, CheckCircle2, MapPin, MessageSquare, Mail, User } from 'lucide-react'
 import { AguaVigiaAPI } from '../api/services'
-import { isSimulationMode } from '../config'
 import { geometriaContienePunto, normalizarNombreBarrio } from '../utils/geografia'
 
 
@@ -116,15 +115,8 @@ export const FormularioReporte: FC<Props> = ({ sectores, sectorPreseleccionado, 
       
       onReporteEnviado()
     } catch (err) {
-      if (!isSimulationMode) {
-        setError('No se pudo enviar el reporte. Intenta nuevamente cuando el servicio este disponible.')
-        return
-      }
-      // Fallback temporal: si la API no está lista, simulamos el éxito de todos modos (MOCK)
-      console.warn("La API aún no está disponible, simulando envío...", err);
-      setTimeout(() => {
-        onReporteEnviado()
-      }, 800)
+      console.warn('No se pudo enviar el reporte:', err)
+      setError('No se pudo enviar el reporte. Intenta nuevamente cuando el servicio esté disponible.')
     } finally {
       setEnviando(false)
     }

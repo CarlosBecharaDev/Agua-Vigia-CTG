@@ -102,7 +102,7 @@ de error propio.
 ### BUG-018 — `BUG-008` no quedó corregido del todo
 
 - **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M1 · **Responsable:** D4
-- **Estado:** Abierto
+- **Estado:** Cerrado — corregido en PR #87
 
 **Síntoma:** `BUG-008` (el mapa pinta "con servicio" los sectores sin dato) figura `Cerrado` en este
 mismo registro desde el PR #67. Pero `frontend/src/components/MapaCartagena.tsx:149` —el `style`
@@ -120,15 +120,14 @@ se remonta—, todo barrio sin dato se pinta verde brillante como si tuviera ser
 callback `style` que la capa usa en su creación — dos caminos que pintan el mismo dato, uno corregido
 y el otro no.
 
-**Corrección:** pendiente — es capa de D4. Sugerido: registrar aquí que `BUG-008` se reabre o se
-referencia desde este, según decida el equipo.
+**Corrección:** Implementada en PR #87; el estilo inicial de la capa usa ahora el estado visual "sin datos".
 
 ---
 
 ### BUG-019 — Sectores sin dato se cuentan como "con problema"
 
 - **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M1 · **Responsable:** D4
-- **Estado:** Abierto
+- **Estado:** Cerrado — corregido en PR #87
 
 **Síntoma:** `PaginaMapa.tsx:135` cuenta "🔥 N barrios reportan problemas" con
 `s.estado !== 'CON_SERVICIO'`, lo que también cuenta `estado === null` como problema. Por separado,
@@ -145,14 +144,14 @@ misma regla que `ADR-014` fija en el backend, ahora violada en dos lugares del f
 **Causa raíz:** el frontend se construyó contra mocks donde todo sector tenía estado; al conectar la
 API real, ningún camino nuevo distingue "sin dato" de "con problema".
 
-**Corrección:** pendiente — es capa de D4.
+**Corrección:** Implementada en PR #87; los estados nulos ya no cuentan como problemas ni muestran reportes inventados.
 
 ---
 
 ### BUG-020 — El cruce de nombres Acuacar↔sector no normaliza texto
 
 - **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M1/M9 · **Responsable:** D4
-- **Estado:** Abierto
+- **Estado:** Cerrado — corregido en PR #87
 
 **Síntoma:** `useDatosEnVivo.ts:105` (`combinarSectoresConAcuacar`) une el nombre de barrio derivado
 de Acuacar con el sector real vía `Map.get(sector.nombre)` exacto, sin la normalización que
@@ -172,7 +171,7 @@ todos los cruces de nombre de barrio del proyecto.
 **Causa raíz:** dos implementaciones distintas del mismo tipo de cruce, escritas por separado sin
 compartir la utilidad de normalización que ya existe en `MapaCartagena.tsx`.
 
-**Corrección:** pendiente — es capa de D4.
+**Corrección:** Implementada en PR #87 con normalización y coincidencia segura entre Acuacar, sectores y GeoJSON.
 
 ---
 
@@ -263,7 +262,7 @@ con su trigger `schedule` a `main`, o disparar el refresco por otro medio mientr
 ### BUG-024 — Preselección de sector y respaldo sin API rotos en `PaginaReportar`
 
 - **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M2 · **Responsable:** D4
-- **Estado:** Abierto
+- **Estado:** Cerrado — corregido en PR #87
 
 **Síntoma:** dos regresiones del PR #68 al quitar `SECTORES_MOCK`:
 1. `FormularioReporte.tsx:16` — `sectorId` se inicializa desde `sectorPreseleccionado` solo dentro de
@@ -281,14 +280,14 @@ red no debe dejar el formulario sin ningún nombre de sector.
 quedaron en el mismo PR (`PaginaReportar` sin respaldo, `PaginaVeedor` con mock local,
 `useDatosEnVivo` con su propio mock) — nadie las unificó en un solo hook compartido.
 
-**Corrección:** pendiente — es capa de D4.
+**Corrección:** Implementada en PR #87; la preselección se sincroniza y el formulario conserva el respaldo de sectores.
 
 ---
 
 ### BUG-025 — El botón "Instalar App" revienta si se reintenta tras descartar el diálogo
 
 - **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M7 · **Responsable:** D4
-- **Estado:** Abierto
+- **Estado:** Cerrado — corregido en PR #87
 
 **Síntoma:** `BotonInstalarPWA.tsx:42` solo limpia el evento `BeforeInstallPromptEvent` capturado
 cuando el resultado es `'accepted'`. Si el usuario descarta el diálogo (`'dismissed'`), el evento ya
@@ -304,14 +303,14 @@ tras el primer intento.
 
 **Causa raíz:** el manejo del resultado del prompt solo contempló el camino de éxito.
 
-**Corrección:** pendiente — es capa de D4.
+**Corrección:** Implementada en PR #87; el evento se libera después de cualquier resultado y los errores quedan capturados.
 
 ---
 
 ### BUG-026 — El mapa deja de reaccionar al hacer clic en un sector tras el primer render
 
 - **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M1 · **Responsable:** D4
-- **Estado:** Abierto
+- **Estado:** Cerrado — corregido en PR #87
 
 **Síntoma:** el `useEffect` que construye la capa GeoJSON en `MapaCartagena.tsx:194` recortó sus
 dependencias de `[sectores, onSectorSeleccionado]` a solo `[onSectorSeleccionado]` (un `useCallback`
@@ -328,14 +327,14 @@ detalle y el botón "Reportar problema" operan sobre datos permanentemente viejo
 **Causa raíz:** el recorte de dependencias probablemente buscaba evitar reconstruir la capa en cada
 actualización de datos, pero rompió la lectura fresca dentro del handler de clic.
 
-**Corrección:** pendiente — es capa de D4.
+**Corrección:** Implementada en PR #87 usando el índice actualizado dentro del manejador de clic.
 
 ---
 
 ### BUG-027 — La Bitácora y el Mapa clasifican el mismo boletín de forma distinta
 
 - **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M1/M8 · **Responsable:** D4
-- **Estado:** Abierto
+- **Estado:** Cerrado — corregido en PR #87
 
 **Síntoma:** `PaginaBitacora.tsx` (`estadoDeBoletin`) y `acuacar.ts` (`determinarEstadoBarrios`)
 clasifican el mismo texto de boletín en `SIN_SERVICIO`/`CORTE_PROGRAMADO`/`CON_SERVICIO`, pero
@@ -351,14 +350,14 @@ el proyecto vende (`brief.md`).
 
 **Causa raíz:** dos implementaciones independientes de la misma clasificación, sin compartir lógica.
 
-**Corrección:** pendiente — es capa de D4.
+**Corrección:** Implementada en PR #87 al compartir la clasificación de boletines de Acuacar.
 
 ---
 
 ### BUG-028 — Detección de barrio por GPS no es un point-in-polygon real
 
 - **Fecha:** 2026-08-09 · **Severidad:** S3 · **Módulo:** M2 · **Responsable:** D4
-- **Estado:** Abierto
+- **Estado:** Cerrado — corregido en PR #87
 
 **Síntoma:** `FormularioReporte.tsx:45` compara la coordenada del usuario contra **el primer vértice**
 de cada polígono (`geometry.coordinates[0][0]`) por distancia euclidiana, no contra un
@@ -372,7 +371,7 @@ solo vértice arbitrario.
 
 **Causa raíz:** simplificación de la comparación geoespacial sin usar una librería de point-in-polygon.
 
-**Corrección:** pendiente — es capa de D4.
+**Corrección:** Implementada en PR #87 con soporte para Polygon y MultiPolygon GeoJSON.
 
 ---
 
