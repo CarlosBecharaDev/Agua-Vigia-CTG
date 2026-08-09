@@ -26,6 +26,10 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 2
 
+### 2026-08-09 · D4 (José) · `feat/redeseno-profesional-limpio`
+**Qué:** Reemplazado el rediseño roto del PR #128 por un shell lateral responsive sobre `develop`, sin tocar API ni funcionalidad; actualizado el cierre documental del PR #129. API check, lint, 28 pruebas y build en verde.
+**Sigue:** Fusionar el PR visual limpio y conectar el panel del veedor a moderación/cortes reales en una rama separada.
+
 ### 2026-08-09 · D4 (José) · `fix/integrar-formulario-reportes`
 **Qué:** RF008 conectado a `POST /api/reportes`: formulario real en dos pasos, huella anónima SHA-256, ubicación opcional, errores RFC 7807 y contrato OpenAPI regenerado; 26 pruebas, lint, build y `npm audit` en verde.
 **Sigue:** Revisar y fusionar el PR a `develop`; después registrar la entrega en `registro-de-implementaciones.md`.
