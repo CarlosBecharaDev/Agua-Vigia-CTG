@@ -24,6 +24,20 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ---
 
+## Sprint 1
+
+### 2026-08-08 · D5/D1 (Yordy) · `docs/cierre-sprint-0-y-planning-sprint-1`
+**Qué:** Se celebró el **Review del Sprint 0** reverificando cada compuerta con su comando (C0, C1,
+C2 y C3 abiertas) y se abrió el **Planning del Sprint 1**, que arranca con 4 de sus 5 frentes ya
+entregados. Cerrado `BL-004`: Carlos (D2) queda libre para escribir los casos de uso de
+`application/`. Hallazgo del Review: la máquina de D5 tiene el **cliente** de Docker pero ningún
+motor, así que `docker compose config -q` —el comando que define C0— solo valida YAML y nunca probó
+que el entorno levante; el sprint se aceptó con la salvedad escrita, no oculta.
+**Sigue:** D5 instala un motor de contenedores y reverifica C0 de verdad; D1 (Yordy) retoma el PR de
+las plantillas de correo de M4, que sigue sin fusionar en `feature/d5-dockerfile-frontend-y-jacoco`.
+
+---
+
 ## Sprint 0
 
 ### 2026-08-08 · D4 · `vista-previa-total`
