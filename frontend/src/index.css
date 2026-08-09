@@ -15,16 +15,18 @@
   /* Teal Blue Accent */
   --color-acento:        #087f8c;
   --color-acento-vivo:   #0a9cab;
+  --color-acento-suave:  #d9f1f0;
 
-  /* Apple Ink */
-  --color-tinta:         #1d1d1f;
-  --color-tinta-2:       #7a7a7a;
-  --color-tinta-3:       #cccccc;
+  /* Ink (Dark bluish gray) */
+  --color-tinta:         #12333d;
+  --color-tinta-2:       #5d7379;
+  --color-tinta-3:       #8da0a4;
+  --color-marino:        #082f3c;
 
-  /* Superficies Apple planas (sin glassmorphism) */
-  --color-linea:         #e0e0e0;
+  /* Surfaces (Soft bluish white) */
+  --color-linea:         #dce8e8;
   --color-superficie:    #ffffff;
-  --color-fondo:         #f5f5f7;
+  --color-fondo:         #f3f8f7;
 
   /* ── Colores de ESTADO DEL SERVICIO ── */
   --color-estado-con:    #34c759;   /* Apple Green */
@@ -58,14 +60,16 @@
   :root:not([data-theme="light"]) {
     --color-acento:       #54c6ca;
     --color-acento-vivo:  #78d9db;
+    --color-acento-suave: #153f44;
 
-    --color-tinta:        #ffffff;
-    --color-tinta-2:      #a1a1a6;
-    --color-tinta-3:      #6e6e73;
+    --color-tinta:        #edf8f7;
+    --color-tinta-2:      #a7bdbd;
+    --color-tinta-3:      #71898c;
+    --color-marino:       #061b22;
 
-    --color-linea:        #38383a;
-    --color-superficie:   #1c1c1e;
-    --color-fondo:        #000000;
+    --color-linea:        #234a4f;
+    --color-superficie:   #102f36;
+    --color-fondo:        #071f26;
 
     --color-estado-con:   #30d158;
     --color-estado-sin:   #ff453a;
