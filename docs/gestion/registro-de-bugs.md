@@ -54,7 +54,8 @@ Tres razones concretas, no burocráticas:
 | BUG-027 | 2026-08-09 | S2 | M1/M8 | La clasificación del estado de un boletín de Acuacar difiere entre la Bitácora y el Mapa/Estadísticas para el mismo texto | Abierto | D4 |
 | BUG-028 | 2026-08-09 | S3 | M2 | La detección de barrio por GPS compara solo contra el primer vértice del polígono, no es un point-in-polygon real | Abierto | D4 |
 | BUG-029 | 2026-08-09 | S4 | — (sala de control / M7) | Detalles menores encontrados en la misma revisión: layout de `.narrativa` en 3-4 columnas en vez de 2, campo `urgente` muerto en bugs, y falta cleanup del listener `appinstalled` en `BotonInstalarPWA.tsx` | 🟡 Parcial — ítems 1, 2, 4 y 5 (sala de control) cerrados; ítem 3 (`BotonInstalarPWA.tsx`, D4) sigue abierto | Equipo / D4 |
-| BUG-030 | 2026-08-09 | S2 | — (sala de control) | `leerDetalleSprint` asumía siempre 5 columnas en la tabla de Compromisos; `sprint-1.md` (recién abierto, en planificación pura) tiene solo 4 sin columna Estado, y `generar-dashboard.mjs` tumbaba con `TypeError: Cannot read properties of undefined (reading 'startsWith')` | Cerrado | Equipo (sala de control) |
+| BUG-030 | 2026-08-08 | S3 | — (proceso) | El comando de la compuerta C0 solo validaba el YAML: la máquina de D5 no tenía ningún motor de contenedores instalado | Cerrado | D5 |
+| BUG-031 | 2026-08-09 | S2 | — (sala de control) | `leerDetalleSprint` asumía siempre 5 columnas en la tabla de Compromisos; `sprint-1.md` (recién abierto, en planificación pura) tiene solo 4 sin columna Estado, y `generar-dashboard.mjs` tumbaba con `TypeError: Cannot read properties of undefined (reading 'startsWith')` | Cerrado | Equipo (sala de control) |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -865,6 +866,69 @@ la compuerta, exit code 0, con y sin `.env` presente.
 
 ---
 
+## Nota sobre BUG-030
+
+**Síntoma:** el comando literal de C0 (`docker compose config -q && ls backend frontend`) pasaba en
+verde en la máquina de D5 sin haber levantado nunca un contenedor real, porque solo tenía instalado el
+**cliente** de Docker (Homebrew), sin ningún motor (ni Docker Desktop, ni colima, ni podman).
+`docker compose config -q` únicamente valida sintaxis YAML; no habla con un daemon. Documentado como
+salvedad al cerrar el Sprint 0 (PR #73, `sprint-0.md` nota 1), con la corrección prometida como primera
+acción del Sprint 1.
+
+**Cómo se encontró:** al reverificar C0 de verdad para el Sprint 1, `./mvnw clean verify` daba 60
+pruebas en verde y 6 errores de Testcontainers (`CacheConfigTest`, `RateLimitConfigTest`,
+`DeduplicadorRecienteTest`, `SectorMongoAdapterTest`, `RedisContadorReportesAdapterTest`,
+`RateLimitingInterceptorTest`), todos `Could not find a valid Docker environment`.
+
+**Causa raíz:** ausencia de motor de contenedores en la máquina de D5. Una vez instalado, aparecieron
+dos causas raíz adicionales, específicas de Colima en macOS: (1) Testcontainers no lee el contexto
+`colima` de Docker por defecto — necesita `DOCKER_HOST` explícito; (2) el contenedor Ryuk (el reaper de
+Testcontainers) intenta bind-montar el socket de Docker usando la ruta **tal como se ve desde macOS**
+(`~/.colima/default/docker.sock`), pero el daemon real corre dentro de la VM de Colima, donde esa ruta
+no existe — falla con `mkdir ... operation not supported`.
+
+**Corrección:** `brew install colima && colima start`, más dos variables de entorno exportadas antes de
+correr Maven o Docker Compose: `DOCKER_HOST=unix://$HOME/.colima/default/docker.sock` (para que el
+cliente Docker y Testcontainers encuentren el daemon) y `TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock`
+(la ruta del socket *dentro* de la VM, para que Ryuk monte el archivo correcto). Con ambas, `docker
+compose up -d` levanta los 5 servicios reales y `./mvnw clean verify` corre las 79 pruebas —incluyendo
+Testcontainers— en verde. El comando de la compuerta C0 se actualizó en
+`docs/equipo/secuencia-de-trabajo.md` §2 y `docs/gestion/registro-de-bloqueos.md` §2 para que ya no se
+pueda declarar en verde sin un motor real corriendo.
+**Prueba que impide la regresión:** ninguna automatizada — es una condición de la máquina local, no del
+código. Mitigación: el comando de C0 ahora exige `docker compose up -d --wait`, que falla explícitamente
+si no hay daemon, en vez de degradarse en silencio a validar solo YAML.
+
+---
+
+### BUG-031 — `leerDetalleSprint` tumbaba el generador con una tabla de Compromisos sin columna Estado
+
+- **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** — (sala de control) · **Responsable:** Equipo (sala de control)
+- **Estado:** Cerrado
+
+**Síntoma:** `node scripts/generar-dashboard.mjs` fallaba con `TypeError: Cannot read properties of
+undefined (reading 'startsWith')` en `scripts/lib/datos-proyecto.mjs:190`.
+
+**Reproducción:** consistente, en cuanto existió `docs/gestion/sprint-1.md`. Su tabla de "Compromisos"
+tiene 4 columnas (`Resp. | RF/RNF | Entregable | Depende de`), sin la quinta columna `Estado` que sí
+tiene `sprint-0.md` — correcto para un sprint en planificación pura, donde todavía no hay nada que
+reportar como hecho o parcial.
+
+**Esperado:** que el generador soporte una tabla de Compromisos sin columna `Estado`, tratando cada
+fila como `pendiente` por defecto.
+
+**Causa raíz:** `leerDetalleSprint` desestructuraba un quinto elemento (`estadoRaw`) de un arreglo que,
+en una tabla de 4 columnas, solo tiene 4 posiciones — `estadoRaw` llegaba `undefined` y el `.startsWith`
+sobre `undefined` tumbaba todo el script.
+
+**Corrección:** `scripts/lib/datos-proyecto.mjs` — `estadoRaw` ahora se lee como `cols[4] || ""` en vez
+de por desestructuración posicional; una cadena vacía cae naturalmente en la rama `"pendiente"` del
+mismo ternario que ya existía, sin necesitar una rama especial.
+**Prueba:** `node scripts/generar-dashboard.mjs` corre limpio con `sprint-0.md` (5 columnas) y
+`sprint-1.md` (4 columnas) presentes a la vez.
+
+---
+
 ## Regla especial: bugs que publican información falsa
 
 Un defecto que haga que la plataforma muestre un corte que no existe, o un Índice de Cumplimiento
@@ -889,5 +953,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-030
+Siguiente número disponible: BUG-032
 -->
