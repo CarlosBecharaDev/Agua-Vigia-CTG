@@ -26,6 +26,21 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 2
 
+### 2026-08-09 · D3 (Sebastián) · `develop` (cierre de sesión)
+**Qué:** Sesión larga con permiso de Jordy (D5) para todo el backend — 8 PRs fusionados (#112, #113,
+#116, #118, #119, #120, #121, #124). Con esto **M1–M6 y M8 quedan completos**: los 9 puertos de
+entrada y 8 de salida del dominio tienen implementación real. Regenerado `backend/openapi.yaml` (de 7
+a 17 rutas — faltaban los cuatro módulos nuevos, PR #124). Puesta al día `registro-de-implementaciones.md`
+(7 PRs sin registrar) y su tabla de cobertura, que seguía en el estado del Sprint 1 (36 RF: 28% → 78%
+funcional real). `/security-review` sobre las cuatro superficies nuevas: sin hallazgos que superaran
+el umbral de confianza.
+**Hallazgo real:** RF014 (avisar al suscriptor cuando su sector cambia de estado) sigue sin conectar
+— `NotificacionPort` solo se dispara al suscribirse (`SuscribirseService`), ni `EvaluarConsensoService`
+ni `GestionarCorteOficialService` lo llaman. M4 queda en 75%, no 100%, por esto.
+**Sigue:** M7 bloqueado por `ADR-013` (🟡 Propuesta, falta ratificación de José Daniel/D4). M9 (etapa
+IA) bloqueado por `BL-005` (sin `ANTHROPIC_API_KEY`). RF014 es el hueco funcional real más concreto
+que queda en lo ya construido.
+
 ### 2026-08-09 · D3 (Sebastián) · `feature/d3-moderacion-reportes`
 **Qué:** `ModerarReporteService` (RF018, M5) — el veedor aprueba o descarta reportes ciudadanos.
 `ADR-023`: nadie había definido qué hace "dudoso" a un reporte, así que se interpreta como "todo
