@@ -892,8 +892,58 @@ Borrar `.github/workflows/whatsapp-bot.yml` y `.github/workflows/whatsapp-vincul
 
 ---
 
+## ADR-020 — Los correos de M4 se renderizan con sustitución simple de `{{marcador}}`, no con un motor de plantillas
+
+- **Fecha:** 2026-08-08
+- **Estado:** Aceptada
+- **Decide:** D1 (Yordy Pardo Pajaro)
+
+### Contexto
+
+El commit `a6a8ae4` (plantillas HTML de M4, `confirmar-suscripcion.html` y `aviso-corte.html`) dejó
+anotado a propósito: *"elegir motor de plantillas es una decisión de Sprint 1 y merece su ADR"*, y usó
+marcadores `{{nombreSector}}`, `{{urlConfirmacion}}`, `{{horasVigencia}}` sin comprometerse a ningún
+motor. Sprint 1 solo necesita renderizar `confirmar-suscripcion.html`: un correo con tres marcadores
+fijos, interpolación de texto plano, sin condicionales ni loops.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Thymeleaf (`spring-boot-starter-thymeleaf`) | Motor completo, integración nativa con Spring, escaping automático | Dependencia nueva para un caso de uso que no tiene lógica condicional que justificarla |
+| Freemarker | Igual que Thymeleaf | Igual que Thymeleaf |
+| Sustitución simple `{{marcador}}` → `String.replace` (`infrastructure/mail/PlantillaCorreo`) | Cero dependencias nuevas, ~30 líneas, hace exactamente lo que el correo de hoy necesita | Sin escaping automático de HTML en los valores interpolados |
+
+### Decisión
+
+Sustitución simple de `{{marcador}}` por `String.replace`, implementada en
+`infrastructure/mail/PlantillaCorreo` (clase interna del paquete, no expuesta como puerto de dominio).
+
+### Consecuencias
+
+- **Gana:** ninguna dependencia nueva en `pom.xml` para renderizar un correo; la clase es trivial de
+  leer y de testear.
+- **Pierde:** sin escaping automático de HTML. Aceptable hoy porque nada de lo que se interpola viene
+  de texto libre de terceros (nombre de sector, una URL con UUID propio, un número de horas). Si un
+  futuro marcador interpola texto libre — por ejemplo la cita textual de un boletín en
+  `aviso-corte.html`, que `ADR-006` exige mostrar — esta decisión debe revisarse **antes** de usarla
+  ahí, porque en ese punto sí hay contenido externo que sanitizar.
+- **Condiciona:** si `aviso-corte.html` (Sprint 5, notificación de cambio de estado) termina
+  necesitando lógica condicional real (mostrar/ocultar bloques según el tipo de evento), esta decisión
+  se reabre con el caso de uso real en mano, no por anticipación (`CLAUDE.md`: no diseñar para
+  requisitos hipotéticos).
+
+### Cómo se revierte
+
+Sustituir `PlantillaCorreo` por un `TemplateEngine` de Thymeleaf/Freemarker el día que un correo
+necesite condicionales o loops, o que haya que interpolar texto libre sin sanitizar a mano. El cambio
+queda contenido en `infrastructure/mail/`: ni el puerto `NotificacionPort` ni `application/` conocen
+cómo se renderiza el HTML.
+
+---
+
 <!--
-Siguiente número disponible: ADR-020
+Siguiente número disponible: ADR-021
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->

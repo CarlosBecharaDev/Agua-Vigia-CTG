@@ -15,9 +15,74 @@ servers:
 - url: /
   description: Mismo origen que sirve la API
 tags:
+- name: Suscripciones
+  description: Alertas por correo cuando cambia el estado de un sector
 - name: Sectores
   description: Estado del servicio de agua por sector de Cartagena
+- name: Veedor
+  description: Autenticacion del panel del veedor
 paths:
+  /api/veedor/sesion:
+    post:
+      tags:
+      - Veedor
+      summary: Iniciar sesion como veedor
+      description: Devuelve un token JWT valido por 8 horas (RNF011) si la clave es
+        correcta.
+      operationId: iniciarSesion
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CredencialVeedor"
+        required: true
+      responses:
+        "200":
+          description: "Credencial correcta, token emitido"
+          content:
+            '*/*':
+              schema:
+                type: object
+        "401":
+          description: Credencial incorrecta
+          content:
+            '*/*':
+              schema:
+                type: object
+        "503":
+          description: El servidor no tiene configurada la credencial del veedor
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/suscripciones:
+    post:
+      tags:
+      - Suscripciones
+      summary: Suscribirse a los avisos de uno o más sectores
+      description: |-
+        Crea la suscripción en PENDIENTE_CONFIRMACION y envía un correo de doble
+        opt-in (Ley 1581/2012, RF013). No empieza a recibir avisos hasta confirmarla.
+      operationId: suscribirse
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolicitudSuscripcion"
+        required: true
+      responses:
+        "201":
+          description: "Suscripción creada, correo de confirmación en camino"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuscripcionRespuesta"
+        "400":
+          description: Correo inválido o algún sector no existe
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
   /api/sectores:
     get:
       tags:
@@ -62,6 +127,68 @@ paths:
                 $ref: "#/components/schemas/ProblemDetail"
 components:
   schemas:
+    CredencialVeedor:
+      type: object
+      properties:
+        clave:
+          minLength: 1
+          type: string
+          description: Clave de acceso del veedor
+      description: Credencial de acceso al panel del veedor
+    SolicitudSuscripcion:
+      type: object
+      properties:
+        correo:
+          minLength: 1
+          type: string
+          description: Correo al que llegarán los avisos
+          example: vecino@correo.com
+        sectorIds:
+          minItems: 1
+          type: array
+          description: Identificadores de los sectores a seguir
+          items:
+            type: string
+            description: Identificadores de los sectores a seguir
+      description: Solicitud para suscribirse a los avisos de uno o más sectores
+    ProblemDetail:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+          format: int32
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+    SuscripcionRespuesta:
+      type: object
+      properties:
+        id:
+          type: string
+        correo:
+          type: string
+        sectorIds:
+          type: array
+          items:
+            type: string
+        estado:
+          type: string
+          description: "PENDIENTE_CONFIRMACION, CONFIRMADA o CANCELADA"
+        creadaEn:
+          type: string
+          format: date-time
+      description: "Suscripción creada, pendiente de confirmación por correo (RF013)"
     RespuestaSectores:
       type: object
       properties:
@@ -103,23 +230,3 @@ components:
           format: date-time
           nullable: true
       description: Sector de Cartagena con el estado conocido de su servicio de agua
-    ProblemDetail:
-      type: object
-      properties:
-        type:
-          type: string
-          format: uri
-        title:
-          type: string
-        status:
-          type: integer
-          format: int32
-        detail:
-          type: string
-        instance:
-          type: string
-          format: uri
-        properties:
-          type: object
-          additionalProperties:
-            type: object

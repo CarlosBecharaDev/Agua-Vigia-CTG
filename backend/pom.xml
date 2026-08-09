@@ -66,6 +66,12 @@
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
 
+    <!-- Envío de correo de M4 (D1, Sprint 1) — JavaMailSender contra Mailhog/SMTP real -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-mail</artifactId>
+    </dependency>
+
     <!-- Mappers DTO <-> dominio (D3, Sprint 1) -->
     <dependency>
       <groupId>org.mapstruct</groupId>
