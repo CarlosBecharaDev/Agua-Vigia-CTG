@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" fill="none">
   <!-- AguaVigía CTG — PWA 192x192 icon -->
-  <rect width="192" height="192" rx="38" fill="#087f8c"/>
+  <rect width="192" height="192" rx="38" fill="#0066cc"/>
   <!-- Gota de agua blanca centrada -->
   <path
     d="M96 32 C96 32 48 80 48 112 C48 140 68 160 96 160 C124 160 144 140 144 112 C144 80 96 32 96 32Z"

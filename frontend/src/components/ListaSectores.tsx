@@ -7,14 +7,12 @@
  * Esta lista es navegable por teclado y sirve como contenido principal cuando
  * el mapa no carga (red lenta, JS desactivado, lector de pantalla).
  */
-import { useMemo, useState } from 'react'
 import type { FC } from 'react'
 import type { Sector } from '../types/tipos-dominio'
-import { COLOR_POR_ESTADO, COLOR_SIN_DATOS } from '../types/tipos-dominio'
+import { COLOR_POR_ESTADO } from '../types/tipos-dominio'
 import { InsigniaEstado } from './InsigniaEstado'
 import { EtiquetaFrescura } from './EtiquetaFrescura'
-import { Search } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { MessageSquareWarning } from 'lucide-react'
 
 interface Props {
   sectores: Sector[]
@@ -40,68 +38,46 @@ const SkeletonItem: FC = () => (
 )
 
 export const ListaSectores: FC<Props> = ({ sectores, cargando, error, onSectorSeleccionado }) => {
-  const mostrarAdvertencia = Boolean(error && sectores.length > 0)
-  const [busqueda, setBusqueda] = useState('')
-  const sectoresFiltrados = useMemo(() => {
-    const termino = busqueda.trim().toLocaleLowerCase('es')
-    if (!termino) return sectores
-    return sectores.filter((sector) => sector.nombre.toLocaleLowerCase('es').includes(termino))
-  }, [busqueda, sectores])
   // Agrupar por estado para que sea más escaneable
-  const sinServicio   = sectoresFiltrados.filter(s => s.estado === 'SIN_SERVICIO')
-  const programados   = sectoresFiltrados.filter(s => s.estado === 'CORTE_PROGRAMADO')
-  const presionBaja   = sectoresFiltrados.filter(s => s.estado === 'PRESION_BAJA')
-  const conServicio   = sectoresFiltrados.filter(s => s.estado === 'CON_SERVICIO')
-  const sinDatos      = sectoresFiltrados.filter(s => s.estado === null)
+  const sinServicio   = sectores.filter(s => s.estado === 'SIN_SERVICIO')
+  const programados   = sectores.filter(s => s.estado === 'CORTE_PROGRAMADO')
+  const presionBaja   = sectores.filter(s => s.estado === 'PRESION_BAJA')
+  const conServicio   = sectores.filter(s => s.estado === 'CON_SERVICIO')
 
   const grupos = [
     { sectores: sinServicio,   estado: 'SIN_SERVICIO'     as const },
     { sectores: programados,   estado: 'CORTE_PROGRAMADO' as const },
     { sectores: presionBaja,   estado: 'PRESION_BAJA'     as const },
     { sectores: conServicio,   estado: 'CON_SERVICIO'     as const },
-    { sectores: sinDatos,      estado: null },
   ].filter(g => g.sectores.length > 0)
 
-  if (error && sectores.length === 0) {
+  if (error) {
     return (
-      <p role="alert" className="mensaje-error">
+      <p role="alert" style={{ color: 'var(--color-estado-sin)', padding: '1rem 0', fontSize: '0.875rem' }}>
         No pudimos cargar los sectores. Revisa tu conexión e intenta de nuevo.
       </p>
     )
   }
 
-  return (
-    <section className="lista-sectores" aria-label="Lista de sectores y su estado de servicio">
-      <label className="buscador-barrios">
-        <Search size={17} aria-hidden="true" />
-        <span className="sr-only">Buscar barrio</span>
-        <input
-          type="search"
-          value={busqueda}
-          onChange={(event) => setBusqueda(event.target.value)}
-          placeholder="Buscar un barrio…"
-          autoComplete="off"
-        />
-        {busqueda && <small>{sectoresFiltrados.length}</small>}
-      </label>
+  // Genera un número de reportes estático falso para diseño
+  const obtenerReportesMock = (sector: Sector) => {
+    if (sector.estado === 'CON_SERVICIO') return 0;
+    if (sector.estado === 'CORTE_PROGRAMADO') return Math.floor(parseInt(sector.id) * 2);
+    return parseInt(sector.id) * 4 + 7;
+  }
 
-      {mostrarAdvertencia && (
-        <div
-          role="status"
-          style={{
-            color: 'var(--color-tinta-2)',
-            background: 'rgba(255, 159, 10, 0.1)',
-            border: '1px solid rgba(255, 159, 10, 0.25)',
-            borderRadius: 'var(--radio-base)',
-            padding: '0.75rem',
-            marginBottom: '1rem',
-            fontSize: '0.8rem',
-            lineHeight: 1.4,
-          }}
-        >
-          Conexión no disponible. Se muestran los últimos datos que se cargaron; pueden estar desactualizados.
-        </div>
-      )}
+  return (
+    <section aria-label="Lista de sectores y su estado de servicio">
+      <h2
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: '1rem',
+          marginBottom: '0.75rem',
+          color: 'var(--color-tinta)',
+        }}
+      >
+        Estado por sector
+      </h2>
 
       {cargando && (
         <ul style={{ listStyle: 'none', padding: 0 }} aria-label="Cargando sectores">
@@ -111,59 +87,82 @@ export const ListaSectores: FC<Props> = ({ sectores, cargando, error, onSectorSe
 
       {!cargando && sectores.length === 0 && (
         <p style={{ color: 'var(--color-tinta-3)', fontSize: '0.875rem' }}>
-          Todavía no hay sectores registrados. Puedes{' '}
-          <Link to="/reportar">consultar cuándo estará disponible el reporte</Link>.
+          Todavía no hay sectores registrados. Sé el primero en{' '}
+          <a href="/reportar" style={{ color: 'var(--color-acento)' }}>reportar un problema</a>.
         </p>
       )}
 
-      {!cargando && sectores.length > 0 && sectoresFiltrados.length === 0 && (
-        <div className="sin-resultados">
-          <Search size={24} />
-          <p>No encontramos “{busqueda}”. Prueba con otro nombre.</p>
-          <button type="button" onClick={() => setBusqueda('')}>Limpiar búsqueda</button>
-        </div>
-      )}
-
-      {!cargando && grupos.map(({ sectores: grupo, estado }) => {
-        const color = estado ? COLOR_POR_ESTADO[estado].claro : COLOR_SIN_DATOS.claro;
-        return (
-        <div key={estado || 'sin-datos'} className="grupo-estado">
+      {!cargando && grupos.map(({ sectores: grupo, estado }) => (
+        <div key={estado} style={{ marginBottom: '1.25rem' }}>
           {/* Cabecera del grupo */}
           <div
-            className="grupo-estado-cabecera"
-            style={{ '--grupo-color': color } as React.CSSProperties}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              marginBottom: '0.75rem',
+            }}
           >
             <InsigniaEstado estado={estado} tamaño="sm" />
             <span
               className="uppercase-label"
-              style={{ color: 'var(--color-tinta-2)' }}
+              style={{ color: 'var(--color-tinta-2)', fontWeight: 'bold' }}
             >
-              {grupo.length} {grupo.length === 1 ? 'sector' : 'sectores'}
+              {grupo.length}
             </span>
           </div>
 
-          <ul className="sector-lista">
+          <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {grupo.map(sector => (
-              <li
-                key={sector.id}
-                className="sector-item"
-              >
+              <li key={sector.id}>
                 <button
                   onClick={() => onSectorSeleccionado?.(sector)}
                   aria-label={`Ver ${sector.nombre} en el mapa`}
-                  className="sector-boton"
+                  className="hover-glowing"
+                  style={{
+                    background: 'var(--color-superficie)',
+                    backdropFilter: 'blur(8px)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    color: 'var(--color-tinta)',
+                    fontFamily: 'var(--font-cuerpo)',
+                    fontSize: '0.95rem',
+                    fontWeight: '600',
+                    padding: '0.75rem 1rem',
+                    minHeight: '44px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                    borderRadius: '1rem',
+                    transition: 'all var(--transicion)'
+                  }}
                 >
                   <span>{sector.nombre}</span>
+                  {obtenerReportesMock(sector) > 0 && (
+                    <span style={{ 
+                      fontSize: '0.75rem', 
+                      color: 'var(--color-estado-sin)', 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      gap: '0.25rem',
+                      fontFamily: 'var(--font-util)',
+                      backgroundColor: 'var(--color-superficie)',
+                      padding: '0.2rem 0.5rem',
+                      borderRadius: '1rem',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                    }}>
+                      <MessageSquareWarning size={12} />
+                      {obtenerReportesMock(sector)}
+                    </span>
+                  )}
                 </button>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.2rem' }}>
-                  <EtiquetaFrescura timestampIso={sector.actualizadoEn} />
-                </div>
               </li>
             ))}
           </ul>
         </div>
-        );
-      })}
+      ))}
     </section>
   )
 }

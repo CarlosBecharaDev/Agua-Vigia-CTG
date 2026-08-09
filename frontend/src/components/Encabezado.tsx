@@ -1,9 +1,14 @@
+/**
+ * Encabezado principal de AguaVigía CTG.
+ * Contiene el logotipo, la navegación principal y el selector de tema.
+ * Diseño puro Premium Glassmorphism sin efectos líquidos.
+ */
+import { useState, useEffect } from 'react'
 import type { FC } from 'react'
-import { Link, NavLink } from 'react-router-dom'
-import { BarChart3, BookOpenText, Droplets, Map, Megaphone, ShieldCheck } from 'lucide-react'
+import { NavLink, Link } from 'react-router-dom'
 import { SelectorTema } from './SelectorTema'
-import { BotonInstalarPWA } from './BotonInstalarPWA'
 import type { useTheme } from '../hooks/useTheme'
+import { Map, BarChart3, Clock, Droplet, ShieldCheck, Mail } from 'lucide-react'
 
 type ThemeProps = ReturnType<typeof useTheme>
 
@@ -13,66 +18,113 @@ interface Props {
 }
 
 const ENLACES = [
-  { a: '/', etiqueta: 'Mapa', Icono: Map },
-  { a: '/estadisticas', etiqueta: 'Datos', Icono: BarChart3 },
-  { a: '/bitacora', etiqueta: 'Bitácora', Icono: BookOpenText },
-  { a: '/veedor', etiqueta: 'Veedor', Icono: ShieldCheck },
+  { a: '/',          etiqueta: 'Mapa',         Icono: Map },
+  { a: '/estadisticas', etiqueta: 'Estadísticas', Icono: BarChart3 },
+  { a: '/bitacora',  etiqueta: 'Bitácora',     Icono: Clock },
+  { a: '/veedor',    etiqueta: 'Veedor',       Icono: ShieldCheck },
 ]
 
-const Navegacion: FC<{ movil?: boolean }> = ({ movil = false }) => (
-  <nav
-    className={movil ? 'nav-movil' : 'nav-principal'}
-    aria-label={movil ? 'Navegación móvil' : 'Navegación principal'}
-  >
-    {ENLACES.map(({ a, etiqueta, Icono }) => (
-      <NavLink
-        key={a}
-        to={a}
-        end={a === '/'}
-        className={({ isActive }) => `nav-enlace${isActive ? ' activo' : ''}`}
+const estiloNavLink = ({ isActive }: { isActive: boolean }): React.CSSProperties => ({
+  color: isActive ? 'var(--color-acento)' : 'var(--color-tinta-2)',
+  fontWeight: isActive ? '600' : '500',
+  textDecoration: 'none',
+  padding: '0.5rem 0.75rem',
+  borderRadius: 'var(--radio-base)',
+  fontSize: '0.9rem',
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: '44px',
+  transition: 'color var(--transicion), transform 0.2s ease, box-shadow 0.2s ease',
+})
+
+export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema }) => {
+  return (
+    <header
+      role="banner"
+      className="panel-glass"
+      style={{
+        backgroundColor: '#2A1B4D',
+        position: 'sticky',
+        top: 0,
+        zIndex: 2000,
+        borderBottom: '1px solid var(--color-linea)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 1rem',
+        minHeight: '60px',
+        gap: '1rem',
+      }}
+    >
+      {/* Logotipo */}
+      <Link
+        to="/"
+        id="logo-aguavigia"
+        aria-label="AguaVigía CTG — inicio"
+        className="hover-glowing"
+        style={{
+          textDecoration: 'none',
+          whiteSpace: 'nowrap',
+          minHeight: '44px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.4rem',
+          padding: '0 0.5rem',
+          borderRadius: 'var(--radio-md)',
+        }}
       >
-        <Icono size={18} aria-hidden="true" />
-        <span>{etiqueta}</span>
-      </NavLink>
-    ))}
-    {movil && (
-      <NavLink
-        to="/reportar"
-        className={({ isActive }) => `nav-enlace nav-reportar${isActive ? ' activo' : ''}`}
-      >
-        <Megaphone size={18} aria-hidden="true" />
-        <span>Reportar</span>
-      </NavLink>
-    )}
-  </nav>
-)
+        <Droplet size={26} strokeWidth={2.5} color="var(--color-acento-vivo)" />
+        <span style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: '1.3rem',
+          fontWeight: '800',
+          background: 'linear-gradient(90deg, var(--color-acento) 0%, var(--color-acento-vivo) 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          letterSpacing: '-0.5px'
+        }}>
+          AguaVigía
+        </span>
+      </Link>
 
-export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema }) => (
-  <>
-    <header role="banner" className="app-header">
-      <div className="header-contenido">
-        <Link to="/" id="logo-aguavigia" className="marca" aria-label="AguaVigía CTG — inicio">
-          <span className="marca-icono" aria-hidden="true">
-            <Droplets size={23} strokeWidth={2.4} />
-          </span>
-          <span className="marca-texto">
-            <strong>AguaVigía</strong>
-            <small>Cartagena</small>
-          </span>
-        </Link>
+      {/* Navegación principal */}
+      <nav aria-label="Navegación principal" style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+        {ENLACES.map(({ a, etiqueta, Icono }) => (
+          <NavLink key={a} to={a} end={a === '/'} className="hover-glowing" style={estiloNavLink}>
+            <Icono size={18} style={{ marginRight: '6px' }} />
+            {etiqueta}
+          </NavLink>
+        ))}
+      </nav>
 
-        <Navegacion />
-
-        <div className="header-acciones">
-          <BotonInstalarPWA />
-          <SelectorTema temaActivo={temaActivo} onAlternar={onAlternarTema} />
-          <Link to="/reportar" className="boton boton-reporte-header">
-            <Megaphone size={17} aria-hidden="true" />
-            Reportar estado
-          </Link>
-        </div>
+      {/* Zona de Botón Suscribir y Selector de Tema */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <button 
+          onClick={() => window.open('mailto:alertas@aguavigia.com?subject=Suscripción a Alertas', '_blank')}
+          className="hover-glowing"
+          style={{ 
+            backgroundColor: '#0ea5e9', // Blue not dead, vibrant water blue
+            border: 'none',
+            cursor: 'pointer',
+            color: '#fff', 
+            padding: '0.5rem 1rem', 
+            borderRadius: 'var(--radio-pill)', 
+            fontSize: '0.85rem', 
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            boxShadow: '0 4px 12px rgba(14, 165, 233, 0.4)',
+            transition: 'all var(--transicion)',
+            minHeight: '44px'
+          }}
+        >
+          <Mail size={16} /> Suscribirme
+        </button>
+        <SelectorTema temaActivo={temaActivo} onAlternar={onAlternarTema} />
       </div>
     </header>
-    <Navegacion movil />
-  </>
-)
+  )
+}
+
+

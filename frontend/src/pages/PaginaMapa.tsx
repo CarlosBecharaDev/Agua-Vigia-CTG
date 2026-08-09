@@ -1,82 +1,150 @@
-import { useCallback, useMemo, useState } from 'react'
-import { Database, LocateFixed, Map, Megaphone, RefreshCw, Users } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+/**
+ * PaginaMapa — M1 (Mapa en vivo) + lista accesible (RF004).
+ *
+ * Conectado a datos reales vía useDatosEnVivo:
+ *  - Acuacar WordPress API → boletines oficiales → estado de barrios
+ *  - Open-Meteo → clima en tiempo real
+ *  - Fallback automático a datos mock si las APIs no responden.
+ *
+ * DESIGN.md §1: responde "¿tengo agua?" en menos de 5 segundos.
+ */
+import { useState, useCallback } from 'react'
+import type { FC } from 'react'
 import { MapaCartagena } from '../components/MapaCartagena'
 import { ListaSectores } from '../components/ListaSectores'
-import { FormularioSuscripcion } from '../components/FormularioSuscripcion'
-import { ErrorRecurso } from '../components/EstadoPagina'
+import { ModalReporte } from '../components/ModalReporte'
 import type { Sector } from '../types/tipos-dominio'
+import { Megaphone, RefreshCw, Database, ServerCrash, Droplet, Search, Mail } from 'lucide-react'
 import { useDatosEnVivo } from '../hooks/useDatosEnVivo'
-import { PageWrapper } from '../components/PageWrapper'
 
-export default function PaginaMapa() {
-  const { estado, sectores, cargando, error, ultimaActualizacion, recargar } = useDatosEnVivo()
+const PaginaMapa: FC = () => {
+  const { sectores, clima, cargando, error, ultimaActualizacion, usandoDatosReales, recargar } = useDatosEnVivo();
+
   const [sectorActivo, setSectorActivo] = useState<Sector | null>(null)
-  const [vistaMovil, setVistaMovil] = useState<'mapa' | 'lista'>('mapa')
-  const navigate = useNavigate()
+  const [modalAbierto, setModalAbierto] = useState(false)
+  const [sectorReporte, setSectorReporte] = useState<string>('')
+  const [busqueda, setBusqueda] = useState<string>('')
 
-  const resumen = useMemo(() => ({
-    afectados: sectores.filter((sector) => sector.estado === 'SIN_SERVICIO' || sector.estado === 'PRESION_BAJA' || sector.estado === 'CORTE_PROGRAMADO').length,
-    sinServicio: sectores.filter((sector) => sector.estado === 'SIN_SERVICIO').length,
-    estables: sectores.filter((sector) => sector.estado === 'CON_SERVICIO').length,
-    sinDatos: sectores.filter((sector) => sector.estado === null).length,
-  }), [sectores])
+  const sectoresFiltrados = sectores.filter(s => s.nombre.toLowerCase().includes(busqueda.toLowerCase()))
 
-  const seleccionarSector = useCallback((sector: Sector | null) => {
+  const alSeleccionarSector = useCallback((sector: Sector | null) => {
     setSectorActivo(sector)
-    if (sector && window.matchMedia('(max-width: 899px)').matches) setVistaMovil('mapa')
   }, [])
 
   return (
-    <PageWrapper>
-      <main id="contenido-principal" className="pagina-inicio" aria-label="Estado del servicio de agua en Cartagena">
-        <section className="estado-compacto" aria-labelledby="titulo-mapa">
-          <div>
-            <p className="eyebrow"><span className="live-dot" /> Estado verificado por barrio</p>
-            <h1 id="titulo-mapa">¿Cómo está el agua en tu barrio?</h1>
-            <p>Busca tu sector. “Sin datos” significa que el sistema todavía no puede confirmarlo.</p>
+    <main id="contenido-principal" role="main" aria-label="Mapa en vivo del servicio de agua en Cartagena">
+      {/* Layout Principal: Mapa y Lista siempre visibles (apilados en móvil, lado a lado en desktop) */}
+      <div className="flex flex-col lg:flex-row gap-10 p-6 lg:p-12" style={{ maxWidth: '1600px', margin: '1.5rem auto 0 auto', height: 'calc(100dvh - 120px)', minHeight: '600px' }}>
+        
+        {/* Panel del mapa (Mitad de pantalla en Desktop, ventana flotante comprimida) */}
+        <div
+          id="panel-mapa"
+          className="relative flex-1"
+          style={{ display: 'flex', flexDirection: 'column', marginLeft: '1.5rem' }}
+        >
+          <div style={{ flex: 1, overflow: 'hidden', position: 'relative', border: 'none', outline: 'none' }}>
+            <MapaCartagena
+              sectores={sectores}
+              cargando={cargando}
+              error={error}
+              ultimaActualizacion={ultimaActualizacion}
+              sectorActivo={sectorActivo}
+              onSectorSeleccionado={alSeleccionarSector}
+              onAbrirReporte={(id) => {
+                setSectorReporte(id)
+                setModalAbierto(true)
+              }}
+            />
           </div>
-          <dl className="resumen-compacto">
-            <div><dt>Novedades</dt><dd>{cargando ? '—' : resumen.afectados}</dd></div>
-            <div><dt>Sin agua</dt><dd>{cargando ? '—' : resumen.sinServicio}</dd></div>
-            <div><dt>Sin datos</dt><dd>{cargando ? '—' : resumen.sinDatos}</dd></div>
-          </dl>
-        </section>
-
-        <section className="barra-contexto" aria-label="Fuente y actualización de datos">
-          <div className="contexto-item"><Database size={17} /><span><small>Fuente</small><strong>Backend AguaVigía</strong></span></div>
-          <span className={`estado-conexion estado-${estado}`}>{estado === 'stale' ? 'Datos desactualizados' : estado === 'error' ? 'Sin conexión' : estado === 'empty' ? 'Sin sectores cargados' : 'Datos del contrato oficial'}</span>
-          <button type="button" onClick={recargar} className="boton-actualizar" disabled={cargando}><RefreshCw size={16} className={cargando ? 'girando' : ''} />{cargando ? 'Actualizando' : 'Actualizar'}</button>
-        </section>
-
-        {error && estado === 'error' && <ErrorRecurso mensaje={error} onReintentar={recargar} />}
-
-        <div className="selector-vista" role="group" aria-label="Cambiar vista">
-          <button className={vistaMovil === 'mapa' ? 'activo' : ''} onClick={() => setVistaMovil('mapa')}><Map size={17} /> Mapa</button>
-          <button className={vistaMovil === 'lista' ? 'activo' : ''} onClick={() => setVistaMovil('lista')}><Users size={17} /> Lista accesible</button>
         </div>
 
-        <section className="centro-monitoreo" aria-label="Centro de monitoreo">
-          <article className={`tarjeta-mapa vista-${vistaMovil}`}>
-            <header className="cabecera-panel">
-              <div><span className="eyebrow"><LocateFixed size={14} /> Estado georreferenciado</span><h2>Mapa de servicio</h2></div>
-              <div className="leyenda-mapa" aria-label="Leyenda del mapa">
-                <span><i className="estado-con-bg" /> Con agua</span><span><i className="estado-baja-bg" /> Baja presión</span><span><i className="estado-sin-bg" /> Sin agua</span><span><i className="estado-desconocido-bg" /> Sin datos</span>
-              </div>
-            </header>
-            <div className="marco-mapa">
-              <MapaCartagena sectores={sectores} cargando={cargando} error={error} ultimaActualizacion={ultimaActualizacion} sectorActivo={sectorActivo} onSectorSeleccionado={seleccionarSector} onAbrirReporte={() => navigate('/reportar')} />
+        {/* Panel de lista (Mitad de pantalla en Desktop) */}
+        <div
+          id="panel-lista"
+          className="flex flex-col overflow-hidden flex-1"
+        >
+          <div style={{ padding: '1.5rem' }}>
+            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.45rem', fontWeight: '800', color: 'var(--color-tinta)', lineHeight: 1.2, letterSpacing: '-0.5px' }}>
+              ¿No hay agua en tu barrio?
+            </h2>
+            <p style={{ fontSize: '0.95rem', color: 'var(--color-tinta-2)', marginTop: '0.5rem', lineHeight: 1.5 }}>
+              Sé un <strong style={{color: 'var(--color-acento)'}}>AguaVigía</strong>. Avísanos y ayudamos a que esto se solucione más rápido.
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1.25rem', gap: '0.5rem', flexWrap: 'wrap' }}>
+
+              <button 
+                onClick={() => {
+                  setSectorReporte('')
+                  setModalAbierto(true)
+                }}
+                className="hover-glowing"
+                style={{ 
+                  backgroundColor: 'var(--color-acento)', 
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#fff', 
+                  padding: '0.6rem 1.25rem', 
+                  borderRadius: 'var(--radio-pill)', 
+                  fontSize: '0.9rem', 
+                  fontWeight: '600',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  boxShadow: '0 4px 12px rgba(2, 132, 199, 0.3)',
+                  transition: 'all var(--transicion)'
+                }}
+              >
+                <Megaphone size={16} /> Reportar ahora
+              </button>
             </div>
-          </article>
+            
+            {/* Buscador de barrios transparente */}
+            <div style={{ marginTop: '1.25rem', position: 'relative' }}>
+              <div style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-tinta-3)' }}>
+                <Search size={16} />
+              </div>
+              <input 
+                type="text" 
+                placeholder="Busca tu barrio..." 
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.6rem 1rem 0.6rem 2.5rem',
+                  borderRadius: '1rem',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  backdropFilter: 'blur(8px)',
+                  color: 'var(--color-tinta)',
+                  fontSize: '0.95rem',
+                  outline: 'none',
+                  transition: 'all var(--transicion)'
+                }}
+                onFocus={(e) => e.target.style.borderColor = 'var(--color-acento)'}
+                onBlur={(e) => e.target.style.borderColor = 'var(--color-linea)'}
+              />
+            </div>
 
-          <aside className={`panel-barrios vista-${vistaMovil}`} aria-label="Barrios monitoreados">
-            <div className="cabecera-barrios"><span className="eyebrow">Alternativa textual</span><h2>Barrios monitoreados</h2><p>{resumen.estables} con servicio confirmado; {resumen.sinDatos} todavía sin datos.</p><button type="button" className="boton boton-secundario boton-ancho" onClick={() => navigate('/reportar')}><Megaphone size={18} /> Consultar reportes</button></div>
-            <div className="lista-barrios-scroll"><ListaSectores sectores={sectores} cargando={cargando} error={error} onSectorSeleccionado={seleccionarSector} /></div>
-          </aside>
-        </section>
+          </div>
+          
+          <div style={{ padding: '1rem', overflowY: 'auto', flex: 1 }}>
+            <ListaSectores
+              sectores={sectoresFiltrados}
+              cargando={cargando}
+              error={error}
+              onSectorSeleccionado={alSeleccionarSector}
+            />
+          </div>
+        </div>
+      </div>
 
-        <section className="bloque-suscripcion" aria-label="Avisos por correo"><FormularioSuscripcion sectores={sectores} /></section>
-      </main>
-    </PageWrapper>
+      <ModalReporte 
+        abierto={modalAbierto} 
+        alCerrar={() => setModalAbierto(false)} 
+        sectorPreseleccionado={sectorReporte}
+      />
+    </main>
   )
 }
+
+export default PaginaMapa

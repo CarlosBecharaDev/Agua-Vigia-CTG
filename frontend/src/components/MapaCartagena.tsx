@@ -4,8 +4,8 @@
  * Sprint 1: carga el GeoJSON de barrios desde /data/geoespacial/barrios-cartagena.geojson
  * (datos reales de D5) y colorea los polígonos según su estado.
  *
- * C2 ya está abierta: el estado de cada sector viene de GET /api/sectores
- * (vía useDatosEnVivo), no de datos locales. Los tipos y colores son definitivos.
+ * Sin C2: los estados son mock locales que se reemplazarán con GET /api/sectores
+ * cuando D3 publique el contrato OpenAPI. Los tipos y colores son definitivos.
  *
  * Leaflet requiere que su CSS se importe antes de crear el mapa.
  */
@@ -14,10 +14,8 @@ import type { FC } from 'react'
 // (No se requiere Link aquí)
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import type { Sector } from '../types/tipos-dominio'
-import { COLOR_POR_ESTADO, COLOR_SIN_DATOS } from '../types/tipos-dominio'
-import { nombresBarrioCoinciden, normalizarNombreBarrio } from '../utils/geografia'
-import { sectorDesdeGeojson } from '../utils/sectorGeojson'
+import type { EstadoServicio, Sector } from '../types/tipos-dominio'
+import { COLOR_POR_ESTADO } from '../types/tipos-dominio'
 import { EtiquetaFrescura } from './EtiquetaFrescura'
 import { InsigniaEstado } from './InsigniaEstado'
 
@@ -41,13 +39,7 @@ interface Props {
 
 /** Convierte el NOMBRE del GeoJSON al id del sector para hacer lookup */
 function normalizarNombre(nombre: string): string {
-  return normalizarNombreBarrio(nombre)
-}
-
-function buscarSector(indice: Map<string, Sector>, nombre: string): Sector | undefined {
-  const nombreNormalizado = normalizarNombre(nombre)
-  return indice.get(nombreNormalizado)
-    ?? [...indice.entries()].find(([clave]) => nombresBarrioCoinciden(clave, nombreNormalizado))?.[1]
+  return nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
 }
 
 export const MapaCartagena: FC<Props> = ({
@@ -83,18 +75,14 @@ export const MapaCartagena: FC<Props> = ({
 
     capaRef.current.setStyle((feature) => {
       const nombre = feature?.properties?.NOMBRE ?? ''
-      const sector = buscarSector(indiceSectores.current, nombre)
-      
-      let color = COLOR_SIN_DATOS.claro;
-      if (sector) {
-        color = sector.estado ? COLOR_POR_ESTADO[sector.estado].claro : COLOR_SIN_DATOS.claro;
-      }
-      
+      const sector = indiceSectores.current.get(normalizarNombre(nombre))
+      const estado = sector?.estado
+      const color = estado ? COLOR_POR_ESTADO[estado].claro : '#ccc'
       const esActivo = sectorActivo && sector && sectorActivo.id === sector.id
 
       return {
         fillColor: color,
-        fillOpacity: sector ? (esActivo ? 0.85 : (sector.estado ? 0.55 : 0.3)) : 0.15,
+        fillOpacity: sector ? (esActivo ? 0.85 : 0.55) : 0.15,
         color: '#ffffff',
         weight: esActivo ? 2 : 1,
         opacity: esActivo ? 1 : 0.7,
@@ -106,7 +94,7 @@ export const MapaCartagena: FC<Props> = ({
     if (sectorActivo) {
       capaRef.current.eachLayer((layer: any) => {
         const nombre = layer.feature?.properties?.NOMBRE ?? ''
-        const sector = buscarSector(indiceSectores.current, nombre)
+        const sector = indiceSectores.current.get(normalizarNombre(nombre))
         if (sector && sector.id === sectorActivo.id && mapaRef.current) {
           mapaRef.current.flyToBounds(layer.getBounds(), { padding: [20, 20], duration: 1.5 })
         }
@@ -128,8 +116,8 @@ export const MapaCartagena: FC<Props> = ({
       attributionControl: true,
     })
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       maxZoom: 19,
     }).addTo(mapa)
 
@@ -138,11 +126,6 @@ export const MapaCartagena: FC<Props> = ({
   }, [])
 
   // Cargar GeoJSON y colorear polígonos
-  const onSectorSeleccionadoRef = useRef(onSectorSeleccionado)
-  useEffect(() => {
-    onSectorSeleccionadoRef.current = onSectorSeleccionado
-  }, [onSectorSeleccionado])
-
   useEffect(() => {
     const mapa = mapaRef.current
     if (!mapa) return
@@ -158,10 +141,9 @@ export const MapaCartagena: FC<Props> = ({
         const capa = L.geoJSON(geojson, {
           style: (feature) => {
             const nombre = feature?.properties?.NOMBRE ?? ''
-            const sector = buscarSector(indiceSectores.current, nombre)
-            const color = sector?.estado
-              ? COLOR_POR_ESTADO[sector.estado].claro
-              : COLOR_SIN_DATOS.claro
+            const sector = indiceSectores.current.get(normalizarNombre(nombre))
+            const estado = sector?.estado
+            const color = estado ? COLOR_POR_ESTADO[estado].claro : '#ccc'
             const esActivo = sectorActivoRef.current && sector && sectorActivoRef.current.id === sector.id
 
             return {
@@ -175,14 +157,32 @@ export const MapaCartagena: FC<Props> = ({
           },
           onEachFeature: (feature, layer) => {
             const nombre = feature?.properties?.NOMBRE ?? 'Sector desconocido'
-            // Tooltip con nombre siempre visible
-            layer.bindTooltip(nombre, { sticky: true, className: 'leaflet-tooltip-av' })
+            const sector = indiceSectores.current.get(normalizarNombre(nombre))
+            const estado = sector?.estado
+            const etiquetaEstado = estado ? COLOR_POR_ESTADO[estado].etiqueta : 'Sin datos'
+            const colorEstado = estado ? COLOR_POR_ESTADO[estado].claro : '#999'
+
+            // Tooltip con nombre y estado
+            const tooltipHtml = `
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <strong style="font-size:14px; color:#1f2937;">${nombre}</strong>
+                <span style="font-size:12px; color:${colorEstado}; font-weight:600;">● ${etiquetaEstado}</span>
+              </div>
+            `
+            layer.bindTooltip(tooltipHtml, { sticky: true, className: 'leaflet-tooltip-av' })
 
             layer.on('click', () => {
-              const sector = buscarSector(indiceSectores.current, nombre)
-              const sectorClick = sectorDesdeGeojson(nombre, sector)
+              // Si el barrio no está en la BD, lo generamos al vuelo como CON_SERVICIO
+              const sectorClick = sector || {
+                id: `geo-${normalizarNombre(nombre)}`,
+                nombre: nombre,
+                estado: 'CON_SERVICIO',
+                reportesActivos: 0,
+                actualizadoHace: 'En este momento',
+                actualizadoEn: new Date().toISOString()
+              };
               
-              onSectorSeleccionadoRef.current?.(sectorClick)
+              onSectorSeleccionado?.(sectorClick as Sector)
             })
 
             layer.on('mouseover', (e) => {
@@ -200,7 +200,7 @@ export const MapaCartagena: FC<Props> = ({
       .catch(console.error)
 
     return () => { montado = false; }
-  }, [])
+  }, [onSectorSeleccionado])
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
@@ -227,7 +227,7 @@ export const MapaCartagena: FC<Props> = ({
             Cargando sectores…
           </span>
         )}
-        {error && sectores.length === 0 && (
+        {error && (
           <span style={{ color: 'var(--color-estado-sin)', fontSize: '0.85rem', fontFamily: 'var(--font-util)' }}>
             No pudimos cargar los sectores. Revisa tu conexión.
           </span>
