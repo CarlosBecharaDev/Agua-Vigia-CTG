@@ -1056,8 +1056,65 @@ expresan ambas duraciones por separado.
 
 ---
 
+## ADR-023 — "Dudoso" en RF018 es "todo reporte sin moderar", no una heurística de fraude
+
+- **Fecha:** 2026-08-09
+- **Estado:** Aceptada
+- **Decide:** D3 (Sebastián), permiso de Jordy (D5) para todo el backend
+
+### Contexto
+
+RF018 pide "moderar (aprobar o descartar) reportes ciudadanos marcados como dudosos" y `HU018`
+(`anexo-4-historias-de-usuario.md`) da el Gherkin: *"Dado que un reporte ciudadano está marcado
+como dudoso, cuando el veedor lo aprueba o lo descarta..."* — pero **en ningún documento del
+proyecto existe una definición de qué hace que un reporte sea "dudoso"**. Ni `product-requirements.md`,
+ni `ADR-007` (que decide el control triple: rate limiting + consenso + moderación posterior, pero no
+el criterio de selección), ni `docs/ingenieria/` proponen una heurística. A diferencia de M7
+(`ADR-013`), donde la ambigüedad de responsable llevó a asignar explícitamente "qué se mide" a D5,
+aquí nadie tiene asignada la pregunta "qué hace dudoso a un reporte" — es un vacío de especificación,
+no una responsabilidad repartida.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Inventar una heurística de fraude (p. ej. reportes que contradicen el consenso vigente, ráfagas desde una misma huella) | Se acerca más a la intención literal de "dudoso" | Es una decisión de producto (qué patrón cuenta como sospechoso), no un detalle de implementación — inventarla solo yo viola la misma regla que impide rodear un bloqueo con un insumo inventado (`secuencia-de-trabajo.md` §5) |
+| **Todo reporte nace `PENDIENTE` y es candidato a moderación hasta que el veedor decida** (elegida) | No inventa ningún criterio no especificado; el veedor —que sí tiene criterio humano— ve la cola completa y decide; cumple la letra del Gherkin sin fabricar un algoritmo no pedido | El panel puede llenarse de reportes que nadie consideraría "dudosos" en el sentido coloquial; si el equipo define después una heurística de preselección, hay que revisar esta decisión |
+
+### Decisión
+
+`ReporteCiudadano` gana un campo `EstadoModeracion` (`PENDIENTE` · `APROBADO` · `DESCARTADO`),
+`PENDIENTE` por defecto al crearse. El veedor consulta la cola de pendientes y decide sobre
+cualquiera. Aprobar o descartar es idempotente (se puede repetir o cambiar de decisión sin error) —
+mismo criterio que `Suscripcion.confirmar()`.
+
+**Alcance deliberadamente acotado:** descartar un reporte lo saca de la cola de pendientes y lo deja
+visible con su decisión, pero **no** recalcula retroactivamente el consenso (M3) ni cambia el conteo
+de RF006 (límite de reportes por dispositivo) — ninguna de las dos cosas está pedida por el Gherkin,
+y hacerlo bien (¿un sector cambia de estado si el reporte que lo sostenía se descarta?) es una
+decisión de producto propia, no una consecuencia obvia de "moderar". Queda como recomendación para
+que el equipo la valide si la necesita.
+
+### Consecuencias
+
+- **Gana:** RF018 (`Debería`, no `Debe`) queda funcional sin fabricar un criterio de fraude que
+  nadie pidió ni especificó.
+- **Pierde:** un reporte "dudoso" en el sentido literal (contradice el consenso, viene de una huella
+  con historial de descartes) no se distingue de uno normal en la cola — el veedor ve todo, sin
+  preselección.
+- **Condiciona:** si el equipo decide después que sí quiere una heurística de preselección, se agrega
+  como un filtro sobre la cola existente (`ReporteCiudadanoRepository.listarPendientes()`), sin tocar
+  el mecanismo de aprobar/descartar.
+
+### Cómo se revierte
+
+Agregar una heurística de preselección es aditivo: un método de filtrado nuevo sobre la cola de
+pendientes, sin cambiar `EstadoModeracion` ni el flujo de aprobar/descartar ya construido.
+
+---
+
 <!--
-Siguiente número disponible: ADR-023
+Siguiente número disponible: ADR-024
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->
