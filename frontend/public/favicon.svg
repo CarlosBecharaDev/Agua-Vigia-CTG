@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- Gota de agua — identidad visual de AguaVigía CTG -->
+  <!-- Color: acento petróleo #0A6C78 (modo claro) -->
+  <path
+    d="M24 4 C24 4 8 20 8 30 C8 39 15.2 44 24 44 C32.8 44 40 39 40 30 C40 20 24 4 24 4Z"
+    fill="#0A6C78"
+  />
+  <!-- Reflejo interno para dar profundidad -->
+  <ellipse cx="19" cy="26" rx="4" ry="6" fill="white" fill-opacity="0.25" transform="rotate(-20 19 26)" />
+</svg>

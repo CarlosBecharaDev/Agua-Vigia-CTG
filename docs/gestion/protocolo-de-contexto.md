@@ -47,6 +47,11 @@ sabe cuál manda.
 | Quién está detenido esperando a quién, y el estado de las compuertas | `docs/gestion/registro-de-bloqueos.md` |
 | Qué hizo cada sesión de trabajo con IA | `docs/gestion/bitacora-sesiones.md` |
 | Estado de tareas en curso | GitHub Issues / Projects — **no** en archivos |
+| Cómo va el proyecto de un vistazo | La **Sala de control** — generada, nunca escrita a mano (`docs/gestion/README.md`) |
+
+**La Sala de control no es un lugar donde se escribe: es la lectura de los archivos de esta tabla.**
+Por eso mantenerla al día no cuesta trabajo extra — cuesta *no saltarse* el registro que ya era
+obligatorio. Quien avanza, actualiza su registro; el tablero se encarga solo.
 
 **Si detectas la misma afirmación en dos archivos, es un defecto.** Repórtalo o arréglalo dejando el
 detalle en uno y un puntero en el otro.
@@ -76,6 +81,10 @@ Estas reglas están escritas para que el agente las siga, y para que el humano s
 7. **Nunca pegues código en documentos de gestión.** Referencia `archivo:línea`. El código cambia; la
    copia pegada queda mintiendo.
 8. **Un dato, un lugar.** Ver §2.
+9. **Las fechas van en hora local de Cartagena (UTC-5), nunca en UTC.** Un agente que toma la fecha
+   del sistema en UTC escribe el día siguiente cada noche después de las 7 p.m., y el registro queda
+   con fechas futuras. La auditoría del 2026-08-07 encontró seis entradas así. Verifica con `date`,
+   no con la fecha que traigas en contexto.
 
 ### Al cerrar
 

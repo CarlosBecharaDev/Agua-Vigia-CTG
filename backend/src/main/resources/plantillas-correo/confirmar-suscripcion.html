@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Confirma que quieres recibir los avisos de {{nombreSector}}</title>
+<style>
+  :root { color-scheme: light dark; supported-color-schemes: light dark; }
+
+  /* El ancho fijo de 600px solo aplica en escritorio; abajo de eso el correo es fluido. */
+  @media only screen and (max-width: 620px) {
+    .marco      { width: 100% !important; }
+    .relleno    { padding-left: 24px !important; padding-right: 24px !important; }
+    .titular    { font-size: 26px !important; line-height: 32px !important; }
+    .boton a    { display: block !important; text-align: center !important; }
+  }
+
+  /* Los clientes que soportan tema oscuro (Apple Mail, iOS, Outlook.com) reciben la
+     paleta oscura de DESIGN.md. El resto se queda en la clara, que es la de por defecto. */
+  @media (prefers-color-scheme: dark) {
+    .fondo      { background-color: #061418 !important; }
+    .superficie { background-color: #0C2027 !important; }
+    .linea      { border-color: #1B3B45 !important; }
+    .tinta      { color: #E4EFEF !important; }
+    .tinta-2    { color: #9DB8BE !important; }
+    .tinta-3    { color: #6B8C94 !important; }
+    .acento     { color: #45BFCB !important; }
+    .boton-bg   { background-color: #45BFCB !important; }
+    .boton-tx   { color: #061418 !important; }
+  }
+</style>
+</head>
+
+<body class="fondo" style="margin:0; padding:0; background-color:#EEF3F3; -webkit-font-smoothing:antialiased;">
+
+  <!-- Texto de vista previa: es lo que se lee en la bandeja antes de abrir. -->
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">
+    Falta un paso: confirma tu correo y empezamos a avisarte cuando se corte el agua en {{nombreSector}}.
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="fondo" style="background-color:#EEF3F3;">
+    <tr>
+      <td align="center" style="padding:32px 12px;">
+
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="marco superficie linea" style="width:600px; max-width:600px; background-color:#FFFFFF; border:1px solid #C9D9D8; border-radius:4px;">
+
+          <!-- Encabezado -->
+          <tr>
+            <td class="relleno linea" style="padding:28px 40px 20px; border-bottom:1px solid #C9D9D8;">
+              <p class="acento" style="margin:0; font-family:ui-monospace,'Cascadia Mono',Consolas,monospace; font-size:12px; letter-spacing:1.2px; text-transform:uppercase; color:#0A6C78;">
+                AguaVigía Cartagena
+              </p>
+            </td>
+          </tr>
+
+          <!-- Cuerpo -->
+          <tr>
+            <td class="relleno" style="padding:36px 40px 8px;">
+              <h1 class="titular tinta" style="margin:0 0 20px; font-family:ui-serif,'Iowan Old Style','Palatino Linotype',Georgia,serif; font-size:30px; line-height:38px; font-weight:600; color:#0B1F26;">
+                Falta un paso para avisarte
+              </h1>
+
+              <p class="tinta-2" style="margin:0 0 16px; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:16px; line-height:26px; color:#3E585F;">
+                Pediste que te avisemos cuando se corte el agua en <strong class="tinta" style="color:#0B1F26;">{{nombreSector}}</strong>. Confirma que este correo es tuyo y empezamos de una vez.
+              </p>
+
+              <p class="tinta-2" style="margin:0 0 28px; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:16px; line-height:26px; color:#3E585F;">
+                Si no fuiste tú, ignora este mensaje. Sin confirmar, no te escribimos nunca más.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Botón -->
+          <tr>
+            <td class="relleno" style="padding:0 40px 32px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="boton">
+                <tr>
+                  <td class="boton-bg" style="background-color:#0A6C78; border-radius:4px;">
+                    <a class="boton-tx" href="{{urlConfirmacion}}" style="display:inline-block; padding:15px 30px; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:16px; font-weight:600; color:#FFFFFF; text-decoration:none;">
+                      Sí, quiero los avisos
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p class="tinta-3" style="margin:18px 0 0; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:13px; line-height:20px; color:#6E878D;">
+                El enlace vence en {{horasVigencia}} horas. Si no te abre, cópialo y pégalo en tu navegador:<br>
+                <span class="tinta-3" style="font-family:ui-monospace,'Cascadia Mono',Consolas,monospace; font-size:12px; word-break:break-all; color:#6E878D;">{{urlConfirmacion}}</span>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Qué vas a recibir -->
+          <tr>
+            <td class="relleno linea" style="padding:24px 40px; border-top:1px solid #C9D9D8;">
+              <p class="tinta" style="margin:0 0 12px; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:14px; font-weight:600; color:#0B1F26;">
+                Qué te va a llegar
+              </p>
+              <p class="tinta-2" style="margin:0; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:14px; line-height:23px; color:#3E585F;">
+                Un correo cuando Acuacar anuncie un corte en tu sector, y otro cuando el servicio vuelva. Nada más: ni publicidad, ni resúmenes, ni correos de otros barrios.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Pie legal -->
+          <tr>
+            <td class="relleno linea" style="padding:24px 40px 28px; border-top:1px solid #C9D9D8;">
+              <p class="tinta-3" style="margin:0 0 10px; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:12px; line-height:19px; color:#6E878D;">
+                Te pedimos confirmar porque la Ley 1581 de 2012 exige tu autorización expresa antes de guardar tu correo. Guardamos únicamente tu dirección y el sector que elegiste, y los usamos solo para avisarte de cortes. Puedes darte de baja en un clic desde cualquier correo que te enviemos.
+              </p>
+              <p class="tinta-3" style="margin:0; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:12px; line-height:19px; color:#6E878D;">
+                AguaVigía CTG · Proyecto ciudadano de monitoreo del acueducto · Cartagena de Indias
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

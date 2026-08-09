@@ -1,0 +1,10 @@
+# Sin esto, un checkout en Windows con autocrlf convierte estos scripts a CRLF, y el shebang
+# #!/bin/sh se rompe dentro de cualquier contenedor Linux (exec format / "not found").
+# Encontrado en PR #27: docker compose build backend fallaba con "./mvnw: not found".
+backend/mvnw text eol=lf
+*.sh text eol=lf
+
+# Sin esto, git detecta scripts/generar-dashboard.mjs como binario (falso positivo
+# por la densidad de caracteres acentuados en espanol) y deja de mostrar diffs
+# linea por linea en las revisiones — encontrado al fusionar el PR #46.
+*.mjs text

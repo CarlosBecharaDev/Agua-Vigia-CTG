@@ -25,6 +25,14 @@ repositorio se usa el código (`D1`–`D5`); si necesitas el nombre, vuelve aqu�
 sustentación, y el registro de contribución individual (commits, PRs, registros de `docs/gestion/`)
 es evidencia evaluable. Un cambio de rol se acuerda en equipo y se escribe aquí el mismo día.
 
+**D1 tiene titular real desde el 2026-08-08.** Del 2026-08-07 al 2026-08-08 fue una reasignación
+temporal a Yordy Pardo Pajaro (D5) para destrabar `BL-003` (plantilla del informe, solicitud a ICPSR,
+Anexos 1–3, Scrum Master del Sprint 0) mientras el equipo estaba en cuatro integrantes reales.
+Confirmado el 5.º integrante, D1 pasa a Rafael Sarmiento Peña el mismo día, sin negociación — era la
+salida prevista desde que se escribió `ADR-011`. Detalle de ambos movimientos: `ADR-011`
+(*Reemplazada*) y `ADR-021` (vigente). Los pendientes que Yordy no alcanzó a cerrar como D1 interino
+(los dos correos reales, el Capítulo I, el Anexo 4, `BL-006`) pasan a Rafael tal cual estaban.
+
 ---
 
 ## Resumen del equipo
@@ -53,7 +61,16 @@ No hay un Scrum Master fijo: **el rol rota cada sprint**, en orden D1 → D2 →
 
 | Sprint | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
 |---|---|---|---|---|---|---|---|
-| **Scrum Master** | D1 | D2 | D3 | D4 | D5 | D1 | D2 |
+| **Scrum Master** | D1 (Yordy, interino) | D5 (Yordy, interino) | D3 | D4 | D5 | D1 | D2 |
+
+**Sprint 0 ya tuvo Scrum Master interino: Yordy (D1 + D5), desde el 2026-08-08 (`ADR-011`).** Antes
+de eso el Sprint 0 fue sin Scrum Master — razón de que nadie convocara planning, de que
+`sprint-0.md` no existiera hasta el 2026-08-07 y de que la creación de `/backend` pasara dos
+sesiones sin dueño (`BL-003`, cerrado). **El Sprint 1 lo sigue Yordy** por continuidad operativa: ya
+lo abrió como Scrum Master interino antes de que D1 pasara a Rafael Sarmiento Peña (`ADR-021`) —
+cambiar de Scrum Master a mitad de sprint costaba más de lo que resolvía. La rotación retoma su curso
+normal desde el Sprint 2. El Sprint 5 ya **no** necesita interino: D1 tiene titular real (Rafael)
+desde el 2026-08-08, así que la contingencia que dejaba `ADR-011` queda sin efecto.
 
 **Por qué rota:** son 5 estudiantes con la misma carga académica; un Scrum Master fijo pierde un
 desarrollador y concentra en una persona el aprendizaje de la gestión, que también se evalúa.

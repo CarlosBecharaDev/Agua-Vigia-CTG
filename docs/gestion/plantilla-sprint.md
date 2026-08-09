@@ -9,7 +9,8 @@
 
 # Sprint N — <foco en tres palabras>
 
-**Fechas:** AAAA-MM-DD → AAAA-MM-DD · **Scrum Master del sprint:** D<N>
+**Abierto:** AAAA-MM-DD · **Cerrado:** — *(se llena el día que el entregable se demuestra funcionando)*
+· **Scrum Master del sprint:** D<N>
 
 ---
 

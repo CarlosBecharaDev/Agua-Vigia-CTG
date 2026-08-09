@@ -26,6 +26,9 @@
       "Bash(git branch)",
       "Bash(git show:*)",
 
+      "Bash(gh pr review:*)",
+      "Bash(gh pr merge:*)",
+
       "Bash(./mvnw test:*)",
       "Bash(./mvnw verify:*)",
       "Bash(./mvnw compile:*)",

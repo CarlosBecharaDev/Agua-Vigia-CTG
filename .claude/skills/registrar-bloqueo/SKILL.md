@@ -79,3 +79,11 @@ D4 puede retomar MapaSectores.
 - **Un bloqueo es del trabajo, no de la persona.** Se escribe qué falta, no quién falló.
 - **Nunca cierres un bloqueo sin la salida del comando.** Es la única diferencia entre un registro
   y una impresión.
+
+## Efecto en la Sala de control
+
+La sección **"Quién está detenido, y por qué"** de la Sala de control se arma con los campos de §2:
+**Rol bloqueado**, **Insumo que falta**, **Titular que lo resuelve** y **Tarea detenida**. Escríbelos
+con ese nombre exacto y en negrita — si cambias el rótulo, el bloqueo aparece incompleto en el
+tablero que miran los cinco. Al cerrarlo, mueve la fila a §3: la cuenta de bloqueos abiertos sale de
+cuántos bloques quedan en §2 sin marca de cerrado.

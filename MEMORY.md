@@ -57,10 +57,31 @@ Radio, W Radio, Zona Cero.
 - **Alcaldía de Cartagena** (`cartagena.gov.co`): devuelve **HTTP 403** incluso con `User-Agent` de
   navegador. Sus comunicados sí aparecen indexados en Google News.
 
-### 2026-08-06 — GDELT quedó sin verificar
-La API pública de GDELT devolvió `429 Too Many Requests` durante la auditoría (límite compartido de
-su infraestructura, no un bloqueo dirigido). **No está descartada: está pendiente de reintentar** con
-throttling propio en el Sprint 0.
+### 2026-08-07 — GeoJSON de barrios de Cartagena verificado y disponible
+Cartagena Cómo Vamos publica un Feature Service público en ArcGIS con los 213 barrios (polígonos,
+WGS84): `services7.arcgis.com/.../Barrios_de_Cartagena/FeatureServer/0`. Descargado a
+`data/geoespacial/barrios-cartagena.geojson`. Tiene 3 `CODIGO` duplicados y no trae población.
+Detalle, licencia y problemas conocidos: `data/geoespacial/README.md`.
+
+### 2026-08-07 — Acuacar reporta a veces por tramo de calle/manzana, más fino que cualquier polígono
+Validado el GeoJSON de barrios contra boletines reales (#2785, #2787, #2547): los nombres coinciden
+bien, incluidos los 11 sub-sectores de Olaya Herrera. Pero Acuacar también reporta cortes por tramo de
+calle ("La Candelaria entre carrera 34 y 38...") o por manzana ("Chiquinquirá Mz 01 a Mz 05..."), un
+nivel que ningún polígono de barrio puede representar. **Relevante para M9 (D3) y el dominio `Sector`
+(D2)**: el matching texto→polígono necesita tolerancia y un umbral de confianza más bajo para avisos a
+nivel de tramo de calle. Detalle: `data/geoespacial/README.md`.
+
+### 2026-08-08 — Población por barrio verificada; casi se usa la de otro municipio por error
+`datos.gov.co` dataset `rjh5-tyrd` (censo DANE 2018 + CORVIVIENDA) sí es de Cartagena y cubre 184/213
+barrios — casi todos los 27 sin dato son corregimientos rurales/insulares. El primer resultado de
+búsqueda (`x6zm-nfuj`) tenía nombre casi idéntico pero era de La Estrella, Antioquia — se descartó al
+leer el `attribution`, no el título. El campo `poblacion` pierde ceros finales (bug de Socrata);
+corrección documentada en `scripts/sembrar-sectores.mjs`. Detalle: `data/geoespacial/README.md`.
+
+### 2026-08-06/08 — GDELT sigue en `429` pese a reintentar con throttling
+Reintentado el 2026-08-08 con `User-Agent` propio y esperas crecientes (2 s/6 s/15 s): sigue en
+`429` persistente. No es `robots.txt` (no existe, `404`) — es límite de infraestructura compartida
+que no cede desde este entorno. Pendiente: otra red, u contacto sugerido por la propia API.
 
 ---
 
@@ -88,10 +109,15 @@ throttling propio en el Sprint 0.
 | 2026-08-07 | Toda implementación, bug y sesión de trabajo con IA se registra en `docs/gestion/`. Es parte de la definición de terminado y es el insumo del Capítulo IV. Ver `ADR-008`. |
 | 2026-08-07 | Una información vive en **un solo archivo**. Los archivos permanentes tienen presupuesto: `CLAUDE.md` ≤ 200 líneas, `MEMORY.md` ≤ 150, `DESIGN.md` ≤ 200. Ver `docs/gestion/protocolo-de-contexto.md`. |
 | 2026-08-07 | El Scrum Master rota cada sprint (D1→D2→D3→D4→D5). Cierra el sprint y rota los registros. |
-| 2026-08-07 | Roles asignados por nombre: **D1** Rafael Sarmiento Peña · **D2** Carlos Bechara Arias · **D3** Sebastián Montes Olivera · **D4** José Daniel Zambrano · **D5** Yordy Pardo Pajaro. Fuente única: `docs/equipo/roles-y-tareas.md`. |
-| 2026-08-08 | D1 asignado a Rafael Sarmiento Peña — puede iniciar M4 Alertas, M8 Bitácora, BL-006 (COLLECTOR_USER_AGENT). |
+| 2026-08-08 | Roles asignados por nombre: **D1** Rafael Sarmiento Peña · **D2** Carlos Bechara Arias · **D3** Sebastián Montes Olivera · **D4** José Daniel Zambrano · **D5** Yordy Pardo Pajaro. D1 tuvo un titular interino (Yordy, `ADR-011`) antes de Rafael (`ADR-021`). Fuente única: `docs/equipo/roles-y-tareas.md`. |
 | 2026-08-07 | La secuencia **D5 → D2 → D3 y D1 → D4 → D5 (QA)** es obligatoria y se controla con **4 compuertas verificables** (C0–C3). Un rol bloqueado se detiene, registra en `docs/gestion/registro-de-bloqueos.md` y **avisa en el chat**; nunca rodea el bloqueo inventando el insumo que falta. |
 | 2026-08-07 | **El agente nunca figura como colaborador del repositorio**: sin `Co-Authored-By`, sin firmas en commits o PRs. La autoría es de las 5 personas. Forzado con `includeCoAuthoredBy: false`. Ver `CLAUDE.md` § Convenciones de Git. |
+| 2026-08-07 | En **toda tarea**, el agente anuncia si se puede avanzar o hay que esperar a otro rol — no solo cuando bloquea. Ver `docs/equipo/secuencia-de-trabajo.md` §5. |
+| 2026-08-07 | Con las personas, en el chat, sin códigos de compuerta (`C0`, `C1`...) ni nombres de puerto: se explica con nombres y entregables concretos. El código sí va en el registro escrito. Ver `docs/equipo/secuencia-de-trabajo.md` §5. |
+| 2026-08-07 | Se asignó a Carlos (D2) crear el proyecto base de `/backend` en Sprint 0 — nadie lo tenía asignado y sin eso C0 no podía abrir. Ver `docs/equipo/D2-backend-dominio.md`. |
+| 2026-08-07 | El Sprint 0 admite **andamiaje** (estructura, configuración, rutas vacías), no funcionalidad. Criterio: si el código implementa un `RF`, no va en el Sprint 0. Ver `ADR-009`. |
+| 2026-08-07 | **No hay branch protection en GitHub.** "Todo por PR con 1 revisor" es política del equipo, sostenida por disciplina. Ver `ADR-010`. |
+| 2026-08-07 | Las fechas del proyecto se escriben en **hora local de Cartagena (UTC-5)**. Los agentes venían escribiendo la fecha UTC y adelantaban un día cada noche. Ver `protocolo-de-contexto.md` §3. |
 
 ---
 

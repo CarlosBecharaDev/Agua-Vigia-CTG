@@ -26,7 +26,9 @@ Son parte de la definición de terminado del proyecto, no una formalidad.
 
 **1. Toda implementación se registra.**
 Al fusionar un PR a `develop`, una fila en `registro-de-implementaciones.md` con su `RF`, su PR y su
-prueba. Un requisito sin fila no cuenta como implementado, aunque el código exista.
+prueba. Un requisito sin fila no cuenta como implementado, aunque el código exista. **Aplica a todo
+PR fusionado**, no solo al que implementa un requisito: el andamiaje, la infraestructura y los
+cambios de proceso llevan `RF = —` y su `Tipo`, y no suman a la cobertura (`ADR-009`).
 
 **2. Todo bug se registra al encontrarlo**, aunque se arregle en el acto.
 Con severidad, causa raíz y la prueba que impide que vuelva. Un bug arreglado sin prueba es un bug que
@@ -43,14 +45,52 @@ inventando el insumo que falta —tipos escritos a mano, un contrato "provisiona
 conocida de que cinco personas construyan cinco sistemas incompatibles. Ver
 `docs/equipo/secuencia-de-trabajo.md` §2 y §5.
 
-Las cuatro tienen skill propia: `registrar-implementacion`, `registrar-bug`, `cerrar-sesion`,
+**5. Quien avanza, actualiza el registro que le toca — humano o IA, sin excepción.**
+Terminar una funcionalidad, arreglar un bug, destrabar un bloqueo o retirar un mock **no está
+completo hasta que su registro lo dice**. No es burocracia: la [Sala de
+control](https://carlosbecharadev.github.io/Agua-Vigia-CTG/) que los cinco miran para saber cómo va
+el proyecto se genera de estos archivos y de nada más.
+
+Las cuatro primeras tienen skill propia: `registrar-implementacion`, `registrar-bug`, `cerrar-sesion`,
 `registrar-bloqueo`.
 
 ---
 
-## Calendario de sprints
+## La Sala de control — se actualiza sola, si tú actualizas tu registro
 
-**7 sprints. Sprint 0 de preparación + 6 de construcción.** Cada uno de ~4 semanas.
+`https://carlosbecharadev.github.io/Agua-Vigia-CTG/` · se regenera en **cada push a `develop`** y cada
+hora (`.github/workflows/dashboard.yml` → `scripts/generar-dashboard.mjs`).
+
+**Nadie edita ese HTML. No se puede "arreglar el tablero" a mano.** El generador lee PRs e issues
+reales con `gh` y parsea los archivos de esta carpeta; si un dato no está escrito donde toca, para el
+tablero no existe. Lo que muestra cada sección y de dónde sale:
+
+| En la Sala de control se ve | Sale de |
+|---|---|
+| Qué falta para cerrar el sprint | `sprint-N.md` §2 — `✅` hecho · `🟡` parcial · sin marca, pendiente. Sirve al **principio del Entregable** (`✅ Entregado — …`, como se viene marcando) o en una columna `Estado` al final de la fila |
+| Objetivo y criterio de cierre del sprint | `sprint-N.md` §1 y el paréntesis de `**Cerrado:** —` en la cabecera |
+| Quién está detenido y por qué | `registro-de-bloqueos.md` §2 — campos **Rol bloqueado**, **Insumo que falta**, **Titular** |
+| Deuda técnica / mocks vigentes | `registro-de-bloqueos.md` §4 — columna **Estado** (`🟡 Vigente`) |
+| Compuertas y quién habilita a quién | `registro-de-bloqueos.md` §1 |
+| Bugs, con severidad y responsable | `registro-de-bugs.md` — tabla de estado |
+| Cobertura por módulo | `registro-de-implementaciones.md` — tabla **Estado de cobertura** |
+| Decisiones pendientes | `docs/design-decisions.md` — campo **Estado** de cada ADR |
+| Recomendaciones de la IA | `recomendaciones-ia.md` |
+
+**Si cambias el formato de una de esas tablas, se rompe el extractor.** Antes de fusionar un cambio
+de formato, corre `node scripts/generar-dashboard.mjs` y revisa que los conteos que imprime al final
+sigan siendo los correctos: el comando avisa cuando una sección queda vacía.
+
+---
+
+## Los siete sprints
+
+**7 sprints. Sprint 0 de preparación + 6 de construcción.** No tienen duración fija.
+
+**Un sprint se marca como completado cuando su entregable se demuestra funcionando, no cuando se
+acaba la semana.** La columna "Entregable que lo cierra" es la definición, no una aspiración: mientras
+eso no se pueda mostrar corriendo, el sprint sigue abierto por rápido que se haya ido; y cuando se
+puede mostrar, el sprint cierra aunque hayan pasado tres días.
 
 | Sprint | Foco | Entregable que lo cierra |
 |---|---|---|
@@ -70,9 +110,9 @@ Detalle de tareas por persona: `docs/equipo/secuencia-de-trabajo.md`.
 
 | Ceremonia | Cuándo | Duración | Deja escrito |
 |---|---|---|---|
-| **Planning** | Primer día del sprint | 1 h | Objetivo del sprint y compromisos en `sprint-N.md` |
-| **Daily** | 3 veces por semana | 15 min | Nada. Si algo hay que escribir, es un bloqueo → issue |
-| **Review** | Último día del sprint | 1 h | Qué se demostró funcionando, en `sprint-N.md` |
+| **Planning** | Al abrir el sprint, antes de la primera tarea | 1 h | Objetivo del sprint y compromisos en `sprint-N.md` |
+| **Daily** | Al menos 3 veces por semana mientras el sprint esté abierto | 15 min | Nada. Si algo hay que escribir, es un bloqueo → issue |
+| **Review** | Cuando el entregable del sprint se puede demostrar corriendo | 1 h | Qué se demostró funcionando, en `sprint-N.md` |
 | **Retrospectiva** | Después del review | 45 min | Máximo 3 acciones concretas, con responsable |
 
 **La retrospectiva no produce buenos deseos.** "Comunicarnos mejor" no es una acción. "D3 publica el

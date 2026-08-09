@@ -1,0 +1,21 @@
+# Backend corriendo nativo (./mvnw spring-boot:run) contra Mongo/Redis/Mailhog
+# expuestos por docker-compose en localhost. Perfil por defecto.
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/aguavigia}
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.aguavigia.ctg: DEBUG
