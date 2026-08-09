@@ -45,6 +45,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/reportes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Registrar un reporte ciudadano
+         * @description Sin registro ni cuenta (RF005). Limita automáticamente los reportes por
+         *     dispositivo en la ventana vigente (RF006) — ver 429. La coordenada es opcional,
+         *     solo si el usuario autorizó compartir su ubicación (RF007).
+         */
+        post: operations["registrar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/sectores": {
         parameters: {
             query?: never;
@@ -125,6 +147,42 @@ export interface components {
             estado?: string;
             /** Format: date-time */
             creadaEn?: string;
+        };
+        /** @description Coordenada GPS del reporte, solo cuando el usuario la autoriza (RF007) */
+        CoordenadaDTO: {
+            /** Format: double */
+            latitud: number;
+            /** Format: double */
+            longitud: number;
+        };
+        /** @description Reporte ciudadano sin registro (RF005-RF008) */
+        SolicitudReporte: {
+            /**
+             * @description Identificador del sector reportado
+             * @example bocagrande
+             */
+            sectorId?: string;
+            /**
+             * @description SIN_AGUA, PRESION_BAJA o SERVICIO_RESTABLECIDO
+             * @example SIN_AGUA
+             */
+            tipo?: string;
+            /**
+             * @description Huella anónima del dispositivo (ADR-007) — no es una cuenta ni un identificador
+             *     personal. El cliente la genera una vez (p. ej. un UUID persistido en el dispositivo,
+             *     hasheado) y la reutiliza en cada reporte; es lo único que permite RF006 (límite de
+             *     reportes por dispositivo) sin pedir registro.
+             */
+            huella?: string;
+            coordenada?: components["schemas"]["CoordenadaDTO"];
+        };
+        /** @description Reporte ciudadano registrado */
+        ReporteRespuesta: {
+            id?: string;
+            sectorId?: string;
+            tipo?: string;
+            /** Format: date-time */
+            timestamp?: string;
         };
         /** @description Listado de sectores con la hora en que el servidor genero la respuesta */
         RespuestaSectores: {
@@ -235,6 +293,48 @@ export interface operations {
             };
             /** @description Correo inválido o algún sector no existe */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    registrar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitudReporte"];
+            };
+        };
+        responses: {
+            /** @description Reporte registrado */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReporteRespuesta"];
+                };
+            };
+            /** @description Sector inexistente o tipo de reporte inválido */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description El dispositivo superó el límite de reportes para este sector */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };

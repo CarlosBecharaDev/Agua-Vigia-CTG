@@ -19,6 +19,8 @@ tags:
   description: Alertas por correo cuando cambia el estado de un sector
 - name: Sectores
   description: Estado del servicio de agua por sector de Cartagena
+- name: Reportes
+  description: "Reportes ciudadanos de estado del servicio, sin registro"
 - name: Veedor
   description: Autenticacion del panel del veedor
 paths:
@@ -79,6 +81,41 @@ paths:
                 $ref: "#/components/schemas/SuscripcionRespuesta"
         "400":
           description: Correo inválido o algún sector no existe
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/reportes:
+    post:
+      tags:
+      - Reportes
+      summary: Registrar un reporte ciudadano
+      description: |-
+        Sin registro ni cuenta (RF005). Limita automáticamente los reportes por
+        dispositivo en la ventana vigente (RF006) — ver 429. La coordenada es opcional,
+        solo si el usuario autorizó compartir su ubicación (RF007).
+      operationId: registrar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolicitudReporte"
+        required: true
+      responses:
+        "201":
+          description: Reporte registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReporteRespuesta"
+        "400":
+          description: Sector inexistente o tipo de reporte inválido
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "429":
+          description: El dispositivo superó el límite de reportes para este sector
           content:
             application/problem+json:
               schema:
@@ -189,6 +226,65 @@ components:
           type: string
           format: date-time
       description: "Suscripción creada, pendiente de confirmación por correo (RF013)"
+    CoordenadaDTO:
+      required:
+      - latitud
+      - longitud
+      type: object
+      properties:
+        latitud:
+          maximum: 90
+          exclusiveMaximum: false
+          minimum: -90
+          exclusiveMinimum: false
+          type: number
+          format: double
+        longitud:
+          maximum: 180
+          exclusiveMaximum: false
+          minimum: -180
+          exclusiveMinimum: false
+          type: number
+          format: double
+      description: "Coordenada GPS del reporte, solo cuando el usuario la autoriza\
+        \ (RF007)"
+    SolicitudReporte:
+      type: object
+      properties:
+        sectorId:
+          minLength: 1
+          type: string
+          description: Identificador del sector reportado
+          example: bocagrande
+        tipo:
+          minLength: 1
+          type: string
+          description: "SIN_AGUA, PRESION_BAJA o SERVICIO_RESTABLECIDO"
+          example: SIN_AGUA
+        huella:
+          minLength: 1
+          type: string
+          description: |-
+            Huella anónima del dispositivo (ADR-007) — no es una cuenta ni un identificador
+            personal. El cliente la genera una vez (p. ej. un UUID persistido en el dispositivo,
+            hasheado) y la reutiliza en cada reporte; es lo único que permite RF006 (límite de
+            reportes por dispositivo) sin pedir registro.
+        coordenada:
+          $ref: "#/components/schemas/CoordenadaDTO"
+      description: Reporte ciudadano sin registro (RF005-RF008)
+    ReporteRespuesta:
+      type: object
+      properties:
+        id:
+          type: string
+        sectorId:
+          type: string
+        tipo:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      description: Reporte ciudadano registrado
     RespuestaSectores:
       type: object
       properties:
