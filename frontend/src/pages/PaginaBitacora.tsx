@@ -12,6 +12,7 @@ import { obtenerBoletinesRecientes } from '../api/acuacar'
 import type { BoletinAcuacar } from '../api/acuacar'
 import type { EstadoServicio } from '../types/tipos-dominio'
 import { RefreshCw, ExternalLink, MapPin, Activity, CheckCircle2, AlertTriangle, Info } from 'lucide-react'
+import { PageWrapper } from '../components/PageWrapper'
 
 // MOCK DATA - Fallback si la API no responde
 const MOCK_EVENTOS = [
@@ -101,8 +102,9 @@ const PaginaBitacora: FC = () => {
   }, [])
 
   return (
-    <main id="contenido-principal" role="main" aria-label="Bitácora pública de interrupciones del servicio">
-      <div style={{ padding: '2.5rem 1.25rem', maxWidth: '840px', margin: '0 auto' }}>
+    <PageWrapper>
+      <main id="contenido-principal" role="main" aria-label="Bitácora pública de interrupciones del servicio">
+        <div style={{ padding: '2.5rem 1.25rem', maxWidth: '840px', margin: '0 auto' }}>
         
         {/* ENCABEZADO PREMIUM */}
         <div style={{ marginBottom: '2.5rem' }}>
@@ -367,8 +369,9 @@ const PaginaBitacora: FC = () => {
           )}
         </div>
 
-      </div>
-    </main>
+        </div>
+      </main>
+    </PageWrapper>
   )
 }
 

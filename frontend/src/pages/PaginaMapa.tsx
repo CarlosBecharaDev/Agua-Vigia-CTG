@@ -17,6 +17,7 @@ import { ModalReporte } from '../components/ModalReporte'
 import type { Sector } from '../types/tipos-dominio'
 import { Megaphone, RefreshCw, Database, ServerCrash, Droplet } from 'lucide-react'
 import { useDatosEnVivo } from '../hooks/useDatosEnVivo'
+import { PageWrapper } from '../components/PageWrapper'
 
 const PaginaMapa: FC = () => {
   const { sectores, clima, cargando, error, ultimaActualizacion, usandoDatosReales, recargar } = useDatosEnVivo();
@@ -30,7 +31,8 @@ const PaginaMapa: FC = () => {
   }, [])
 
   return (
-    <main id="contenido-principal" role="main" aria-label="Mapa en vivo del servicio de agua en Cartagena">
+    <PageWrapper>
+      <main id="contenido-principal" role="main" aria-label="Mapa en vivo del servicio de agua en Cartagena">
 
       {/* Indicador de fuente de datos + clima */}
       <div
@@ -182,8 +184,9 @@ const PaginaMapa: FC = () => {
         alCerrar={() => setModalAbierto(false)} 
         sectores={sectores}
         sectorPreseleccionado={sectorReporte}
-      />
-    </main>
+        />
+      </main>
+    </PageWrapper>
   )
 }
 
