@@ -6,30 +6,48 @@
  * (ver useTheme y DESIGN.md §3).
  */
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
 import { Encabezado } from './components/Encabezado'
 import { useTheme } from './hooks/useTheme'
-import PaginaMapa from './pages/PaginaMapa'
-import PaginaReportar from './pages/PaginaReportar'
-import PaginaEstadisticas from './pages/PaginaEstadisticas'
-import PaginaBitacora from './pages/PaginaBitacora'
-import PaginaVeedor from './pages/PaginaVeedor'
 import { SplashScreen } from './components/SplashScreen'
 
 import { AnimatePresence } from 'framer-motion'
 import { useLocation } from 'react-router-dom'
 
+// Cada vista carga solo cuando se visita. Esto mantiene pequena la primera carga
+// de la SPA, especialmente en conexiones moviles u offline.
+const PaginaMapa = lazy(() => import('./pages/PaginaMapa'))
+const PaginaReportar = lazy(() => import('./pages/PaginaReportar'))
+const PaginaEstadisticas = lazy(() => import('./pages/PaginaEstadisticas'))
+const PaginaBitacora = lazy(() => import('./pages/PaginaBitacora'))
+const PaginaVeedor = lazy(() => import('./pages/PaginaVeedor'))
+
+function FallbackDeRuta() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      style={{ minHeight: '40vh', display: 'grid', placeItems: 'center', padding: '2rem', color: 'var(--color-tinta-2)' }}
+    >
+      Cargando vista...
+    </div>
+  )
+}
+
 function RutasAnimadas() {
   const location = useLocation()
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/"              element={<PaginaMapa />} />
-        <Route path="/reportar"      element={<PaginaReportar />} />
-        <Route path="/estadisticas"  element={<PaginaEstadisticas />} />
-        <Route path="/bitacora"      element={<PaginaBitacora />} />
-        <Route path="/veedor"        element={<PaginaVeedor />} />
-      </Routes>
-    </AnimatePresence>
+    <Suspense fallback={<FallbackDeRuta />}>
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route path="/"              element={<PaginaMapa />} />
+          <Route path="/reportar"      element={<PaginaReportar />} />
+          <Route path="/estadisticas"  element={<PaginaEstadisticas />} />
+          <Route path="/bitacora"      element={<PaginaBitacora />} />
+          <Route path="/veedor"        element={<PaginaVeedor />} />
+        </Routes>
+      </AnimatePresence>
+    </Suspense>
   )
 }
 
