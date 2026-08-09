@@ -5,8 +5,8 @@ export const CAPACIDADES = {
   reportes: true,
   estadisticas: false,
   bitacora: false,
-  moderacion: false,
-  cortesOficiales: false,
+  moderacion: true,
+  cortesOficiales: true,
   fuentesExternas: false,
 } as const
 

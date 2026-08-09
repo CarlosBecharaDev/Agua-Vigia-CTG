@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { KeyRound, LogOut, ShieldCheck } from 'lucide-react'
+import { KeyRound, ShieldCheck } from 'lucide-react'
 import { cerrarSesionVeedor, iniciarSesionVeedor } from '../api/services'
 import { normalizarErrorApi, sesionVeedor } from '../api/client'
-import { FuncionNoDisponible } from '../components/EstadoPagina'
 import { PageWrapper } from '../components/PageWrapper'
+import { PanelVeedor } from '../components/PanelVeedor'
 
 export default function PaginaVeedor() {
   const [autenticado, setAutenticado] = useState(Boolean(sesionVeedor.obtener()))
@@ -33,14 +33,7 @@ export default function PaginaVeedor() {
   }
 
   if (autenticado) {
-    return (
-      <FuncionNoDisponible
-        titulo="Sesión iniciada; moderación pendiente"
-        descripcion="La autenticación está activa, pero el backend todavía no publica la cola de reportes ni los cortes oficiales."
-        detalle="No se muestran KPIs, reportes o acciones simuladas."
-        accion={<button type="button" className="boton boton-secundario" onClick={cerrar}><LogOut size={17} /> Cerrar sesión</button>}
-      />
-    )
+    return <PageWrapper><PanelVeedor onCerrarSesion={cerrar} /></PageWrapper>
   }
 
   return (
