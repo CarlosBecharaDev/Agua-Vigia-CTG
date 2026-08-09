@@ -6,27 +6,21 @@
  * Sirven para tipar el estado local del mapa y los componentes estáticos.
  */
 
-/** Los 4 estados del servicio — fuente única: DESIGN.md §2 y modelo-de-dominio.md §1 */
-export type EstadoServicio =
-  | 'CON_SERVICIO'
-  | 'SIN_SERVICIO'
-  | 'PRESION_BAJA'
-  | 'CORTE_PROGRAMADO'
+import type { components } from '../api/generated/schema'
+
+type SectorContrato = components['schemas']['SectorRespuesta']
+
+/** Los valores salen del contrato OpenAPI; la presentación sale de DESIGN.md. */
+export type EstadoServicio = Exclude<SectorContrato['estado'], null | undefined>
 
 /** Un sector con su estado — forma mínima que necesita el mapa */
-export interface Sector {
-  id: string
-  nombre: string
+export type Sector = Required<Pick<SectorContrato, 'id' | 'nombre'>> & {
   estado: EstadoServicio | null
-  /** Timestamp ISO de la última actualización del estado */
   actualizadoEn: string | null
 }
 
 /** Resultado de GET /api/sectores — forma esperada cuando C2 abra */
-export interface RespuestaSectores {
-  sectores: Sector[]
-  generadoEn: string
-}
+export type RespuestaSectores = { sectores: Sector[]; generadoEn: string }
 
 /** Mapa de colores por estado — derivado de DESIGN.md §2 */
 export const COLOR_POR_ESTADO: Record<EstadoServicio, { claro: string; oscuro: string; etiqueta: string }> = {

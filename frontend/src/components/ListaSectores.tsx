@@ -14,6 +14,7 @@ import { COLOR_POR_ESTADO, COLOR_SIN_DATOS } from '../types/tipos-dominio'
 import { InsigniaEstado } from './InsigniaEstado'
 import { EtiquetaFrescura } from './EtiquetaFrescura'
 import { Search } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 interface Props {
   sectores: Sector[]
@@ -63,7 +64,7 @@ export const ListaSectores: FC<Props> = ({ sectores, cargando, error, onSectorSe
 
   if (error && sectores.length === 0) {
     return (
-      <p role="alert" style={{ color: 'var(--color-estado-sin)', padding: '1rem 0', fontSize: '0.875rem' }}>
+      <p role="alert" className="mensaje-error">
         No pudimos cargar los sectores. Revisa tu conexión e intenta de nuevo.
       </p>
     )
@@ -110,8 +111,8 @@ export const ListaSectores: FC<Props> = ({ sectores, cargando, error, onSectorSe
 
       {!cargando && sectores.length === 0 && (
         <p style={{ color: 'var(--color-tinta-3)', fontSize: '0.875rem' }}>
-          Todavía no hay sectores registrados. Sé el primero en{' '}
-          <a href="/reportar" style={{ color: 'var(--color-acento)' }}>reportar un problema</a>.
+          Todavía no hay sectores registrados. Puedes{' '}
+          <Link to="/reportar">consultar cuándo estará disponible el reporte</Link>.
         </p>
       )}
 

@@ -41,23 +41,28 @@ Tres razones concretas, no burocráticas:
 | BUG-014 | 2026-08-08 | S3 | — (sala de control) | `dashboard-template.html` no tiene `<!DOCTYPE html>` ni `<meta charset="UTF-8">` — el navegador adivina la codificación y la adivina mal, mostrando "AguaVigÃ­a" en vez de "AguaVigía" en todo el panel | Cerrado | Equipo (sala de control) |
 | BUG-015 | 2026-08-08 | S2 | — (sala de control) | `generar-dashboard.mjs` inyectaba `JSON.stringify(datos)` sin escapar dentro de un `<script>`; un título de PR/issue/bug con `</script>` literal rompería la página o ejecutaría contenido inyectado | Cerrado | Equipo (sala de control) |
 | BUG-016 | 2026-08-08 | S4 | M7 | Las líneas rojas de la gráfica interactiva SVG en el HTML exportado se cortaban a la mitad cuando tenían demasiados picos debido a la restricción nativa de `stroke-dasharray`. | Cerrado | D4 |
-| BUG-017 | 2026-08-09 | S1 | M2 | `FormularioReporte.tsx` muestra "¡Reporte recibido!" aunque el envío a la API falle | Abierto | D4 |
-| BUG-018 | 2026-08-09 | S2 | M1 | `BUG-008` no quedó corregido del todo: el estilo inicial de la capa GeoJSON en `MapaCartagena.tsx` sigue pintando "con servicio" por defecto | Abierto | D4 |
-| BUG-019 | 2026-08-09 | S2 | M1 | Sectores sin dato (`estado: null`) se cuentan como "con problema" en el badge del mapa y en los reportes falsos de `ListaSectores` | Abierto | D4 |
-| BUG-020 | 2026-08-09 | S2 | M1/M9 | El cruce de nombres entre boletines de Acuacar y sectores reales no normaliza texto ni usa límites de palabra — pierde o duplica barrios con nombres compuestos | Abierto | D4 |
+| BUG-017 | 2026-08-09 | S1 | M2 | `FormularioReporte.tsx` muestra "¡Reporte recibido!" aunque el envío a la API falle | Cerrado | D4 |
+| BUG-018 | 2026-08-09 | S2 | M1 | `BUG-008` no quedó corregido del todo: el estilo inicial de la capa GeoJSON en `MapaCartagena.tsx` sigue pintando "con servicio" por defecto | Cerrado | D4 |
+| BUG-019 | 2026-08-09 | S2 | M1 | Sectores sin dato (`estado: null`) se cuentan como "con problema" en el badge del mapa y en los reportes falsos de `ListaSectores` | Cerrado | D4 |
+| BUG-020 | 2026-08-09 | S2 | M1/M9 | El cruce de nombres entre boletines de Acuacar y sectores reales no normaliza texto ni usa límites de palabra — pierde o duplica barrios con nombres compuestos | Cerrado | D4 |
 | BUG-021 | 2026-08-09 | S2 | — (bot WhatsApp) | El bot de resumen diario interpola títulos de PRs/bugs sin escapar `*`/`_` — un título real del propio repo puede corromper el formato del mensaje | Cerrado | Equipo (bot WhatsApp) |
 | BUG-022 | 2026-08-09 | S2 | — (bot WhatsApp) | El bot de WhatsApp llama `process.exit(1)` ante cualquier evento `close`, incluso con un envío todavía pendiente | Cerrado | Equipo (bot WhatsApp) |
 | BUG-023 | 2026-08-09 | S2 | — (sala de control) | El cron de `dashboard.yml` nunca va a ejecutarse: GitHub solo lee triggers `schedule` desde la rama por defecto (`main`), que no tiene workflows | Abierto | Equipo (sala de control) |
-| BUG-024 | 2026-08-09 | S2 | M2 | La preselección de sector por URL (`/reportar?sector=X`) y el respaldo sin API de `PaginaReportar` se rompieron al quitar `SECTORES_MOCK` | Abierto | D4 |
-| BUG-025 | 2026-08-09 | S2 | M7 | El botón "Instalar App" lanza una excepción no capturada si el usuario descarta el diálogo nativo y vuelve a hacer clic | Abierto | D4 |
-| BUG-026 | 2026-08-09 | S2 | M1 | El mapa deja de reaccionar a datos nuevos al hacer clic en un sector después del primer render (dependencias del efecto recortadas en `MapaCartagena.tsx`) | Abierto | D4 |
-| BUG-027 | 2026-08-09 | S2 | M1/M8 | La clasificación del estado de un boletín de Acuacar difiere entre la Bitácora y el Mapa/Estadísticas para el mismo texto | Abierto | D4 |
-| BUG-028 | 2026-08-09 | S3 | M2 | La detección de barrio por GPS compara solo contra el primer vértice del polígono, no es un point-in-polygon real | Abierto | D4 |
+| BUG-024 | 2026-08-09 | S2 | M2 | La preselección de sector por URL (`/reportar?sector=X`) y el respaldo sin API de `PaginaReportar` se rompieron al quitar `SECTORES_MOCK` | Cerrado | D4 |
+| BUG-025 | 2026-08-09 | S2 | M7 | El botón "Instalar App" lanza una excepción no capturada si el usuario descarta el diálogo nativo y vuelve a hacer clic | Cerrado | D4 |
+| BUG-026 | 2026-08-09 | S2 | M1 | El mapa deja de reaccionar a datos nuevos al hacer clic en un sector después del primer render (dependencias del efecto recortadas en `MapaCartagena.tsx`) | Cerrado | D4 |
+| BUG-027 | 2026-08-09 | S2 | M1/M8 | La clasificación del estado de un boletín de Acuacar difiere entre la Bitácora y el Mapa/Estadísticas para el mismo texto | Cerrado | D4 |
+| BUG-028 | 2026-08-09 | S3 | M2 | La detección de barrio por GPS compara solo contra el primer vértice del polígono, no es un point-in-polygon real | Cerrado | D4 |
 | BUG-029 | 2026-08-09 | S4 | — (sala de control / M7) | Detalles menores encontrados en la misma revisión: layout de `.narrativa` en 3-4 columnas en vez de 2, campo `urgente` muerto en bugs, y falta cleanup del listener `appinstalled` en `BotonInstalarPWA.tsx` | 🟡 Parcial — ítems 1, 2, 4 y 5 (sala de control) cerrados; ítem 3 (`BotonInstalarPWA.tsx`, D4) sigue abierto | Equipo / D4 |
 | BUG-030 | 2026-08-08 | S3 | — (proceso) | El comando de la compuerta C0 solo validaba el YAML: la máquina de D5 no tenía ningún motor de contenedores instalado | Cerrado | D5 |
 | BUG-031 | 2026-08-09 | S2 | — (sala de control) | `leerDetalleSprint` asumía siempre 5 columnas en la tabla de Compromisos; `sprint-1.md` (recién abierto, en planificación pura) tiene solo 4 sin columna Estado, y `generar-dashboard.mjs` tumbaba con `TypeError: Cannot read properties of undefined (reading 'startsWith')` | Cerrado | Equipo (sala de control) |
 | BUG-032 | 2026-08-09 | S2 | M2 | `RegistrarReporteService` (PR #84, ya en `develop`) no implementa RF006 pese a que su propio javadoc dice que sí está cubierto | Cerrado | D5 (Yordy), en capa de D2 |
 | BUG-033 | 2026-08-08 | S1 | M1 | `ListaSectores.tsx` mostraba un número de "reportes ciudadanos" por sector completamente inventado (`sector.id * 4 + 7`), siempre visible, no solo en modo demo | Cerrado | D5 (Yordy), en capa de D4 |
+| BUG-034 | 2026-08-09 | S2 | M1 | La SPA llamaba a `localhost:8080` y el navegador bloqueaba sectores por CORS | Cerrado | D4 |
+| BUG-035 | 2026-08-09 | S1 | M1 | Al tocar un polígono ausente del backend, el mapa afirmaba falsamente que tenía servicio | Cerrado | D4 |
+| BUG-036 | 2026-08-09 | S1 | M2/M5/M7/M8 | Pantallas sin endpoint se presentaban como operativas con datos y confirmaciones simuladas | Cerrado | D4 |
+| BUG-037 | 2026-08-09 | S2 | M1 | En 360×800 y 390×844 el mapa empezaba debajo del primer viewport | Cerrado | D4 |
+| BUG-038 | 2026-08-09 | S3 | M1 | Una URL inexistente mostraba solo el encabezado sin mensaje ni salida | Cerrado | D4 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -72,32 +77,6 @@ Tres razones concretas, no burocráticas:
 > `application/` seguía bloqueada por `BL-004`. Son archivos de D4 y del equipo (sala de control,
 > bot de WhatsApp) — se registran sin corregirse, por frontera de propiedad
 > (`secuencia-de-trabajo.md` §5).
-
-### BUG-017 — El formulario de reporte muestra éxito aunque el envío falle
-
-- **Fecha:** 2026-08-09 · **Severidad:** S1 · **Módulo:** M2 · **Responsable:** D4
-- **Estado:** Abierto
-
-**Síntoma:** `frontend/src/components/FormularioReporte.tsx:137` — cuando `AguaVigiaAPI.enviarReporte`
-lanza (red caída, 500, validación fallida), el bloque `catch` hace `console.warn` y luego
-`setTimeout(() => onReporteEnviado(), 800)` — **el mismo callback de éxito** que se usa cuando el
-envío sí funciona.
-
-**Reproducción:** con el backend caído o cualquier error de red, llenar y enviar el formulario de
-reporte (`SIN_AGUA`/`PRESION_BAJA`). El request falla, pero la UI muestra "¡Reporte Recibido!
-Gracias por ayudar a tu comunidad" igual.
-
-**Esperado:** un envío fallido debe mostrar un estado de error, no la pantalla de éxito. RF005–RF007
-exigen que el vecino pueda reportar sin fricción; una plataforma que dice "recibido" y descarta el
-reporte en silencio es peor que una que avisa el fallo — rompe la confianza que el proyecto necesita
-para existir (`brief.md`, ADR-006 aplica el mismo principio a la capa de IA).
-
-**Causa raíz:** el `catch` se escribió reutilizando el flujo de éxito en vez de bifurcar a un estado
-de error propio.
-
-**Corrección:** pendiente — es capa de D4.
-
----
 
 ### BUG-018 — `BUG-008` no quedó corregido del todo
 
@@ -1013,5 +992,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-034
+Siguiente número disponible: BUG-039
 -->

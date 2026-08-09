@@ -26,6 +26,12 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 1
 
+### 2026-08-09 · D4 · `codex/frontend-hardening`
+**Qué:** Endurecido el frontend contra `BUG-017`, `BUG-034`–`BUG-038`: API tipada y del mismo origen,
+suscripciones reales, estados sin simulación, mapa primero, rutas 404 y 23 pruebas en verde.
+**Sigue:** Abrir PR con revisor; D3/D1 deben publicar los contratos de reportes, bitácora, estadísticas
+y moderación antes de habilitar esas pantallas.
+
 ### 2026-08-09 · D5 (Yordy) · `docs/cerrar-sprint-1`
 **Qué:** Reverificada C0 con motor real (Colima, `BUG-030`, PR #74). Traspasado D1 a Rafael Sarmiento
 Peña, 5.º integrante confirmado (`ADR-021`, reemplaza `ADR-011`). Entregado `POST /api/suscripciones`
