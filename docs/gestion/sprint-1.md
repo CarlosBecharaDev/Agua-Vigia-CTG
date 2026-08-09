@@ -36,11 +36,11 @@ a ser código muerto que alguien confundirá con producción.
 | Resp. | RF/RNF | Entregable | Depende de |
 |---|---|---|---|
 | D1 (Yordy) | RF012–RF014 | ✅ Entregado — `POST /api/suscripciones` con DTOs y envío de correo asíncrono (`@Async` + `JavaMailSender`) contra Mailhog, probado extremo a extremo contra Mailhog real | C1 ✅ · plantillas HTML ya listas, sin fusionar · [PR #78](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/78) |
-| D1 (Rafael) | — | Capítulo I del informe (planteamiento, justificación, objetivos) y validación de la plantilla oficial de Comfenalco | — *(no depende de nadie; heredado de Yordy como D1 interino, `ADR-021`)* |
-| D4 | RF001–RF004 | ✅ Entregado — datos de demostración retirados de `useDatosEnVivo.ts`, `PaginaVeedor.tsx` y `PaginaBitacora.tsx` (José, [PR #85](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/85)); `BUG-033` (S1, `ListaSectores.tsx`) encontrado y cerrado por D5 (Yordy) en capa de D4, decisión explícita | C2 ✅ · C3 ✅ |
+| D1 (Rafael) | — | Capítulo I del informe ✅ (PR #82) · **Capítulo II (marco referencial) ✅ — PR con `docs/capitulo-2-informe`** · validación de la plantilla oficial de Comfenalco | — *(no depende de nadie; heredado de Yordy como D1 interino, `ADR-021`)* |
+| D4 | RF001–RF004 | ✅ Entregado — datos de demostración retirados de `useDatosEnVivo.ts`, `PaginaVeedor.tsx` y `PaginaBitacora.tsx` (commits, [PR #85](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/85)); `BUG-033` (S1, `ListaSectores.tsx`) encontrado y cerrado por D5 (Yordy) en capa de D4, decisión explícita | C2 ✅ · C3 ✅ |
 | D2 | RF005–RF007 | ✅ Entregado — `RegistrarReporteService` en `application/`, primer caso de uso real del proyecto. Escrito y fusionado por D5 (Yordy) directo, por decisión explícita — no pasó por revisión de Carlos. `BUG-032` (RF006 no cubierto pese al comentario) encontrado por otra sesión y cerrado en el mismo frente | C1 ✅ · Review del Sprint 0 ✅ · [PR #84](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/84) |
 | D5 (Yordy) | RNF | Motor de contenedores instalado y **C0 reverificada levantando el entorno de verdad**; cambiar su comando de verificación | — *(no depende de nadie)* |
-| D3 | — | Nada nuevo comprometido: su alcance de Sprint 1 (adaptador Mongo, API de sectores, OpenAPI) ya está entregado en el PR #56. Disponible para `BL-005`/`BL-006` en cuanto se destraben | `BL-006` 🔴 · `BL-005` 🔴 |
+| D3 | — | Nada nuevo comprometido: su alcance de Sprint 1 (adaptador Mongo, API de sectores, OpenAPI) ya está entregado en el PR #56. **BL-006 cerrado 2026-08-08**: ya puede escribir `AcuacarApiCollector` y `RssCollector` | `BL-005` 🔴 |
 
 La columna **Depende de** es la importante: es donde se ven los bloqueos antes de que ocurran.
 Cadena de dependencias y compuertas: [`../equipo/secuencia-de-trabajo.md`](../equipo/secuencia-de-trabajo.md) §1 y §2.
@@ -65,7 +65,7 @@ empezada, porque el rol estuvo vacante hasta el 2026-08-08) y la limpieza de los
 |---|---|---|---|---|
 | BL-004 | — | D2 | 3 | Cerrado 2026-08-08 con el Review del Sprint 0 (`sprint-0.md` §4) |
 | BL-005 | — | D3 | — | Abierto — falta `ANTHROPIC_API_KEY` |
-| BL-006 | — | D3 | — | Abierto — falta el correo real del colector. **Lo destraba D1 (Rafael)** |
+| BL-006 | — | D3 | 0 | Cerrado 2026-08-08 — D1 confirmó el correo `rafasarmiento777@gmail.com` en `.env.example` |
 
 ---
 
