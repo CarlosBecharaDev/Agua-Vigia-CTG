@@ -79,7 +79,7 @@ export const FormularioReporte: FC<Props> = ({ sectores, sectorPreseleccionado, 
           sessionStorage.setItem('gps_sectorId', idCercano)
           sessionStorage.setItem('gps_sectorNombre', nombreCercano)
           sessionStorage.setItem('gps_verificado', 'true')
-        } catch (error) {
+        } catch {
           // Fallback a El Socorro si algo falla al leer el GeoJSON
           setSectorId('11')
           setSectorNombreGPS('EL SOCORRO')
