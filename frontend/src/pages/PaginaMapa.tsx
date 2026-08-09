@@ -16,7 +16,7 @@ export default function PaginaMapa() {
   const navigate = useNavigate()
 
   const resumen = useMemo(() => ({
-    afectados: sectores.filter((sector) => sector.estado && sector.estado !== 'CON_SERVICIO').length,
+    afectados: sectores.filter((sector) => sector.estado === 'SIN_SERVICIO' || sector.estado === 'PRESION_BAJA' || sector.estado === 'CORTE_PROGRAMADO').length,
     sinServicio: sectores.filter((sector) => sector.estado === 'SIN_SERVICIO').length,
     estables: sectores.filter((sector) => sector.estado === 'CON_SERVICIO').length,
     sinDatos: sectores.filter((sector) => sector.estado === null).length,

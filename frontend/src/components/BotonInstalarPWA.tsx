@@ -48,6 +48,8 @@ export const BotonInstalarPWA: FC = () => {
     const evento = eventoInstalacion
     if (!evento) return
 
+    setEventoInstalacion(null)
+
     try {
       await evento.prompt()
       const resultado = await evento.userChoice
@@ -56,9 +58,6 @@ export const BotonInstalarPWA: FC = () => {
       }
     } catch (error) {
       console.warn('No se pudo mostrar el diálogo de instalación:', error)
-    } finally {
-      // El evento solo puede consumirse una vez, incluso si el usuario cancela.
-      setEventoInstalacion(null)
     }
   }
 

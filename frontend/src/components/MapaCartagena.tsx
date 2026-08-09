@@ -138,6 +138,11 @@ export const MapaCartagena: FC<Props> = ({
   }, [])
 
   // Cargar GeoJSON y colorear polígonos
+  const onSectorSeleccionadoRef = useRef(onSectorSeleccionado)
+  useEffect(() => {
+    onSectorSeleccionadoRef.current = onSectorSeleccionado
+  }, [onSectorSeleccionado])
+
   useEffect(() => {
     const mapa = mapaRef.current
     if (!mapa) return
@@ -177,7 +182,7 @@ export const MapaCartagena: FC<Props> = ({
               const sector = buscarSector(indiceSectores.current, nombre)
               const sectorClick = sectorDesdeGeojson(nombre, sector)
               
-              onSectorSeleccionado?.(sectorClick)
+              onSectorSeleccionadoRef.current?.(sectorClick)
             })
 
             layer.on('mouseover', (e) => {
@@ -195,7 +200,7 @@ export const MapaCartagena: FC<Props> = ({
       .catch(console.error)
 
     return () => { montado = false; }
-  }, [onSectorSeleccionado])
+  }, [])
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
