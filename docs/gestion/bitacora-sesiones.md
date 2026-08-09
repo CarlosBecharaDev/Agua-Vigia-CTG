@@ -24,6 +24,15 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ---
 
+## Sprint 2
+
+### 2026-08-09 · D3 (Sebastián) · `feature/d3-corteagua-mongo-adapter`
+**Qué:** Construido `CorteAguaMongoAdapter` (RF016-RF017) — el dominio de `CorteAgua` existía sin
+adaptador que lo persistiera. Índice de `sectoresAfectados` agregado a `IndicesMongo`. 154/154
+pruebas en verde. Trabajo adelantado de Sprint 3, con permiso de Jordy (D5) para todo el backend.
+**Sigue:** PR #113 pendiente de revisor; desatasca `GestionarCorteOficialService` (D2) y el CRUD de
+cortes del veedor (D3, Sprint 3).
+
 ## Sprint 1
 
 ### 2026-08-09 · D4 · `codex/frontend-hardening`
