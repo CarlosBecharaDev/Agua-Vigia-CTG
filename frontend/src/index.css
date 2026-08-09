@@ -12,9 +12,9 @@
 
 /* ─── Modo claro (por defecto - Apple Style) ─── */
 :root {
-  /* Apple Blue */
-  --color-acento:        #0066cc;
-  --color-acento-vivo:   #0071e3;
+  /* Teal Blue Accent */
+  --color-acento:        #087f8c;
+  --color-acento-vivo:   #0a9cab;
 
   /* Apple Ink */
   --color-tinta:         #1d1d1f;
@@ -56,8 +56,8 @@
 /* ─── Modo oscuro — media query del SO (Apple Dark Mode) ─── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --color-acento:       #2997ff;
-    --color-acento-vivo:  #0071e3;
+    --color-acento:       #54c6ca;
+    --color-acento-vivo:  #78d9db;
 
     --color-tinta:        #ffffff;
     --color-tinta-2:      #a1a1a6;
