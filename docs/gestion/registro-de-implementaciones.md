@@ -186,11 +186,11 @@ propio PR para que el equipo la complete después.
 | RF027 | func | M8: `BitacoraController` público en `GET /api/bitacora`, directo al puerto de salida sin caso de uso (`ADR-015`). Cierra M8 completo junto con el PR #119 | D1 (Sebastián) — permiso de Jordy (D5) | [#120](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/120) | `./mvnw clean verify` → **178 pruebas, 0 fallos**, ArchUnit incluido |
 | RF018 | func | M5: `ModerarReporteService` + `ModeracionReporteController` en `/api/veedor/reportes` (listar pendientes, aprobar, descartar). `ADR-023`: "dudoso" es "todo reporte sin moderar" — nadie había definido el criterio, y no se inventó una heurística de fraude no pedida | D3 (Sebastián) — capa asignada en `D3-backend-infraestructura.md` | [#121](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/121) | `./mvnw clean verify` → **209 pruebas, 0 fallos**, ArchUnit incluido |
 | — | proceso | Regenerado `backend/openapi.yaml` contra la app corriendo (Mongo/Redis reales): de 7 a 17 rutas — faltaban por completo los cuatro módulos de los PRs #116, #118, #119 y #120. Sin esto, D4 no podía generar un cliente que los viera | D3 (Sebastián) | [#124](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/124) | YAML válido, `openapi: 3.0.1` confirmado (`estado` anulable de sectores se preserva, `ADR-014`) |
+| RF005 · RF007 · RF008 | func | M2 frontend integrado: formulario ciudadano real en dos pasos contra `POST /api/reportes`, huella anónima SHA-256 estable, coordenada opcional, errores RFC 7807 y confirmación únicamente después del `201`. Cliente OpenAPI sincronizado con las 17 rutas del backend | D4 (José) | [#129](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/129) | Frontend CI: `api:check`, lint, **26 pruebas** y build en verde · `npm audit` sin vulnerabilidades |
 
-**Pendiente de este sprint:** D4 (José) conectar `FormularioReporte` al `POST /api/reportes` real —
-sigue usando el fallback que produce `BUG-017`, y el contrato exige un campo `huella` (huella anónima
-de dispositivo, `ADR-007`) que el frontend todavía no genera. Documentado en el PR #104 para quien lo
-tome.
+**Entregado en este sprint:** D4 (José) conectó `FormularioReporte` al `POST /api/reportes` real en el
+PR #129. La huella anónima exigida por `ADR-007` se genera en el navegador y se transmite como SHA-256;
+el flujo no contiene fallback ni confirmaciones simuladas.
 
 ---
 

@@ -75,8 +75,12 @@ function App() {
   return (
     <BrowserRouter>
       <a href="#contenido-principal" id="saltar-al-contenido">Ir al contenido principal</a>
-      <Encabezado temaActivo={temaActivo} onAlternarTema={alternarTema} />
-      <RutasAnimadas />
+      <div className="app-shell">
+        <Encabezado temaActivo={temaActivo} onAlternarTema={alternarTema} />
+        <div className="app-content">
+          <RutasAnimadas />
+        </div>
+      </div>
     </BrowserRouter>
   )
 }
