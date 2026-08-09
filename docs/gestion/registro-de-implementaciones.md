@@ -86,6 +86,7 @@ no la abre quien la produce el insumo, la abre su titular (`secuencia-de-trabajo
 | RF012 · RF013 (parcial) | func | M4: `POST /api/suscripciones` — primer caso de uso real en `application/` (`SuscribirseService`), valida sectores contra `SectorRepository`, persiste en Mongo y envía el correo de doble opt-in de forma asíncrona (`@Async` + `JavaMailSender`) usando las plantillas de `a6a8ae4`. Sin confirmar el token ni la baja de un clic todavía — RF013 completo y RF015 son Sprint 2 | D1 (Yordy) | [#78](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/78) | `./mvnw clean verify` → **95 pruebas, 0 fallos**, ArchUnit incluido · verificado además extremo a extremo contra Mailhog real: `POST` → 201 → correo recibido con asunto, sector y token de confirmación correctos |
 | RF005–RF008 | func | M2: `RegistrarReporteService` — segundo caso de uso real en `application/`, valida el sector contra `SectorRepository`, guarda el reporte y alimenta `ContadorReportesPort` (insumo de `EvaluarConsensoUseCase`, RF009-RF011, aún sin escribir). Incluye el adaptador Mongo de `ReporteCiudadanoRepository`, que no existía. Escrito y fusionado por D5 (Yordy) directo — capa de D2 (Carlos), decisión explícita para no atrasar más el Sprint 1 | D5 (Yordy), en capa de D2 | [#84](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/84) | `./mvnw clean verify` → **101 pruebas, 0 fallos**, ArchUnit incluido |
 | RF001–RF004 | func | M1/M5/M8: `SECTORES_MOCK`/`MOCK_EVENTOS` retirados de `useDatosEnVivo.ts`, `PaginaVeedor.tsx` y `PaginaBitacora.tsx` — cierra `DT-001`–`DT-005` | D4 (José) | [#85](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/85) | `npm run build` / `npm test` en verde |
+| — | proceso | Sala de control: secciones "qué falta para cerrar el sprint" (objetivo + criterio de cierre + checklist de compromisos), "quién está detenido, y por qué" (bloqueos con insumo e interlocutor), deuda técnica vigente y cobertura por módulo — antes solo había conteos agregados sin explicar el porqué | D5 (Yordy) | [#97](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/97) | `node scripts/generar-dashboard.mjs` sin advertencias de sección vacía · verificado en navegador (sin errores de consola, tema claro/oscuro, responsive 375px) · confirmado en producción tras el deploy automático |
 
 ⚠️ **El PR #12 introdujo datos simulados sin desbloqueo temporal registrado.** `SECTORES_MOCK`
 sustituye a `GET /api/sectores`, que no existe porque C2 está cerrada. La regla del proyecto
@@ -162,6 +163,10 @@ D3) y `ADR-013` (M7 es de D5, sigue en *Propuesta*) — pendiente de que el equi
 ⚠️ **El PR #61 se fusionó sin ningún revisor humano** (`reviews: []`) — novena ocurrencia de
 `BUG-005`, la última de los seis PRs de esta sesión (#56 a #61). El agente revisó el código antes de
 fusionar, autorizado explícitamente por Carlos (D2) en el chat.
+
+⚠️ **El PR #97 se fusionó sin revisor humano** (`reviews: []`), décima ocurrencia registrada en
+`BUG-005`. Falta la revisión de respaldo que pide la definición de terminado; queda anotada en el
+propio PR para que el equipo la complete después.
 
 ---
 
