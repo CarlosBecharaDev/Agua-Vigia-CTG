@@ -34,13 +34,12 @@ const PaginaMapa: FC = () => {
   return (
     <main id="contenido-principal" role="main" aria-label="Mapa en vivo del servicio de agua en Cartagena">
       {/* Layout Principal: Mapa y Lista siempre visibles (apilados en móvil, lado a lado en desktop) */}
-      <div className="flex flex-col lg:flex-row gap-10 p-6 lg:p-12" style={{ maxWidth: '1600px', margin: '1.5rem auto 0 auto', height: 'calc(100dvh - 120px)', minHeight: '600px' }}>
+      <div className="map-workspace">
         
         {/* Panel del mapa (Mitad de pantalla en Desktop, ventana flotante comprimida) */}
         <div
           id="panel-mapa"
-          className="relative flex-1"
-          style={{ display: 'flex', flexDirection: 'column', marginLeft: '1.5rem' }}
+          className="map-card"
         >
           <div style={{ flex: 1, overflow: 'hidden', position: 'relative', border: 'none', outline: 'none' }}>
             <MapaCartagena
@@ -61,9 +60,9 @@ const PaginaMapa: FC = () => {
         {/* Panel de lista (Mitad de pantalla en Desktop) */}
         <div
           id="panel-lista"
-          className="flex flex-col overflow-hidden flex-1"
+          className="sector-panel"
         >
-          <div style={{ padding: '1.5rem' }}>
+          <div className="sector-panel-heading">
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.45rem', fontWeight: '800', color: 'var(--color-tinta)', lineHeight: 1.2, letterSpacing: '-0.5px' }}>
               ¿No hay agua en tu barrio?
             </h2>
@@ -111,10 +110,9 @@ const PaginaMapa: FC = () => {
                 style={{
                   width: '100%',
                   padding: '0.6rem 1rem 0.6rem 2.5rem',
-                  borderRadius: '1rem',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  backdropFilter: 'blur(8px)',
+                  borderRadius: 'var(--radio-md)',
+                  border: '1px solid var(--color-linea)',
+                  backgroundColor: 'var(--color-fondo)',
                   color: 'var(--color-tinta)',
                   fontSize: '0.95rem',
                   outline: 'none',

@@ -26,6 +26,14 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 1
 
+### 2026-08-09 · D4 · `rediseno-local`
+**Qué:** Rediseñado el shell responsive con sidebar, topbar contextual y mapa prioritario (`ADR-022`); respaldo previo guardado en `frontend_checkpoint_2026-08-09_antes_adminator.zip`.
+**Sigue:** Validación visual del usuario; si no se aprueba, restaurar el checkpoint sin tocar funcionalidad.
+
+### 2026-08-09 · D4 · `rediseno-local`
+**Qué:** Corregido `BUG-041`: restaurada en ambos temas la paleta sobria de `DESIGN.md` y retirados los halos morados, sin cambios funcionales.
+**Sigue:** Resolver las dependencias, exports y tipos preexistentes que impiden ejecutar build y toda la suite del frontend.
+
 ### 2026-08-09 · D4 · `codex/frontend-hardening`
 **Qué:** Endurecido el frontend contra `BUG-017`, `BUG-034`–`BUG-038`: API tipada y del mismo origen,
 suscripciones reales, estados sin simulación, mapa primero, rutas 404 y 23 pruebas en verde.

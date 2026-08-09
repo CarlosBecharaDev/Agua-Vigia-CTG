@@ -50,15 +50,18 @@ function App() {
         Ir al contenido principal
       </a>
 
-      <Encabezado temaActivo={temaActivo} onAlternarTema={alternarTema} />
-
-      <Routes>
-        <Route path="/"              element={<PaginaMapa />} />
-        <Route path="/reportar"      element={<PaginaReportar />} />
-        <Route path="/estadisticas"  element={<PaginaEstadisticas />} />
-        <Route path="/bitacora"      element={<PaginaBitacora />} />
-        <Route path="/veedor"        element={<PaginaVeedor />} />
-      </Routes>
+      <div className="app-shell">
+        <Encabezado temaActivo={temaActivo} onAlternarTema={alternarTema} />
+        <div className="app-main">
+          <Routes>
+            <Route path="/"              element={<PaginaMapa />} />
+            <Route path="/reportar"      element={<PaginaReportar />} />
+            <Route path="/estadisticas"  element={<PaginaEstadisticas />} />
+            <Route path="/bitacora"      element={<PaginaBitacora />} />
+            <Route path="/veedor"        element={<PaginaVeedor />} />
+          </Routes>
+        </div>
+      </div>
     </BrowserRouter>
   )
 }

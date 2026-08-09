@@ -65,6 +65,7 @@ Tres razones concretas, no burocráticas:
 | BUG-038 | 2026-08-09 | S3 | M1 | Una URL inexistente mostraba solo el encabezado sin mensaje ni salida | Cerrado | D4 |
 | BUG-039 | 2026-08-09 | S2 | — (CI/integración) | CI del PR #105 fallaba en "Verificar cliente OpenAPI": `schema.ts` desactualizado tras avanzar `develop` con `/api/reportes` | Cerrado | Equipo (fusión) |
 | BUG-040 | 2026-08-09 | S3 | M7 | `index.css` redeclara los tokens de color del tema (`--color-acento` y compañía) en un segundo bloque `:root`/`:root[data-theme]` posterior — editar el primer bloque no cambia nada visualmente | Cerrado | D5 (Yordy) |
+| BUG-041 | 2026-08-09 | S4 | Frontend | El tema claro cargaba el fondo morado del modo oscuro y ambos temas incumplían la paleta de `DESIGN.md` | Cerrado | D4 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -1036,6 +1037,29 @@ merge del PR #105.
 
 ---
 
+### BUG-041 — El tema claro cargaba el fondo morado del modo oscuro
+
+- **Fecha:** 2026-08-09 · **Severidad:** S4 · **Módulo:** Frontend · **Responsable:** D4
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** sin preferencia manual, `:root` mostraba texto claro sobre `#160B2E`; el modo oscuro
+repetía el mismo fondo y `body` añadía halos morados. El selector solo ofrecía un claro cian
+intenso (`#F0FFFF`), contrario a la paleta sobria definida en `DESIGN.md` §3.
+
+**Reproducción:** abrir la SPA con el sistema en modo claro, sin `aguavigia-tema` en `localStorage`.
+
+**Esperado:** fondo `#f3f8f7` y superficie blanca en claro; fondo `#071f26` y superficie azul
+petróleo en oscuro, sin gradientes morados.
+
+**Causa raíz:** los tokens originales de `DESIGN.md` fueron sustituidos por una paleta futurista
+oscura y el bloque base dejó de representar el modo claro que declaraba.
+
+**Corrección:** restaurados los tokens oficiales para los tres mecanismos de tema y retirado el
+gradiente decorativo de `body` en `frontend/src/index.css`. `git diff --check` y lint pasan; build y
+tests quedan bloqueados por dependencias, exports y tipos preexistentes ajenos al CSS.
+
+---
+
 ## Regla especial: bugs que publican información falsa
 
 Un defecto que haga que la plataforma muestre un corte que no existe, o un Índice de Cumplimiento
@@ -1060,5 +1084,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-041
+Siguiente número disponible: BUG-042
 -->

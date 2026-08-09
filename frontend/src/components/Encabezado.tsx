@@ -1,14 +1,19 @@
-/**
- * Encabezado principal de AguaVigía CTG.
- * Contiene el logotipo, la navegación principal y el selector de tema.
- * Diseño puro Premium Glassmorphism sin efectos líquidos.
- */
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import type { FC } from 'react'
-import { NavLink, Link } from 'react-router-dom'
+import { Link, NavLink, useLocation } from 'react-router-dom'
+import {
+  BarChart3,
+  Clock3,
+  Droplet,
+  Mail,
+  Map,
+  Menu,
+  ShieldCheck,
+  Waves,
+  X,
+} from 'lucide-react'
 import { SelectorTema } from './SelectorTema'
 import type { useTheme } from '../hooks/useTheme'
-import { Map, BarChart3, Clock, Droplet, ShieldCheck, Mail } from 'lucide-react'
 
 type ThemeProps = ReturnType<typeof useTheme>
 
@@ -18,113 +23,121 @@ interface Props {
 }
 
 const ENLACES = [
-  { a: '/',          etiqueta: 'Mapa',         Icono: Map },
-  { a: '/estadisticas', etiqueta: 'Estadísticas', Icono: BarChart3 },
-  { a: '/bitacora',  etiqueta: 'Bitácora',     Icono: Clock },
-  { a: '/veedor',    etiqueta: 'Veedor',       Icono: ShieldCheck },
+  { a: '/', etiqueta: 'Mapa en vivo', resumen: 'Estado por barrio', Icono: Map },
+  { a: '/estadisticas', etiqueta: 'Estadísticas', resumen: 'Tendencias y métricas', Icono: BarChart3 },
+  { a: '/bitacora', etiqueta: 'Bitácora', resumen: 'Historial público', Icono: Clock3 },
+  { a: '/veedor', etiqueta: 'Panel veedor', resumen: 'Validación ciudadana', Icono: ShieldCheck },
 ]
 
-const estiloNavLink = ({ isActive }: { isActive: boolean }): React.CSSProperties => ({
-  color: isActive ? 'var(--color-acento)' : 'var(--color-tinta-2)',
-  fontWeight: isActive ? '600' : '500',
-  textDecoration: 'none',
-  padding: '0.5rem 0.75rem',
-  borderRadius: 'var(--radio-base)',
-  fontSize: '0.9rem',
-  display: 'inline-flex',
-  alignItems: 'center',
-  minHeight: '44px',
-  transition: 'color var(--transicion), transform 0.2s ease, box-shadow 0.2s ease',
-})
-
-export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema }) => {
-  return (
-    <header
-      role="banner"
-      className="panel-glass"
-      style={{
-        backgroundColor: '#2A1B4D',
-        position: 'sticky',
-        top: 0,
-        zIndex: 2000,
-        borderBottom: '1px solid var(--color-linea)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 1rem',
-        minHeight: '60px',
-        gap: '1rem',
-      }}
-    >
-      {/* Logotipo */}
-      <Link
-        to="/"
-        id="logo-aguavigia"
-        aria-label="AguaVigía CTG — inicio"
-        className="hover-glowing"
-        style={{
-          textDecoration: 'none',
-          whiteSpace: 'nowrap',
-          minHeight: '44px',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '0.4rem',
-          padding: '0 0.5rem',
-          borderRadius: 'var(--radio-md)',
-        }}
-      >
-        <Droplet size={26} strokeWidth={2.5} color="var(--color-acento-vivo)" />
-        <span style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: '1.3rem',
-          fontWeight: '800',
-          background: 'linear-gradient(90deg, var(--color-acento) 0%, var(--color-acento-vivo) 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          letterSpacing: '-0.5px'
-        }}>
-          AguaVigía
-        </span>
-      </Link>
-
-      {/* Navegación principal */}
-      <nav aria-label="Navegación principal" style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-        {ENLACES.map(({ a, etiqueta, Icono }) => (
-          <NavLink key={a} to={a} end={a === '/'} className="hover-glowing" style={estiloNavLink}>
-            <Icono size={18} style={{ marginRight: '6px' }} />
-            {etiqueta}
-          </NavLink>
-        ))}
-      </nav>
-
-      {/* Zona de Botón Suscribir y Selector de Tema */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <button 
-          onClick={() => window.open('mailto:alertas@aguavigia.com?subject=Suscripción a Alertas', '_blank')}
-          className="hover-glowing"
-          style={{ 
-            backgroundColor: '#0ea5e9', // Blue not dead, vibrant water blue
-            border: 'none',
-            cursor: 'pointer',
-            color: '#fff', 
-            padding: '0.5rem 1rem', 
-            borderRadius: 'var(--radio-pill)', 
-            fontSize: '0.85rem', 
-            fontWeight: '600',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            boxShadow: '0 4px 12px rgba(14, 165, 233, 0.4)',
-            transition: 'all var(--transicion)',
-            minHeight: '44px'
-          }}
-        >
-          <Mail size={16} /> Suscribirme
-        </button>
-        <SelectorTema temaActivo={temaActivo} onAlternar={onAlternarTema} />
-      </div>
-    </header>
-  )
+const TITULOS: Record<string, { seccion: string; titulo: string }> = {
+  '/': { seccion: 'Monitoreo', titulo: 'Mapa en vivo' },
+  '/reportar': { seccion: 'Participación', titulo: 'Reportar novedad' },
+  '/estadisticas': { seccion: 'Análisis', titulo: 'Estadísticas' },
+  '/bitacora': { seccion: 'Transparencia', titulo: 'Bitácora pública' },
+  '/veedor': { seccion: 'Operación', titulo: 'Panel veedor' },
 }
 
+export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema }) => {
+  const { pathname } = useLocation()
+  const [menuAbierto, setMenuAbierto] = useState(false)
+  const contexto = TITULOS[pathname] ?? { seccion: 'AguaVigía', titulo: 'Página' }
 
+  useEffect(() => {
+    setMenuAbierto(false)
+  }, [pathname])
+
+  useEffect(() => {
+    const cerrarConEscape = (evento: KeyboardEvent) => {
+      if (evento.key === 'Escape') setMenuAbierto(false)
+    }
+    window.addEventListener('keydown', cerrarConEscape)
+    return () => window.removeEventListener('keydown', cerrarConEscape)
+  }, [])
+
+  return (
+    <>
+      <aside className={`app-sidebar${menuAbierto ? ' is-open' : ''}`} aria-label="Navegación principal">
+        <div className="sidebar-brand">
+          <Link to="/" id="logo-aguavigia" aria-label="AguaVigía CTG — inicio">
+            <span className="brand-mark" aria-hidden="true"><Droplet size={23} strokeWidth={2.4} /></span>
+            <span className="brand-copy">
+              <strong>AguaVigía</strong>
+              <small>Cartagena</small>
+            </span>
+          </Link>
+          <button
+            type="button"
+            className="sidebar-close"
+            aria-label="Cerrar menú"
+            onClick={() => setMenuAbierto(false)}
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="sidebar-context">
+          <span className="context-icon" aria-hidden="true"><Waves size={18} /></span>
+          <span><small>Espacio de trabajo</small><strong>Servicio de agua</strong></span>
+        </div>
+
+        <nav className="sidebar-nav">
+          <span className="sidebar-label">Navegación</span>
+          {ENLACES.map(({ a, etiqueta, resumen, Icono }) => (
+            <NavLink
+              key={a}
+              to={a}
+              end={a === '/'}
+              className={({ isActive }) => `sidebar-link${isActive ? ' is-active' : ''}`}
+            >
+              <span className="sidebar-link-icon" aria-hidden="true"><Icono size={19} /></span>
+              <span className="sidebar-link-copy"><strong>{etiqueta}</strong><small>{resumen}</small></span>
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="sidebar-footer">
+          <span className="sidebar-footer-mark" aria-hidden="true"><Droplet size={16} /></span>
+          <span><strong>Monitoreo ciudadano</strong><small>Cartagena de Indias</small></span>
+        </div>
+      </aside>
+
+      <button
+        type="button"
+        className={`sidebar-backdrop${menuAbierto ? ' is-visible' : ''}`}
+        aria-label="Cerrar menú"
+        tabIndex={menuAbierto ? 0 : -1}
+        onClick={() => setMenuAbierto(false)}
+      />
+
+      <header className="app-topbar" role="banner">
+        <div className="topbar-heading">
+          <button
+            type="button"
+            className="menu-trigger"
+            aria-label="Abrir menú"
+            aria-expanded={menuAbierto}
+            onClick={() => setMenuAbierto(true)}
+          >
+            <Menu size={21} />
+          </button>
+          <div className="topbar-title">
+            <span>{contexto.seccion}</span>
+            <strong>{contexto.titulo}</strong>
+          </div>
+        </div>
+
+        <div className="topbar-actions">
+          <button
+            type="button"
+            className="topbar-subscribe"
+            onClick={() => window.open('mailto:alertas@aguavigia.com?subject=Suscripción a Alertas', '_blank')}
+          >
+            <Mail size={17} />
+            <span>Suscribirme</span>
+          </button>
+          <SelectorTema temaActivo={temaActivo} onAlternar={onAlternarTema} />
+        </div>
+      </header>
+    </>
+  )
+}
