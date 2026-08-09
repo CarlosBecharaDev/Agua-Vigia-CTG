@@ -65,6 +65,7 @@ Tres razones concretas, no burocráticas:
 | BUG-038 | 2026-08-09 | S3 | M1 | Una URL inexistente mostraba solo el encabezado sin mensaje ni salida | Cerrado | D4 |
 | BUG-039 | 2026-08-09 | S2 | — (CI/integración) | CI del PR #105 fallaba en "Verificar cliente OpenAPI": `schema.ts` desactualizado tras avanzar `develop` con `/api/reportes` | Cerrado | Equipo (fusión) |
 | BUG-040 | 2026-08-09 | S3 | M7 | `index.css` redeclara los tokens de color del tema (`--color-acento` y compañía) en un segundo bloque `:root`/`:root[data-theme]` posterior — editar el primer bloque no cambia nada visualmente | Cerrado — duplicación eliminada, no solo resincronizada | D5 (Yordy) |
+| BUG-041 | 2026-08-09 | S2 | M4 | `ConfirmarSuscripcionService` (ya en `develop`) nunca revisa el vencimiento del token, aunque `confirmar-suscripcion.html` le promete al vecino que el enlace vence en `{{horasVigencia}}` horas; tampoco había índice único sobre `tokenConfirmacion` en Mongo | Cerrado | D1/D5 (`ConfirmarSuscripcionService` original de D5; hallazgo del PR #110 de Rafael, D1) |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -898,6 +899,49 @@ pueda declarar en verde sin un motor real corriendo.
 **Prueba que impide la regresión:** ninguna automatizada — es una condición de la máquina local, no del
 código. Mitigación: el comando de C0 ahora exige `docker compose up -d --wait`, que falla explícitamente
 si no hay daemon, en vez de degradarse en silencio a validar solo YAML.
+
+---
+
+### BUG-041 — El token de confirmación de suscripción nunca vencía, pese a que el correo lo promete
+
+- **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M4 · **Responsable:** D1/D5
+- **Estado:** Cerrado
+
+**Síntoma:** `confirmar-suscripcion.html:89` le dice al vecino *"El enlace vence en {{horasVigencia}}
+horas"* (`MailNotificacionAdapter` rellena esa variable con `aguavigia.suscripcion.horas-vigencia-token`,
+48 por defecto). Pero `ConfirmarSuscripcionService`, ya fusionado a `develop`, nunca comparaba la fecha
+de creación de la suscripción contra ese plazo: un enlace de confirmación seguía funcionando
+indefinidamente. Tampoco había índice único sobre `tokenConfirmacion` en `SuscripcionDocumento`
+— cada búsqueda por token escaneaba toda la colección, sin garantía de unicidad a nivel de base de datos.
+
+**Cómo se encontró:** el PR #110 (Rafael Sarmiento, D1, titular real de M4) implementó de forma
+independiente `ConfirmarSuscripcionService`/`CancelarSuscripcionService` — sin saber que Yordy (D5) ya
+había escrito y fusionado una versión propia a `develop` directamente en la capa de D1, como parte del
+mismo patrón de avance cruzado autorizado en sesiones anteriores. Las dos versiones chocan en un
+conflicto *add/add* en git: mismos archivos, implementaciones distintas. Comparando ambas surgió que
+la versión de Yordy en `develop` no aplicaba el vencimiento — el propio Javadoc del controlador en
+`develop` documenta la omisión como decisión consciente ("el token es de un solo enlace, no de un solo
+uso"), pero no contempla que el correo sí promete una fecha límite.
+
+**Esperado:** que el sistema cumpla lo que el propio correo le afirma al vecino — coherente con
+`ADR-006` ("no afirmar lo que no se puede sostener").
+
+**Causa raíz:** dos personas implementaron el mismo requisito (RF013/RF015) sin coordinarse, con
+lecturas distintas del alcance. Ninguna de las dos es "la equivocada" en el diseño general — pero la
+promesa concreta del correo (una fecha de vencimiento) sí quedó sin cumplir en la versión que llegó a
+`develop`.
+
+**Corrección:** no se fusionó el PR #110 completo (ya redundante con lo que hay en `develop`). Se portó
+el chequeo de vencimiento y el índice único de Mongo al código ya existente:
+`ConfirmarSuscripcionService` ahora recibe `RelojPort` y `horas-vigencia-token`, y rechaza con 400 un
+token vencido; `SuscripcionDocumento.tokenConfirmacion` lleva `@Indexed(unique = true)`.
+`ConfirmarSuscripcionServiceTest` suma los casos de token vencido y de token válido justo antes de
+vencer. El PR #110 se cerró dando crédito a Rafael por el hallazgo, sin fusionar su código duplicado.
+Verificado: `./mvnw clean verify` → 152 pruebas, 0 fallos, ArchUnit incluido.
+
+**Pendiente de decisión del equipo, no resuelto aquí:** si confirmar un token ya `CONFIRMADA` debe
+seguir siendo idempotente (como quedó en `develop`) o debe rechazarse como "de un solo uso" (como
+proponía el PR #110) — es una decisión de producto de D1, no algo que este bug decida por su cuenta.
 
 ---
 
