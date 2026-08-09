@@ -80,18 +80,20 @@
   }
 }
 
-/* ─── Modo oscuro — interruptor manual (Apple) ─── */
+/* 🌙 Modo oscuro — interruptor manual (Apple) 🌙 */
 :root[data-theme="dark"] {
-  --color-acento:       #2997ff;
-  --color-acento-vivo:  #0071e3;
+  --color-acento:       #54c6ca;
+  --color-acento-vivo:  #78d9db;
+  --color-acento-suave: #0d465d;
 
-  --color-tinta:        #ffffff;
-  --color-tinta-2:      #a1a1a6;
-  --color-tinta-3:      #6e6e73;
+  --color-tinta:        #e6f4f1;
+  --color-tinta-2:      #9cbabc;
+  --color-tinta-3:      #688a91;
+  --color-marino:       #001824;
 
-  --color-linea:        #38383a;
-  --color-superficie:   #1c1c1e;
-  --color-fondo:        #000000;
+  --color-linea:        #185975;
+  --color-superficie:   #063b52;
+  --color-fondo:        #002436;
 
   --color-estado-con:   #30d158;
   --color-estado-sin:   #ff453a;
@@ -101,18 +103,23 @@
   color-scheme: dark;
 }
 
-/* ─── Modo claro forzado por interruptor (Apple) ─── */
+/* ☀️ Modo claro forzado por interruptor (Apple) ☀️ */
 :root[data-theme="light"] {
-  --color-acento:        #0066cc;
-  --color-acento-vivo:   #0071e3;
+  /* Teal Blue Accent */
+  --color-acento:        #087f8c;
+  --color-acento-vivo:   #0a9cab;
+  --color-acento-suave:  #d9f1f0;
 
-  --color-tinta:         #1d1d1f;
-  --color-tinta-2:       #7a7a7a;
-  --color-tinta-3:       #cccccc;
+  /* Ink (Dark bluish gray) */
+  --color-tinta:         #12333d;
+  --color-tinta-2:       #5d7379;
+  --color-tinta-3:       #8da0a4;
+  --color-marino:        #082f3c;
 
-  --color-linea:         #e0e0e0;
+  /* Surfaces (Soft bluish white) */
+  --color-linea:         #dce8e8;
   --color-superficie:    #ffffff;
-  --color-fondo:         #f5f5f7;
+  --color-fondo:         #f3f8f7;
 
   --color-estado-con:    #34c759;
   --color-estado-sin:    #ff3b30;
