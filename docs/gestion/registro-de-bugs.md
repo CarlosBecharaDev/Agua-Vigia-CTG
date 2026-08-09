@@ -66,6 +66,7 @@ Tres razones concretas, no burocráticas:
 | BUG-039 | 2026-08-09 | S2 | — (CI/integración) | CI del PR #105 fallaba en "Verificar cliente OpenAPI": `schema.ts` desactualizado tras avanzar `develop` con `/api/reportes` | Cerrado | Equipo (fusión) |
 | BUG-040 | 2026-08-09 | S3 | M7 | `index.css` redeclara los tokens de color del tema (`--color-acento` y compañía) en un segundo bloque `:root`/`:root[data-theme]` posterior — editar el primer bloque no cambia nada visualmente | Cerrado — duplicación eliminada, no solo resincronizada | D5 (Yordy) |
 | BUG-041 | 2026-08-09 | S2 | M4 | `ConfirmarSuscripcionService` (ya en `develop`) nunca revisa el vencimiento del token, aunque `confirmar-suscripcion.html` le promete al vecino que el enlace vence en `{{horasVigencia}}` horas; tampoco había índice único sobre `tokenConfirmacion` en Mongo | Cerrado | D1/D5 (`ConfirmarSuscripcionService` original de D5; hallazgo del PR #110 de Rafael, D1) |
+| BUG-042 | 2026-08-09 | S3 | M4 | `aviso-corte.html` y el README de plantillas se quedaron fuera de `develop`: el commit que los trajo llegó a su rama después de fusionado el PR #45, y solo `confirmar-suscripcion.html` cruzó | Cerrado — plantilla y README recuperados | D1 (autoría original de Yordy, D5) |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -915,6 +916,44 @@ si no hay daemon, en vez de degradarse en silencio a validar solo YAML.
 
 ---
 
+### BUG-042 — La plantilla del aviso de corte nunca llegó a `develop`: quedó huérfana en una rama fusionada
+
+- **Fecha:** 2026-08-09 · **Severidad:** S3 · **Módulo:** M4 · **Responsable:** D1
+- **Estado:** Cerrado
+
+**Síntoma:** `backend/src/main/resources/plantillas-correo/` contenía en `develop` un solo archivo,
+`confirmar-suscripcion.html`, sin el README que documenta los marcadores. `aviso-corte.html` —el correo
+que avisa al vecino de un corte, que es la razón de ser de M4— no existía en ninguna rama viva pese a
+estar escrito desde el 2026-08-08.
+
+**Cómo se encontró:** auditando las 79 ramas del repositorio antes de un cierre de sprint. El commit
+`a6a8ae4` ("feat(D1): plantillas de correo de M4 y estructura del adaptador", Yordy) está en la rama
+`feature/d5-dockerfile-frontend-y-jacoco` con fecha **posterior** a la fusión del PR #45, que es lo
+último que esa rama aportó. Al fusionarse por squash, GitHub no vuelve a mirar la rama: todo lo que se
+empuje después queda inalcanzable desde `main` y `develop` sin que nada lo señale.
+
+**Esperado:** que un archivo empujado a una rama de trabajo termine en `develop` o quede visiblemente
+pendiente. Un entregable no puede desaparecer en silencio.
+
+**Causa raíz:** empujar trabajo nuevo a una rama cuyo PR ya se fusionó. `confirmar-suscripcion.html`
+sí llegó porque el PR #78 lo tomó aparte al implementar el envío; sus dos archivos hermanos, no. El
+riesgo es estructural del squash merge, no un descuido puntual — la rama sigue viéndose "fusionada"
+en la interfaz de GitHub.
+
+**Corrección:** recuperados `aviso-corte.html` (íntegro, sin tocar) y su README desde `a6a8ae4`. El
+README se actualizó donde el tiempo lo volvió falso: `NotificacionPort` y `MailNotificacionAdapter`
+ya existen y la confirmación ya se envía, así que la sección "lo que falta" ahora dice lo que de
+verdad falta —el método de aviso de corte en el puerto y quién dispara el envío—. No se recuperó
+`package-info.java` del mismo commit: describe el paquete como *"vacío hasta el Sprint 1"* y hoy tiene
+dos clases, así que entraría desactualizado. Verificado: `./mvnw clean verify` → 209 pruebas, 0 fallos,
+ArchUnit incluido.
+
+**Regla que deja este bug:** al fusionar un PR, borrar su rama. Una rama fusionada que sigue viva
+acepta commits que nadie volverá a mirar. En esta misma auditoría se borraron las 77 ramas ya
+integradas por esa razón.
+
+---
+
 ### BUG-041 — El token de confirmación de suscripción nunca vencía, pese a que el correo lo promete
 
 - **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M4 · **Responsable:** D1/D5
@@ -1157,5 +1196,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-041
+Siguiente número disponible: BUG-043
 -->
