@@ -1,9 +1,9 @@
 /**
  * PaginaBitacora — M8 (Bitácora pública - UI).
- * 
+ *
  * Conectada a datos reales de Acuacar (boletines oficiales).
  * Muestra los boletines parseados con barrios afectados y estado.
- * Fallback automático a mock data si la API no responde.
+ * Si la API no responde, muestra un estado vacío — nunca datos inventados.
  */
 import { useState, useEffect } from 'react'
 import type { FC } from 'react'
@@ -13,34 +13,6 @@ import type { BoletinAcuacar } from '../api/acuacar'
 import type { EstadoServicio } from '../types/tipos-dominio'
 import { RefreshCw, ExternalLink, MapPin, Activity, CheckCircle2, AlertTriangle, Info } from 'lucide-react'
 import { PageWrapper } from '../components/PageWrapper'
-
-// MOCK DATA - Fallback si la API no responde
-const MOCK_EVENTOS = [
-  {
-    id: 'ev-001',
-    timestamp: new Date(Date.now() - 10 * 60000).toISOString(),
-    sector: 'MANGA',
-    tipo: 'CONFIRMADO_POR_CONSENSO',
-    descripcion: 'Corte confirmado por reporte de vecinos (5 reportes).',
-    estadoRelacionado: 'SIN_SERVICIO' as const
-  },
-  {
-    id: 'ev-002',
-    timestamp: new Date(Date.now() - 2 * 3600000).toISOString(),
-    sector: 'BOCAGRANDE',
-    tipo: 'CORTE_OFICIAL_ANUNCIADO',
-    descripcion: 'Mantenimiento preventivo en tubería principal.',
-    estadoRelacionado: 'CORTE_PROGRAMADO' as const
-  },
-  {
-    id: 'ev-003',
-    timestamp: new Date(Date.now() - 24 * 3600000).toISOString(),
-    sector: 'GETSEMANI',
-    tipo: 'SERVICIO_RESTABLECIDO',
-    descripcion: 'Servicio reanudado oficialmente.',
-    estadoRelacionado: 'CON_SERVICIO' as const
-  }
-]
 
 // Formateador de fecha simple
 const formatearFecha = (isoString: string) => {
@@ -164,8 +136,8 @@ const PaginaBitacora: FC = () => {
             {cargando 
               ? 'Conectando con acuacar...' 
               : usandoDatosReales 
-                ? `DATOS EN VIVO (${boletines.length} Boletines)` 
-                : 'MODO DEMO (Sin Conexión)'}
+                ? `DATOS EN VIVO (${boletines.length} Boletines)`
+                : 'SIN DATOS (Sin Conexión)'}
           </span>
         </div>
 
@@ -303,69 +275,13 @@ const PaginaBitacora: FC = () => {
               );
             })
           ) : (
-            // ── EVENTOS MOCK (fallback) ──
-            MOCK_EVENTOS.map((evento, index) => {
-              const iconoColor = evento.estadoRelacionado === 'SIN_SERVICIO' ? '#ff453a' 
-                               : evento.estadoRelacionado === 'CORTE_PROGRAMADO' ? '#ff9f0a' 
-                               : '#30d158';
-              const IconoEstado = evento.estadoRelacionado === 'SIN_SERVICIO' ? AlertTriangle
-                                : evento.estadoRelacionado === 'CORTE_PROGRAMADO' ? Info
-                                : CheckCircle2;
-                                
-              return (
-                <article 
-                  key={evento.id}
-                  className="hover-glowing"
-                  style={{
-                    ...estiloGlass,
-                    display: 'flex',
-                    gap: '1.25rem',
-                    padding: '1.5rem',
-                    borderRadius: '1.5rem',
-                    position: 'relative',
-                    zIndex: 1,
-                    opacity: animarLista ? 1 : 0,
-                    transform: animarLista ? 'translateY(0)' : 'translateY(20px)',
-                    transition: `opacity 0.5s ease ${index * 0.1}s, transform 0.5s ease ${index * 0.1}s`,
-                  }}
-                >
-                  {/* Icono del Timeline */}
-                  <div style={{
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '50%',
-                    background: 'var(--color-superficie)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
-                    border: '1px solid var(--color-linea)',
-                    boxShadow: `0 4px 12px ${iconoColor}30`,
-                  }}>
-                    <IconoEstado size={20} color={iconoColor} />
-                  </div>
-                  
-                  <div style={{ flex: 1 }}>
-                    <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                      <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
-                          <InsigniaEstado estado={evento.estadoRelacionado} tamaño="sm" />
-                          <time dateTime={evento.timestamp} style={{ fontSize: '0.75rem', color: 'var(--color-tinta-3)', fontWeight: '600' }}>
-                            {formatearFecha(evento.timestamp)}
-                          </time>
-                        </div>
-                        <h2 style={{ fontSize: '1.15rem', margin: 0, color: 'var(--color-tinta)', fontWeight: '700', letterSpacing: '-0.3px' }}>
-                          {evento.sector}
-                        </h2>
-                      </div>
-                    </header>
-                    <p style={{ color: 'var(--color-tinta-2)', fontSize: '0.95rem', margin: 0, lineHeight: '1.5' }}>
-                      <strong style={{ color: 'var(--color-tinta)' }}>{evento.tipo.replace(/_/g, ' ')}:</strong> {evento.descripcion}
-                    </p>
-                  </div>
-                </article>
-              )
-            })
+            // ── SIN DATOS — la API de Acuacar no respondió ──
+            <div style={{ ...estiloGlass, padding: '3rem 2rem', textAlign: 'center', color: 'var(--color-tinta-2)', borderRadius: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', position: 'relative', zIndex: 1 }}>
+              <AlertTriangle size={40} color="var(--color-tinta-3)" opacity={0.5} />
+              <span style={{ fontSize: '1.1rem', fontWeight: '500' }}>
+                {cargando ? 'Consultando boletines de Acuacar...' : 'Sin boletines disponibles en este momento.'}
+              </span>
+            </div>
           )}
         </div>
 

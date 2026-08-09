@@ -56,6 +56,7 @@ Tres razones concretas, no burocráticas:
 | BUG-029 | 2026-08-09 | S4 | — (sala de control / M7) | Detalles menores encontrados en la misma revisión: layout de `.narrativa` en 3-4 columnas en vez de 2, campo `urgente` muerto en bugs, y falta cleanup del listener `appinstalled` en `BotonInstalarPWA.tsx` | 🟡 Parcial — ítems 1, 2, 4 y 5 (sala de control) cerrados; ítem 3 (`BotonInstalarPWA.tsx`, D4) sigue abierto | Equipo / D4 |
 | BUG-030 | 2026-08-08 | S3 | — (proceso) | El comando de la compuerta C0 solo validaba el YAML: la máquina de D5 no tenía ningún motor de contenedores instalado | Cerrado | D5 |
 | BUG-031 | 2026-08-09 | S2 | — (sala de control) | `leerDetalleSprint` asumía siempre 5 columnas en la tabla de Compromisos; `sprint-1.md` (recién abierto, en planificación pura) tiene solo 4 sin columna Estado, y `generar-dashboard.mjs` tumbaba con `TypeError: Cannot read properties of undefined (reading 'startsWith')` | Cerrado | Equipo (sala de control) |
+| BUG-032 | 2026-08-09 | S2 | M2 | `RegistrarReporteService` (PR #84, ya en `develop`) no implementa RF006 pese a que su propio javadoc dice que sí está cubierto | Abierto | D2 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -929,6 +930,48 @@ mismo ternario que ya existía, sin necesitar una rama especial.
 
 ---
 
+### BUG-032 — `RegistrarReporteService` no implementa RF006 pese a que su javadoc dice que sí
+
+- **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M2 · **Responsable:** D2
+- **Estado:** Abierto
+
+**Síntoma:** `RegistrarReporteService.java` (PR #84, ya en `develop`) trae este comentario de clase:
+*"La limitación de reportes por dispositivo (RF006) no la hace este servicio: es el rate limiting
+HTTP en el borde (`RedisContadorReportesAdapter`, comentario de clase)"*. Ninguna de las dos partes
+de esa frase es cierta.
+
+**Reproducción:** lectura directa del código, sin necesidad de ejecutar nada:
+1. `RedisContadorReportesAdapter.java` (el propio archivo que el comentario cita) dice en su propio
+   javadoc: *"No deduplica por HuellaDispositivo a proposito: impedir que un mismo dispositivo infle
+   el conteo es responsabilidad del rate limiting... no de este contador"* — ese ZSET es para el
+   consenso (RF009-RF011), y `RegistrarReporteService` solo lo usa para *alimentar* el contador
+   (`contadorReportes.registrar(...)`), nunca para *consultarlo* antes de guardar.
+2. El "rate limiting HTTP en el borde" (`RateLimitingInterceptor.java`) tiene su propio javadoc:
+   *"Clave por IP del cliente, no por huella de dispositivo"* — y `ADR-018`
+   (`docs/design-decisions.md`) documenta que esa decisión fue deliberada, precisamente para no
+   acoplar `HuellaDispositivo` (información de negocio) a un interceptor genérico de infraestructura.
+3. Ni siquiera esa protección por IP está activa: `grep -n "rate-limit" backend/src/main/resources/application.yml`
+   no encuentra ninguna regla configurada — la lista es la vacía por defecto que documenta `ADR-018`.
+
+**Esperado:** RF006 (prioridad "Debe", no "Debería", en `product-requirements.md`) exige limitar
+reportes por dispositivo. Hoy ningún componente del repositorio lo hace: ni el caso de uso, ni el
+contador de consenso (que declara explícitamente que no es su trabajo), ni el interceptor HTTP (que
+usa IP, no huella, y además no tiene ninguna regla activa).
+
+**Causa raíz:** al escribir `RegistrarReporteService` se asumió que `ADR-018` cubría RF006 sin releer
+su texto completo — `ADR-018` resuelve un problema distinto (fuerza bruta contra login, `ADR-016`) y
+descarta explícitamente la huella de dispositivo como clave, por una razón de diseño válida que sigue
+vigente pero que deja RF006 sin dueño.
+
+**Corrección:** pendiente. La vía más directa, dado que `ReporteCiudadanoRepository.listarRecientesPorSector`
+ya existe para esto: que `RegistrarReporteService` cuente los reportes recientes del mismo sector
+filtrados por `HuellaDispositivo` antes de guardar, y rechace si supera un límite configurable — sin
+tocar `ContadorReportesPort` ni `RateLimitingInterceptor`, que ya están bien donde están para lo que
+sí hacen. Alternativa si el equipo decide posponer RF006: dejarlo dicho en un ADR en vez de en un
+comentario de clase que no se va a releer.
+
+---
+
 ## Regla especial: bugs que publican información falsa
 
 Un defecto que haga que la plataforma muestre un corte que no existe, o un Índice de Cumplimiento
@@ -953,5 +996,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-032
+Siguiente número disponible: BUG-033
 -->

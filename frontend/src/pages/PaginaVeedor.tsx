@@ -9,20 +9,6 @@ import type { FC } from 'react'
 import { PageWrapper } from '../components/PageWrapper'
 import { isSimulationMode } from '../config'
 
-const SECTORES_MOCK = [
-  { id: '1', nombre: 'BOCAGRANDE' },
-  { id: '2', nombre: 'CASTILLOGRANDE' },
-  { id: '3', nombre: 'EL LAGUITO' },
-  { id: '4', nombre: 'MANGA' },
-  { id: '5', nombre: 'PIE DE LA POPA' },
-  { id: '6', nombre: 'OLAYA ST. RICAURTE' },
-  { id: '7', nombre: 'OLAYA ST. CENTRAL' },
-  { id: '8', nombre: 'GETSEMANI' },
-  { id: '9', nombre: 'EL CENTRO' },
-  { id: '10', nombre: 'LA BOQUILLA' },
-  { id: '11', nombre: 'EL SOCORRO' },
-]
-
 /* ── Estilos glassmorphism reutilizables ── */
 const estiloGlass: React.CSSProperties = {
   background: 'linear-gradient(135deg, rgba(var(--glass-r, 255), var(--glass-g, 255), var(--glass-b, 255), 0.6) 0%, rgba(var(--glass-r, 255), var(--glass-g, 255), var(--glass-b, 255), 0.3) 100%)',
@@ -42,11 +28,7 @@ const PaginaVeedor: FC = () => {
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [registroExitoso, setRegistroExitoso] = useState(false)
 
-  const [reportes, setReportes] = useState([
-    { id: 1, barrio: 'MANGA', problema: 'SIN AGUA', tiempo: 'hace 5 min', color: 'var(--color-estado-sin)' },
-    { id: 2, barrio: 'EL CENTRO', problema: 'BAJA PRESIÓN', tiempo: 'hace 12 min', color: 'var(--color-estado-baja)' },
-    { id: 3, barrio: 'GETSEMANÍ', problema: 'SIN AGUA', tiempo: 'hace 22 min', color: 'var(--color-estado-sin)' },
-  ])
+  const [reportes, setReportes] = useState<Array<{ id: number; barrio: string; problema: string; tiempo: string; color: string }>>([])
 
   // Cargar datos al montar el componente si está autenticado
   const [sectoresBackend, setSectoresBackend] = useState<{id: string, nombre: string}[]>([])
@@ -69,7 +51,7 @@ const PaginaVeedor: FC = () => {
         })
         .catch(err => {
           console.warn("API de sectores no disponible", err);
-          setSectoresBackend(SECTORES_MOCK);
+          setSectoresBackend([]);
         });
     }
   }, [autenticado]);
