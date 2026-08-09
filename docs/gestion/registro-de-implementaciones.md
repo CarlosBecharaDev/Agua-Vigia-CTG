@@ -171,6 +171,21 @@ propio PR para que el equipo la complete después.
 
 ---
 
+## Sprint 2 — Reporte ciudadano y consenso
+
+| RF/RNF | Tipo | Qué | Resp. | PR | Prueba |
+|---|---|---|---|---|---|
+| RF005–RF008 | func | M2: `POST /api/reportes`, expone `RegistrarReporteService` (Sprint 1) — la API quedaba cerrada a propósito hasta este sprint. Sin registro ni cuenta, coordenada opcional, `429` real cuando el dispositivo supera el límite. Escrito y fusionado por D5 (Yordy) directo — capa de D3 (Sebastián), decisión explícita para no atrasar más el Sprint 2 | D5 (Yordy), en capa de D3 | [#104](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/104) | `./mvnw clean verify` → **116 pruebas, 0 fallos**, ArchUnit incluido · probado extremo a extremo contra Mongo real: 3 reportes del mismo dispositivo pasan, el cuarto → 429 |
+| RF009–RF011 | func | M3: `EvaluarConsensoService`, patrón Strategy (`UmbralFijoEstrategiaConsenso`, `UmbralProporcionalEstrategiaConsenso`, elegible por configuración). `RegistrarReporteService` la dispara automáticamente tras cada reporte. Anexa el cambio real de estado a `eventos_bitacora` (`TipoEvento.CORTE_CONFIRMADO_POR_CIUDADANOS`), sin duplicar si el estado no cambió. Incluye el adaptador Mongo mínimo de `EventoBitacoraRepository`, que no existía. Escrito y fusionado por D5 (Yordy) directo — capa de D2 (Carlos), decisión explícita | D5 (Yordy), en capa de D2 | [#106](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/106) | `./mvnw clean verify` → **134 pruebas, 0 fallos**, ArchUnit incluido · probado extremo a extremo: sector de 500 habitantes, 3 reportes independientes → `SIN_SERVICIO` solo, evento real anexado |
+| RF013 (completo) · RF015 | func | M4: `GET /api/suscripciones/confirmar` y `GET /api/suscripciones/cancelar`. `Suscripcion.confirmar()`/`cancelar()` como nuevas transiciones de estado; `SuscripcionRepository.buscarPorToken`. Confirmar dos veces no falla (idempotente); token inválido → 400 real. Escrito y fusionado por D5 (Yordy) directo — capa de D1 (Rafael), decisión explícita | D5 (Yordy), en capa de D1 | [#107](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/107) | `./mvnw clean verify` → **150 pruebas, 0 fallos**, ArchUnit incluido · probado extremo a extremo: suscribirse → confirmar → confirmar de nuevo (200) → cancelar → token inválido (400) |
+
+**Pendiente de este sprint:** D4 (José) conectar `FormularioReporte` al `POST /api/reportes` real —
+sigue usando el fallback que produce `BUG-017`, y el contrato exige un campo `huella` (huella anónima
+de dispositivo, `ADR-007`) que el frontend todavía no genera. Documentado en el PR #104 para quien lo
+tome.
+
+---
+
 ## Trabajo de UI adelantado por D4 (Sprints 2–5, sin API real)
 
 D4 maquetó varias pantallas de sprints futuros mientras **C2** seguía cerrada, con el mismo patrón que
