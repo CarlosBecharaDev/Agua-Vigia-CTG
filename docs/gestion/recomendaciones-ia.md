@@ -15,7 +15,7 @@
 
 | ID | Fecha | Título | Estado |
 |---|---|---|---|
-| REC-001 | 2026-08-08 | Formalizar quién es Rafael Sarmiento (`sarmientordev`) | Pendiente |
+| REC-001 | 2026-08-08 | Formalizar quién es Rafael Sarmiento (`sarmientordev`) | Resuelta |
 | REC-002 | 2026-08-08 | BUG-005 (PRs sin revisor) sigue abierto y el patrón no mejora | Pendiente |
 | REC-003 | 2026-08-08 | C2 (contrato OpenAPI) es el cuello de botella real ahora mismo | Resuelta |
 | REC-004 | 2026-08-08 | La cobertura de pruebas del frontend está muy por debajo de la del backend | Pendiente |
@@ -31,12 +31,18 @@ ADR/issue/tarea) · `Descartada` (el equipo no está de acuerdo — deja el moti
 
 ### REC-001 — Formalizar quién es Rafael Sarmiento (`sarmientordev`)
 
-- **Fecha:** 2026-08-08 · **Estado:** Pendiente
+- **Fecha:** 2026-08-08 · **Estado:** Resuelta
 
 Tiene acceso de escritura al repositorio pero no aparece en `docs/equipo/roles-y-tareas.md` ni tiene
 un solo PR o commit todavía. Si es el 5.º integrante que se estaba esperando, formalícenlo (rol, ADR
 de reasignación si corresponde) y agréguenlo al `ROSTER` de `scripts/generar-dashboard.mjs` — hoy ese
 script lo excluye de todas las estadísticas del equipo por no estar en esa lista.
+
+**Resuelta:** el 2026-08-08 se confirmó a Rafael como 5.º integrante y D1 quedó en su nombre
+(`docs/design-decisions.md` — ADR-021, reemplaza a `ADR-011`; `roles-y-tareas.md`). Se agregó
+`sarmientordev` al `ROSTER` de `scripts/lib/datos-proyecto.mjs`. Sigue pendiente que Rafael haga su
+primer PR para que entre en las estadísticas reales. Misma tarea cerrada por PR #81, el resto del
+traspaso (ADR, ficha D1, sprint-1.md, bloqueos) ya estaba fusionado en `develop` (commit `9cea8ee`).
 
 ### REC-002 — BUG-005 (PRs sin revisor) sigue abierto y el patrón no mejora
 

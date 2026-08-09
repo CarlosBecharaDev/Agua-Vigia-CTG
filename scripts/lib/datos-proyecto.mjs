@@ -22,12 +22,13 @@ export const DASHBOARD_URL = `https://${REPO.split("/")[0].toLowerCase()}.github
 // ─── Roster: mapeo login de GitHub -> nombre/roles reales ───
 // Fuente de verdad de nombres y roles: docs/equipo/roles-y-tareas.md.
 // El login de GitHub no aparece ahi, asi que se mantiene aqui aparte.
-// Actualizar si cambia el roster (ADR-011 se revierte, nuevo integrante, etc).
+// Actualizar si cambia el roster (ADR-021, nuevo integrante, etc).
 export const ROSTER = {
   "CarlosBecharaDev": { nombre: "Carlos Bechara Arias", roles: ["D2"], iniciales: "CB" },
-  "Jordy-Lv": { nombre: "Yordy Pardo Pajaro", roles: ["D5", "D1 interino"], iniciales: "YP" },
+  "Jordy-Lv": { nombre: "Yordy Pardo Pajaro", roles: ["D5"], iniciales: "YP" },
   "SebastianMontes-Dev": { nombre: "Sebastián Montes Olivera", roles: ["D3"], iniciales: "SM" },
-  "josezambranol": { nombre: "José Daniel Zambrano", roles: ["D4"], iniciales: "JZ" }
+  "josezambranol": { nombre: "José Daniel Zambrano", roles: ["D4"], iniciales: "JZ" },
+  "sarmientordev": { nombre: "Rafael Sarmiento Peña", roles: ["D1"], iniciales: "RS" }
 };
 
 function leer(rel) {
