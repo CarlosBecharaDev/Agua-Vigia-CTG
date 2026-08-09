@@ -1,30 +1,66 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { AguaVigiaAPI } from '../api/services'
 import { FormularioReporte } from './FormularioReporte'
 
+const crearReporte = vi.fn()
+const obtenerHuellaDispositivo = vi.fn()
+
+vi.mock('../api/services', () => ({ crearReporte: (...args: unknown[]) => crearReporte(...args) }))
+vi.mock('../utils/huellaDispositivo', () => ({
+  obtenerHuellaDispositivo: () => obtenerHuellaDispositivo(),
+}))
+
+function renderizar(onReporteEnviado = vi.fn()) {
+  const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
+  render(
+    <QueryClientProvider client={client}>
+      <FormularioReporte
+        sectores={[
+          { id: 'manga', nombre: 'MANGA', estado: null, actualizadoEn: null },
+          { id: 'bocagrande', nombre: 'BOCAGRANDE', estado: null, actualizadoEn: null },
+        ]}
+        onReporteEnviado={onReporteEnviado}
+      />
+    </QueryClientProvider>,
+  )
+  return onReporteEnviado
+}
+
+afterEach(() => {
+  crearReporte.mockReset()
+  obtenerHuellaDispositivo.mockReset()
+})
+
 describe('FormularioReporte', () => {
-  afterEach(() => {
-    vi.restoreAllMocks()
-    sessionStorage.clear()
+  it('envía el reporte real con una huella anónima', async () => {
+    crearReporte.mockResolvedValue({ id: 'reporte-1' })
+    obtenerHuellaDispositivo.mockResolvedValue('huella-sha256')
+    const onReporteEnviado = renderizar()
+
+    fireEvent.change(screen.getByLabelText(/selecciona tu barrio/i), { target: { value: 'manga' } })
+    fireEvent.click(screen.getByRole('button', { name: /no tengo agua/i }))
+
+    await waitFor(() => expect(crearReporte.mock.calls[0]?.[0]).toEqual({
+      sectorId: 'manga',
+      tipo: 'SIN_AGUA',
+      huella: 'huella-sha256',
+    }))
+    await waitFor(() => expect(onReporteEnviado).toHaveBeenCalledOnce())
   })
 
-  it('muestra error y no confirma un reporte cuando el envío falla', async () => {
-    vi.spyOn(AguaVigiaAPI, 'enviarReporte').mockRejectedValue(new Error('backend no disponible'))
-    const onReporteEnviado = vi.fn()
+  it('no muestra éxito cuando el backend rechaza el reporte', async () => {
+    crearReporte.mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 429, data: { detail: 'Alcanzaste el límite de reportes para este barrio.' } },
+    })
+    obtenerHuellaDispositivo.mockResolvedValue('huella-sha256')
+    const onReporteEnviado = renderizar()
 
-    render(
-      <FormularioReporte
-        sectores={[{ id: '1', nombre: 'BOCAGRANDE' }]}
-        sectorPreseleccionado="1"
-        onReporteEnviado={onReporteEnviado}
-      />,
-    )
+    fireEvent.change(screen.getByLabelText(/selecciona tu barrio/i), { target: { value: 'bocagrande' } })
+    fireEvent.click(screen.getByRole('button', { name: /presión muy baja/i }))
 
-    fireEvent.click(screen.getByRole('radio', { name: /no tengo agua/i }))
-    fireEvent.submit(screen.getByRole('button', { name: /enviar reporte/i }).closest('form')!)
-
-    expect(await screen.findByRole('alert')).toHaveTextContent(/no se pudo enviar el reporte/i)
+    expect(await screen.findByRole('alert')).toHaveTextContent(/alcanzaste el límite/i)
     expect(onReporteEnviado).not.toHaveBeenCalled()
   })
 })

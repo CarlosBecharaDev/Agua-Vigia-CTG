@@ -2,14 +2,16 @@ import { useState, useEffect } from 'react'
 import type { FC } from 'react'
 import { FormularioReporte } from './FormularioReporte'
 import { X, CheckCircle } from 'lucide-react'
+import type { Sector } from '../types/tipos-dominio'
 
 interface Props {
   abierto: boolean
   alCerrar: () => void
+  sectores: Sector[]
   sectorPreseleccionado?: string
 }
 
-export const ModalReporte: FC<Props> = ({ abierto, alCerrar, sectorPreseleccionado }) => {
+export const ModalReporte: FC<Props> = ({ abierto, alCerrar, sectores, sectorPreseleccionado }) => {
   const [reporteExitoso, setReporteExitoso] = useState(false)
 
   useEffect(() => {
@@ -118,7 +120,8 @@ export const ModalReporte: FC<Props> = ({ abierto, alCerrar, sectorPreselecciona
               Por favor, indícanos cómo está el servicio en tu barrio ahora mismo. Tu reporte ayuda a validar el consenso comunitario.
             </p>
 
-            <FormularioReporte 
+            <FormularioReporte
+              sectores={sectores}
               sectorPreseleccionado={sectorPreseleccionado}
               onReporteEnviado={() => setReporteExitoso(true)}
             />

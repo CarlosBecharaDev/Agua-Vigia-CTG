@@ -136,9 +136,10 @@ const PaginaMapa: FC = () => {
         </div>
       </div>
 
-      <ModalReporte 
-        abierto={modalAbierto} 
-        alCerrar={() => setModalAbierto(false)} 
+      <ModalReporte
+        abierto={modalAbierto}
+        alCerrar={() => setModalAbierto(false)}
+        sectores={sectores}
         sectorPreseleccionado={sectorReporte}
       />
     </main>
