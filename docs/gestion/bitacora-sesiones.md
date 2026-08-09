@@ -31,22 +31,29 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 `ADR-022`: agrega por suma de duraciones, no promedio de porcentajes. `IndiceCumplimientoController`
 público en `/api/cumplimiento` (porCorte, porSector, global). Agregado
 `CorteAguaRepository.listarTodos()`. 178/178 pruebas en verde. Trabajo adelantado de Sprint 4.
-**Sigue:** PR pendiente de revisor. `ManejadorGlobalDeErrores` quedó duplicado con el PR #116 (mismo
-manejador de `IllegalStateException`) — conflicto trivial al fusionar ambos.
+**Sigue:** PR #118 en conflicto tras fusionarse el #116 — resuelto (duplicaba el manejador de
+`IllegalStateException`, se conservó uno solo).
+
+### 2026-08-09 · D3 (Sebastián) · `feature/d3-crud-cortes-veedor`
+**Qué:** `GestionarCorteOficialService` (RF016-RF017, capa de D2) y `CorteController` en
+`/api/veedor/cortes` (registrar, cerrar, consultar, listar por sector), protegido por el JWT ya
+existente sin tocar `SecurityConfig`. Cerrar un corte ya cerrado responde 409 (nuevo
+`IllegalStateException` en `ManejadorGlobalDeErrores`). 175/175 pruebas en verde. Fusionado a
+`develop` en el PR #116.
+**Sigue:** RF018 (moderación de reportes) queda fuera — sin puerto de dominio todavía.
 
 ### 2026-08-09 · D3 (Sebastián) · `feature/d3-corteagua-mongo-adapter`
 **Qué:** Construido `CorteAguaMongoAdapter` (RF016-RF017) — el dominio de `CorteAgua` existía sin
 adaptador que lo persistiera. Índice de `sectoresAfectados` agregado a `IndicesMongo`. 154/154
 pruebas en verde. Trabajo adelantado de Sprint 3, con permiso de Jordy (D5) para todo el backend.
-**Sigue:** PR #113 pendiente de revisor; desatasca `GestionarCorteOficialService` (D2) y el CRUD de
-cortes del veedor (D3, Sprint 3).
+**Sigue:** Fusionado a `develop` en el PR #113.
 
 ### 2026-08-09 · D3 (Sebastián) · `feature/d3-cache-sectores-y-rate-limit`
 **Qué:** Activados los dos pendientes de D3 (`sprint-2.md` §2): `@Cacheable` en `GET /api/sectores`
 con invalidación al confirmar consenso, y reglas de rate limiting para `/api/veedor/sesion` y
 `/api/reportes`. 155/155 pruebas en verde. `REC-006` registrada (trampa de `RateLimitConfig` en
-`@WebMvcTest`). Fusionado a `develop` en el PR #112.
-**Sigue:** Registrar la implementación en `registro-de-implementaciones.md`.
+`@WebMvcTest`). Fusionado a `develop` en el PR #112, implementación registrada.
+**Sigue:** —
 
 ## Sprint 1
 
