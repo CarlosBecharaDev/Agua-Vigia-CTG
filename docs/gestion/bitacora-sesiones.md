@@ -40,6 +40,18 @@ las plantillas de correo de M4, que sigue sin fusionar en `feature/d5-dockerfile
 
 ## Sprint 0
 
+### 2026-08-09 · D3 · `docs/revision-prs-62-69-sin-revisor`
+**Qué:** Revisión de código de los PRs #62–#69 (todos fusionados sin revisor, `BUG-005`), a pedido
+de Sebastián mientras `application/` seguía bloqueada por `BL-004`. 13 hallazgos registrados
+(`BUG-017`–`BUG-029`), el más grave `BUG-017` (S1: `FormularioReporte.tsx` muestra éxito aunque el
+envío falle) y `BUG-018` (`BUG-008` no quedó corregido del todo — el `style` inicial de
+`MapaCartagena.tsx` todavía usa `?? 'CON_SERVICIO'`, aunque el registro lo marca `Cerrado`). Ninguno
+corregido — son archivos de D4 y del bot de WhatsApp, fuera de la capa de D3. También: creado el
+issue #70 pidiendo a Yordy cerrar formalmente el Review del Sprint 0 y abrir el Planning del Sprint 1
+(es lo que de verdad tiene detenida `application/`, no algo técnico).
+**Sigue:** Que D4 revise y corrija `BUG-017`/`BUG-018` (los dos más graves) primero. Que alguien del
+bot de WhatsApp mire `BUG-021`/`BUG-022`. Que el equipo cierre el issue #70.
+
 ### 2026-08-08 · D4 · `vista-previa-total`
 **Qué:** Misión 1 (Dividir rama gigante y reporte offline interactivo con IA). Construcción masiva de todas las vistas (Estadísticas, Bitácora, Mapa, Veedor, Reportar) con componentes nativos interactivos, glassmorphism y tooltips SVG puros (offline). Arreglamos `BUG-016` (cortes en línea SVG por stroke-dasharray) y `BUG-006` (quitamos la clave mock 1234 en el panel del Veedor). 
 **Sigue:** PR hacia develop para integrar esta base colosal de UI y continuar conectando con la sala de control y backend.

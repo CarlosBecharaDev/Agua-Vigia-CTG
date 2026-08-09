@@ -41,6 +41,19 @@ Tres razones concretas, no burocráticas:
 | BUG-014 | 2026-08-08 | S3 | — (sala de control) | `dashboard-template.html` no tiene `<!DOCTYPE html>` ni `<meta charset="UTF-8">` — el navegador adivina la codificación y la adivina mal, mostrando "AguaVigÃ­a" en vez de "AguaVigía" en todo el panel | Cerrado | Equipo (sala de control) |
 | BUG-015 | 2026-08-08 | S2 | — (sala de control) | `generar-dashboard.mjs` inyectaba `JSON.stringify(datos)` sin escapar dentro de un `<script>`; un título de PR/issue/bug con `</script>` literal rompería la página o ejecutaría contenido inyectado | Cerrado | Equipo (sala de control) |
 | BUG-016 | 2026-08-08 | S4 | M7 | Las líneas rojas de la gráfica interactiva SVG en el HTML exportado se cortaban a la mitad cuando tenían demasiados picos debido a la restricción nativa de `stroke-dasharray`. | Cerrado | D4 |
+| BUG-017 | 2026-08-09 | S1 | M2 | `FormularioReporte.tsx` muestra "¡Reporte recibido!" aunque el envío a la API falle | Abierto | D4 |
+| BUG-018 | 2026-08-09 | S2 | M1 | `BUG-008` no quedó corregido del todo: el estilo inicial de la capa GeoJSON en `MapaCartagena.tsx` sigue pintando "con servicio" por defecto | Abierto | D4 |
+| BUG-019 | 2026-08-09 | S2 | M1 | Sectores sin dato (`estado: null`) se cuentan como "con problema" en el badge del mapa y en los reportes falsos de `ListaSectores` | Abierto | D4 |
+| BUG-020 | 2026-08-09 | S2 | M1/M9 | El cruce de nombres entre boletines de Acuacar y sectores reales no normaliza texto ni usa límites de palabra — pierde o duplica barrios con nombres compuestos | Abierto | D4 |
+| BUG-021 | 2026-08-09 | S2 | — (bot WhatsApp) | El bot de resumen diario interpola títulos de PRs/bugs sin escapar `*`/`_` — un título real del propio repo puede corromper el formato del mensaje | Abierto | Equipo (bot WhatsApp) |
+| BUG-022 | 2026-08-09 | S2 | — (bot WhatsApp) | El bot de WhatsApp llama `process.exit(1)` ante cualquier evento `close`, incluso con un envío todavía pendiente | Abierto | Equipo (bot WhatsApp) |
+| BUG-023 | 2026-08-09 | S2 | — (sala de control) | El cron de `dashboard.yml` nunca va a ejecutarse: GitHub solo lee triggers `schedule` desde la rama por defecto (`main`), que no tiene workflows | Abierto | Equipo (sala de control) |
+| BUG-024 | 2026-08-09 | S2 | M2 | La preselección de sector por URL (`/reportar?sector=X`) y el respaldo sin API de `PaginaReportar` se rompieron al quitar `SECTORES_MOCK` | Abierto | D4 |
+| BUG-025 | 2026-08-09 | S2 | M7 | El botón "Instalar App" lanza una excepción no capturada si el usuario descarta el diálogo nativo y vuelve a hacer clic | Abierto | D4 |
+| BUG-026 | 2026-08-09 | S2 | M1 | El mapa deja de reaccionar a datos nuevos al hacer clic en un sector después del primer render (dependencias del efecto recortadas en `MapaCartagena.tsx`) | Abierto | D4 |
+| BUG-027 | 2026-08-09 | S2 | M1/M8 | La clasificación del estado de un boletín de Acuacar difiere entre la Bitácora y el Mapa/Estadísticas para el mismo texto | Abierto | D4 |
+| BUG-028 | 2026-08-09 | S3 | M2 | La detección de barrio por GPS compara solo contra el primer vértice del polígono, no es un point-in-polygon real | Abierto | D4 |
+| BUG-029 | 2026-08-09 | S4 | — (sala de control / M7) | Detalles menores encontrados en la misma revisión: layout de `.narrativa` en 3-4 columnas en vez de 2, campo `urgente` muerto en bugs, y falta cleanup del listener `appinstalled` en `BotonInstalarPWA.tsx` | Abierto | Equipo |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -49,6 +62,333 @@ Tres razones concretas, no burocráticas:
 ---
 
 ## Bugs abiertos — detalle
+
+> **Nota de origen — BUG-017 a BUG-029:** encontrados el 2026-08-09 en una revisión de código de
+> los PRs #62–#69 (todos fusionados sin revisor, `BUG-005`), a pedido de Sebastián (D3) mientras
+> `application/` seguía bloqueada por `BL-004`. Son archivos de D4 y del equipo (sala de control,
+> bot de WhatsApp) — se registran sin corregirse, por frontera de propiedad
+> (`secuencia-de-trabajo.md` §5).
+
+### BUG-017 — El formulario de reporte muestra éxito aunque el envío falle
+
+- **Fecha:** 2026-08-09 · **Severidad:** S1 · **Módulo:** M2 · **Responsable:** D4
+- **Estado:** Abierto
+
+**Síntoma:** `frontend/src/components/FormularioReporte.tsx:137` — cuando `AguaVigiaAPI.enviarReporte`
+lanza (red caída, 500, validación fallida), el bloque `catch` hace `console.warn` y luego
+`setTimeout(() => onReporteEnviado(), 800)` — **el mismo callback de éxito** que se usa cuando el
+envío sí funciona.
+
+**Reproducción:** con el backend caído o cualquier error de red, llenar y enviar el formulario de
+reporte (`SIN_AGUA`/`PRESION_BAJA`). El request falla, pero la UI muestra "¡Reporte Recibido!
+Gracias por ayudar a tu comunidad" igual.
+
+**Esperado:** un envío fallido debe mostrar un estado de error, no la pantalla de éxito. RF005–RF007
+exigen que el vecino pueda reportar sin fricción; una plataforma que dice "recibido" y descarta el
+reporte en silencio es peor que una que avisa el fallo — rompe la confianza que el proyecto necesita
+para existir (`brief.md`, ADR-006 aplica el mismo principio a la capa de IA).
+
+**Causa raíz:** el `catch` se escribió reutilizando el flujo de éxito en vez de bifurcar a un estado
+de error propio.
+
+**Corrección:** pendiente — es capa de D4.
+
+---
+
+### BUG-018 — `BUG-008` no quedó corregido del todo
+
+- **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M1 · **Responsable:** D4
+- **Estado:** Abierto
+
+**Síntoma:** `BUG-008` (el mapa pinta "con servicio" los sectores sin dato) figura `Cerrado` en este
+mismo registro desde el PR #67. Pero `frontend/src/components/MapaCartagena.tsx:149` —el `style`
+inicial de la capa GeoJSON, no el efecto `setStyle` que sí se corrigió— todavía hace
+`sector?.estado ?? 'CON_SERVICIO'`.
+
+**Reproducción:** si la capa GeoJSON se (re)crea antes de que `setStyle` corra —por ejemplo si el
+fetch local del GeoJSON resuelve después de que `sectores` ya se actualizó, o si `capaRef.current`
+se remonta—, todo barrio sin dato se pinta verde brillante como si tuviera servicio verificado.
+
+**Esperado:** ningún camino de renderizado debe usar `CON_SERVICIO` como valor por defecto para un
+`estado` nulo (`ADR-014` del backend fija esta misma regla del lado del contrato).
+
+**Causa raíz:** el PR #67 corrigió el efecto que recolorea la capa después de cargar, pero no el
+callback `style` que la capa usa en su creación — dos caminos que pintan el mismo dato, uno corregido
+y el otro no.
+
+**Corrección:** pendiente — es capa de D4. Sugerido: registrar aquí que `BUG-008` se reabre o se
+referencia desde este, según decida el equipo.
+
+---
+
+### BUG-019 — Sectores sin dato se cuentan como "con problema"
+
+- **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M1 · **Responsable:** D4
+- **Estado:** Abierto
+
+**Síntoma:** `PaginaMapa.tsx:135` cuenta "🔥 N barrios reportan problemas" con
+`s.estado !== 'CON_SERVICIO'`, lo que también cuenta `estado === null` como problema. Por separado,
+`ListaSectores.tsx:68` (`obtenerReportesMock`) no tiene rama para `estado === null` y le asigna la
+misma fórmula de reportes falsos que a un sector sin servicio.
+
+**Reproducción:** con el backend real, la mayoría de los 211 sectores tienen `estado: null` hasta que
+el consenso (M3) empiece a escribir estados. El badge de "problemas" sale inflado por sectores sin
+ningún dato, y `ListaSectores` les inventa una cifra de "N reportes ciudadanos".
+
+**Esperado:** un sector sin dato se presenta como "sin datos", no como un problema activo — es la
+misma regla que `ADR-014` fija en el backend, ahora violada en dos lugares del frontend.
+
+**Causa raíz:** el frontend se construyó contra mocks donde todo sector tenía estado; al conectar la
+API real, ningún camino nuevo distingue "sin dato" de "con problema".
+
+**Corrección:** pendiente — es capa de D4.
+
+---
+
+### BUG-020 — El cruce de nombres Acuacar↔sector no normaliza texto
+
+- **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M1/M9 · **Responsable:** D4
+- **Estado:** Abierto
+
+**Síntoma:** `useDatosEnVivo.ts:105` (`combinarSectoresConAcuacar`) une el nombre de barrio derivado
+de Acuacar con el sector real vía `Map.get(sector.nombre)` exacto, sin la normalización que
+`MapaCartagena.tsx` sí usa para el cruce GeoJSON↔Sector. Por separado, `acuacar.ts:105`
+(`extraerBarriosDeTexto`) hace coincidencia por subcadena simple, y su lista `BARRIOS_CONOCIDOS`
+contiene tanto `'NUEVO CHILE'` como `'CHILE'`.
+
+**Reproducción:** el GeoJSON real tiene `'PABLO VI - I'` y `'PABLO VI - II'`, pero
+`BARRIOS_CONOCIDOS` solo tiene `'PABLO VI'` — un boletín sobre ese barrio nunca cruza con ningún
+sector real y el corte reportado se pierde en silencio. Un boletín sobre "Nuevo Chile" marca dos
+barrios (`NUEVO CHILE` y `CHILE`) por la coincidencia de subcadena, duplicando el conteo en las
+estadísticas.
+
+**Esperado:** el mismo criterio de normalización (sin acentos, mayúsculas, límites de palabra) en
+todos los cruces de nombre de barrio del proyecto.
+
+**Causa raíz:** dos implementaciones distintas del mismo tipo de cruce, escritas por separado sin
+compartir la utilidad de normalización que ya existe en `MapaCartagena.tsx`.
+
+**Corrección:** pendiente — es capa de D4.
+
+---
+
+### BUG-021 — El bot de WhatsApp no escapa símbolos de formato en texto interpolado
+
+- **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** — (bot WhatsApp) · **Responsable:** Equipo (bot WhatsApp)
+- **Estado:** Abierto
+
+**Síntoma:** `bot-whatsapp/mensaje.mjs:26` interpola títulos reales de PRs/bugs en texto con formato
+WhatsApp (`*negrita*`, `_cursiva_`) sin escapar. Es el mismo tipo de defecto que `BUG-015` (JSON sin
+escapar en un `<script>`), aplicado a otro formato de salida.
+
+**Reproducción:** el propio historial del repo ya tiene títulos con un solo `*` o `_` suelto (p. ej.
+`"fix: forzar diffs de texto en *.mjs"`). Si un PR así está abierto cuando corre el resumen diario,
+el símbolo sin pareja deja todo el resto del mensaje —líneas no relacionadas incluidas— en negrita o
+cursiva.
+
+**Esperado:** el texto de terceros (títulos de PR/issue/bug) nunca debe poder alterar el formato del
+mensaje completo.
+
+**Causa raíz:** el formateador de WhatsApp se agregó sin la misma disciplina de escape que
+`generar-dashboard.mjs` ya aplica para HTML tras `BUG-015`.
+
+**Corrección:** pendiente — es del equipo (bot de WhatsApp, sin titular único claro).
+
+---
+
+### BUG-022 — El bot de WhatsApp mata el proceso con cualquier evento `close`
+
+- **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** — (bot WhatsApp) · **Responsable:** Equipo (bot WhatsApp)
+- **Estado:** Abierto
+
+**Síntoma:** `bot-whatsapp/enviar.mjs:50` — el listener de `connection.update` trata todo evento
+`close` como fatal y llama `process.exit(1)` sin condición, sin verificar si el envío del mensaje
+(`await sock.sendMessage(...)`, línea ~35-48) sigue pendiente.
+
+**Reproducción:** si Baileys emite un `close` (corte de red transitorio, reinicio benigno) mientras
+el envío async sigue en curso, el proceso muere antes de confirmar si el mensaje salió — el resumen
+diario puede perderse en silencio o reportarse mal.
+
+**Esperado:** distinguir un cierre fatal de uno recuperable, y no matar el proceso con un envío
+pendiente.
+
+**Causa raíz:** manejo de eventos de conexión simplificado al mínimo, sin considerar la carrera entre
+el `close` y el `await` del envío.
+
+**Corrección:** pendiente — es del equipo (bot de WhatsApp).
+
+---
+
+### BUG-023 — El cron de la sala de control nunca va a ejecutarse
+
+- **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** — (sala de control) · **Responsable:** Equipo (sala de control)
+- **Estado:** Abierto
+
+**Síntoma:** el PR #62 agregó un trigger `schedule` a `.github/workflows/dashboard.yml` en `develop`
+para refrescar la sala de control cada hora. GitHub solo evalúa triggers `schedule` usando el
+contenido del workflow **en la rama por defecto del repositorio** — y `main` no tiene ningún archivo
+de workflow (`git ls-tree origin/main -- .github/workflows` → vacío).
+
+**Reproducción:** verificado contra el repositorio real, no es especulación:
+```
+gh repo view --json defaultBranchRef   → main
+git ls-tree origin/main -- .github/workflows   → (vacío)
+```
+Mientras `develop` no se fusione a `main` (algo que solo pasa al cerrar un sprint, según
+`CLAUDE.md`), el cron simplemente no corre.
+
+**Esperado:** que la sala de control se refresque cada hora, tal como el PR #62 dice lograr.
+
+**Causa raíz:** comportamiento de GitHub Actions poco conocido — los triggers `schedule` no siguen la
+misma regla que `push`/`workflow_dispatch` (que sí usan la rama que los disparó).
+
+**Corrección:** pendiente — es del equipo (sala de control). Posible arreglo: mover el `dashboard.yml`
+con su trigger `schedule` a `main`, o disparar el refresco por otro medio mientras tanto.
+
+---
+
+### BUG-024 — Preselección de sector y respaldo sin API rotos en `PaginaReportar`
+
+- **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M2 · **Responsable:** D4
+- **Estado:** Abierto
+
+**Síntoma:** dos regresiones del PR #68 al quitar `SECTORES_MOCK`:
+1. `FormularioReporte.tsx:16` — `sectorId` se inicializa desde `sectorPreseleccionado` solo dentro de
+   un `useState` perezoso; si el prop llega después del primer render (ruta directa
+   `/reportar?sector=X`, antes de que el `useEffect` de `PaginaReportar` lea la URL), el valor nunca
+   se sincroniza y la preselección falla en silencio.
+2. `PaginaReportar.tsx:23` — a diferencia de `PaginaVeedor.tsx` y `useDatosEnVivo.ts`, la llamada a
+   `obtenerSectores()` no tiene respaldo: si falla, `sectores` queda `[]` para siempre y el formulario
+   pierde los nombres de barrio que antes sí tenía offline vía el mock.
+
+**Esperado:** la preselección por URL debe funcionar sin importar el orden de montaje, y un fallo de
+red no debe dejar el formulario sin ningún nombre de sector.
+
+**Causa raíz:** tres implementaciones independientes y divergentes de "traer sectores + respaldo"
+quedaron en el mismo PR (`PaginaReportar` sin respaldo, `PaginaVeedor` con mock local,
+`useDatosEnVivo` con su propio mock) — nadie las unificó en un solo hook compartido.
+
+**Corrección:** pendiente — es capa de D4.
+
+---
+
+### BUG-025 — El botón "Instalar App" revienta si se reintenta tras descartar el diálogo
+
+- **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M7 · **Responsable:** D4
+- **Estado:** Abierto
+
+**Síntoma:** `BotonInstalarPWA.tsx:42` solo limpia el evento `BeforeInstallPromptEvent` capturado
+cuando el resultado es `'accepted'`. Si el usuario descarta el diálogo (`'dismissed'`), el evento ya
+consumido queda igual y el botón sigue visible.
+
+**Reproducción:** clic en "Instalar App" → descartar el diálogo nativo → clic otra vez. El segundo
+`eventoInstalacion.prompt()` se llama sobre un evento cuyo `.prompt()` ya se invocó una vez, lo que
+el spec del navegador lanza como excepción (`InvalidStateError`); sin `try/catch`, queda sin capturar
+y rompe el botón en silencio por el resto de la sesión.
+
+**Esperado:** descartar el diálogo debe permitir reintentar, o el botón debe ocultarse/deshabilitarse
+tras el primer intento.
+
+**Causa raíz:** el manejo del resultado del prompt solo contempló el camino de éxito.
+
+**Corrección:** pendiente — es capa de D4.
+
+---
+
+### BUG-026 — El mapa deja de reaccionar al hacer clic en un sector tras el primer render
+
+- **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M1 · **Responsable:** D4
+- **Estado:** Abierto
+
+**Síntoma:** el `useEffect` que construye la capa GeoJSON en `MapaCartagena.tsx:194` recortó sus
+dependencias de `[sectores, onSectorSeleccionado]` a solo `[onSectorSeleccionado]` (un `useCallback`
+estable) — ahora corre una sola vez al montar. El *closure* del `onEachFeature` del clic captura el
+objeto `Sector` de ese momento y nunca vuelve a leer datos frescos.
+
+**Reproducción:** `useDatosEnVivo` carga primero `SECTORES_MOCK` y luego lo reemplaza con los
+sectores reales. El color de los polígonos sí se actualiza (otro efecto sí re-lee datos frescos),
+pero al hacer clic en cualquier polígono se sigue entregando el objeto mock original — el panel de
+detalle y el botón "Reportar problema" operan sobre datos permanentemente viejos.
+
+**Esperado:** el clic en un sector debe reflejar siempre el dato más reciente disponible.
+
+**Causa raíz:** el recorte de dependencias probablemente buscaba evitar reconstruir la capa en cada
+actualización de datos, pero rompió la lectura fresca dentro del handler de clic.
+
+**Corrección:** pendiente — es capa de D4.
+
+---
+
+### BUG-027 — La Bitácora y el Mapa clasifican el mismo boletín de forma distinta
+
+- **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M1/M8 · **Responsable:** D4
+- **Estado:** Abierto
+
+**Síntoma:** `PaginaBitacora.tsx` (`estadoDeBoletin`) y `acuacar.ts` (`determinarEstadoBarrios`)
+clasifican el mismo texto de boletín en `SIN_SERVICIO`/`CORTE_PROGRAMADO`/`CON_SERVICIO`, pero
+difieren en el valor por defecto (`acuacar.ts` cae a `CORTE_PROGRAMADO`, `PaginaBitacora.tsx` cae a
+`CON_SERVICIO`) y solo `acuacar.ts` normaliza acentos antes de comparar.
+
+**Reproducción:** un boletín cuyo título no coincide con ninguna palabra clave reconocida se muestra
+como "Corte programado" (azul) en Mapa/Estadísticas y como "Con servicio" (verde) en la Bitácora —
+para el mismo evento.
+
+**Esperado:** un mismo boletín debe verse igual en cualquier pantalla — es la base de la confianza que
+el proyecto vende (`brief.md`).
+
+**Causa raíz:** dos implementaciones independientes de la misma clasificación, sin compartir lógica.
+
+**Corrección:** pendiente — es capa de D4.
+
+---
+
+### BUG-028 — Detección de barrio por GPS no es un point-in-polygon real
+
+- **Fecha:** 2026-08-09 · **Severidad:** S3 · **Módulo:** M2 · **Responsable:** D4
+- **Estado:** Abierto
+
+**Síntoma:** `FormularioReporte.tsx:45` compara la coordenada del usuario contra **el primer vértice**
+de cada polígono (`geometry.coordinates[0][0]`) por distancia euclidiana, no contra un
+point-in-polygon ni el centroide real.
+
+**Reproducción:** un vecino cerca de un límite entre barrios, o dentro de un polígono grande/irregular
+cuyo primer vértice queda lejos de su posición real, puede quedar asignado al barrio equivocado.
+
+**Esperado:** la detección automática de barrio debe usar la geometría completa del polígono, no un
+solo vértice arbitrario.
+
+**Causa raíz:** simplificación de la comparación geoespacial sin usar una librería de point-in-polygon.
+
+**Corrección:** pendiente — es capa de D4.
+
+---
+
+### BUG-029 — Detalles menores encontrados en la misma revisión
+
+- **Fecha:** 2026-08-09 · **Severidad:** S4 · **Módulo:** — (sala de control / M7) · **Responsable:** Equipo
+- **Estado:** Abierto
+
+Tres hallazgos de bajo impacto, agrupados para no saturar el registro con entradas de una línea:
+
+1. **`scripts/dashboard-template.html:380`** — `.narrativa` usa `column-width: 34ch` sin
+   `column-count`, así que en el ancho máximo del sitio (1360px) el navegador arma 3-4 columnas en
+   vez de las 2 que el PR describe.
+2. **`scripts/dashboard-template.html:950`** — el campo `urgente` en bugs queda muerto: el ternario de
+   renderizado siempre resuelve a `critica` primero para cualquier bug grave, así que `urgente` nunca
+   se lee para esos casos.
+3. **`BotonInstalarPWA.tsx:24`** — el listener de `'appinstalled'` no se remueve en el cleanup del
+   efecto (a diferencia de `'beforeinstallprompt'`, unas líneas arriba) — fuga de listeners si el
+   componente se remonta.
+4. **`scripts/dashboard-template.html:988`** — el mensaje de "sin recomendaciones" queda como único
+   hijo de una grilla de 2 columnas sin `grid-column: 1/-1`, así que ocupa solo la mitad izquierda en
+   vez de todo el ancho cuando la lista está vacía.
+5. **`scripts/dashboard-template.html:348`** — `.rec-item` duplica casi al pie de la letra las reglas
+   de `.card` en vez de reusarla (que sí se reusa para las tarjetas de "Equipo") — un futuro ajuste al
+   token visual de `.card` no se reflejaría en las tarjetas de recomendaciones.
+
+**Corrección:** pendiente — es del equipo (sala de control) y de D4 (botón PWA).
+
+---
 
 ### BUG-015 — Inyección de JSON sin escapar dentro de un `<script>` en la sala de control
 
@@ -526,5 +866,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-009
+Siguiente número disponible: BUG-030
 -->
