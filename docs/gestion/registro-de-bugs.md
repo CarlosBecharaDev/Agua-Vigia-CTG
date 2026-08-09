@@ -793,6 +793,12 @@ Redis, D3) se fusionó también con `reviews: []` — el sexto y último de los 
 `WebMvcConfigurer`, así que no repitió el patrón de `BUG-011`/`BUG-012`. Seis PRs, nueve ocurrencias
 de `BUG-005` en una sola sesión de trabajo — la corrección pendiente sigue siendo la misma: un hábito
 de equipo, no algo que la revisión del agente pueda sustituir de forma permanente.
+**Verificado el 2026-08-09, décima ocurrencia:** el PR
+[#97](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/97) (Sala de control: qué falta, quién
+está atrasado y por qué) se fusionó también con `reviews: []`. Fusión con autonomía de IA acordada
+explícitamente con el usuario para actuar como revisor/release manager: la decisión de no esperar un
+segundo humano fue deliberada, no un descuido — pero la revisión humana de respaldo que exige esta
+misma sección sigue pendiente y queda anotada en el propio PR.
 **Reproducción:** cualquier PR abierto en este repositorio puede fusionarse sin que nadie deje un
 comentario o *review* — no hay protección de rama configurada (`ADR-010`, decisión deliberada: es
 política, no candado técnico).
