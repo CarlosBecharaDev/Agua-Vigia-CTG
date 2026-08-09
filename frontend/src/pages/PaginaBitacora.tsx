@@ -23,9 +23,9 @@ const formatearFecha = (isoString: string) => {
   }).format(d)
 }
 
-/** Determina el estado de un boletín analizando su título */
-function estadoDeBoletin(titulo: string): EstadoServicio {
-  return determinarEstadoBoletin(titulo)
+/** Determina el estado de un boletín analizando su título y contenido */
+function estadoDeBoletin(titulo: string, contenido: string): EstadoServicio {
+  return determinarEstadoBoletin(titulo, contenido)
 }
 
 /* ── Estilos glassmorphism reutilizables ── */
@@ -150,7 +150,7 @@ const PaginaBitacora: FC = () => {
           {usandoDatosReales ? (
             // ── BOLETINES REALES DE ACUACAR ──
             boletines.map((boletin, index) => {
-              const estado = estadoDeBoletin(boletin.titulo);
+              const estado = estadoDeBoletin(boletin.titulo, boletin.contenidoTexto);
               const tieneBarrios = boletin.barriosAfectados.length > 0;
               
               const iconoColor = estado === 'SIN_SERVICIO' ? '#ff453a' 

@@ -34,6 +34,7 @@ export const AguaVigiaAPI = {
   // --- CIUDADANOS ---
   enviarReporte: async (datos: { sectorId: string, tipo: string, comentario?: string, ubicacionGPS?: boolean }) => {
     const response = await apiClient.post('/reportes', datos);
+    if (response.data && response.data.error) throw new Error(response.data.error);
     return response.data;
   },
 

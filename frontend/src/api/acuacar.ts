@@ -58,13 +58,13 @@ function normalizar(texto: string): string {
   return normalizarNombreBarrio(texto)
 }
 
-export function determinarEstadoBoletin(titulo: string): EstadoBarrioAcuacar['estado'] {
-  const tituloNorm = normalizar(titulo)
+export function determinarEstadoBoletin(titulo: string, contenido: string = ''): EstadoBarrioAcuacar['estado'] {
+  const textoNorm = normalizar(titulo + ' ' + contenido)
 
-  if (tituloNorm.includes('interrupcion') || tituloNorm.includes('falla') || tituloNorm.includes('avance del') || tituloNorm.includes('suspension')) {
+  if (textoNorm.includes('interrupcion') || textoNorm.includes('falla') || textoNorm.includes('avance del') || textoNorm.includes('suspension')) {
     return 'SIN_SERVICIO'
   }
-  if (tituloNorm.includes('restablec') || tituloNorm.includes('normaliz') || tituloNorm.includes('recuperacion')) {
+  if (textoNorm.includes('restablec') || textoNorm.includes('normaliz') || textoNorm.includes('recuperacion')) {
     return 'CON_SERVICIO'
   }
   return 'CORTE_PROGRAMADO'
@@ -117,7 +117,7 @@ export function extraerBarriosDeTexto(texto: string): string[] {
   const textoNorm = normalizar(texto);
   const encontrados = BARRIOS_CONOCIDOS.flatMap((barrio) => {
     const barrioNorm = normalizar(barrio).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    const coincidencia = new RegExp(`(?<![a-z0-9])${barrioNorm}(?![a-z0-9])`).exec(textoNorm)
+    const coincidencia = new RegExp(`\\b${barrioNorm}\\b`).exec(textoNorm)
     return coincidencia
       ? [{ barrio, inicio: coincidencia.index, fin: coincidencia.index + coincidencia[0].length }]
       : []
@@ -156,7 +156,7 @@ export function determinarEstadoBarrios(boletines: BoletinAcuacar[]): EstadoBarr
     const horasTranscurridas = (ahora - fechaBoletin) / (1000 * 60 * 60);
     const esVigente = horasTranscurridas <= HORAS_VIGENCIA;
 
-    const estado = determinarEstadoBoletin(boletin.titulo)
+    const estado = determinarEstadoBoletin(boletin.titulo, boletin.contenidoTexto)
 
     for (const barrio of boletin.barriosAfectados) {
       // Solo agregar si no existe ya uno más reciente

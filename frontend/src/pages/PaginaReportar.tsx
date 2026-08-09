@@ -9,15 +9,15 @@ import { AguaVigiaAPI } from '../api/services'
 import { PageWrapper } from '../components/PageWrapper'
 
 const SECTORES_DEMO = [
-  { id: '1', nombre: 'BOCAGRANDE' },
-  { id: '2', nombre: 'CASTILLOGRANDE' },
-  { id: '3', nombre: 'EL LAGUITO' },
-  { id: '4', nombre: 'MANGA' },
-  { id: '5', nombre: 'PIE DE LA POPA' },
-  { id: '6', nombre: 'OLAYA HERRERA' },
-  { id: '7', nombre: 'GETSEMANI' },
-  { id: '8', nombre: 'EL CENTRO' },
-  { id: '9', nombre: 'LA BOQUILLA' },
+  { id: 'geo-bocagrande', nombre: 'BOCAGRANDE' },
+  { id: 'geo-castillogrande', nombre: 'CASTILLOGRANDE' },
+  { id: 'geo-el-laguito', nombre: 'EL LAGUITO' },
+  { id: 'geo-manga', nombre: 'MANGA' },
+  { id: 'geo-pie-de-la-popa', nombre: 'PIE DE LA POPA' },
+  { id: 'geo-olaya-herrera', nombre: 'OLAYA HERRERA' },
+  { id: 'geo-getsemani', nombre: 'GETSEMANI' },
+  { id: 'geo-el-centro', nombre: 'EL CENTRO' },
+  { id: 'geo-la-boquilla', nombre: 'LA BOQUILLA' },
 ]
 
 const PaginaReportar: FC = () => {

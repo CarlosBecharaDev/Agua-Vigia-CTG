@@ -27,7 +27,7 @@ const PaginaMapa: FC = () => {
   const [vistaMovil, setVistaMovil] = useState<'mapa' | 'lista'>('mapa')
 
   const resumen = useMemo(() => ({
-    afectados: sectores.filter((sector) => sector.estado && sector.estado !== 'CON_SERVICIO').length,
+    afectados: sectores.filter((sector) => sector.estado === 'SIN_SERVICIO' || sector.estado === 'PRESION_BAJA' || sector.estado === 'CORTE_PROGRAMADO').length,
     sinServicio: sectores.filter((sector) => sector.estado === 'SIN_SERVICIO').length,
     estables: sectores.filter((sector) => sector.estado === 'CON_SERVICIO').length,
   }), [sectores])
