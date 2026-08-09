@@ -45,7 +45,7 @@ export const FeedComentarios: FC = () => {
             Lo que reportan tus vecinos
           </h2>
           <p style={{ fontSize: '0.875rem', color: 'var(--color-tinta-2)' }}>
-            Testimonios recientes verificados por sector.
+            Comentarios recientes reportados por sector.
           </p>
         </div>
       </div>
