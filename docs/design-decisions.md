@@ -410,7 +410,7 @@ Activando las reglas de protección en GitHub. D5 ya tiene el rol `admin` necesa
 ## ADR-011 — D1 se reasigna temporalmente a Yordy Pardo Pajaro (D5), además de su rol
 
 - **Fecha:** 2026-08-08
-- **Estado:** Aceptada
+- **Estado:** Reemplazada por `ADR-021`
 - **Decide:** Yordy Pardo Pajaro (D5), como resolución de `BL-003`
 
 ### Contexto
@@ -942,8 +942,65 @@ cómo se renderiza el HTML.
 
 ---
 
+## ADR-021 — D1 se reasigna de forma definitiva a Rafael Sarmiento Peña, el 5.º integrante confirmado
+
+- **Fecha:** 2026-08-08
+- **Estado:** Aceptada — reemplaza a `ADR-011`
+- **Decide:** El equipo, comunicado por Yordy Pardo Pajaro (D5)
+
+### Contexto
+
+`ADR-011` dejó escrita su propia condición de salida: *"si aparece un 5.º integrante real, este ADR
+pasa a Reemplazada y D1 se reasigna a esa persona sin negociación — es la salida prevista, no una más
+entre varias."* El equipo confirmó a **Rafael Sarmiento Peña** como quinto integrante. Deja de haber
+ambigüedad entre "D1 interino" y "D1 titular": desde hoy D1 tiene dueño real, igual que D2–D5.
+
+### Alternativas consideradas
+
+Ninguna: `ADR-011` ya fijó la salida prevista (reasignar a la persona nueva "sin negociación") y no
+hay motivo para reabrir esa discusión ahora que se cumplió la condición que la disparaba.
+
+### Decisión
+
+D1 se reasigna a **Rafael Sarmiento Peña**, con dueño único desde hoy: M4 (alertas por correo, M8
+(bitácora pública) y la coordinación del informe metodológico y sus Anexos 1–4. Yordy Pardo Pajaro
+vuelve a responder solo por D5.
+
+**Qué no se retroactiva:** el trabajo que Yordy entregó como D1 interino (Anexos 1–2, plantillas de
+correo, `POST /api/suscripciones` con envío asíncrono — PR #78) queda atribuido a Yordy en
+`registro-de-implementaciones.md` y `bitacora-sesiones.md`, tal como ocurrió. El registro de
+contribución individual no se reescribe.
+
+**Qué sigue igual por continuidad operativa:** Yordy sigue como Scrum Master del Sprint 1, ya en curso
+al momento de este traspaso (`sprint-1.md`, abierto bajo `ADR-011`) — cambiar de Scrum Master a mitad
+de sprint es más disruptivo que el problema que resolvería. La rotación (`roles-y-tareas.md` §"Scrum
+Master") sigue su curso normal desde el Sprint 2 en adelante.
+
+**Qué queda pendiente, ahora bajo Rafael:** los dos correos reales sin enviar (plantilla oficial del
+informe al docente, solicitud de Meta Content Library vía ICPSR), el Capítulo I del informe, el Anexo
+4 (historias de usuario Gherkin) y `BL-006` (correo real del colector, todavía abierto).
+
+### Consecuencias
+
+- **Gana:** D1 deja de ser una carga compartida sobre D5; el registro de contribución individual
+  vuelve a tener cinco responsables claros, uno por rol, como exige `roles-y-tareas.md`.
+- **Pierde:** Rafael hereda pendientes que no generó (los dos correos, el Capítulo I) sin el contexto
+  de por qué siguen sin enviarse — vale la pena que lea `BL-003` (cerrado) y `ADR-011` antes de
+  empezar.
+- **Condiciona:** la fila "D1 ⚠️" del Sprint 5 en la tabla de rotación de Scrum Master
+  (`roles-y-tareas.md`) pierde su contingencia — ya no hace falta un interino porque D1 tiene titular
+  real; se corrige a `D1` sin advertencia.
+
+### Cómo se revierte
+
+No aplica en el sentido de "deshacer": es la incorporación real de un integrante, no un experimento.
+Si Rafael dejara el proyecto, se repetiría el mecanismo de `ADR-011` (reasignación temporal a quien el
+equipo decida) hasta que haya un reemplazo real.
+
+---
+
 <!--
-Siguiente número disponible: ADR-021
+Siguiente número disponible: ADR-022
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->

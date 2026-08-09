@@ -115,7 +115,7 @@ permanentemente, por decisión explícita, no por un permiso que falló en aplic
 el bloqueo de D2 más arriba. Renumerado a `BL-006` el 2026-08-08 al detectar la colisión — el
 contenido no cambia.)*
 
-- **Fecha:** 2026-08-08 · **Rol bloqueado:** D3 (Sebastián) · **Compuerta:** ninguna · **Titular que lo resuelve:** D1 (Yordy)
+- **Fecha:** 2026-08-08 · **Rol bloqueado:** D3 (Sebastián) · **Compuerta:** ninguna · **Titular que lo resuelve:** D1 (Rafael Sarmiento Peña, desde `ADR-021` — heredado de Yordy como D1 interino)
 - **Estado:** Abierto
 
 **Tarea detenida:** `AcuacarApiCollector` y `RssCollector` (Sprint 4 de D3, M9). El diseño en
@@ -182,6 +182,12 @@ prefiltro sin tener que rehacer nada anterior.
 | BL-002 | 2026-08-07 | D4 | C0 | 1 | El único insumo pendiente era que D5 declarara C0 abierta (ya ocurrió el 2026-08-08, ver fila anterior) y que D4 instalara Docker Desktop — tarea propia, sin dependencia de nadie. Reverificado el 2026-08-08: `docker compose config -q && ls backend frontend` → exit code 0, `backend/` y `frontend/` presentes. D4 ya puede integrar el frontend contra el entorno Docker. |
 | BL-004 | 2026-08-08 | D2 | ninguna (frontera de fase, `ADR-009`) | 1 | Cerrado 2026-08-08 con el Review del Sprint 0 y el Planning del Sprint 1, ambos celebrados por D5 (Yordy) como Scrum Master interino. No hizo falta ningún artefacto de código: el bloqueo era una ceremonia pendiente. **Se aceptó el sprint con una salvedad registrada en vez de ocultarla** — la máquina de D5 no tiene motor de contenedores, así que el comando que define C0 nunca probó que el entorno levante (`sprint-0.md` §4, nota 1). Corregirlo es la primera acción del Sprint 1 |
 | BL-003 | 2026-08-07 | D1 (vacante) | ninguna | 1 | D1 se reasigna temporalmente a Yordy Pardo Pajaro (D5), efectivo 2026-08-08 — `ADR-011`. Yordy pasa a responder también por M4, M8, documentación académica con IA y Scrum Master interino del Sprint 0. Reverificado: `grep "por asignar" docs/equipo/roles-y-tareas.md docs/equipo/D1-notificaciones-bitacora.md` → sin coincidencias. Sigue pendiente, pero ya no como bloqueo sino como trabajo por hacer de D1: enviar los dos correos (plantilla oficial, ICPSR) y producir los Anexos 1–3. |
+
+**Nota aparte, no bloqueante — 2026-08-08:** la reasignación temporal de la fila anterior ya cumplió
+su condición de salida. El equipo confirmó a **Rafael Sarmiento Peña** como 5.º integrante; D1 pasa a
+su nombre el mismo día (`ADR-021`, reemplaza a `ADR-011`). Los pendientes de esa fila (los dos
+correos, Anexos 1–3) pasan a Rafael tal cual estaban — los Anexos 1–2 ya se entregaron (PR #32), el 3
+sigue esperando datos reales.
 
 **Los días detenidos son un dato del Capítulo IV**, no un reproche. Miden si la secuencia funcionó.
 

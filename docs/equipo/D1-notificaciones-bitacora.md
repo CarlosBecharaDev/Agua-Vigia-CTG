@@ -1,8 +1,12 @@
 # D1 — Desarrollador Full-Stack (Notificaciones & Bitácora) / Documentación Asistida por IA
 
-> ⚠️ **Titular interino: Yordy Pardo Pajaro (D5), desde 2026-08-08** — reasignación temporal
-> mientras no exista un 5.º integrante real. Detalle y alternativas: `ADR-011`. Cuando se confirme
-> el 5.º integrante, esta línea vuelve a su nombre y el ADR pasa a *Reemplazada*.
+> **Titular: Rafael Sarmiento Peña, desde 2026-08-08** (`ADR-021`). Del 2026-08-07 al 2026-08-08 el
+> rol lo sostuvo Yordy Pardo Pajaro (D5) como reasignación temporal (`ADR-011`, *Reemplazada*)
+> mientras el equipo estaba en cuatro integrantes reales. El trabajo que Yordy entregó como D1
+> interino (Anexos 1–2, plantillas de correo, `POST /api/suscripciones`) queda a su nombre en
+> `registro-de-implementaciones.md` — no se reescribe. Pendientes heredados tal cual: los dos correos
+> reales sin enviar (plantilla oficial del informe, solicitud a ICPSR), el Capítulo I, el Anexo 4 y
+> `BL-006`.
 > **Responsable de Código:** M4 (Alertas por correo) y M8 (Bitácora pública inmutable).
 > **Responsable de Documentación:** Generación y validación del informe metodológico y anexos académicos **utilizando Inteligencia Artificial**.
 > **Capa del código:** `application/` (casos de uso de M4 y M8), `domain/port/{in,out}` de M4 (p. ej. `NotificacionPort`, `SuscripcionRepository`), `/backend/src/main/java/com/aguavigia/ctg/infrastructure/mail`, `/backend/src/main/java/com/aguavigia/ctg/api` y `/frontend/src/components/bitacora` & `suscripcion`. *(Corregido 2026-08-08: esta línea decía solo infra/mail + api + frontend, mientras `docs/ingenieria/modelo-de-dominio.md` §5 ya dejaba dicho desde el 2026-08-07 que D1 posee `application/` completo para M4 — dos documentos afirmaban cosas distintas; gana el más específico y fechado.)*
