@@ -53,7 +53,7 @@ Tres razones concretas, no burocráticas:
 | BUG-026 | 2026-08-09 | S2 | M1 | El mapa deja de reaccionar a datos nuevos al hacer clic en un sector después del primer render (dependencias del efecto recortadas en `MapaCartagena.tsx`) | Cerrado | D4 |
 | BUG-027 | 2026-08-09 | S2 | M1/M8 | La clasificación del estado de un boletín de Acuacar difiere entre la Bitácora y el Mapa/Estadísticas para el mismo texto | Cerrado | D4 |
 | BUG-028 | 2026-08-09 | S3 | M2 | La detección de barrio por GPS compara solo contra el primer vértice del polígono, no es un point-in-polygon real | Cerrado | D4 |
-| BUG-029 | 2026-08-09 | S4 | — (sala de control / M7) | Detalles menores encontrados en la misma revisión: layout de `.narrativa` en 3-4 columnas en vez de 2, campo `urgente` muerto en bugs, y falta cleanup del listener `appinstalled` en `BotonInstalarPWA.tsx` | 🟡 Parcial — ítems 1, 2, 4 y 5 (sala de control) cerrados; ítem 3 (`BotonInstalarPWA.tsx`, D4) sigue abierto | Equipo / D4 |
+| BUG-029 | 2026-08-09 | S4 | — (sala de control / M7) | Detalles menores encontrados en la misma revisión: layout de `.narrativa` en 3-4 columnas en vez de 2, campo `urgente` muerto en bugs, y falta cleanup del listener `appinstalled` en `BotonInstalarPWA.tsx` | Cerrado | Equipo / D4 |
 | BUG-030 | 2026-08-08 | S3 | — (proceso) | El comando de la compuerta C0 solo validaba el YAML: la máquina de D5 no tenía ningún motor de contenedores instalado | Cerrado | D5 |
 | BUG-031 | 2026-08-09 | S2 | — (sala de control) | `leerDetalleSprint` asumía siempre 5 columnas en la tabla de Compromisos; `sprint-1.md` (recién abierto, en planificación pura) tiene solo 4 sin columna Estado, y `generar-dashboard.mjs` tumbaba con `TypeError: Cannot read properties of undefined (reading 'startsWith')` | Cerrado | Equipo (sala de control) |
 | BUG-032 | 2026-08-09 | S2 | M2 | `RegistrarReporteService` (PR #84, ya en `develop`) no implementa RF006 pese a que su propio javadoc dice que sí está cubierto | Cerrado | D5 (Yordy), en capa de D2 |
@@ -364,7 +364,8 @@ solo vértice arbitrario.
 ### BUG-029 — Detalles menores encontrados en la misma revisión
 
 - **Fecha:** 2026-08-09 · **Severidad:** S4 · **Módulo:** — (sala de control / M7) · **Responsable:** Equipo / D4
-- **Estado:** 🟡 Parcial — ítems 1, 2, 4 y 5 (sala de control) cerrados; ítem 3 (`BotonInstalarPWA.tsx`) sigue abierto, es capa de D4
+- **Estado:** Cerrado — ítems 1, 2, 4 y 5 corregidos aquí mismo (sala de control); ítem 3 lo cerró
+  José Daniel (D4) por su cuenta en el commit `51746ba` ("resolver BUG-017 a BUG-027")
 
 Cinco hallazgos de bajo impacto, agrupados para no saturar el registro con entradas de una línea:
 
@@ -396,8 +397,9 @@ Cinco hallazgos de bajo impacto, agrupados para no saturar el registro con entra
    y se quitaron de `.rec-item` las propiedades que `.card` ya cubre (fondo, borde, radio, sombra,
    padding, `overflow-wrap`).
 
-Ítem 3 (`BotonInstalarPWA.tsx`) sigue abierto — es capa de D4, no se corrigió desde aquí por frontera
-de propiedad.
+**Ítem 3 (`BotonInstalarPWA.tsx`) — cerrado por José Daniel (D4), verificado el 2026-08-09:**
+`BotonInstalarPWA.tsx` ya tiene `window.removeEventListener('appinstalled', marcarComoInstalada)` en
+el cleanup del efecto, junto al `addEventListener` correspondiente — commit `51746ba`.
 
 ---
 
