@@ -47,6 +47,31 @@ function main() {
   console.log(`  Bloqueos: ${datos.bloqueos.cerrados} cerrados, ${datos.bloqueos.abiertos} abiertos`);
   console.log(`  Compuertas abiertas: ${datos.compuertas.filter((c) => c.estado === "abierta").length}/${datos.compuertas.length}`);
   console.log(`  Avance del proyecto: ${datos.avanceProyecto.porcentaje}% (${datos.avanceProyecto.sprintsCerrados}/${datos.avanceProyecto.sprintsTotal} sprints cerrados) · ritmo: ${datos.avanceProyecto.ritmoPRsPorDia} PRs/día`);
+
+  avisarDeSeccionesVacias(datos);
+}
+
+// Un extractor que deja de reconocer su tabla no explota: devuelve una lista vacia, y la Sala de
+// control muestra "sin bugs registrados" con 33 bugs en el archivo. Como el HTML se publica solo en
+// cada push, nadie se entera. Estas advertencias son la unica senal de que el formato cambio.
+function avisarDeSeccionesVacias(datos) {
+  const activo = datos.sprints.find((s) => s.activo);
+  const avisos = [];
+  const revisar = (condicion, mensaje) => { if (condicion) avisos.push(mensaje); };
+
+  revisar(!datos.bugs.length, "registro-de-bugs.md — tabla de estado sin filas `| BUG-`");
+  revisar(!datos.adrs.length, "design-decisions.md — ningún encabezado `## ADR-NNN — `");
+  revisar(!datos.deudaTecnica.length, "registro-de-bloqueos.md §4 — tabla de desbloqueos sin filas `| DT-`");
+  revisar(!datos.cobertura.porModulo.length, "registro-de-implementaciones.md — tabla `| Módulo | Requisitos | Implementados | % |`");
+  revisar(!datos.cobertura.funcionales.total, "registro-de-implementaciones.md — fila `**Total funcionales**`");
+  revisar(activo && !activo.detalle.compromisos.length, `sprint-${activo && activo.n}.md §2 — tabla de compromisos`);
+  revisar(activo && activo.detalle && !activo.detalle.criterioCierre && !activo.detalle.cerrado,
+    `sprint-${activo && activo.n}.md — criterio de cierre entre paréntesis al lado de "**Cerrado:** —"`);
+
+  if (!avisos.length) return;
+  console.warn("\n⚠️  Secciones que quedaron vacías — probablemente cambió el formato del archivo:");
+  for (const a of avisos) console.warn(`   · ${a}`);
+  console.warn("   La página se publicó igual, pero esas secciones salen vacías o incompletas.\n");
 }
 
 main();

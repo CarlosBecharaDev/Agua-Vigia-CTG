@@ -67,3 +67,10 @@ Agrega la fila a la tabla de estado **y** el detalle en la sección de bugs abie
 - **Nada de "a veces falla".** Di en qué condiciones lo viste, cuántas veces de cuántas, y en qué
   navegador o entorno.
 - **No pegues stack traces completos.** La línea que importa y la referencia `archivo:línea`.
+
+## Efecto en la Sala de control
+
+La tabla de estado de `registro-de-bugs.md` es la fuente de la sección de bugs de la Sala de control
+(`docs/gestion/README.md`), que se regenera sola en cada push a `develop`. Mantén las columnas `Sev`,
+`Estado` y `Responsable` con los valores esperados (`S1`–`S4`, `Abierto`/`Cerrado`): el tablero
+ordena por severidad y le atribuye el bug a su responsable a partir de ahí.

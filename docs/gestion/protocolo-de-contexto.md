@@ -47,6 +47,11 @@ sabe cuál manda.
 | Quién está detenido esperando a quién, y el estado de las compuertas | `docs/gestion/registro-de-bloqueos.md` |
 | Qué hizo cada sesión de trabajo con IA | `docs/gestion/bitacora-sesiones.md` |
 | Estado de tareas en curso | GitHub Issues / Projects — **no** en archivos |
+| Cómo va el proyecto de un vistazo | La **Sala de control** — generada, nunca escrita a mano (`docs/gestion/README.md`) |
+
+**La Sala de control no es un lugar donde se escribe: es la lectura de los archivos de esta tabla.**
+Por eso mantenerla al día no cuesta trabajo extra — cuesta *no saltarse* el registro que ya era
+obligatorio. Quien avanza, actualiza su registro; el tablero se encarga solo.
 
 **Si detectas la misma afirmación en dos archivos, es un defecto.** Repórtalo o arréglalo dejando el
 detalle en uno y un puntero en el otro.

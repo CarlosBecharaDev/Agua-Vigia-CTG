@@ -171,6 +171,7 @@
   .kpi-icono.acento { background: var(--color-acento-suave); color: var(--color-acento); }
   .kpi-icono.ok { background: var(--color-estado-con-bg); color: var(--color-estado-con); }
   .kpi-icono.baja { background: var(--color-estado-baja-bg); color: var(--color-estado-baja); }
+  .kpi-icono.sin { background: var(--color-estado-sin-bg); color: var(--color-estado-sin); }
   .kpi .val { font-family: var(--font-display); font-size: 1.65rem; line-height: 1; }
   .kpi .lbl { display: block; margin-top: 0.35rem; font-size: 0.72rem; color: var(--color-tinta-3); }
 
@@ -385,12 +386,82 @@
   .fuentes { font-family: var(--font-util); font-size: 0.66rem; color: var(--color-tinta-3); line-height: 1.85; }
   .fuentes b { color: var(--color-tinta-2); }
 
+  /* ===== Cierre del sprint: objetivo, criterio y checklist ===== */
+  .cierre-obj { background: var(--color-acento-suave); border: 1px solid color-mix(in srgb, var(--color-acento) 30%, var(--color-linea)); border-radius: var(--radio-base); padding: 0.9rem 1rem; margin-bottom: 1rem; }
+  .cierre-obj .et { font-family: var(--font-util); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-acento); font-weight: 700; }
+  .cierre-obj p { font-size: 0.92rem; line-height: 1.55; margin-top: 0.3rem; }
+  .cierre-criterio { display: flex; gap: 0.6rem; align-items: flex-start; margin-top: 0.75rem; padding-top: 0.7rem; border-top: 1px dashed color-mix(in srgb, var(--color-acento) 35%, transparent); }
+  .cierre-criterio .llave { font-size: 0.95rem; flex: none; }
+  .cierre-criterio p { font-size: 0.78rem; color: var(--color-tinta-2); line-height: 1.5; }
+  .checklist { display: flex; flex-direction: column; gap: 0.5rem; }
+  .ck-item { display: grid; grid-template-columns: auto 1fr; gap: 0.7rem; padding: 0.7rem 0.8rem; border-radius: var(--radio-base); background: var(--color-superficie-2); border: 1px solid var(--color-linea); }
+  .ck-item.hecho { background: var(--color-estado-con-bg); border-color: color-mix(in srgb, var(--color-estado-con) 35%, var(--color-linea)); }
+  .ck-item.parcial { background: var(--color-estado-baja-bg); border-color: color-mix(in srgb, var(--color-estado-baja) 35%, var(--color-linea)); }
+  .ck-marca { width: 1.35rem; height: 1.35rem; border-radius: 50%; display: grid; place-items: center; font-size: 0.75rem; font-weight: 700; flex: none; background: var(--color-superficie); border: 1.5px solid var(--color-linea); color: var(--color-tinta-3); }
+  .ck-item.hecho .ck-marca { background: var(--color-estado-con); border-color: var(--color-estado-con); color: #fff; }
+  .ck-item.parcial .ck-marca { background: var(--color-estado-baja); border-color: var(--color-estado-baja); color: #fff; }
+  .ck-cab { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; margin-bottom: 0.2rem; }
+  .ck-resp { font-weight: 700; font-size: 0.78rem; }
+  .ck-rf { font-family: var(--font-util); font-size: 0.63rem; color: var(--color-tinta-3); }
+  .ck-texto { font-size: 0.79rem; line-height: 1.5; color: var(--color-tinta-2); }
+  .ck-dep { font-size: 0.7rem; color: var(--color-tinta-3); margin-top: 0.3rem; }
+  .ck-dep b { color: var(--color-tinta-2); }
+  .resumen-ck { display: flex; gap: 1.2rem; flex-wrap: wrap; margin-bottom: 0.85rem; }
+  .resumen-ck div { font-size: 0.72rem; color: var(--color-tinta-2); }
+  .resumen-ck b { font-family: var(--font-util); font-size: 1.1rem; display: block; color: var(--color-tinta); }
+
+  /* ===== Atascos: bloqueos abiertos y deuda tecnica ===== */
+  .bloqueo { border: 1px solid color-mix(in srgb, var(--color-estado-sin) 40%, var(--color-linea)); background: var(--color-estado-sin-bg); border-radius: var(--radio-base); padding: 0.9rem 1rem; }
+  .bloqueo + .bloqueo { margin-top: 0.75rem; }
+  .bq-cab { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+  .bq-id { font-family: var(--font-util); font-size: 0.7rem; font-weight: 700; color: var(--color-estado-sin); }
+  .bq-titulo { font-weight: 700; font-size: 0.85rem; }
+  .bq-dias { margin-left: auto; font-family: var(--font-util); font-size: 0.65rem; background: var(--color-estado-sin); color: #fff; padding: 0.14rem 0.5rem; border-radius: 999px; }
+  .bq-quien { display: flex; gap: 1.1rem; flex-wrap: wrap; font-size: 0.72rem; color: var(--color-tinta-2); margin-bottom: 0.6rem; padding-bottom: 0.55rem; border-bottom: 1px dashed color-mix(in srgb, var(--color-estado-sin) 30%, transparent); }
+  .bq-quien b { color: var(--color-tinta); }
+  .bq-fila { font-size: 0.76rem; line-height: 1.5; margin-top: 0.4rem; color: var(--color-tinta-2); }
+  .bq-fila > b { color: var(--color-tinta); }
+  .bq-fila.destacada { background: var(--color-superficie); border-radius: var(--radio-sm); padding: 0.5rem 0.6rem; border-left: 3px solid var(--color-estado-sin); }
+  .dt-item { display: grid; grid-template-columns: auto 1fr auto; gap: 0.7rem; align-items: start; padding: 0.7rem 0.8rem; border-radius: var(--radio-base); background: var(--color-estado-baja-bg); border: 1px solid color-mix(in srgb, var(--color-estado-baja) 35%, var(--color-linea)); }
+  .dt-item + .dt-item { margin-top: 0.5rem; }
+  .dt-item.saldada { background: var(--color-estado-con-bg); border-color: color-mix(in srgb, var(--color-estado-con) 30%, var(--color-linea)); }
+  .dt-id { font-family: var(--font-util); font-size: 0.68rem; font-weight: 700; color: var(--color-estado-baja); }
+  .dt-item.saldada .dt-id { color: var(--color-estado-con); }
+  .dt-que { font-size: 0.76rem; line-height: 1.5; color: var(--color-tinta-2); }
+  .dt-caduca { font-size: 0.68rem; color: var(--color-tinta-3); margin-top: 0.25rem; }
+  .dt-caduca b { color: var(--color-estado-baja); }
+  .dt-issue { font-family: var(--font-util); font-size: 0.66rem; white-space: nowrap; }
+
+  /* ===== Cobertura por modulo ===== */
+  .grid-modulos { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0.6rem; }
+  .mod-item { padding: 0.65rem 0.75rem; border-radius: var(--radio-base); background: var(--color-superficie-2); border: 1px solid var(--color-linea); }
+  .mod-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; margin-bottom: 0.4rem; }
+  .mod-nombre { font-size: 0.76rem; font-weight: 600; }
+  .mod-frac { font-family: var(--font-util); font-size: 0.7rem; color: var(--color-tinta-3); }
+  .mod-pista { height: 5px; border-radius: 999px; background: var(--color-linea); overflow: hidden; }
+  .mod-pista i { display: block; height: 100%; background: var(--color-acento); border-radius: 999px; }
+  .mod-item.estrella { border-color: color-mix(in srgb, var(--color-acento) 40%, var(--color-linea)); }
+
+  /* ===== Carga pendiente por persona ===== */
+  .p-pendiente { margin-top: 0.7rem; padding-top: 0.6rem; border-top: 1px solid var(--color-linea); }
+  .p-pendiente .et { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-tinta-3); font-weight: 700; }
+  .p-pend-lista { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 0.35rem; }
+  .p-pend-item { font-size: 0.72rem; color: var(--color-tinta-2); line-height: 1.45; display: flex; gap: 0.4rem; }
+  .p-pend-item .pt { color: var(--color-estado-baja); flex: none; font-weight: 700; }
+  .p-pend-item.bloq .pt { color: var(--color-estado-sin); }
+  .p-libre { font-size: 0.72rem; color: var(--color-estado-con); margin-top: 0.35rem; }
+  .sev { font-family: var(--font-util); font-size: 0.6rem; font-weight: 700; padding: 0.1rem 0.35rem; border-radius: var(--radio-sm); flex: none; }
+  .sev.S1, .sev.S2 { background: var(--color-estado-sin-bg); color: var(--color-estado-sin); }
+  .sev.S3 { background: var(--color-estado-baja-bg); color: var(--color-estado-baja); }
+  .sev.S4 { background: var(--color-superficie-2); color: var(--color-tinta-3); border: 1px solid var(--color-linea); }
+
   @media (max-width: 860px) {
     .tb-titulo { order: 3; width: 100%; }
     .topnav { top: 6.5rem; }
     .sb-link span.lbl { display: none; }
     .tn-repo { display: none; }
     main { padding: 1.1rem 1rem 3rem; }
+    .bq-dias { margin-left: 0; }
   }
 </style>
 </head>
@@ -414,6 +485,8 @@
 
   <nav class="topnav" id="sb-nav">
     <a class="sb-link" href="#resumen" data-sec="resumen"><span class="ic" data-icon="home"></span><span class="lbl">Resumen</span></a>
+    <a class="sb-link" href="#cierre-sprint" data-sec="cierre-sprint"><span class="ic" data-icon="check-circle"></span><span class="lbl">Qué falta</span></a>
+    <a class="sb-link" href="#atascos" data-sec="atascos"><span class="ic" data-icon="alert-triangle"></span><span class="lbl">Atascos</span></a>
     <a class="sb-link" href="#compuertas" data-sec="compuertas"><span class="ic" data-icon="layers"></span><span class="lbl">Compuertas</span></a>
     <a class="sb-link" href="#equipo" data-sec="equipo"><span class="ic" data-icon="users"></span><span class="lbl">Equipo</span></a>
     <a class="sb-link" href="#progreso" data-sec="progreso"><span class="ic" data-icon="trending-up"></span><span class="lbl">Progreso</span></a>
@@ -438,6 +511,25 @@
           <div class="barra-grande"><i id="barra-avance" style="width:0%"></i></div>
           <div class="fila-avance-stats" id="stats-avance"></div>
           <p class="nota-caveat" id="nota-avance"></p>
+        </div>
+      </section>
+
+      <section id="cierre-sprint">
+        <div class="cab-seccion"><div><h2 id="titulo-cierre">Qué falta para cerrar el sprint</h2><p class="desc">Un sprint no cierra por calendario: cierra cuando su entregable se demuestra funcionando. Esto es lo que todavía no se ha demostrado.</p></div></div>
+        <div class="card">
+          <div id="cierre-objetivo"></div>
+          <div class="resumen-ck" id="resumen-checklist"></div>
+          <div class="checklist" id="checklist-sprint"></div>
+        </div>
+      </section>
+
+      <section id="atascos">
+        <div class="cab-seccion"><div><h2>Quién está detenido, y por qué</h2><p class="desc">Bloqueos abiertos con su insumo exacto y quién lo destraba — <span class="mono">registro-de-bloqueos.md</span> §2. Debajo, la deuda técnica autorizada que aún no caduca (§4).</p></div></div>
+        <div id="lista-bloqueos"></div>
+        <div class="card" style="margin-top:1rem">
+          <div class="card-cab"><h3>Deuda técnica autorizada</h3><span class="tag" id="tag-deuda"></span></div>
+          <p class="nota-caveat" style="margin-bottom:.75rem">Datos de demostración que siguen en el código con permiso escrito y fecha de caducidad. Un desbloqueo sin caducidad es deuda disfrazada de permiso.</p>
+          <div id="lista-deuda"></div>
         </div>
       </section>
 
@@ -495,6 +587,11 @@
             <div class="barra-grande"><i id="barra-rf" style="width:0%"></i></div>
             <div class="rf-info"><span class="marcador">i</span><p><b>No es un atraso.</b> Por <span class="mono">ADR-009</span> el Sprint 0–1 es andamiaje (estructura, dominio, tokens), no funcionalidad todavía.</p></div>
           </div>
+        </div>
+        <div class="card" style="margin-top:1rem">
+          <div class="card-cab"><h3>Cobertura por módulo</h3><span class="tag">requisitos aceptados en review · registro-de-implementaciones.md</span></div>
+          <div class="grid-modulos" id="grid-modulos"></div>
+          <p class="nota-caveat">Un requisito solo cuenta aquí cuando se demostró funcionando en el review de un sprint — no cuando se fusiona el PR que lo construye. Por eso hay módulos con infraestructura entregada y 0 % de cobertura: el código está, la demostración todavía no.</p>
         </div>
       </section>
 
@@ -680,9 +777,17 @@ window.addEventListener("error", function (ev) {
       if (!NOMBRE_POR_ROL[codigo]) NOMBRE_POR_ROL[codigo] = ROSTER[l].nombre;
     });
   });
+  // Expande "D3" a "D3 (Sebastián Montes Olivera)". Si el texto fuente ya trae un paréntesis con el
+  // nombre corto ("D3 (Sebastián)"), lo absorbe en vez de duplicarlo; cualquier otro paréntesis
+  // ("D5 (verificó y declaró)") se conserva porque dice algo que el nombre no dice.
   function conNombres(texto) {
-    return texto.replace(/\bD[1-5]\b/g, function (m) {
-      return NOMBRE_POR_ROL[m] ? m + " (" + NOMBRE_POR_ROL[m] + ")" : m;
+    return String(texto || "").replace(/\bD([1-5])\b(\s*\(([^)]*)\))?/g, function (todo, n, paren, dentro) {
+      var codigo = "D" + n;
+      var nombre = NOMBRE_POR_ROL[codigo];
+      if (!nombre) return todo;
+      var expandido = codigo + " (" + nombre + ")";
+      if (dentro && nombre.toLowerCase().indexOf(dentro.trim().toLowerCase()) !== -1) return expandido;
+      return expandido + (paren || "");
     });
   }
   var conteos = {};
@@ -706,6 +811,33 @@ window.addEventListener("error", function (ev) {
   var bugsCerrados = DATA.bugs.length - bugsAbiertos;
   var adrsPendientes = DATA.adrs.filter(function (a) { return a.pendiente; });
 
+  var sprintActivo = DATA.sprints.filter(function (s) { return s.activo; })[0] || null;
+  var compromisosActivos = (sprintActivo && sprintActivo.detalle) ? sprintActivo.detalle.compromisos : [];
+  var bloqueosAbiertos = (DATA.bloqueos.detalle || []);
+  var deudaVigente = (DATA.deudaTecnica || []).filter(function (d) { return d.vigente; });
+  var compromisosPendientes = compromisosActivos.filter(function (c) { return c.estado !== "hecho"; });
+
+  /** Códigos de rol (D1..D5) mencionados en un texto — así se cruza gente con compromisos y bloqueos. */
+  function rolesEn(texto) {
+    return (String(texto || "").match(/\bD[1-5]\b/g) || []);
+  }
+  function esDe(persona, texto) {
+    var codigos = rolesEn(texto);
+    return persona.roles.some(function (r) { return codigos.indexOf(r.split(" ")[0]) !== -1; });
+  }
+
+  // Recorta sin partir una marca de markdown por la mitad: un backtick o un ** huérfano deja el
+  // simbolo crudo a la vista y desordena el resto de la linea.
+  function recortarSeguro(texto, n) {
+    var t = String(texto || "");
+    if (t.length <= n) return t;
+    var corto = t.slice(0, n);
+    if ((corto.match(/`/g) || []).length % 2) corto = corto.slice(0, corto.lastIndexOf("`"));
+    if ((corto.match(/\*\*/g) || []).length % 2) corto = corto.slice(0, corto.lastIndexOf("**"));
+    if ((corto.match(/\*/g) || []).length % 2) corto = corto.slice(0, corto.lastIndexOf("*"));
+    return corto.replace(/[\s·—-]+$/, "") + "…";
+  }
+
   function compuertaCorresponde(compuerta, persona) {
     return persona.roles.some(function (r) {
       var codigo = r.split(" ")[0];
@@ -716,12 +848,14 @@ window.addEventListener("error", function (ev) {
   /* ============== KPIs ============== */
   (function renderKPI() {
     var items = [
+      { icono: "check-circle", clase: compromisosPendientes.length ? "baja" : "ok", val: compromisosPendientes.length, lbl: "Compromisos del sprint sin entregar" },
+      { icono: "alert-triangle", clase: bloqueosAbiertos.length ? "sin" : "ok", val: bloqueosAbiertos.length, lbl: "Bloqueos abiertos ahora" },
+      { icono: "alert-triangle", clase: deudaVigente.length ? "baja" : "ok", val: deudaVigente.length, lbl: "Mocks vigentes por retirar" },
+      { icono: "alert-triangle", clase: bugsAbiertos ? "baja" : "ok", val: bugsAbiertos, lbl: "Bugs abiertos" },
       { icono: "git-merge", clase: "acento", val: totalMerged, lbl: "PRs fusionados" },
-      { icono: "activity", clase: "baja", val: DATA.prsAbiertos.length, lbl: "PRs abiertos, por revisar" },
-      { icono: "check-circle", clase: "ok", val: bugsCerrados + "/" + DATA.bugs.length, lbl: "Bugs cerrados" },
-      { icono: "check-circle", clase: "ok", val: DATA.bloqueos.cerrados + "/" + (DATA.bloqueos.cerrados + DATA.bloqueos.abiertos), lbl: "Bloqueos resueltos" },
-      { icono: "file-text", clase: "acento", val: DATA.adrs.length, lbl: "Decisiones (ADR)" },
-      { icono: "layers", clase: "acento", val: compuertasAbiertas + "/" + DATA.compuertas.length, lbl: "Compuertas abiertas" }
+      { icono: "activity", clase: DATA.prsAbiertos.length ? "baja" : "ok", val: DATA.prsAbiertos.length, lbl: "PRs esperando revisión" },
+      { icono: "layers", clase: "acento", val: compuertasAbiertas + "/" + DATA.compuertas.length, lbl: "Compuertas abiertas" },
+      { icono: "file-text", clase: "acento", val: DATA.adrs.length, lbl: "Decisiones (ADR)" }
     ];
     var html = items.map(function (it) {
       return '<div class="kpi"><div class="kpi-top"><div class="kpi-icono ' + it.clase + '"><span class="ic" data-icon="' + it.icono + '"></span></div></div><span class="val num">' + it.val + '</span><span class="lbl">' + it.lbl + '</span></div>';
@@ -800,6 +934,33 @@ window.addEventListener("error", function (ev) {
       html += '  </div>';
       if (c.abiertos > 0) html += '  <div class="fila-metrica" style="margin-top:.4rem"><span>PRs abiertos ahora</span><b style="color:var(--color-estado-baja)">' + c.abiertos + '</b></div>';
       if (bugsResp.length > 0) html += '  <div class="chips-aporte"><span class="microchip">Bugs atendidos: ' + bugsResp.length + '</span></div>';
+
+      // Lo que esta persona tiene encima ahora mismo: compromisos del sprint sin entregar, bloqueos
+      // que la detienen o que le toca destrabar, y bugs abiertos a su nombre. Los PRs fusionados
+      // cuentan lo ya hecho; esto cuenta lo que falta, que es lo que revela un atraso.
+      var pend = [];
+      compromisosActivos.forEach(function (cm) {
+        if (cm.estado === "hecho" || !esDe(p, cm.resp)) return;
+        pend.push({ tipo: cm.estado === "parcial" ? "a medias" : "sin empezar", texto: cm.entregable });
+      });
+      bloqueosAbiertos.forEach(function (b) {
+        if (esDe(p, b.rol)) pend.push({ bloq: true, tipo: b.id + " lo detiene", texto: b.titulo });
+        else if (esDe(p, b.titular)) pend.push({ bloq: true, tipo: b.id + " lo destraba", texto: b.titulo });
+      });
+      DATA.bugs.filter(function (b) {
+        return b.estado === "Abierto" && b.responsable && esDe(p, b.responsable);
+      }).forEach(function (b) { pend.push({ bloq: b.sev === "S1" || b.sev === "S2", tipo: b.id + " · " + b.sev, texto: b.titulo }); });
+
+      html += '  <div class="p-pendiente"><span class="et">Lo que tiene pendiente</span>';
+      if (!pend.length) {
+        html += '<p class="p-libre">✓ Sin compromisos abiertos del sprint, bloqueos ni bugs a su nombre.</p>';
+      } else {
+        html += '<div class="p-pend-lista">' + pend.slice(0, 5).map(function (x) {
+          return '<div class="p-pend-item' + (x.bloq ? " bloq" : "") + '"><span class="pt">' + escapeHtml(x.tipo) + '</span><span>' + formatearInline(recortarSeguro(x.texto, 90)) + '</span></div>';
+        }).join("") + '</div>';
+        if (pend.length > 5) html += '<div class="p-pend-item" style="margin-top:.3rem">y ' + (pend.length - 5) + ' más</div>';
+      }
+      html += '  </div>';
       html += '  <div class="p-compuerta">Responde por <b>' + (propias.length ? propias.map(function (x) { return x.id + " · " + x.estado; }).join(", ") : "ninguna compuerta directamente") + '</b></div>';
       html += '</div>';
     });
@@ -875,6 +1036,101 @@ window.addEventListener("error", function (ev) {
       nota = "Todavía no cerró ningún sprint — y los sprints de este proyecto no tienen duración fija (secuencia-de-trabajo.md), así que no hay todavía un ritmo real del cual proyectar una fecha de cierre. En cuanto cierre el primer sprint, esta nota calcula una fecha estimada a partir de ese dato real, no antes.";
     }
     document.getElementById("nota-avance").textContent = nota;
+  })();
+
+  /* ============== Sprint activo: qué falta para cerrarlo ============== */
+  (function renderCierreSprint() {
+    var cont = document.getElementById("cierre-objetivo");
+    if (!sprintActivo || !sprintActivo.detalle) {
+      document.getElementById("cierre-sprint").style.display = "none";
+      return;
+    }
+    var d = sprintActivo.detalle;
+    document.getElementById("titulo-cierre").textContent = "Qué falta para cerrar el Sprint " + sprintActivo.n;
+
+    var h = "";
+    if (d.objetivo) {
+      h += '<div class="cierre-obj"><span class="et">Objetivo del sprint ' + sprintActivo.n + '</span><p>' + formatearInline(d.objetivo) + '</p>';
+      if (d.criterioCierre) {
+        h += '<div class="cierre-criterio"><span class="llave" aria-hidden="true">🔑</span><p><b>Cierra cuando:</b> ' + formatearInline(d.criterioCierre) + '</p></div>';
+      }
+      h += '</div>';
+    }
+    cont.innerHTML = h;
+
+    var hechos = compromisosActivos.filter(function (c) { return c.estado === "hecho"; }).length;
+    var parciales = compromisosActivos.filter(function (c) { return c.estado === "parcial"; }).length;
+    var pendientes = compromisosActivos.filter(function (c) { return c.estado === "pendiente"; }).length;
+    document.getElementById("resumen-checklist").innerHTML =
+      '<div><b>' + hechos + '</b>entregados</div>' +
+      '<div><b>' + parciales + '</b>a medias</div>' +
+      '<div><b>' + pendientes + '</b>sin empezar</div>' +
+      '<div><b>' + deudaVigente.length + '</b>mocks por retirar</div>' +
+      '<div><b>' + bloqueosAbiertos.length + '</b>bloqueos abiertos</div>';
+
+    var marca = { hecho: "✓", parcial: "◐", pendiente: "" };
+    var orden = { pendiente: 0, parcial: 1, hecho: 2 };
+    var lista = compromisosActivos.slice().sort(function (a, b) { return orden[a.estado] - orden[b.estado]; });
+    document.getElementById("checklist-sprint").innerHTML = lista.map(function (c) {
+      var h2 = '<div class="ck-item ' + c.estado + '"><div class="ck-marca">' + marca[c.estado] + '</div><div>';
+      h2 += '<div class="ck-cab"><span class="ck-resp">' + escapeHtml(c.resp) + '</span>';
+      if (c.rf && c.rf !== "—") h2 += '<span class="ck-rf">' + escapeHtml(c.rf) + '</span>';
+      if (c.nota) h2 += '<span class="chip-mini ' + (c.estado === "hecho" ? "aceptada" : "pendiente") + '">' + formatearInline(c.nota) + '</span>';
+      h2 += '</div>';
+      h2 += '<div class="ck-texto">' + formatearInline(c.entregable) + '</div>';
+      if (c.dependeDe && c.dependeDe !== "—") h2 += '<div class="ck-dep"><b>Depende de:</b> ' + formatearInline(c.dependeDe) + '</div>';
+      return h2 + '</div></div>';
+    }).join("");
+  })();
+
+  /* ============== Bloqueos abiertos, con su detalle ============== */
+  (function renderBloqueos() {
+    var cont = document.getElementById("lista-bloqueos");
+    if (!bloqueosAbiertos.length) {
+      cont.innerHTML = '<div class="card"><p class="vacio-atencion">Nadie está detenido esperando a nadie. Los ' + DATA.bloqueos.cerrados + ' bloqueos registrados están cerrados.</p></div>';
+      return;
+    }
+    cont.innerHTML = bloqueosAbiertos.map(function (b) {
+      var h = '<div class="bloqueo"><div class="bq-cab"><span class="bq-id">' + b.id + '</span><span class="bq-titulo">' + escapeHtml(b.titulo) + '</span>';
+      if (b.diasDetenido !== null) h += '<span class="bq-dias">' + (b.diasDetenido === 0 ? "abierto hoy" : b.diasDetenido === 1 ? "1 día detenido" : b.diasDetenido + " días detenido") + '</span>';
+      h += '</div><div class="bq-quien">';
+      if (b.rol) h += '<span>Detenido: <b>' + escapeHtml(conNombres(b.rol)) + '</b></span>';
+      if (b.titular) h += '<span>Lo destraba: <b>' + escapeHtml(conNombres(b.titular)) + '</b></span>';
+      if (b.compuerta) h += '<span>Compuerta: <b>' + escapeHtml(b.compuerta) + '</b></span>';
+      h += '</div>';
+      if (b.insumoQueFalta) h += '<div class="bq-fila destacada"><b>Falta:</b> ' + formatearInline(b.insumoQueFalta) + '</div>';
+      if (b.tareaDetenida) h += '<div class="bq-fila"><b>Tarea detenida:</b> ' + formatearInline(b.tareaDetenida) + '</div>';
+      if (b.trabajoAlterno) h += '<div class="bq-fila"><b>Mientras tanto:</b> ' + formatearInline(b.trabajoAlterno) + '</div>';
+      if (b.cierre) h += '<div class="bq-fila"><b>Se cierra:</b> ' + formatearInline(b.cierre) + '</div>';
+      return h + '</div>';
+    }).join("");
+  })();
+
+  /* ============== Deuda técnica autorizada ============== */
+  (function renderDeuda() {
+    var cont = document.getElementById("lista-deuda");
+    var todas = DATA.deudaTecnica || [];
+    document.getElementById("tag-deuda").textContent = deudaVigente.length + " vigente" + (deudaVigente.length === 1 ? "" : "s") + " de " + todas.length;
+    if (!todas.length) { cont.innerHTML = '<p class="vacio-atencion">Sin desbloqueos temporales autorizados.</p>'; return; }
+    cont.innerHTML = todas.map(function (d) {
+      var h = '<div class="dt-item' + (d.vigente ? "" : " saldada") + '"><span class="dt-id">' + d.id + '</span><div>';
+      h += '<div class="dt-que">' + formatearInline(d.quePermite) + '</div>';
+      h += '<div class="dt-caduca">Caduca: <b>' + formatearInline(d.caduca) + '</b> · autoriza ' + escapeHtml(d.autoriza) + '</div></div>';
+      h += d.issue ? '<a class="dt-issue" href="' + d.issue.url + '" target="_blank" rel="noopener">#' + d.issue.numero + '</a>' : '<span class="dt-issue">—</span>';
+      return h + '</div>';
+    }).join("");
+  })();
+
+  /* ============== Cobertura por módulo ============== */
+  (function renderModulos() {
+    var mods = (DATA.cobertura.porModulo || []);
+    var cont = document.getElementById("grid-modulos");
+    if (!mods.length) { cont.innerHTML = '<p class="vacio-atencion">Sin desglose por módulo en el registro.</p>'; return; }
+    cont.innerHTML = mods.map(function (m) {
+      return '<div class="mod-item' + (m.estrella ? " estrella" : "") + '"><div class="mod-cab"><span class="mod-nombre">' + escapeHtml(m.modulo) + '</span>' +
+        '<span class="mod-frac">' + m.implementados + '/' + m.total + '</span></div>' +
+        '<div class="mod-pista"><i style="width:' + m.porcentaje + '%"></i></div></div>';
+    }).join("");
   })();
 
   /* ============== Progreso: barras grandes ============== */
@@ -966,9 +1222,20 @@ window.addEventListener("error", function (ev) {
     }).join("");
     document.getElementById("lista-adr").innerHTML = htmlAdr;
 
-    var htmlBug = DATA.bugs.map(function (b) {
-      return '<div class="fila-adr"><span class="adr-titulo"><span class="n">' + b.id + '</span>' + b.titulo + '</span>' +
-        '<span class="chip-mini ' + (b.estado === "Abierto" ? "abierto" : "cerrado") + '">' + b.estado + '</span></div>';
+    // Abiertos primero y, dentro de ellos, los graves arriba: una lista de 33 bugs en orden de
+    // registro esconde el S1 entre los cerrados.
+    var pesoSev = { S1: 0, S2: 1, S3: 2, S4: 3 };
+    var bugsOrdenados = DATA.bugs.slice().sort(function (a, b) {
+      var abiertoA = a.estado === "Abierto" ? 0 : 1, abiertoB = b.estado === "Abierto" ? 0 : 1;
+      if (abiertoA !== abiertoB) return abiertoA - abiertoB;
+      return (pesoSev[a.sev] === undefined ? 9 : pesoSev[a.sev]) - (pesoSev[b.sev] === undefined ? 9 : pesoSev[b.sev]);
+    });
+    var htmlBug = bugsOrdenados.map(function (b) {
+      var h = '<div class="fila-adr"><span class="adr-titulo"><span class="n">' + b.id + '</span>';
+      if (b.sev) h += '<span class="sev ' + escapeHtml(b.sev) + '">' + escapeHtml(b.sev) + '</span> ';
+      h += escapeHtml(b.titulo);
+      if (b.estado === "Abierto" && b.responsable) h += ' <span class="mono" style="font-size:.66rem;color:var(--color-tinta-3)">· ' + escapeHtml(b.responsable) + '</span>';
+      return h + '</span><span class="chip-mini ' + (b.estado === "Abierto" ? "abierto" : "cerrado") + '">' + b.estado + '</span></div>';
     }).join("");
     document.getElementById("lista-bugs").innerHTML = htmlBug || '<p class="vacio-atencion">Sin bugs registrados.</p>';
   })();
@@ -977,7 +1244,9 @@ window.addEventListener("error", function (ev) {
   function formatearInline(s) {
     return escapeHtml(s)
       .replace(/`([^`]+)`/g, '<span class="mono">$1</span>')
-      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+      .replace(/\[#(\d+)\]\((https:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">#$1</a>');
   }
   (function renderRecomendaciones() {
     var cont = document.getElementById("lista-recomendaciones");
@@ -1007,6 +1276,20 @@ window.addEventListener("error", function (ev) {
     p.push("<strong>" + lider.nombre + "</strong> lidera en Pull Requests fusionados, con <strong>" + liderCount + " de " + totalMerged + "</strong>.");
 
     p.push("La cobertura de requisitos funcionales es <strong>" + rf.implementados + "/" + rf.total + "</strong> (" + (rf.total ? Math.round(rf.implementados / rf.total * 100) : 0) + "%). Por <span class=\"mono\">ADR-009</span>, mientras el proyecto esté en fase de andamiaje esta cifra se mantiene baja a propósito — no mide retraso.");
+
+    if (sprintActivo && sprintActivo.detalle && sprintActivo.detalle.criterioCierre) {
+      p.push("El <strong>Sprint " + sprintActivo.n + "</strong> " + (compromisosPendientes.length
+        ? "tiene <strong>" + compromisosPendientes.length + " de " + compromisosActivos.length + " compromisos</strong> sin entregar"
+        : "tiene todos sus compromisos entregados") + ", y " + (deudaVigente.length
+        ? "todavía quedan <strong>" + deudaVigente.length + " datos de demostración</strong> en el código que caducan al cerrarlo"
+        : "ya no queda ningún dato de demostración vigente") + ". No cierra por calendario: " + escapeHtml(sprintActivo.detalle.criterioCierre) + ".");
+    }
+
+    if (bloqueosAbiertos.length) {
+      p.push(bloqueosAbiertos.map(function (b) {
+        return "<strong>" + b.id + "</strong> mantiene detenido a " + conNombres(b.rol || "alguien") + (b.titular ? ", y lo destraba " + conNombres(b.titular) : "");
+      }).join("; ") + ".");
+    }
 
     if (adrsPendientes.length) {
       p.push(adrsPendientes.map(function (a) { return "<strong>ADR-" + String(a.numero).padStart(3, "0") + "</strong> (" + a.titulo + ")"; }).join(", ") + " sigue" + (adrsPendientes.length === 1 ? "" : "n") + " pendiente" + (adrsPendientes.length === 1 ? "" : "s") + " de aprobación del equipo.");
