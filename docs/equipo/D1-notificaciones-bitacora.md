@@ -5,7 +5,7 @@
 > el 5.º integrante, esta línea vuelve a su nombre y el ADR pasa a *Reemplazada*.
 > **Responsable de Código:** M4 (Alertas por correo) y M8 (Bitácora pública inmutable).
 > **Responsable de Documentación:** Generación y validación del informe metodológico y anexos académicos **utilizando Inteligencia Artificial**.
-> **Capa del código:** `/backend/src/main/java/com/aguavigia/ctg/infrastructure/mail`, `/backend/src/main/java/com/aguavigia/ctg/api` y `/frontend/src/components/bitacora` & `suscripcion`.
+> **Capa del código:** `application/` (casos de uso de M4 y M8), `domain/port/{in,out}` de M4 (p. ej. `NotificacionPort`, `SuscripcionRepository`), `/backend/src/main/java/com/aguavigia/ctg/infrastructure/mail`, `/backend/src/main/java/com/aguavigia/ctg/api` y `/frontend/src/components/bitacora` & `suscripcion`. *(Corregido 2026-08-08: esta línea decía solo infra/mail + api + frontend, mientras `docs/ingenieria/modelo-de-dominio.md` §5 ya dejaba dicho desde el 2026-08-07 que D1 posee `application/` completo para M4 — dos documentos afirmaban cosas distintas; gana el más específico y fechado.)*
 > **Compuertas:** empieza cuando **C1** está abierta · **abre C2** junto con D3, en la parte del
 > contrato que le corresponde (suscripciones y bitácora).
 > Ver [`secuencia-de-trabajo.md`](secuencia-de-trabajo.md) §2.

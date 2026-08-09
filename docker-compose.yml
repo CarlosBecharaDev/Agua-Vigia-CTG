@@ -65,6 +65,8 @@ services:
       SPRING_DATA_MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/aguavigia}
       SPRING_DATA_REDIS_HOST: ${REDIS_HOST:-redis}
       SPRING_DATA_REDIS_PORT: ${REDIS_PORT:-6379}
+      SPRING_MAIL_HOST: ${MAIL_HOST:-mailhog}
+      SPRING_MAIL_PORT: ${MAIL_PORT:-1025}
     ports:
       - "8080:8080"
     depends_on:
@@ -72,6 +74,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      mailhog:
+        condition: service_started
     networks:
       - aguavigia
     healthcheck:
