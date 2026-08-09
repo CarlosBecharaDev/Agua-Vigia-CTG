@@ -18,7 +18,7 @@ el repositorio no.
 
 | Compuerta | La abre | Habilita a | Comando de verificación | Estado | Abierta el |
 |---|---|---|---|---|---|
-| **C0** · Entorno reproducible | D5 (verificó y declaró) · D2 aportó `/backend`, D4 aportó `/frontend` | Todos | `docker compose config -q && ls backend frontend` | 🟢 **Abierta** | 2026-08-08 |
+| **C0** · Entorno reproducible | D5 (verificó y declaró) · D2 aportó `/backend`, D4 aportó `/frontend` | Todos | `docker compose up -d --wait && cd backend && ./mvnw clean verify` | 🟢 **Abierta — reverificada con motor real (`BUG-030`)** | 2026-08-08 |
 | **C1** · Dominio y puertos | D2 | D3 · D1 | `ls backend/src/main/java/com/aguavigia/ctg/domain/port/out` | 🟢 Abierta — entidades, VOs y `domain/port/**` en `develop` (PR #21), ArchUnit en verde | 2026-08-08 |
 | **C2** · Contrato OpenAPI | D3 · D1 | D4 | `git show develop:backend/openapi.yaml \| head -5` | 🟢 **Abierta — PR #56 fusionado a `develop`** | 2026-08-08 |
 | **C3** · SPA integrada contra API real | D4 | D5 (E2E · despliegue) | `cd frontend && npm run build` | 🟢 **Abierta — M1 conectado a API Sectores** | 2026-08-08 |
