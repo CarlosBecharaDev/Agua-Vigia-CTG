@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { apiClient } from './client'
-import { cerrarCorteOficial, crearCorteOficial, crearReporte, listarCortesPorSector, listarReportesPendientes, moderarReporte, validarRespuestaSectores } from './services'
+import { cerrarCorteOficial, crearCorteOficial, crearReporte, listarCortesPorSector, listarReportesPendientes, moderarReporte, obtenerBitacora, obtenerCumplimientoGlobal, obtenerCumplimientoSector, validarRespuestaSectores } from './services'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -53,5 +53,30 @@ describe('operación del veedor', () => {
     expect(get).toHaveBeenCalledWith('/veedor/cortes', { params: { sectorId: 'manga' } })
     expect(post).toHaveBeenCalledWith('/veedor/cortes', solicitud)
     expect(patch).toHaveBeenCalledWith('/veedor/cortes/c1/cierre', { horaReal: '2026-08-09T11:30:00Z' })
+  })
+})
+
+describe('datos públicos', () => {
+  it('consulta cumplimiento global, por sector y bitácora en sus rutas públicas', async () => {
+    const get = vi.spyOn(apiClient, 'get')
+      .mockResolvedValueOnce({ data: { duracionPrometidaSegundos: 3600, duracionRealSegundos: 4200, desviacionSegundos: 600, porcentajeCumplimiento: 85.7 } })
+      .mockResolvedValueOnce({ data: { sectorId: 'manga norte', duracionPrometidaSegundos: 3600, duracionRealSegundos: 3600, desviacionSegundos: 0, porcentajeCumplimiento: 100 } })
+      .mockResolvedValueOnce({ data: [{ id: 'e1', tipo: 'CORTE_ANUNCIADO', timestamp: '2026-08-09T10:00:00Z' }] })
+
+    await obtenerCumplimientoGlobal()
+    await obtenerCumplimientoSector('manga norte')
+    await obtenerBitacora()
+
+    expect(get).toHaveBeenNthCalledWith(1, '/cumplimiento')
+    expect(get).toHaveBeenNthCalledWith(2, '/cumplimiento/sectores/manga%20norte')
+    expect(get).toHaveBeenNthCalledWith(3, '/bitacora')
+  })
+
+  it('rechaza indicadores y eventos incompletos', async () => {
+    vi.spyOn(apiClient, 'get')
+      .mockResolvedValueOnce({ data: { porcentajeCumplimiento: 90 } })
+      .mockResolvedValueOnce({ data: [{ id: 'sin-fecha', tipo: 'CORTE_ANUNCIADO' }] })
+    await expect(obtenerCumplimientoGlobal()).rejects.toThrow(/índice/i)
+    await expect(obtenerBitacora()).rejects.toThrow(/contrato OpenAPI/i)
   })
 })

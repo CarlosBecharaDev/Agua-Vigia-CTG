@@ -15,6 +15,10 @@ export type ReporteModeracion = Required<Pick<ReporteModeracionApi, 'id' | 'sect
 type SolicitudCorteApi = components['schemas']['SolicitudCorte']
 export type SolicitudCorte = Required<Pick<SolicitudCorteApi, 'sectoresAfectados' | 'inicio' | 'finPrometido' | 'causa'>>
 export type CorteOficial = components['schemas']['CorteRespuesta']
+type IndiceCumplimientoApi = components['schemas']['IndiceCumplimientoRespuesta']
+type EventoBitacoraApi = components['schemas']['EventoBitacoraRespuesta']
+export type IndiceCumplimiento = Required<Omit<IndiceCumplimientoApi, 'sectorId'>> & Pick<IndiceCumplimientoApi, 'sectorId'>
+export type EventoBitacora = Required<Pick<EventoBitacoraApi, 'id' | 'tipo' | 'timestamp'>> & Pick<EventoBitacoraApi, 'sectorId' | 'corteId' | 'descripcion'>
 
 export interface SectorSeguro {
   id: string
@@ -62,6 +66,33 @@ export async function crearSuscripcion(datos: SolicitudSuscripcion): Promise<Sus
 export async function crearReporte(datos: SolicitudReporte): Promise<ReporteRespuesta> {
   const { data } = await apiClient.post<ReporteRespuesta>('/reportes', datos)
   return data
+}
+
+function validarIndice(valor: IndiceCumplimientoApi): IndiceCumplimiento {
+  const campos = [valor?.duracionPrometidaSegundos, valor?.duracionRealSegundos, valor?.desviacionSegundos, valor?.porcentajeCumplimiento]
+  if (campos.some((campo) => typeof campo !== 'number' || !Number.isFinite(campo))) {
+    throw new Error('El servidor devolvió un índice de cumplimiento inválido.')
+  }
+  return valor as IndiceCumplimiento
+}
+
+export async function obtenerCumplimientoGlobal(): Promise<IndiceCumplimiento> {
+  const { data } = await apiClient.get<IndiceCumplimientoApi>('/cumplimiento')
+  return validarIndice(data)
+}
+
+export async function obtenerCumplimientoSector(sectorId: string): Promise<IndiceCumplimiento> {
+  const { data } = await apiClient.get<IndiceCumplimientoApi>(`/cumplimiento/sectores/${encodeURIComponent(sectorId)}`)
+  return validarIndice(data)
+}
+
+export async function obtenerBitacora(): Promise<EventoBitacora[]> {
+  const { data } = await apiClient.get<EventoBitacoraApi[]>('/bitacora')
+  if (!Array.isArray(data)) throw new Error('El servidor devolvió una bitácora inválida.')
+  const eventos = data.filter((evento): evento is EventoBitacora =>
+    typeof evento.id === 'string' && typeof evento.tipo === 'string' && typeof evento.timestamp === 'string')
+  if (eventos.length !== data.length) throw new Error('Uno o más eventos no cumplen el contrato OpenAPI.')
+  return eventos
 }
 
 export async function listarReportesPendientes(): Promise<ReporteModeracion[]> {
