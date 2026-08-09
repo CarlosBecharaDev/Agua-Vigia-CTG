@@ -45,8 +45,8 @@ public class ManejadorGlobalDeErrores {
 
     /**
      * Un caso de uso rechaza una transición de estado inválida (p. ej. RF017: cerrar un corte que
-     * ya estaba cerrado). 409 y no 400: la petición está bien formada, es el estado actual del
-     * recurso el que la vuelve inaplicable.
+     * ya estaba cerrado; o RF020: pedir el índice de un corte que sigue abierto). 409 y no 400:
+     * la petición está bien formada, es el estado actual del recurso el que la vuelve inaplicable.
      */
     @ExceptionHandler(IllegalStateException.class)
     public ProblemDetail conflicto(IllegalStateException e) {

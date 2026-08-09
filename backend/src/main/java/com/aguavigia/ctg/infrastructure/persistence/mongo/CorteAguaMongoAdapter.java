@@ -39,6 +39,13 @@ public class CorteAguaMongoAdapter implements CorteAguaRepository {
     }
 
     @Override
+    public List<CorteAgua> listarTodos() {
+        return repositorio.findAll().stream()
+                .map(CorteAguaMongoAdapter::aDominio)
+                .toList();
+    }
+
+    @Override
     public CorteAgua guardar(CorteAgua corte) {
         CorteAguaDocumento documento = new CorteAguaDocumento();
         documento.setId(corte.id().valor());

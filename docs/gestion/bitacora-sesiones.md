@@ -29,22 +29,35 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 ### 2026-08-09 · D1 (Sebastián) · `feature/d1-bitacora-publica`
 **Qué:** `BitacoraController` público en `GET /api/bitacora` (RF027), directo a
 `EventoBitacoraRepository` sin caso de uso (ADR-015). 178/178 pruebas en verde. PR pendiente.
-**Sigue:** Completa M8 junto con el PR #119 (`RegistrarEventoBitacoraService` + anexar
-`CORTE_ANUNCIADO`/`CORTE_RESTABLECIDO`), que quedó en un PR aparte por un hallazgo de proceso — ver
-entrada siguiente.
+**Sigue:** Completa M8 junto con el PR #119, ya fusionado (`RegistrarEventoBitacoraService` + anexar
+`CORTE_ANUNCIADO`/`CORTE_RESTABLECIDO`).
 
 ### 2026-08-09 · D3 (Sebastián) · `feature/d3-crud-cortes-veedor` (PR #119, no #116)
 **Qué:** `RegistrarEventoBitacoraService` (RF026, capa de D2) y `GestionarCorteOficialService`
 actualizado para anexar un evento de bitácora por cada sector afectado al registrar
 (`CORTE_ANUNCIADO`) y al cerrar (`CORTE_RESTABLECIDO`) un corte — antes solo el consenso ciudadano
-anexaba. 176/176 pruebas en verde.
+anexaba. 176/176 pruebas en verde. Fusionado a `develop`.
 **Hallazgo de proceso:** el PR #116 se fusionó *antes* de que este commit llegara al remoto —
 quedó huérfano en la misma rama con el PR ya cerrado, así que abrí el PR #119 sobre el mismo commit.
 Pasa cuando se empuja a una rama cuyo PR ya fue aprobado y fusionado por otra persona en paralelo;
 vale la pena revisar el estado del PR (`gh pr view <N> --json state`) antes de empujar, no solo al
 abrirlo.
-**Sigue:** PR #119 pendiente de revisor. RF018 (moderación de reportes) sigue fuera — sin puerto de
-dominio todavía.
+**Sigue:** RF018 (moderación de reportes) sigue fuera — sin puerto de dominio todavía.
+
+### 2026-08-09 · D3 (Sebastián) · `feature/d2-indice-cumplimiento`
+**Qué:** `CalcularCumplimientoService` (RF020-RF022, M6 — el diferencial del proyecto), capa de D2.
+`ADR-022`: agrega por suma de duraciones, no promedio de porcentajes. `IndiceCumplimientoController`
+público en `/api/cumplimiento` (porCorte, porSector, global). Agregado
+`CorteAguaRepository.listarTodos()`. 178/178 pruebas en verde. Fusionado a `develop` en el PR #118.
+**Sigue:** —
+
+### 2026-08-09 · D3 (Sebastián) · `feature/d3-crud-cortes-veedor`
+**Qué:** `GestionarCorteOficialService` (RF016-RF017, capa de D2) y `CorteController` en
+`/api/veedor/cortes` (registrar, cerrar, consultar, listar por sector), protegido por el JWT ya
+existente sin tocar `SecurityConfig`. Cerrar un corte ya cerrado responde 409 (nuevo
+`IllegalStateException` en `ManejadorGlobalDeErrores`). 175/175 pruebas en verde. Fusionado a
+`develop` en el PR #116.
+**Sigue:** RF018 (moderación de reportes) queda fuera — sin puerto de dominio todavía.
 
 ### 2026-08-09 · D3 (Sebastián) · `feature/d3-corteagua-mongo-adapter`
 **Qué:** Construido `CorteAguaMongoAdapter` (RF016-RF017) — el dominio de `CorteAgua` existía sin
