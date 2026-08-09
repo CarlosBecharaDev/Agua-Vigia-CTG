@@ -34,7 +34,7 @@ ya acumula reportes por sector en Redis, pero nada los lee para decidir un cambi
 
 | Resp. | RF/RNF | Entregable | Depende de |
 |---|---|---|---|
-| D3 (Sebastián) | RF005–RF008 | ✅ Entregado — `POST /api/reportes` expone `RegistrarReporteService`. `@Cacheable` sobre `GET /api/sectores` y la regla de rate limiting para `/api/reportes` quedan pendientes, sin urgencia (RF006 ya lo cubre el servicio). Escrito y fusionado por D5 (Yordy) directo, decisión explícita — no pasó por revisión de Sebastián | C1 ✅ · `RegistrarReporteService` ✅ (Sprint 1) · [PR #104](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/104) |
+| D3 (Sebastián) | RF005–RF008 | ✅ Entregado — `POST /api/reportes` expone `RegistrarReporteService`. `@Cacheable` sobre `GET /api/sectores` y las reglas de rate limiting (`/api/veedor/sesion`, `/api/reportes`) 🟡 en revisión — [PR #112](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/112), pendiente de un revisor. Escrito y fusionado por D5 (Yordy) directo, decisión explícita — no pasó por revisión de Sebastián | C1 ✅ · `RegistrarReporteService` ✅ (Sprint 1) · [PR #104](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/104) |
 | D2 (Carlos) | RF009–RF011 | ✅ Entregado — `EvaluarConsensoService` con patrón Strategy (`UmbralFijoEstrategiaConsenso`, `UmbralProporcionalEstrategiaConsenso`), leyendo `ContadorReportesPort.contarRecientes`. Anexa el evento a `eventos_bitacora` en vez de publicar un evento de dominio aparte (más simple, mismo resultado observable). Escrito y fusionado por D5 (Yordy) directo, decisión explícita — no pasó por revisión de Carlos | C1 ✅ · `ContadorReportesPort` ✅ (Sprint 1, PR #57) · [PR #106](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/106) |
 | D1 (Rafael) | RF013 (completo) · RF015 | ✅ Entregado — `GET /api/suscripciones/confirmar` y `GET /api/suscripciones/cancelar`, probados extremo a extremo (confirmar dos veces no falla, token inválido → 400 real). Escrito y fusionado por D5 (Yordy) directo, decisión explícita — no pasó por revisión de Rafael | C1 ✅ · `SuscribirseService` ✅ (Sprint 1, PR #78) · [PR #107](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/107) |
 | D4 (José) | RF008 | Sigue pendiente — conectar `FormularioReporte` a `POST /api/reportes` real, ahora que existe. Hoy usa el fallback que produce `BUG-017` (éxito falso si la API falla), y el contrato pide un campo `huella` que el frontend todavía no genera (ver nota del PR #104) | `POST /api/reportes` ✅ (D3, este sprint) |
@@ -52,8 +52,8 @@ Cadena de dependencias y compuertas: [`../equipo/secuencia-de-trabajo.md`](../eq
 | Build falla si ArchUnit falla | D5 | `backend-ci.yml` (`./mvnw verify`) | ✅ |
 | `RegistrarReporteService` + RF006 real | D5 (en capa de D2, Sprint 1) | PR #84, #89 | ✅ — falta solo el endpoint |
 | Ventana deslizante de consenso en Redis (`ContadorReportesPort`) | D3 | PR #57 (Sprint 1) | ✅ — falta quien la lea |
-| Rate limiting Redis (`RateLimitingInterceptor`) | D3 | PR #60 (Sprint 1) | ✅ infra, sin reglas activas |
-| Caché sobre Redis (`@EnableCaching`) | D3 | PR #61 (Sprint 1) | ✅ infra, sin `@Cacheable` en uso |
+| Rate limiting Redis (`RateLimitingInterceptor`) | D3 | PR #60 (Sprint 1) | 🟡 reglas activas desde [PR #112](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/112), pendiente de fusionar |
+| Caché sobre Redis (`@EnableCaching`) | D3 | PR #61 (Sprint 1) | 🟡 en uso desde [PR #112](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/112), pendiente de fusionar |
 | Colectores de ingesta M9 (`AcuacarApiCollector`, `RssCollector`) | D3 | PR #98 (Sprint 1, adelantado de Sprint 4) | ✅ — capa de IA sigue bloqueada por `BL-005` |
 
 **Lo que no adelantó nadie, y es el corazón de este sprint:** la API de reportes y la lógica de

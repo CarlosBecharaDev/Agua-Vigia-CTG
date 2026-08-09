@@ -56,17 +56,21 @@
 /* ─── Modo oscuro — media query del SO ─── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --color-acento:        #54c6ca;
-    --color-acento-vivo:   #78d9db;
-    --color-acento-suave:  #153f44;
+    --color-acento:       #54c6ca;
+    --color-acento-vivo:  #78d9db;
+    --color-acento-suave: #153f44;
 
-    --color-tinta:         #edf8f7;
-    --color-tinta-2:       #a7bdbd;
-    --color-tinta-3:       #71898c;
+    --color-tinta:        #edf8f7;
+    --color-tinta-2:      #a7bdbd;
+    --color-tinta-3:      #71898c;
+    --color-marino:       #061b22;
 
-    --color-linea:         #234a4f;
-    --color-superficie:    #102f36;
-    --color-fondo:         #071f26;
+    --color-linea:        #234a4f;
+    --color-superficie:   #102f36;
+    --color-fondo:        #071f26;
+
+    --sombra-suave: 0 4px 20px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15);
+    --sombra-elevada: 0 12px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
 
     --color-estado-con:   #30d158;
     --color-estado-sin:   #ff453a;
@@ -79,17 +83,21 @@
 
 /* ─── Modo oscuro — interruptor manual ─── */
 :root[data-theme="dark"] {
-  --color-acento:        #54c6ca;
-  --color-acento-vivo:   #78d9db;
-  --color-acento-suave:  #153f44;
+  --color-acento:       #54c6ca;
+  --color-acento-vivo:  #78d9db;
+  --color-acento-suave: #153f44;
 
-  --color-tinta:         #edf8f7;
-  --color-tinta-2:       #a7bdbd;
-  --color-tinta-3:       #71898c;
+  --color-tinta:        #edf8f7;
+  --color-tinta-2:      #a7bdbd;
+  --color-tinta-3:      #71898c;
+  --color-marino:       #061b22;
 
-  --color-linea:         #234a4f;
-  --color-superficie:    #102f36;
-  --color-fondo:         #071f26;
+  --color-linea:        #234a4f;
+  --color-superficie:   #102f36;
+  --color-fondo:        #071f26;
+
+  --sombra-suave: 0 4px 20px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15);
+  --sombra-elevada: 0 12px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
 
   --color-estado-con:   #30d158;
   --color-estado-sin:   #ff453a;
@@ -635,6 +643,34 @@ select {
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+#saltar-al-contenido {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 99999;
+  padding: 0.7rem 1rem;
+  color: white;
+  background: var(--color-marino);
+  border-radius: var(--radio-base);
+  text-decoration: none;
+  transform: translateY(-160%);
+  transition: transform var(--transicion);
+}
+
+#saltar-al-contenido:focus { transform: translateY(0); }
 
 /* ─── Shell de aplicación inspirado en paneles operativos modernos ─── */
 .app-shell {

@@ -1,6 +1,7 @@
 package com.aguavigia.ctg.infrastructure.persistence.mongo;
 
 import com.aguavigia.ctg.domain.Coordenada;
+import com.aguavigia.ctg.domain.EstadoModeracion;
 import com.aguavigia.ctg.domain.HuellaDispositivo;
 import com.aguavigia.ctg.domain.ReporteCiudadano;
 import com.aguavigia.ctg.domain.ReporteId;
@@ -101,5 +102,53 @@ class ReporteCiudadanoMongoAdapterTest {
         documento.setHuella("hash");
         documento.setTimestamp(timestamp);
         mongoTemplate.save(documento);
+    }
+
+    @Test
+    void debeNacerPendienteDeModeracion() {
+        ReporteCiudadano reporte = new ReporteCiudadano(
+                new ReporteId("r5"), new SectorId("bocagrande"), TipoReporte.SIN_AGUA,
+                null, new HuellaDispositivo("hash-5"), AHORA);
+
+        adaptador.guardar(reporte);
+
+        ReporteCiudadano recuperado = adaptador.buscarPorId(new ReporteId("r5")).orElseThrow();
+        assertThat(recuperado.estadoModeracion()).isEqualTo(EstadoModeracion.PENDIENTE);
+    }
+
+    @Test
+    void debeTratarUnDocumentoSinEstadoModeracionComoPendiente() {
+        // Documento sembrado antes de RF018 (ADR-023): sin el campo, no ya moderado.
+        guardarConTimestamp("r6", AHORA);
+
+        ReporteCiudadano recuperado = adaptador.buscarPorId(new ReporteId("r6")).orElseThrow();
+
+        assertThat(recuperado.estadoModeracion()).isEqualTo(EstadoModeracion.PENDIENTE);
+    }
+
+    @Test
+    void debeListarPendientesIncluyendoLosSinCampoDeModeracion() {
+        adaptador.guardar(new ReporteCiudadano(new ReporteId("r7"), new SectorId("bocagrande"),
+                TipoReporte.SIN_AGUA, null, new HuellaDispositivo("hash-7"), AHORA));
+        guardarConTimestamp("r8", AHORA);
+        adaptador.guardar(new ReporteCiudadano(new ReporteId("r9"), new SectorId("bocagrande"),
+                TipoReporte.SIN_AGUA, null, new HuellaDispositivo("hash-9"), AHORA).aprobar());
+
+        List<ReporteCiudadano> pendientes = adaptador.listarPendientes();
+
+        assertThat(pendientes).extracting(r -> r.id().valor()).containsExactlyInAnyOrder("r7", "r8");
+    }
+
+    @Test
+    void debeSacarUnReporteDeLaColaAlModerarlo() {
+        adaptador.guardar(new ReporteCiudadano(new ReporteId("r10"), new SectorId("bocagrande"),
+                TipoReporte.SIN_AGUA, null, new HuellaDispositivo("hash-10"), AHORA));
+
+        ReporteCiudadano recuperado = adaptador.buscarPorId(new ReporteId("r10")).orElseThrow();
+        adaptador.guardar(recuperado.descartar());
+
+        assertThat(adaptador.listarPendientes()).isEmpty();
+        assertThat(adaptador.buscarPorId(new ReporteId("r10")).orElseThrow().estadoModeracion())
+                .isEqualTo(EstadoModeracion.DESCARTADO);
     }
 }

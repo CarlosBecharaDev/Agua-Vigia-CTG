@@ -1,6 +1,7 @@
 package com.aguavigia.ctg.infrastructure.persistence.mongo;
 
 import com.aguavigia.ctg.domain.Coordenada;
+import com.aguavigia.ctg.domain.EstadoModeracion;
 import com.aguavigia.ctg.domain.HuellaDispositivo;
 import com.aguavigia.ctg.domain.ReporteCiudadano;
 import com.aguavigia.ctg.domain.ReporteId;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class ReporteCiudadanoMongoAdapter implements ReporteCiudadanoRepository {
@@ -36,6 +38,7 @@ public class ReporteCiudadanoMongoAdapter implements ReporteCiudadanoRepository 
         }
         documento.setHuella(reporte.huella().hash());
         documento.setTimestamp(reporte.timestamp());
+        documento.setEstadoModeracion(reporte.estadoModeracion().name());
 
         repositorio.save(documento);
         return reporte;
@@ -49,16 +52,34 @@ public class ReporteCiudadanoMongoAdapter implements ReporteCiudadanoRepository 
                 .toList();
     }
 
+    @Override
+    public Optional<ReporteCiudadano> buscarPorId(ReporteId id) {
+        return repositorio.findById(id.valor()).map(ReporteCiudadanoMongoAdapter::aDominio);
+    }
+
+    @Override
+    public List<ReporteCiudadano> listarPendientes() {
+        return repositorio.findPendientesIncluyendoNulo(EstadoModeracion.PENDIENTE.name()).stream()
+                .map(ReporteCiudadanoMongoAdapter::aDominio)
+                .toList();
+    }
+
     private static ReporteCiudadano aDominio(ReporteCiudadanoDocumento documento) {
         Coordenada coordenada = documento.getLatitud() != null
                 ? new Coordenada(documento.getLatitud(), documento.getLongitud())
                 : null;
+        // Nulo en documentos sembrados antes de RF018 (ADR-023): se tratan como PENDIENTE, no como
+        // ya moderados — un reporte viejo sin decision del veedor sigue siendo candidato.
+        EstadoModeracion estado = documento.getEstadoModeracion() != null
+                ? EstadoModeracion.valueOf(documento.getEstadoModeracion())
+                : EstadoModeracion.PENDIENTE;
         return new ReporteCiudadano(
                 new ReporteId(documento.getId()),
                 new SectorId(documento.getSectorId()),
                 TipoReporte.valueOf(documento.getTipo()),
                 coordenada,
                 new HuellaDispositivo(documento.getHuella()),
-                documento.getTimestamp());
+                documento.getTimestamp(),
+                estado);
     }
 }

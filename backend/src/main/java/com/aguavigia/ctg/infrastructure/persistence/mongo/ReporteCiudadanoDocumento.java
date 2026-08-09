@@ -26,4 +26,8 @@ public class ReporteCiudadanoDocumento {
 
     @Indexed
     private Instant timestamp;
+
+    /** RF018 (`ADR-023`) — PENDIENTE, APROBADO o DESCARTADO. Nulo en documentos sembrados antes de M5. */
+    @Indexed
+    private String estadoModeracion;
 }

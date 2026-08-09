@@ -28,7 +28,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(VeedorAuthController.class)
 @Import(SecurityConfig.class)
 @TestPropertySource(properties = {
-        "aguavigia.veedor.password-hash=$2a$10$LvpcjoXWl6t7H8c.oTJ0GOS/KHQbhIxn7MnwsKT5tRd3Ya3UZSeAW"
+        "aguavigia.veedor.password-hash=$2a$10$LvpcjoXWl6t7H8c.oTJ0GOS/KHQbhIxn7MnwsKT5tRd3Ya3UZSeAW",
+        // Sin reglas de rate limiting: este slice prueba el login, y con la regla real de
+        // application.yml el interceptor llamaria al RedisTemplate mockeado. Que /api/veedor/sesion
+        // quede protegido de verdad lo prueba ReglasDeRateLimitDeProduccionTest.
+        "aguavigia.rate-limit.reglas="
 })
 class VeedorAuthControllerTest {
 

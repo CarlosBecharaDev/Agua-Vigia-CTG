@@ -332,7 +332,8 @@
   .vacio-atencion { font-size: 0.78rem; color: var(--color-tinta-3); font-style: italic; padding: 0.5rem 0; }
 
   .lista-adr { display: flex; flex-direction: column; }
-  .fila-adr { display: flex; justify-content: space-between; gap: 0.75rem; padding: 0.58rem 0; border-bottom: 1px solid var(--color-linea); align-items: baseline; }
+  .fila-adr { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.75rem; padding: 0.58rem 0; border-bottom: 1px solid var(--color-linea); align-items: baseline; }
+  .nota-estado-bug { flex-basis: 100%; font-size: 0.68rem; color: var(--color-tinta-3); line-height: 1.4; margin-top: 0.2rem; }
   .fila-adr:last-child { border-bottom: none; }
   .adr-titulo { font-size: 0.77rem; color: var(--color-tinta); }
   .adr-titulo .n { font-family: var(--font-util); color: var(--color-acento); margin-right: 0.4rem; }
@@ -344,6 +345,7 @@
   .chip-mini.validada { background: var(--color-estado-con-bg); color: var(--color-estado-con); }
   .chip-mini.descartada { background: var(--color-estado-sin-bg); color: var(--color-estado-sin); }
   .chip-mini.resuelta { background: var(--color-estado-prog-bg); color: var(--color-estado-prog); }
+  .chip-mini.parcial { background: var(--color-estado-baja-bg); color: var(--color-estado-baja); font-weight: 700; }
   .lista-recomendaciones { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
   @media (max-width: 780px) { .lista-recomendaciones { grid-template-columns: 1fr; } }
   .rec-cab { display: flex; align-items: baseline; gap: 0.55rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
@@ -1222,11 +1224,14 @@ window.addEventListener("error", function (ev) {
     }).join("");
     document.getElementById("lista-adr").innerHTML = htmlAdr;
 
-    // Abiertos primero y, dentro de ellos, los graves arriba: una lista de 33 bugs en orden de
-    // registro esconde el S1 entre los cerrados.
+    // Abiertos primero y, dentro de ellos, los graves arriba: una lista de bugs en orden de
+    // registro esconde el S1 entre los cerrados. "Parcial"/"En curso" cuentan como no resueltos
+    // del todo, igual que "Abierto", para efectos de orden.
     var pesoSev = { S1: 0, S2: 1, S3: 2, S4: 3 };
+    var resuelto = { "Cerrado": true, "No se corrige": true };
+    var claseBug = { "Abierto": "abierto", "Parcial": "parcial", "En curso": "parcial", "Cerrado": "cerrado", "No se corrige": "cerrado" };
     var bugsOrdenados = DATA.bugs.slice().sort(function (a, b) {
-      var abiertoA = a.estado === "Abierto" ? 0 : 1, abiertoB = b.estado === "Abierto" ? 0 : 1;
+      var abiertoA = resuelto[a.estado] ? 1 : 0, abiertoB = resuelto[b.estado] ? 1 : 0;
       if (abiertoA !== abiertoB) return abiertoA - abiertoB;
       return (pesoSev[a.sev] === undefined ? 9 : pesoSev[a.sev]) - (pesoSev[b.sev] === undefined ? 9 : pesoSev[b.sev]);
     });
@@ -1234,8 +1239,10 @@ window.addEventListener("error", function (ev) {
       var h = '<div class="fila-adr"><span class="adr-titulo"><span class="n">' + b.id + '</span>';
       if (b.sev) h += '<span class="sev ' + escapeHtml(b.sev) + '">' + escapeHtml(b.sev) + '</span> ';
       h += escapeHtml(b.titulo);
-      if (b.estado === "Abierto" && b.responsable) h += ' <span class="mono" style="font-size:.66rem;color:var(--color-tinta-3)">· ' + escapeHtml(b.responsable) + '</span>';
-      return h + '</span><span class="chip-mini ' + (b.estado === "Abierto" ? "abierto" : "cerrado") + '">' + b.estado + '</span></div>';
+      if (!resuelto[b.estado] && b.responsable) h += ' <span class="mono" style="font-size:.66rem;color:var(--color-tinta-3)">· ' + escapeHtml(b.responsable) + '</span>';
+      h += '</span><span class="chip-mini ' + (claseBug[b.estado] || "abierto") + '">' + escapeHtml(b.estado) + '</span>';
+      if (b.notaEstado) h += '<div class="nota-estado-bug">' + escapeHtml(b.notaEstado) + '</div>';
+      return h + '</div>';
     }).join("");
     document.getElementById("lista-bugs").innerHTML = htmlBug || '<p class="vacio-atencion">Sin bugs registrados.</p>';
   })();
