@@ -12,7 +12,7 @@ const sectores = [
 ]
 
 describe('ListaSectores', () => {
-  it('mantiene los datos demo visibles cuando la fuente falla', () => {
+  it('mantiene los últimos datos reales visibles cuando la fuente falla, avisando que pueden estar desactualizados', () => {
     render(
       <ListaSectores
         sectores={sectores}
@@ -23,7 +23,7 @@ describe('ListaSectores', () => {
     )
 
     expect(screen.getByText('BOCAGRANDE')).toBeInTheDocument()
-    expect(screen.getByText(/datos de demostracion/i)).toBeInTheDocument()
+    expect(screen.getByText(/últimos datos que se cargaron/i)).toBeInTheDocument()
   })
 
   it('muestra un estado claro cuando no hay sectores disponibles', () => {

@@ -9,19 +9,13 @@ import type { FC } from 'react'
 import { PageWrapper } from '../components/PageWrapper'
 import { isSimulationMode } from '../config'
 
-const SECTORES_MOCK = [
-  { id: '1', nombre: 'BOCAGRANDE' },
-  { id: '2', nombre: 'CASTILLOGRANDE' },
-  { id: '3', nombre: 'EL LAGUITO' },
-  { id: '4', nombre: 'MANGA' },
-  { id: '5', nombre: 'PIE DE LA POPA' },
-  { id: '6', nombre: 'OLAYA ST. RICAURTE' },
-  { id: '7', nombre: 'OLAYA ST. CENTRAL' },
-  { id: '8', nombre: 'GETSEMANI' },
-  { id: '9', nombre: 'EL CENTRO' },
-  { id: '10', nombre: 'LA BOQUILLA' },
-  { id: '11', nombre: 'EL SOCORRO' },
-]
+interface ReportePendiente {
+  id: number
+  barrio: string
+  problema: string
+  tiempo: string
+  color: string
+}
 
 /* ── Estilos glassmorphism reutilizables ── */
 const estiloGlass: React.CSSProperties = {
@@ -42,11 +36,7 @@ const PaginaVeedor: FC = () => {
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [registroExitoso, setRegistroExitoso] = useState(false)
 
-  const [reportes, setReportes] = useState([
-    { id: 1, barrio: 'MANGA', problema: 'SIN AGUA', tiempo: 'hace 5 min', color: 'var(--color-estado-sin)' },
-    { id: 2, barrio: 'EL CENTRO', problema: 'BAJA PRESIÓN', tiempo: 'hace 12 min', color: 'var(--color-estado-baja)' },
-    { id: 3, barrio: 'GETSEMANÍ', problema: 'SIN AGUA', tiempo: 'hace 22 min', color: 'var(--color-estado-sin)' },
-  ])
+  const [reportes, setReportes] = useState<ReportePendiente[]>([])
 
   // Cargar datos al montar el componente si está autenticado
   const [sectoresBackend, setSectoresBackend] = useState<{id: string, nombre: string}[]>([])
@@ -58,7 +48,7 @@ const PaginaVeedor: FC = () => {
           if (data && data.length > 0) setReportes(data as any);
         })
         .catch(err => {
-          console.warn("API de reportes no disponible, usando MOCKS", err);
+          console.warn("API de reportes no disponible", err);
         });
 
       AguaVigiaAPI.obtenerSectores()
@@ -69,7 +59,6 @@ const PaginaVeedor: FC = () => {
         })
         .catch(err => {
           console.warn("API de sectores no disponible", err);
-          setSectoresBackend(SECTORES_MOCK);
         });
     }
   }, [autenticado]);

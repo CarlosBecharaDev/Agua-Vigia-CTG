@@ -4,7 +4,7 @@
  * Conectado a datos reales vía useDatosEnVivo:
  *  - Acuacar WordPress API → boletines oficiales → estado de barrios
  *  - Open-Meteo → clima en tiempo real
- *  - Fallback automático a datos mock si las APIs no responden.
+ *  - Si las APIs no responden, muestra "sin datos" en vez de inventar sectores.
  *
  * DESIGN.md §1: responde "¿tengo agua?" en menos de 5 segundos.
  */

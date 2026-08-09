@@ -4,8 +4,8 @@
  * Sprint 1: carga el GeoJSON de barrios desde /data/geoespacial/barrios-cartagena.geojson
  * (datos reales de D5) y colorea los polígonos según su estado.
  *
- * Sin C2: los estados son mock locales que se reemplazarán con GET /api/sectores
- * cuando D3 publique el contrato OpenAPI. Los tipos y colores son definitivos.
+ * C2 ya está abierta: el estado de cada sector viene de GET /api/sectores
+ * (vía useDatosEnVivo), no de datos locales. Los tipos y colores son definitivos.
  *
  * Leaflet requiere que su CSS se importe antes de crear el mapa.
  */

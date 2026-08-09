@@ -56,6 +56,7 @@ Tres razones concretas, no burocráticas:
 | BUG-029 | 2026-08-09 | S4 | — (sala de control / M7) | Detalles menores encontrados en la misma revisión: layout de `.narrativa` en 3-4 columnas en vez de 2, campo `urgente` muerto en bugs, y falta cleanup del listener `appinstalled` en `BotonInstalarPWA.tsx` | 🟡 Parcial — ítems 1, 2, 4 y 5 (sala de control) cerrados; ítem 3 (`BotonInstalarPWA.tsx`, D4) sigue abierto | Equipo / D4 |
 | BUG-030 | 2026-08-08 | S3 | — (proceso) | El comando de la compuerta C0 solo validaba el YAML: la máquina de D5 no tenía ningún motor de contenedores instalado | Cerrado | D5 |
 | BUG-031 | 2026-08-09 | S2 | — (sala de control) | `leerDetalleSprint` asumía siempre 5 columnas en la tabla de Compromisos; `sprint-1.md` (recién abierto, en planificación pura) tiene solo 4 sin columna Estado, y `generar-dashboard.mjs` tumbaba con `TypeError: Cannot read properties of undefined (reading 'startsWith')` | Cerrado | Equipo (sala de control) |
+| BUG-032 | 2026-08-08 | S1 | M1 | `ListaSectores.tsx` mostraba un número de "reportes ciudadanos" por sector completamente inventado (`sector.id * 4 + 7`), siempre visible, no solo en modo demo | Cerrado | D4 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -929,6 +930,37 @@ mismo ternario que ya existía, sin necesitar una rama especial.
 
 ---
 
+## Nota sobre BUG-032
+
+**Síntoma:** `ListaSectores.tsx` (RF004, alternativa textual accesible al mapa) mostraba junto al
+nombre de cada sector un badge *"N reportes ciudadanos"*, con `N` calculado por
+`obtenerReportesMock(sector)` — una fórmula (`sector.id * 4 + 7` para la mayoría de estados) sin
+relación con ningún dato real. A diferencia de `SECTORES_MOCK`/`MOCK_EVENTOS` (que solo aparecían si
+la API fallaba), este badge se mostraba **siempre**, con datos reales o no.
+
+**Cómo se encontró:** al retirar `SECTORES_MOCK` de `useDatosEnVivo.ts` (`DT-001`, Sprint 1) se
+revisó todo el árbol de componentes que consume `Sector[]`, y apareció esta segunda fuente de datos
+inventados que ninguna de las cinco entradas `DT-001`–`DT-005` mencionaba.
+
+**Causa raíz:** dato de diseño (placeholder visual) que nunca se conectó a una fuente real ni se
+marcó como pendiente — no hay todavía un endpoint que exponga el conteo de reportes por sector
+(`RegistrarReporteService`, Sprint 1, no expone agregación; eso es de `EvaluarConsensoUseCase`,
+RF009-RF011, sin implementar).
+
+**Por qué es S1 y no S2:** `CLAUDE.md`, ética de datos punto 4 y la regla especial de este
+documento — un número de reportes inventado en la lista pública, presentado sin distinción del real,
+es exactamente el "corte inventado" que la regla prohíbe sin excepción, aunque el resto del sector si
+mostrara su estado real.
+
+**Corrección:** se retiró `obtenerReportesMock` y el badge que lo consumía. No se reemplaza por una
+llamada a un endpoint que no existe — "sin dato" es preferible a inventarlo (mismo criterio que
+`ADR-014`). Se repone cuando exista una fuente real de conteo de reportes por sector.
+**Prueba que impide la regresión:** ninguna automatizada — es ausencia de código, no hay
+comportamiento que testear. Mitigación: `npm run build` y `npm test` verifican que no queda ninguna
+referencia a `obtenerReportesMock` en el árbol compilado.
+
+---
+
 ## Regla especial: bugs que publican información falsa
 
 Un defecto que haga que la plataforma muestre un corte que no existe, o un Índice de Cumplimiento
@@ -953,5 +985,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-032
+Siguiente número disponible: BUG-033
 -->

@@ -37,8 +37,8 @@ a ser código muerto que alguien confundirá con producción.
 |---|---|---|---|
 | D1 (Yordy) | RF012–RF014 | ✅ Entregado — `POST /api/suscripciones` con DTOs y envío de correo asíncrono (`@Async` + `JavaMailSender`) contra Mailhog, probado extremo a extremo contra Mailhog real | C1 ✅ · plantillas HTML ya listas, sin fusionar · [PR #78](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/78) |
 | D1 (Rafael) | — | Capítulo I del informe (planteamiento, justificación, objetivos) y validación de la plantilla oficial de Comfenalco | — *(no depende de nadie; heredado de Yordy como D1 interino, `ADR-021`)* |
-| D4 | RF001–RF004 | **Retirar los datos de demostración** de `useDatosEnVivo.ts:27`, `PaginaVeedor.tsx:10` y `PaginaBitacora.tsx:17`, conservando la señalización de estado que ya existe pero mostrando "sin datos" en vez de valores inventados. Caducan `DT-001`–`DT-005` e issues #34–#36, #38, #39 | C2 ✅ · C3 ✅ |
-| D2 | RF005–RF007 | Primeros casos de uso reales en `application/` — `RegistrarReporteService`. **Desbloqueado por el cierre del Sprint 0** | C1 ✅ · Review del Sprint 0 ✅ |
+| D4 | RF001–RF004 | ✅ Entregado — datos de demostración retirados de `useDatosEnVivo.ts`, `PaginaVeedor.tsx` y `PaginaBitacora.tsx`, más `BUG-032` encontrado y cerrado en el camino (reportes ciudadanos inventados en `ListaSectores.tsx`). Escrito y fusionado por D5 (Yordy) directo, por decisión explícita — no pasó por revisión de José | C2 ✅ · C3 ✅ |
+| D2 | RF005–RF007 | ✅ Entregado — `RegistrarReporteService` en `application/`, primer caso de uso real del proyecto. Escrito y fusionado por D5 (Yordy) directo, por decisión explícita — no pasó por revisión de Carlos | C1 ✅ · Review del Sprint 0 ✅ · [PR #84](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/84) |
 | D5 (Yordy) | RNF | Motor de contenedores instalado y **C0 reverificada levantando el entorno de verdad**; cambiar su comando de verificación | — *(no depende de nadie)* |
 | D3 | — | Nada nuevo comprometido: su alcance de Sprint 1 (adaptador Mongo, API de sectores, OpenAPI) ya está entregado en el PR #56. Disponible para `BL-005`/`BL-006` en cuanto se destraben | `BL-006` 🔴 · `BL-005` 🔴 |
 

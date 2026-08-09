@@ -12,7 +12,6 @@ import type { Sector } from '../types/tipos-dominio'
 import { COLOR_POR_ESTADO, COLOR_SIN_DATOS } from '../types/tipos-dominio'
 import { InsigniaEstado } from './InsigniaEstado'
 import { EtiquetaFrescura } from './EtiquetaFrescura'
-import { MessageSquareWarning } from 'lucide-react'
 
 interface Props {
   sectores: Sector[]
@@ -62,13 +61,6 @@ export const ListaSectores: FC<Props> = ({ sectores, cargando, error, onSectorSe
     )
   }
 
-  // Genera un número de reportes estático falso para diseño
-  const obtenerReportesMock = (sector: Sector) => {
-    if (sector.estado === 'CON_SERVICIO') return 0;
-    if (sector.estado === 'CORTE_PROGRAMADO') return Math.floor(parseInt(sector.id) * 2);
-    return parseInt(sector.id) * 4 + 7;
-  }
-
   return (
     <section aria-label="Lista de sectores y su estado de servicio">
       <h2
@@ -96,7 +88,7 @@ export const ListaSectores: FC<Props> = ({ sectores, cargando, error, onSectorSe
             lineHeight: 1.4,
           }}
         >
-          Conexion no disponible. Se muestran datos de demostracion; no representan el estado oficial actual.
+          Conexión no disponible. Se muestran los últimos datos que se cargaron; pueden estar desactualizados.
         </div>
       )}
 
@@ -172,20 +164,6 @@ export const ListaSectores: FC<Props> = ({ sectores, cargando, error, onSectorSe
                   }}
                 >
                   <span>{sector.nombre}</span>
-                  {obtenerReportesMock(sector) > 0 && (
-                    <span style={{ 
-                      fontSize: '0.75rem', 
-                      color: 'var(--color-estado-sin)', 
-                      display: 'inline-flex', 
-                      alignItems: 'center', 
-                      gap: '0.25rem',
-                      marginTop: '0.2rem',
-                      fontFamily: 'var(--font-util)'
-                    }}>
-                      <MessageSquareWarning size={12} />
-                      {obtenerReportesMock(sector)} reportes ciudadanos
-                    </span>
-                  )}
                 </button>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.2rem' }}>
                   <EtiquetaFrescura timestampIso={sector.actualizadoEn} />
