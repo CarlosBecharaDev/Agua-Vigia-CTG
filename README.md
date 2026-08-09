@@ -8,7 +8,8 @@ Cruza los avisos oficiales de Acuacar con reportes ciudadanos georreferenciados 
 > Proyecto de aula · Fundación Universitaria Tecnológico Comfenalco
 > Tecnología en Desarrollo de Software · Cartagena de Indias D.T. y C. · 2026
 
-**Estado actual: Sprint 0 — fase de documentación.** El código de la aplicación aún no se ha iniciado.
+**Estado actual: Sprint 1.** Backend con API de sectores, mapa conectado a datos reales y PWA
+instalable ya en `develop`. Detalle vivo: [`docs/gestion/sprint-1.md`](docs/gestion/sprint-1.md).
 
 ---
 
@@ -118,10 +119,13 @@ Detalle en `CLAUDE.md`, en `docs/design-decisions.md` (ADR-005, ADR-008) y en
 
 ## Ritmo de trabajo
 
-**7 sprints de ~4 semanas:** Sprint 0 de preparación + Sprints 1–6 de construcción. 5 integrantes,
-metodología Scrum.
+**7 sprints:** Sprint 0 de preparación + Sprints 1–6 de construcción. 5 integrantes, metodología Scrum.
 
-- Calendario, ceremonias y definición de terminado: [`docs/gestion/README.md`](docs/gestion/README.md)
+**Un sprint no dura un número fijo de semanas: dura hasta que su entregable se demuestra funcionando.**
+Cerrar por calendario obliga a arrastrar lo que no alcanzó o a inventar trabajo para llenar la semana;
+cerrar por entregable deja el avance medido en lo único que se puede demostrar ante el docente.
+
+- Entregables, ceremonias y definición de terminado: [`docs/gestion/README.md`](docs/gestion/README.md)
 - Quién habilita a quién y en qué orden: [`docs/equipo/secuencia-de-trabajo.md`](docs/equipo/secuencia-de-trabajo.md)
 - Tareas por persona: [`docs/equipo/`](docs/equipo/)
 
@@ -129,11 +133,20 @@ metodología Scrum.
 
 ## Cómo levantar el proyecto
 
-> Aún no aplica — el código no ha iniciado. Cuando exista:
+Requiere un **motor de contenedores** corriendo, no solo el cliente de Docker. En Linux o con Docker
+Desktop no hace falta nada más. En macOS sin Docker Desktop, instala [Colima](https://github.com/abiosoft/colima)
+(`brew install colima && colima start`) y exporta estas dos variables antes de compilar el backend o
+levantar el entorno — son necesarias para que Testcontainers encuentre el daemon y monte el socket
+correcto (`BUG-030`):
+
+```bash
+export DOCKER_HOST="unix://$HOME/.colima/default/docker.sock"
+export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
+```
 
 ```bash
 cp .env.example .env     # ajusta tus variables
-docker compose up        # Mongo + Redis + Mailhog + backend + frontend
+docker compose up -d --wait   # Mongo + Redis + Mailhog + backend + frontend, falla si algo no arranca
 ```
 
 ---

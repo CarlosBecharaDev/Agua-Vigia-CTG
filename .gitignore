@@ -55,3 +55,11 @@ redis-data/
 # ─── Resultados de pruebas ───
 playwright-report/
 test-results/
+
+# ─── Sala de control (se genera en CI, no se comitea) ───
+dist-dashboard/
+
+# ─── Sesion del bot de WhatsApp — NUNCA comitear ───
+# Quien tenga estos archivos puede enviar mensajes como el numero vinculado.
+# En CI vive en actions/cache, no en el repositorio.
+bot-whatsapp/sesion/

@@ -41,9 +41,9 @@ Varios medios colombianos añadieron en 2024–2025 bloqueos explícitos a `GPTB
 | **El Tiempo** | `Disallow: /` explícito para `ClaudeBot`, `Claude-Web`, `anthropic-ai`, `GPTBot`, `CCBot`, `ChatGPT Agent`, `ChatGPT-User`, `OAI-SearchBot`, más el bloque `# Meta IA` (`FacebookBot`, `Meta-ExternalAgent`) | Su feed regional (`/rss/colombia_barranquilla.xml`) técnicamente responde, y cubre el Caribe pero no es Cartagena-específico | ❌ **Excluido**, pese a que la petición de prueba funcionó — el bloqueo cubre el sitio completo para agentes de IA y no depende de qué ruta se pida. |
 | **El Heraldo** (Barranquilla, cubre el Caribe) | Bloquea agentes de IA (mismo patrón) | — | ❌ Excluido por la misma regla |
 | **Blu Radio** | Bloquea agentes de IA | — | ❌ Excluido |
-| **RCN Radio** | `User-agent: *` → `Allow: /`, sin bloqueo a IA | Página HTML responde HTTP 200, sin RSS público descubierto en la ruta estándar | ⚠️ Permitido pero sin RSS localizado — requiere ubicar el feed real antes de integrarlo |
-| **Caracol Radio** | Solo bloquea `PetalBot` (Huawei); `User-agent: *` abierto | Feed en `/rss/` devolvió error de conexión en las pruebas (puede ser transitorio de red, no bloqueo) | ⚠️ Permitido — reintentar la ruta del feed en el sprint de implementación |
-| **W Radio** | Solo bloquea `PetalBot`; `User-agent: *` abierto | Igual que Caracol — error de conexión en la prueba, no bloqueo confirmado | ⚠️ Permitido — reintentar |
+| **RCN Radio** | `User-agent: *` → `Allow: /`, sin bloqueo a IA, `Sitemap: /sitemap.xml` | Reverificado 2026-08-08: `/rss.xml` redirige a la portada HTML de `newsroom.rcnradio.com` (no es un feed); `/feed`, `/arc/outboundfeeds/rss/` y `/arc/outboundfeeds/google-news-feed/` devuelven `200` pero `Content-Type: text/html`, no XML. Cuatro rutas probadas, ninguna es un feed real. | ⚠️ Permitido pero sin RSS localizado — confirmado con evidencia, no solo con la ruta estándar. Requiere que alguien del equipo lo ubique manualmente en el sitio o se descarte esta fuente |
+| **Caracol Radio** | Solo bloquea `PetalBot` (Huawei) y rutas específicas — **incluye `Disallow: /feed.aspx`**, que era la ruta legacy que se había asumido | Reverificado 2026-08-08: el feed real vive en `/arc/outboundfeeds/google-news-feed/?outputType=xml` (CMS Arc/PEP), **no bloqueado por `robots.txt`**. `GET` → **HTTP 200**, RSS 2.0 válido, `sy:updateFrequency` cada hora, ítems con `title`/`link`/`guid`/`dc:creator` | ✅ **Verificado y funcional** — la ruta `/rss/` que se probó antes nunca existió; era necesario descubrir el patrón real de Arc Publishing |
+| **W Radio** | Mismo CMS y patrón de `robots.txt` que Caracol (Prisa Media): bloquea `PetalBot` y rutas específicas, **incluye `Disallow: /feed.aspx`** | Reverificado 2026-08-08: mismo patrón, `https://www.wradio.com.co/arc/outboundfeeds/google-news-feed/?outputType=xml` → **HTTP 200**, RSS 2.0 válido, no bloqueado por `robots.txt` | ✅ **Verificado y funcional** |
 | **Zona Cero** (Cartagena) | Sin bloqueo a IA | `GET /rss.xml` → **HTTP 200**, `application/rss+xml`, 3 ítems | ✅ **Verificado y funcional** |
 
 ### Por qué esto importa para el proyecto
@@ -82,11 +82,15 @@ diste al periódico del barrio".
 académicamente, que indexa millones de artículos de noticias globales en tiempo casi real, con
 geolocalización, tono y clasificación temática — sin necesidad de autenticación.
 
-**Estado de la prueba: ⏳ no verificado — la API devolvió `429 Too Many Requests`** durante la
-auditoría (límite compartido de la infraestructura pública de GDELT, no un bloqueo dirigido al
-proyecto). **Pendiente de reintentar** en el Sprint 0 con throttling propio antes de decidir si se
-integra. Si funciona, sería una fuente adicional de bajo costo para detectar cobertura internacional
-o de medios no cubiertos por Google News.
+**Estado de la prueba: ⏳ sigue sin verificar.** Reintentado el 2026-08-08 con `User-Agent` propio
+(`AguaVigiaCTG/0.1`) y throttling creciente (2 s, 6 s, 15 s entre peticiones, siguiendo la propia
+instrucción del error): las cuatro peticiones devolvieron **`HTTP 429`** con el mismo mensaje —
+*"Please limit requests to one every 5 seconds or contact kalev.leetaru5@gmail.com for larger
+queries"*. `robots.txt` de `api.gdeltproject.org` no existe (`404`), así que no hay una restricción
+ética o de acceso: es un límite de infraestructura compartida que persiste más allá de lo que el
+propio mensaje de error sugiere. **No es un bloqueo dirigido al proyecto**, pero tampoco cede con
+espaciar las peticiones desde este entorno. Queda pendiente: reintentar desde otra red/momento, o
+escribir al contacto que la propia API sugiere para consultas de mayor volumen.
 
 ---
 
@@ -127,10 +131,10 @@ tiempo exacta.
 | 1 | Acuacar API REST + RSS | Oficial | ✅ Verificado, en uso | L1 |
 | 2 | Google News RSS | Agregador de prensa | ✅ Verificado, en uso | L2 |
 | 3 | Zona Cero RSS | Prensa local | ✅ Verificado, en uso | L2 |
-| 4 | RCN Radio | Prensa | ⚠️ Permitido, falta ubicar el feed | L2 (pendiente) |
-| 5 | Caracol Radio | Prensa | ⚠️ Permitido, reintentar conexión | L2 (pendiente) |
-| 6 | W Radio | Prensa | ⚠️ Permitido, reintentar conexión | L2 (pendiente) |
-| 7 | GDELT | Base de eventos noticiosos | ⏳ Rate-limited en la prueba, reintentar | L2 (pendiente) |
+| 4 | RCN Radio | Prensa | ⚠️ Permitido, sin feed localizado (4 rutas probadas, reverificado 2026-08-08) | L2 (pendiente) |
+| 5 | Caracol Radio | Prensa | ✅ Verificado, en uso (`/arc/outboundfeeds/google-news-feed/`) | L2 |
+| 6 | W Radio | Prensa | ✅ Verificado, en uso (`/arc/outboundfeeds/google-news-feed/`) | L2 |
+| 7 | GDELT | Base de eventos noticiosos | ⏳ Rate-limited persistente incluso con throttling (reverificado 2026-08-08) | L2 (pendiente) |
 | 8 | El Universal | Prensa local (la más relevante) | ❌ Excluido — bloquea IA en `robots.txt` | — |
 | 9 | El Tiempo | Prensa nacional | ❌ Excluido — bloquea IA en `robots.txt` | — |
 | 10 | El Heraldo | Prensa regional | ❌ Excluido — bloquea IA en `robots.txt` | — |
@@ -147,11 +151,16 @@ tiempo exacta.
 
 ## 8. Qué queda para el Sprint 0
 
-1. Confirmar y corregir la ruta real de RSS de RCN Radio.
-2. Reintentar la conexión a los feeds de Caracol Radio y W Radio (probablemente un problema de
-   red/TLS en las pruebas, no un bloqueo — ambos `robots.txt` están abiertos).
-3. Reintentar GDELT con throttling propio (1 petición cada varios segundos) para confirmar si el
-   límite fue puntual o estructural.
+1. ~~Confirmar y corregir la ruta real de RSS de RCN Radio.~~ Reverificado 2026-08-08: sigue sin
+   localizarse pese a probar 4 rutas candidatas. Queda como tarea manual (revisar el sitio a ojo o
+   descartar la fuente) — ya no es una tarea de "reintentar", es de "buscar distinto".
+2. ~~Reintentar la conexión a los feeds de Caracol Radio y W Radio.~~ **Resuelto 2026-08-08**: no era
+   un problema de red/TLS, era la ruta equivocada (`/rss/` no existe). El feed real es
+   `/arc/outboundfeeds/google-news-feed/?outputType=xml` en ambos (mismo CMS Arc/PEP), verificado con
+   `robots.txt` permitiéndolo explícitamente. Listos para integrarse en `RssCollector` (Sprint 3).
+3. ~~Reintentar GDELT con throttling propio.~~ Reintentado 2026-08-08 con 3 espaciados crecientes
+   (2 s, 6 s, 15 s) — sigue en `429` de forma persistente. El límite no cede con throttling desde este
+   entorno; queda pendiente probar desde otra red o escribir al contacto que la propia API sugiere.
 4. Refinar la búsqueda en el catálogo de `datos.gov.co` con términos específicos de Bolívar/Cartagena.
 5. Redactar el ADR "Por qué respetamos los bloqueos de `robots.txt` a agentes de IA incluso cuando
    técnicamente podríamos evadirlos" — es defendible académicamente y coherente con la tesis del

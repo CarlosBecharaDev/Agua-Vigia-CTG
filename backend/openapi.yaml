@@ -1,0 +1,381 @@
+openapi: 3.0.1
+info:
+  title: AguaVigia CTG — API publica
+  description: |-
+    Monitoreo ciudadano del acueducto de Cartagena de Indias.
+
+    Plataforma ciudadana e independiente: no esta afiliada a Aguas de Cartagena
+    S.A. E.S.P. ni a ninguna entidad distrital.
+  contact:
+    name: Equipo AguaVigia CTG — Tecnologico Comfenalco
+  license:
+    name: Proyecto de aula
+  version: 0.1.0
+servers:
+- url: /
+  description: Mismo origen que sirve la API
+tags:
+- name: Suscripciones
+  description: Alertas por correo cuando cambia el estado de un sector
+- name: Sectores
+  description: Estado del servicio de agua por sector de Cartagena
+- name: Reportes
+  description: "Reportes ciudadanos de estado del servicio, sin registro"
+- name: Veedor
+  description: Autenticacion del panel del veedor
+paths:
+  /api/veedor/sesion:
+    post:
+      tags:
+      - Veedor
+      summary: Iniciar sesion como veedor
+      description: Devuelve un token JWT valido por 8 horas (RNF011) si la clave es
+        correcta.
+      operationId: iniciarSesion
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CredencialVeedor"
+        required: true
+      responses:
+        "200":
+          description: "Credencial correcta, token emitido"
+          content:
+            '*/*':
+              schema:
+                type: object
+        "401":
+          description: Credencial incorrecta
+          content:
+            '*/*':
+              schema:
+                type: object
+        "503":
+          description: El servidor no tiene configurada la credencial del veedor
+          content:
+            '*/*':
+              schema:
+                type: object
+  /api/suscripciones:
+    post:
+      tags:
+      - Suscripciones
+      summary: Suscribirse a los avisos de uno o más sectores
+      description: |-
+        Crea la suscripción en PENDIENTE_CONFIRMACION y envía un correo de doble
+        opt-in (Ley 1581/2012, RF013). No empieza a recibir avisos hasta confirmarla.
+      operationId: suscribirse
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolicitudSuscripcion"
+        required: true
+      responses:
+        "201":
+          description: "Suscripción creada, correo de confirmación en camino"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuscripcionRespuesta"
+        "400":
+          description: Correo inválido o algún sector no existe
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/reportes:
+    post:
+      tags:
+      - Reportes
+      summary: Registrar un reporte ciudadano
+      description: |-
+        Sin registro ni cuenta (RF005). Limita automáticamente los reportes por
+        dispositivo en la ventana vigente (RF006) — ver 429. La coordenada es opcional,
+        solo si el usuario autorizó compartir su ubicación (RF007).
+      operationId: registrar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolicitudReporte"
+        required: true
+      responses:
+        "201":
+          description: Reporte registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReporteRespuesta"
+        "400":
+          description: Sector inexistente o tipo de reporte inválido
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "429":
+          description: El dispositivo superó el límite de reportes para este sector
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/suscripciones/confirmar:
+    get:
+      tags:
+      - Suscripciones
+      summary: Confirmar la suscripción (doble opt-in)
+      description: "Enlace del correo de confirmación. El token es de un solo enlace,\
+        \ no de un solo uso: confirmarla dos veces no falla (RF013)."
+      operationId: confirmar
+      parameters:
+      - name: token
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Suscripción confirmada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuscripcionRespuesta"
+        "400":
+          description: "Token inválido, inexistente o de una suscripción ya cancelada"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/suscripciones/cancelar:
+    get:
+      tags:
+      - Suscripciones
+      summary: Darse de baja en un clic (RF015)
+      description: Sin pedir credenciales — el token que llega en cada correo es suficiente.
+      operationId: cancelar
+      parameters:
+      - name: token
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Suscripción cancelada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuscripcionRespuesta"
+        "400":
+          description: Token inválido o inexistente
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/sectores:
+    get:
+      tags:
+      - Sectores
+      summary: Listar los sectores con su estado conocido
+      description: |-
+        Devuelve los sectores de Cartagena (211 barrios sembrados desde el GeoJSON
+        oficial). `estado` viaja nulo mientras no haya dato verificado del sector —
+        el cliente debe mostrarlo como "sin datos" y no suponer que hay servicio.
+      operationId: listarSectores
+      responses:
+        "200":
+          description: Listado generado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaSectores"
+  /api/sectores/{id}:
+    get:
+      tags:
+      - Sectores
+      summary: Consultar un sector por su identificador
+      operationId: consultarSector
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Sector encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SectorRespuesta"
+        "404":
+          description: No existe un sector con ese id
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+components:
+  schemas:
+    CredencialVeedor:
+      type: object
+      properties:
+        clave:
+          minLength: 1
+          type: string
+          description: Clave de acceso del veedor
+      description: Credencial de acceso al panel del veedor
+    SolicitudSuscripcion:
+      type: object
+      properties:
+        correo:
+          minLength: 1
+          type: string
+          description: Correo al que llegarán los avisos
+          example: vecino@correo.com
+        sectorIds:
+          minItems: 1
+          type: array
+          description: Identificadores de los sectores a seguir
+          items:
+            type: string
+            description: Identificadores de los sectores a seguir
+      description: Solicitud para suscribirse a los avisos de uno o más sectores
+    ProblemDetail:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+          format: int32
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+    SuscripcionRespuesta:
+      type: object
+      properties:
+        id:
+          type: string
+        correo:
+          type: string
+        sectorIds:
+          type: array
+          items:
+            type: string
+        estado:
+          type: string
+          description: "PENDIENTE_CONFIRMACION, CONFIRMADA o CANCELADA"
+        creadaEn:
+          type: string
+          format: date-time
+      description: "Suscripción creada, pendiente de confirmación por correo (RF013)"
+    CoordenadaDTO:
+      required:
+      - latitud
+      - longitud
+      type: object
+      properties:
+        latitud:
+          maximum: 90
+          exclusiveMaximum: false
+          minimum: -90
+          exclusiveMinimum: false
+          type: number
+          format: double
+        longitud:
+          maximum: 180
+          exclusiveMaximum: false
+          minimum: -180
+          exclusiveMinimum: false
+          type: number
+          format: double
+      description: "Coordenada GPS del reporte, solo cuando el usuario la autoriza\
+        \ (RF007)"
+    SolicitudReporte:
+      type: object
+      properties:
+        sectorId:
+          minLength: 1
+          type: string
+          description: Identificador del sector reportado
+          example: bocagrande
+        tipo:
+          minLength: 1
+          type: string
+          description: "SIN_AGUA, PRESION_BAJA o SERVICIO_RESTABLECIDO"
+          example: SIN_AGUA
+        huella:
+          minLength: 1
+          type: string
+          description: |-
+            Huella anónima del dispositivo (ADR-007) — no es una cuenta ni un identificador
+            personal. El cliente la genera una vez (p. ej. un UUID persistido en el dispositivo,
+            hasheado) y la reutiliza en cada reporte; es lo único que permite RF006 (límite de
+            reportes por dispositivo) sin pedir registro.
+        coordenada:
+          $ref: "#/components/schemas/CoordenadaDTO"
+      description: Reporte ciudadano sin registro (RF005-RF008)
+    ReporteRespuesta:
+      type: object
+      properties:
+        id:
+          type: string
+        sectorId:
+          type: string
+        tipo:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      description: Reporte ciudadano registrado
+    RespuestaSectores:
+      type: object
+      properties:
+        sectores:
+          type: array
+          items:
+            $ref: "#/components/schemas/SectorRespuesta"
+        generadoEn:
+          type: string
+          description: Instante en que el servidor genero esta respuesta (UTC)
+          format: date-time
+      description: Listado de sectores con la hora en que el servidor genero la respuesta
+    SectorRespuesta:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Identificador estable del sector
+          example: bocagrande
+        nombre:
+          type: string
+          description: Nombre del barrio segun el GeoJSON oficial
+          example: BOCAGRANDE
+        estado:
+          type: string
+          description: |-
+            Estado conocido del servicio. **Nulo cuando no hay dato verificado**: no se asume
+            CON_SERVICIO por omision, porque publicar servicio normal sin verificarlo es el
+            falso positivo que el proyecto evita (ADR-014). Presentarlo como "sin datos".
+          nullable: true
+          enum:
+          - CON_SERVICIO
+          - SIN_SERVICIO
+          - PRESION_BAJA
+          - CORTE_PROGRAMADO
+        actualizadoEn:
+          type: string
+          description: Cuando se registro ese estado. Nulo si el sector no tiene estado.
+          format: date-time
+          nullable: true
+      description: Sector de Cartagena con el estado conocido de su servicio de agua

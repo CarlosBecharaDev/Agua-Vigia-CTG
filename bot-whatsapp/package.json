@@ -1,0 +1,14 @@
+{
+  "name": "aguavigia-bot-whatsapp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Manda un resumen diario del proyecto al grupo de WhatsApp del equipo. No calcula nada por su cuenta — lee ../scripts/lib/datos-proyecto.mjs, la misma fuente que usa la Sala de control.",
+  "scripts": {
+    "vincular": "node vincular.mjs",
+    "enviar": "node enviar.mjs"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "6.7.24"
+  }
+}

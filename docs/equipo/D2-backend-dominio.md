@@ -4,8 +4,15 @@
 > **Responsable:** Reglas de negocio puras, modelos del dominio, casos de uso y cálculo del Índice de Cumplimiento.
 > **Módulos asignados:** M3 (Consenso automático), M6 (Índice de Cumplimiento ⭐).
 > **Capa del código:** `/backend/src/main/java/com/aguavigia/ctg/domain` y `/backend/src/main/java/com/aguavigia/ctg/application`.
-> **Compuertas:** empieza cuando **C0** está abierta · **abre C1** (dominio y puertos) para D3 y D1.
-> Ver [`secuencia-de-trabajo.md`](secuencia-de-trabajo.md) §2.
+> **Compuertas:** crea el proyecto base de `/backend` en Sprint 0 (asignado 2026-08-07 — ver tabla de
+> Sprint 0 abajo), lo que le falta a C0 para abrir · empieza el dominio cuando **C0** está abierta ·
+> **abre C1** (dominio y puertos) para D3 y D1. Ver [`secuencia-de-trabajo.md`](secuencia-de-trabajo.md) §2.
+
+---
+
+**Diseño del dominio adelantado en Sprint 0** (mientras C0 sigue cerrada):
+[`../ingenieria/modelo-de-dominio.md`](../ingenieria/modelo-de-dominio.md) — Value Objects,
+entidades, patrones y puertos de M3/M6, listo para traducir a Java cuando abra C1.
 
 ---
 
@@ -23,9 +30,10 @@
 
 | Sprint | Entregables y Tareas Específicas |
 |---|---|
+| **Sprint 0** | • **Crear el proyecto base de `/backend`**: Maven, Java 21, Spring Boot 3.4, con la estructura de paquetes vacía de Arquitectura Limpia (`domain/`, `application/`, `infrastructure/`, `api/`) según `CLAUDE.md`.<br>• Avisar a D5 cuando esté listo, para que verifique y abra **C0**.<br>• (En paralelo, sin esperar C0): diseño del dominio de M3/M6 — ya adelantado en [`../ingenieria/modelo-de-dominio.md`](../ingenieria/modelo-de-dominio.md). |
 | **Sprint 1** | • Modelar entidades de dominio y Value Objects (`Coordenada`, `EstadoServicio`, `VentanaTiempo`).<br>• Definir contratos de puertos de entrada (`port/in`) y salida (`port/out`).<br>• **Escribir el test de ArchUnit** en JUnit 5 para auditar aislamiento de `domain/`.<br>• Pruebas unitarias de las invariantes del dominio. |
 | **Sprint 2** | • Implementar `RegistrarReporteService`.<br>• Implementar `EvaluarConsensoService` con **patrón Strategy** (Estrategia 1: Umbral fijo; Estrategia 2: Umbral proporcional a población).<br>• Publicación de eventos del dominio (`SectorCambioEstadoEvent`). |
-| **Sprint 3** | • Implementar `GestionarCorteOficialService`.<br>• Implementar `SuscribirseService` (validación de reglas para doble opt-in).<br>• Validación inmutable de `CorteAgua` mediante patrón Builder (impedir horas fin < inicio). |
+| **Sprint 3** | • Implementar `GestionarCorteOficialService`.<br>• Validación inmutable de `CorteAgua` mediante patrón Builder (impedir horas fin < inicio). |
 | **Sprint 4** | • **`CalcularCumplimientoService`** (módulo estrella): comparar duración prometida vs. real.<br>• `RegistrarEventoBitacoraService` usando Factory Method.<br>• Implementación de Specification Pattern para filtros de estadísticas. |
 | **Sprint 5** | • Elevar cobertura de pruebas unitarias en `domain/` y `application/` a **$\ge 70\%$** (con JaCoCo).<br>• Refactorización de casos de uso basada en análisis de calidad de código. |
 | **Sprint 6** | • Documentar patrones de diseño aplicados y matriz de demostración SOLID (clase, línea y principio).<br>• Diagrama de clases UML definitivo. |

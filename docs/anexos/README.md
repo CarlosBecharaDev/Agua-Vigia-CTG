@@ -14,6 +14,15 @@ repositorio.
 **Tarea bloqueante del Sprint 0 (D1):** validar esta lista contra el documento del docente y corregir
 lo que difiera. Ver [`../informe-metodologico/README.md`](../informe-metodologico/README.md).
 
+**D1 tiene titular real: Rafael Sarmiento Peña, desde el 2026-08-08** (`ADR-021`). Del 2026-08-07 al
+2026-08-08 lo sostuvo temporalmente Yordy Pardo Pajaro (D5) (`ADR-011`, *Reemplazada*, `BL-003`
+cerrado). Los Anexos 1, 2 (redactados en el [PR #32](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/32))
+y 4 ya están en el repositorio — el 4 junto con este sprint: `anexo-4-historias-de-usuario.md`
+(cubre RF001–RF036). Enviar el correo con la plantilla oficial al docente sigue **pendiente, ahora de
+Rafael** — sin eso, la numeración de esta tabla sigue siendo provisional. Anexo 3 tampoco se puede
+escribir todavía: exige aplicar esos instrumentos a población real, no es un bloqueo de equipo sino de
+calendario.
+
 ---
 
 ## Los seis anexos
@@ -24,7 +33,7 @@ lo que difiera. Ver [`../informe-metodologico/README.md`](../informe-metodologic
 | **2** | Guion de entrevista a actores clave | Veedores ciudadanos, líderes comunales, comerciantes. Preguntas semiestructuradas | D1 | 0 |
 | **3** | Validación de instrumentos | Juicio de expertos, cálculo del Alfa de Cronbach, tabulación de resultados | D1 | 0 → 4 |
 | **4** | Historias de usuario | Formato Gherkin (`Dado / Cuando / Entonces`), trazadas a los `RF` de `docs/product-requirements.md` | D1 | 1 |
-| **5** | Plan e informe de pruebas | Estrategia, casos de prueba, resultados de E2E, cobertura JaCoCo, prueba de caos | D5 | 5 → 6 |
+| **5** | Plan e informe de pruebas | Estrategia, casos de prueba, resultados de E2E, cobertura JaCoCo, prueba de caos. Estrategia adelantada en Sprint 0: [`../ingenieria/plan-de-pruebas.md`](../ingenieria/plan-de-pruebas.md) | D5 | 5 → 6 |
 | **6** | Modelo de datos | Colecciones de MongoDB, índices (`2dsphere`), estructuras en Redis, diccionario de datos, diagrama E-R | D3 | 6 |
 
 **Entregables complementarios** (no numerados como anexos; su ubicación se confirma con la plantilla):
