@@ -26,6 +26,10 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 2
 
+### 2026-08-09 · D4 (José) · `fix/integrar-formulario-reportes`
+**Qué:** RF008 conectado a `POST /api/reportes`: formulario real en dos pasos, huella anónima SHA-256, ubicación opcional, errores RFC 7807 y contrato OpenAPI regenerado; 26 pruebas, lint, build y `npm audit` en verde.
+**Sigue:** Revisar y fusionar el PR a `develop`; después registrar la entrega en `registro-de-implementaciones.md`.
+
 ### 2026-08-09 · D3 (Sebastián) · `develop` (cierre de sesión)
 **Qué:** Sesión larga con permiso de Jordy (D5) para todo el backend — 8 PRs fusionados (#112, #113,
 #116, #118, #119, #120, #121, #124). Con esto **M1–M6 y M8 quedan completos**: los 9 puertos de

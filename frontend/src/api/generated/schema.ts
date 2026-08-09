@@ -24,6 +24,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/veedor/cortes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar los cortes que afectan a un sector */
+        get: operations["listarPorSector"];
+        put?: never;
+        /**
+         * Registrar un corte oficial
+         * @description Sectores afectados, inicio, fin prometido y causa (RF016). Origen VEEDOR.
+         */
+        post: operations["registrar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/suscripciones": {
         parameters: {
             query?: never;
@@ -60,7 +81,92 @@ export interface paths {
          *     dispositivo en la ventana vigente (RF006) — ver 429. La coordenada es opcional,
          *     solo si el usuario autorizó compartir su ubicación (RF007).
          */
-        post: operations["registrar"];
+        post: operations["registrar_1"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/veedor/reportes/{id}/descartar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Descartar un reporte */
+        patch: operations["descartar"];
+        trace?: never;
+    };
+    "/api/veedor/reportes/{id}/aprobar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Aprobar un reporte */
+        patch: operations["aprobar"];
+        trace?: never;
+    };
+    "/api/veedor/cortes/{id}/cierre": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Cerrar un corte con la hora real de restablecimiento (RF017) */
+        patch: operations["cerrar"];
+        trace?: never;
+    };
+    "/api/veedor/reportes/pendientes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar los reportes pendientes de moderación */
+        get: operations["listarPendientes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/veedor/cortes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Consultar un corte por su identificador */
+        get: operations["consultar"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -146,6 +252,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/cumplimiento": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Índice global de la ciudad, sobre todos los cortes cerrados */
+        get: operations["global"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cumplimiento/sectores/{sectorId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Índice agregado de un sector, sobre sus cortes cerrados */
+        get: operations["porSector"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cumplimiento/cortes/{corteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Índice de un corte cerrado */
+        get: operations["porCorte"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/bitacora": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar los eventos de la bitácora, más recientes primero */
+        get: operations["listar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -155,15 +329,22 @@ export interface components {
             /** @description Clave de acceso del veedor */
             clave?: string;
         };
-        /** @description Solicitud para suscribirse a los avisos de uno o más sectores */
-        SolicitudSuscripcion: {
+        /** @description Registro de un corte oficial por el veedor (RF016) */
+        SolicitudCorte: {
             /**
-             * @description Correo al que llegarán los avisos
-             * @example vecino@correo.com
+             * @description Identificadores de los sectores afectados
+             * @example [
+             *       "manga",
+             *       "bocagrande"
+             *     ]
              */
-            correo?: string;
-            /** @description Identificadores de los sectores a seguir */
-            sectorIds?: string[];
+            sectoresAfectados?: string[];
+            /** Format: date-time */
+            inicio: string;
+            /** Format: date-time */
+            finPrometido: string;
+            /** @example Mantenimiento planta El Bosque */
+            causa?: string;
         };
         ProblemDetail: {
             /** Format: uri */
@@ -177,6 +358,33 @@ export interface components {
             properties?: {
                 [key: string]: Record<string, never>;
             };
+        };
+        /** @description Corte oficial (RF016-RF017) */
+        CorteRespuesta: {
+            id?: string;
+            sectoresAfectados?: string[];
+            /** Format: date-time */
+            inicio?: string;
+            /** Format: date-time */
+            finPrometido?: string;
+            /**
+             * Format: date-time
+             * @description Nulo mientras el corte sigue abierto
+             */
+            finReal?: string;
+            causa?: string;
+            origen?: string;
+            estado?: string;
+        };
+        /** @description Solicitud para suscribirse a los avisos de uno o más sectores */
+        SolicitudSuscripcion: {
+            /**
+             * @description Correo al que llegarán los avisos
+             * @example vecino@correo.com
+             */
+            correo?: string;
+            /** @description Identificadores de los sectores a seguir */
+            sectorIds?: string[];
         };
         /** @description Suscripción creada, pendiente de confirmación por correo (RF013) */
         SuscripcionRespuesta: {
@@ -224,6 +432,22 @@ export interface components {
             /** Format: date-time */
             timestamp?: string;
         };
+        /** @description Reporte ciudadano en la cola de moderación del veedor (RF018) */
+        ReporteModeracionRespuesta: {
+            id?: string;
+            sectorId?: string;
+            tipo?: string;
+            coordenada?: components["schemas"]["CoordenadaDTO"];
+            /** Format: date-time */
+            timestamp?: string;
+            /** @description PENDIENTE, APROBADO o DESCARTADO */
+            estadoModeracion?: string;
+        };
+        /** @description Cierre de un corte con la hora real de restablecimiento (RF017) */
+        SolicitudCierreCorte: {
+            /** Format: date-time */
+            horaReal: string;
+        };
         /** @description Listado de sectores con la hora en que el servidor genero la respuesta */
         RespuestaSectores: {
             sectores?: components["schemas"]["SectorRespuesta"][];
@@ -257,6 +481,41 @@ export interface components {
              * @description Cuando se registro ese estado. Nulo si el sector no tiene estado.
              */
             actualizadoEn?: string | null;
+        };
+        /**
+         * @description Índice de Cumplimiento (RF020-RF022): comparación explícita entre duración prometida y
+         *     real, nunca un porcentaje aislado.
+         */
+        IndiceCumplimientoRespuesta: {
+            /** @description Nulo cuando el índice es por corte o global, no por sector */
+            sectorId?: string;
+            /** Format: int64 */
+            duracionPrometidaSegundos?: number;
+            /** Format: int64 */
+            duracionRealSegundos?: number;
+            /**
+             * Format: int64
+             * @description duracionReal - duracionPrometida. Negativa si terminó antes de lo prometido
+             */
+            desviacionSegundos?: number;
+            /**
+             * Format: double
+             * @description Capado en 100 cuando el corte termina antes o a tiempo
+             */
+            porcentajeCumplimiento?: number;
+        };
+        /** @description Evento de la bitácora pública, de solo anexado (RF026-RF028) */
+        EventoBitacoraRespuesta: {
+            id?: string;
+            /** @description CORTE_ANUNCIADO, CORTE_CONFIRMADO_POR_CIUDADANOS o CORTE_RESTABLECIDO */
+            tipo?: string;
+            /** @description Nulo si el evento no está atado a un sector */
+            sectorId?: string;
+            /** @description Nulo si el evento no está atado a un corte oficial (p. ej. consenso ciudadano) */
+            corteId?: string;
+            /** Format: date-time */
+            timestamp?: string;
+            descripcion?: string;
         };
     };
     responses: never;
@@ -309,6 +568,61 @@ export interface operations {
             };
         };
     };
+    listarPorSector: {
+        parameters: {
+            query: {
+                sectorId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CorteRespuesta"][];
+                };
+            };
+        };
+    };
+    registrar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitudCorte"];
+            };
+        };
+        responses: {
+            /** @description Corte registrado */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CorteRespuesta"];
+                };
+            };
+            /** @description Datos inválidos o algún sector no existe */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     suscribirse: {
         parameters: {
             query?: never;
@@ -342,7 +656,7 @@ export interface operations {
             };
         };
     };
-    registrar: {
+    registrar_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -375,6 +689,163 @@ export interface operations {
             };
             /** @description El dispositivo superó el límite de reportes para este sector */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    descartar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Reporte descartado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReporteModeracionRespuesta"];
+                };
+            };
+            /** @description El reporte no existe */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    aprobar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Reporte aprobado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReporteModeracionRespuesta"];
+                };
+            };
+            /** @description El reporte no existe */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    cerrar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitudCierreCorte"];
+            };
+        };
+        responses: {
+            /** @description Corte cerrado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CorteRespuesta"];
+                };
+            };
+            /** @description El corte no existe */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description El corte ya estaba cerrado */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listarPendientes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReporteModeracionRespuesta"][];
+                };
+            };
+        };
+    };
+    consultar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Corte encontrado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CorteRespuesta"];
+                };
+            };
+            /** @description No existe un corte con ese id */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -493,6 +964,126 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    global: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Índice calculado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndiceCumplimientoRespuesta"];
+                };
+            };
+            /** @description Todavía no hay cortes cerrados */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    porSector: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sectorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Índice calculado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndiceCumplimientoRespuesta"];
+                };
+            };
+            /** @description El sector no tiene cortes cerrados todavía */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    porCorte: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                corteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Índice calculado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IndiceCumplimientoRespuesta"];
+                };
+            };
+            /** @description El corte no existe */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description El corte todavía no está cerrado */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    listar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Listado generado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventoBitacoraRespuesta"][];
                 };
             };
         };

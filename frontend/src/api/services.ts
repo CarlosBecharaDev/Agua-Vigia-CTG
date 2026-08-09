@@ -5,6 +5,10 @@ type SectorApi = components['schemas']['SectorRespuesta']
 type RespuestaSectoresApi = components['schemas']['RespuestaSectores']
 export type SolicitudSuscripcion = Required<components['schemas']['SolicitudSuscripcion']>
 export type SuscripcionRespuesta = components['schemas']['SuscripcionRespuesta']
+type SolicitudReporteApi = components['schemas']['SolicitudReporte']
+export type SolicitudReporte = Required<Pick<SolicitudReporteApi, 'sectorId' | 'tipo' | 'huella'>> &
+  Pick<SolicitudReporteApi, 'coordenada'>
+export type ReporteRespuesta = components['schemas']['ReporteRespuesta']
 
 export interface SectorSeguro {
   id: string
@@ -46,6 +50,11 @@ export async function obtenerSectores(): Promise<RespuestaSectoresSegura> {
 
 export async function crearSuscripcion(datos: SolicitudSuscripcion): Promise<SuscripcionRespuesta> {
   const { data } = await apiClient.post<SuscripcionRespuesta>('/suscripciones', datos)
+  return data
+}
+
+export async function crearReporte(datos: SolicitudReporte): Promise<ReporteRespuesta> {
+  const { data } = await apiClient.post<ReporteRespuesta>('/reportes', datos)
   return data
 }
 

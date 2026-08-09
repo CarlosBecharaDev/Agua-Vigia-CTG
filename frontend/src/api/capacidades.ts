@@ -2,7 +2,7 @@ export const CAPACIDADES = {
   sectores: true,
   suscripciones: true,
   sesionVeedor: true,
-  reportes: false,
+  reportes: true,
   estadisticas: false,
   bitacora: false,
   moderacion: false,
