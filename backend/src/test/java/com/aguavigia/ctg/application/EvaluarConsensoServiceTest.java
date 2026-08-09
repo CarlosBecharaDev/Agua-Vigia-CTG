@@ -142,6 +142,22 @@ class EvaluarConsensoServiceTest {
     }
 
     @Test
+    void debeMantenerElEstadoActualSiHayEmpateEntreTiposDeReporte() {
+        Sector sector = new Sector(SECTOR_ID, "BOCAGRANDE", 12000, EstadoServicio.CON_SERVICIO);
+        given(sectores.buscarPorId(SECTOR_ID)).willReturn(Optional.of(sector));
+        given(contadorReportes.contarRecientes(any(), any())).willReturn(2L);
+        given(estrategia.seAlcanzaConsenso(2L, sector)).willReturn(true);
+        given(reportes.listarRecientesPorSector(any(), any())).willReturn(List.of(
+                reporte("r1", TipoReporte.SIN_AGUA), reporte("r2", TipoReporte.SERVICIO_RESTABLECIDO)));
+
+        ResultadoConsenso resultado = servicio.evaluar(SECTOR_ID);
+
+        assertThat(resultado.alcanzado()).isFalse();
+        verify(sectores, never()).guardar(any());
+        verify(eventos, never()).guardar(any());
+    }
+
+    @Test
     void debeRechazarSiElSectorNoExiste() {
         given(sectores.buscarPorId(new SectorId("no-existe"))).willReturn(Optional.empty());
 

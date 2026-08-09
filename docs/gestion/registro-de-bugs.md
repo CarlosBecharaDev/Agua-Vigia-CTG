@@ -67,6 +67,7 @@ Tres razones concretas, no burocráticas:
 | BUG-040 | 2026-08-09 | S3 | M7 | `index.css` redeclara los tokens de color del tema (`--color-acento` y compañía) en un segundo bloque `:root`/`:root[data-theme]` posterior — editar el primer bloque no cambia nada visualmente | Cerrado — duplicación eliminada, no solo resincronizada | D5 (Yordy) |
 | BUG-041 | 2026-08-09 | S2 | M4 | `ConfirmarSuscripcionService` (ya en `develop`) nunca revisa el vencimiento del token, aunque `confirmar-suscripcion.html` le promete al vecino que el enlace vence en `{{horasVigencia}}` horas; tampoco había índice único sobre `tokenConfirmacion` en Mongo | Cerrado | D1/D5 (`ConfirmarSuscripcionService` original de D5; hallazgo del PR #110 de Rafael, D1) |
 | BUG-042 | 2026-08-09 | S3 | M4 | `aviso-corte.html` y el README de plantillas se quedaron fuera de `develop`: el commit que los trajo llegó a su rama después de fusionado el PR #45, y solo `confirmar-suscripcion.html` cruzó | Cerrado — plantilla y README recuperados | D1 (autoría original de Yordy, D5) |
+| BUG-043 | 2026-08-09 | S1 | M3 | `EvaluarConsensoService` desempataba entre tipos de reporte según el orden de iteración de un `HashMap<TipoReporte,Long>`, no garantizado por el JLS | Cerrado | D2 (Carlos), hallado al revisar el PR #106 de Yordy |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -994,6 +995,46 @@ Verificado: `./mvnw clean verify` → 152 pruebas, 0 fallos, ArchUnit incluido.
 **Pendiente de decisión del equipo, no resuelto aquí:** si confirmar un token ya `CONFIRMADA` debe
 seguir siendo idempotente (como quedó en `develop`) o debe rechazarse como "de un solo uso" (como
 proponía el PR #110) — es una decisión de producto de D1, no algo que este bug decida por su cuenta.
+
+---
+
+### BUG-043 — El consenso ciudadano podía resolver un empate de forma no determinista
+
+- **Fecha:** 2026-08-09 · **Severidad:** S1 · **Módulo:** M3 · **Responsable:** D2 (Carlos)
+- **Estado:** Cerrado
+
+**Síntoma:** `EvaluarConsensoService.estadoPorMayoria` (PR #106, ya en `develop`) agrupaba los reportes
+recientes en un `Map<TipoReporte, Long>` y elegía el ganador con
+`.max(Comparator.comparingLong(Map.Entry::getValue))`. Cuando dos tipos de reporte empataban en
+conteo (p. ej. 2 `SIN_AGUA` y 2 `SERVICIO_RESTABLECIDO`), `Stream.max` devuelve el primer máximo que
+encuentra recorriendo las entradas del `HashMap`, y el JLS no garantiza ningún orden de iteración
+para un `HashMap` sobre claves `enum` — depende del hash de identidad de la JVM en tiempo de
+ejecución, no del contenido del empate.
+
+**Cómo se encontró:** revisión propia de D2 sobre el PR #106, fusionado por Yordy (D5) sin pasar por
+revisión del titular de `application/` (mismo patrón señalado en `BUG-005`). No hacía falta
+reproducirlo con datos reales: se detectó leyendo el código, y se confirmó con un test nuevo que fija
+el escenario de empate.
+
+**Esperado:** RF011 exige que el nuevo estado lo decida "la mayoría de tipos entre los reportes que
+sustentan el consenso". Un empate no es una mayoría — no hay tipo mayoritario que sostenga un cambio
+de estado. Publicar un estado elegido por el orden de un `HashMap` equivale a publicar un corte (o su
+levantamiento) sin evidencia real que lo sustente, lo que la ética de datos del proyecto (`CLAUDE.md`
+punto 4, `ADR-006`) prohíbe — de ahí la severidad S1 aunque el caso sea poco frecuente.
+
+**Causa raíz:** el desempate nunca se diseñó explícitamente; `Stream.max` sobre un `Map.Entry` sin un
+comparador de desempate secundario delega el resultado en un detalle de implementación de `HashMap`
+no especificado por el lenguaje.
+
+**Corrección:** `estadoPorMayoria` ahora calcula el conteo máximo, junta todos los tipos que lo
+alcanzan y, si hay más de uno, mantiene el `estadoActual` del sector en vez de forzar un cambio
+(`EvaluarConsensoService.java`). Nueva prueba
+`debeMantenerElEstadoActualSiHayEmpateEntreTiposDeReporte`. Verificado: `EvaluarConsensoServiceTest`
+(7/7) y `ReglaDeOroArchitectureTest` (3/3) en verde; 199/199 pruebas sin Testcontainers también en
+verde. Las 3 pruebas de infraestructura que sí usan Testcontainers (`SuscripcionMongoAdapterTest`,
+`RedisContadorReportesAdapterTest`, `RateLimitingInterceptorTest`) no corrieron en esta verificación
+porque el motor de Docker de esta máquina estaba detenido (`com.docker.service` en `Stopped`) —no
+relacionado con este cambio, que no toca `infrastructure/`.
 
 ---
 
