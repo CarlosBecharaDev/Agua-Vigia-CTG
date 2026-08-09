@@ -40,12 +40,12 @@ export const FeedComentarios: FC = () => {
           <MessageSquare size={20} />
         </div>
         <div>
-          <span className="eyebrow">Pulso de la ciudad</span>
+          <span className="eyebrow">Ejemplos de interfaz</span>
           <h2>
             Lo que reportan tus vecinos
           </h2>
           <p style={{ fontSize: '0.875rem', color: 'var(--color-tinta-2)' }}>
-            Comentarios recientes reportados por sector.
+            Contenido de demostración mientras se integra la fuente real de comentarios.
           </p>
         </div>
       </div>
