@@ -13,5 +13,8 @@ public interface CorteAguaRepository {
 
     List<CorteAgua> listarPorSector(SectorId sectorId);
 
+    /** Todos los cortes, sin filtrar por sector — insumo del índice global (RF021). */
+    List<CorteAgua> listarTodos();
+
     CorteAgua guardar(CorteAgua corte);
 }
