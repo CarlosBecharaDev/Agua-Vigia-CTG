@@ -26,13 +26,21 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 2
 
+### 2026-08-09 · D3 (Sebastián) · `feature/d2-indice-cumplimiento`
+**Qué:** `CalcularCumplimientoService` (RF020-RF022, M6 — el diferencial del proyecto), capa de D2.
+`ADR-022`: agrega por suma de duraciones, no promedio de porcentajes. `IndiceCumplimientoController`
+público en `/api/cumplimiento` (porCorte, porSector, global). Agregado
+`CorteAguaRepository.listarTodos()`. 178/178 pruebas en verde. Trabajo adelantado de Sprint 4.
+**Sigue:** PR #118 en conflicto tras fusionarse el #116 — resuelto (duplicaba el manejador de
+`IllegalStateException`, se conservó uno solo).
+
 ### 2026-08-09 · D3 (Sebastián) · `feature/d3-crud-cortes-veedor`
 **Qué:** `GestionarCorteOficialService` (RF016-RF017, capa de D2) y `CorteController` en
 `/api/veedor/cortes` (registrar, cerrar, consultar, listar por sector), protegido por el JWT ya
 existente sin tocar `SecurityConfig`. Cerrar un corte ya cerrado responde 409 (nuevo
-`IllegalStateException` en `ManejadorGlobalDeErrores`). 175/175 pruebas en verde. PR #116.
-**Sigue:** PR #116 pendiente de revisor. RF018 (moderación de reportes) queda fuera — sin puerto de
-dominio todavía.
+`IllegalStateException` en `ManejadorGlobalDeErrores`). 175/175 pruebas en verde. Fusionado a
+`develop` en el PR #116.
+**Sigue:** RF018 (moderación de reportes) queda fuera — sin puerto de dominio todavía.
 
 ### 2026-08-09 · D3 (Sebastián) · `feature/d3-corteagua-mongo-adapter`
 **Qué:** Construido `CorteAguaMongoAdapter` (RF016-RF017) — el dominio de `CorteAgua` existía sin

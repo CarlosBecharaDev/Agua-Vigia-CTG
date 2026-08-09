@@ -88,6 +88,16 @@ class CorteAguaMongoAdapterTest {
     }
 
     @Test
+    void debeListarTodosLosCortesSinFiltrarPorSector() {
+        adaptador.guardar(corteDePrueba("corte-1", EstadoCorte.ANUNCIADO, List.of("manga")));
+        adaptador.guardar(corteDePrueba("corte-2", EstadoCorte.ANUNCIADO, List.of("pie-de-la-popa")));
+
+        List<CorteAgua> todos = adaptador.listarTodos();
+
+        assertThat(todos).extracting(c -> c.id().valor()).containsExactlyInAnyOrder("corte-1", "corte-2");
+    }
+
+    @Test
     void debeConservarLaHoraRealAlCerrarUnCorte() {
         CorteAgua abierto = corteDePrueba("corte-1", EstadoCorte.CONFIRMADO, List.of("manga"));
         adaptador.guardar(abierto);

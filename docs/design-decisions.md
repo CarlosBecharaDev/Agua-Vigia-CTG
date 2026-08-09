@@ -999,8 +999,65 @@ equipo decida) hasta que haya un reemplazo real.
 
 ---
 
+## ADR-022 — El Índice de Cumplimiento agrega por suma de duraciones, no por promedio de porcentajes
+
+- **Fecha:** 2026-08-09
+- **Estado:** Aceptada
+- **Decide:** D3 (Sebastián), en capa de D2 — permiso de Jordy (D5) para todo el backend
+
+### Contexto
+
+`CalcularCumplimientoUseCase` (`domain/port/in/`) y su salida `IndiceCumplimiento` (`domain/`) ya
+existían desde el Sprint 1, con las firmas `porCorte(CorteId)`, `porSector(SectorId)` y `global()`,
+pero sin implementación ni decisión sobre cómo agregar el cumplimiento de varios cortes. `DESIGN.md`
+§6 exige que el índice se muestre "como comparación explícita, prometido vs. real, no como puntaje
+aislado", con el ejemplo `Prometieron 2 horas · Fueron 8`.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Promediar el `porcentajeCumplimiento` de cada corte por separado | Cada corte pesa igual sin importar su duración | Un corte de 10 minutos y uno de 10 horas pesarían lo mismo — distorsiona el índice hacia cortes cortos, que son fáciles de cumplir |
+| **Sumar duraciones prometidas y reales de todos los cortes cerrados, calcular el porcentaje sobre los totales** (elegida) | Coincide directamente con el ejemplo de `DESIGN.md` — una comparación de tiempo total, no un promedio de porcentajes; un corte largo que incumple pesa más que uno corto que cumple, que es la lectura correcta para la ciudadanía | Un solo corte muy largo puede dominar el índice de un sector con pocos cortes |
+
+### Decisión
+
+Por corte: `duracionPrometida = finPrometido - inicio`, `duracionReal = finReal - inicio`,
+`desviacion = duracionReal - duracionPrometida`, `porcentajeCumplimiento = min(100%,
+duracionPrometida / duracionReal * 100)` — capado en 100% cuando el corte termina antes o a tiempo.
+Para `porSector` y `global`, se suman las duraciones de todos los cortes **cerrados** del conjunto
+(RF020: "por cada corte cerrado") y el porcentaje se calcula sobre esos totales, no sobre el
+promedio de porcentajes individuales.
+
+Si no hay cortes cerrados para el sector o la ciudad, el servicio lanza `IllegalArgumentException`
+en vez de devolver un índice con duración cero — mismo criterio que `ADR-014` (no fabricar un dato
+que parezca real cuando no hay verificación). Mapea a 400 vía `ManejadorGlobalDeErrores` existente,
+sin manejador nuevo.
+
+Se agregó `CorteAguaRepository.listarTodos()` (puerto de salida, no existía), necesario para
+`global()`. Implementado en `CorteAguaMongoAdapter` con `MongoRepository.findAll()`, gratis en
+Spring Data.
+
+### Consecuencias
+
+- **Gana:** el índice agregado refleja el tiempo real que la ciudadanía estuvo sin servicio, no un
+  promedio abstracto que un corte corto y cumplido podría inflar.
+- **Pierde:** un sector con pocos cortes es sensible a que uno solo sea muy largo — el índice puede
+  parecer peor de lo que "la mayoría de las veces" sugeriría. Es una lectura deliberada: un corte de
+  8 horas cuando se prometieron 2 le pesa más a un vecino que tres cortes de 10 minutos cumplidos.
+- **Condiciona:** cualquier futura UI de M6 debe mostrar la comparación de duraciones totales, no
+  solo el porcentaje — es lo que hace legible la fórmula elegida.
+
+### Cómo se revierte
+
+Cambiar la agregación a promedio de porcentajes es un cambio de fórmula localizado en
+`CalcularCumplimientoService.indiceDe()` — no afecta el puerto ni `IndiceCumplimiento`, que ya
+expresan ambas duraciones por separado.
+
+---
+
 <!--
-Siguiente número disponible: ADR-022
+Siguiente número disponible: ADR-023
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->
