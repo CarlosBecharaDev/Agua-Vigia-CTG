@@ -38,6 +38,7 @@ const SkeletonItem: FC = () => (
 )
 
 export const ListaSectores: FC<Props> = ({ sectores, cargando, error, onSectorSeleccionado }) => {
+  const mostrarAdvertencia = Boolean(error && sectores.length > 0)
   // Agrupar por estado para que sea más escaneable
   const sinServicio   = sectores.filter(s => s.estado === 'SIN_SERVICIO')
   const programados   = sectores.filter(s => s.estado === 'CORTE_PROGRAMADO')
@@ -53,7 +54,7 @@ export const ListaSectores: FC<Props> = ({ sectores, cargando, error, onSectorSe
     { sectores: sinDatos,      estado: null },
   ].filter(g => g.sectores.length > 0)
 
-  if (error) {
+  if (error && sectores.length === 0) {
     return (
       <p role="alert" style={{ color: 'var(--color-estado-sin)', padding: '1rem 0', fontSize: '0.875rem' }}>
         No pudimos cargar los sectores. Revisa tu conexión e intenta de nuevo.
@@ -80,6 +81,24 @@ export const ListaSectores: FC<Props> = ({ sectores, cargando, error, onSectorSe
       >
         Estado por sector
       </h2>
+
+      {mostrarAdvertencia && (
+        <div
+          role="status"
+          style={{
+            color: 'var(--color-tinta-2)',
+            background: 'rgba(255, 159, 10, 0.1)',
+            border: '1px solid rgba(255, 159, 10, 0.25)',
+            borderRadius: 'var(--radio-base)',
+            padding: '0.75rem',
+            marginBottom: '1rem',
+            fontSize: '0.8rem',
+            lineHeight: 1.4,
+          }}
+        >
+          Conexion no disponible. Se muestran datos de demostracion; no representan el estado oficial actual.
+        </div>
+      )}
 
       {cargando && (
         <ul style={{ listStyle: 'none', padding: 0 }} aria-label="Cargando sectores">

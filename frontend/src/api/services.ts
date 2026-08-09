@@ -20,6 +20,10 @@ export interface KPIEstadisticas {
   barriosAfectadosHoy: string | number;
 }
 
+export interface SesionVeedor {
+  token: string;
+}
+
 export const AguaVigiaAPI = {
   // --- SECTORES (M1) ---
   obtenerSectores: async () => {
@@ -50,12 +54,17 @@ export const AguaVigiaAPI = {
   },
 
   // --- VEEDOR ---
-  loginVeedor: async (password: string) => {
-    const response = await apiClient.post('/auth/veedor', { password });
+  /** Backend contract: POST /api/veedor/sesion with { clave }. */
+  loginVeedor: async (clave: string): Promise<SesionVeedor> => {
+    const response = await apiClient.post<SesionVeedor>('/veedor/sesion', { clave });
     if (response.data.token) {
       localStorage.setItem('token_veedor', response.data.token);
     }
     return response.data;
+  },
+
+  cerrarSesionVeedor: () => {
+    localStorage.removeItem('token_veedor');
   },
   
   obtenerReportesPendientes: async (): Promise<ReportePendiente[]> => {

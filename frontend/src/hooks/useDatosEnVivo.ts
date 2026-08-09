@@ -137,8 +137,18 @@ export function useDatosEnVivo(): DatosEnVivo {
         sectoresBackend = sectoresRes.value.sectores || [];
       }
 
+      const boletinesDisponibles = boletinesRes.status === 'fulfilled' && boletinesRes.value.length > 0;
+      const sectoresDisponibles = sectoresBackend.length > 0;
+
+      // Promise.allSettled no entra al catch cuando una fuente falla. Dejamos
+      // constancia del estado para que la interfaz pueda mostrar el fallback
+      // sin confundirlo con datos oficiales.
+      setError(!sectoresDisponibles && !boletinesDisponibles
+        ? 'No hay conexion con las fuentes oficiales. Mostrando datos de demostracion.'
+        : null);
+
       // Procesar boletines de Acuacar
-      if (boletinesRes.status === 'fulfilled' && boletinesRes.value.length > 0) {
+      if (boletinesDisponibles) {
         const bols = boletinesRes.value;
         setBoletines(bols);
 
@@ -151,7 +161,7 @@ export function useDatosEnVivo(): DatosEnVivo {
         );
         if (sectoresCombinados.length > 0) {
           setSectores(sectoresCombinados);
-          setUsandoDatosReales(sectoresBackend.length > 0);
+          setUsandoDatosReales(sectoresDisponibles || boletinesDisponibles);
         }
       } else if (sectoresBackend.length > 0) {
         // Si no hay datos de Acuacar, igual mostramos los sectores del backend

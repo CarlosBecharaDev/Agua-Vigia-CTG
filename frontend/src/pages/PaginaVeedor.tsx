@@ -7,6 +7,7 @@ import { Plus, Check, X, ShieldAlert, Activity, Users, Send } from 'lucide-react
 import { AguaVigiaAPI } from '../api/services'
 import type { FC } from 'react'
 import { PageWrapper } from '../components/PageWrapper'
+import { isSimulationMode } from '../config'
 
 const SECTORES_MOCK = [
   { id: '1', nombre: 'BOCAGRANDE' },
@@ -33,6 +34,8 @@ const estiloGlass: React.CSSProperties = {
 
 const PaginaVeedor: FC = () => {
   const [autenticado, setAutenticado] = useState(false)
+  const [clave, setClave] = useState('')
+  const [errorIngreso, setErrorIngreso] = useState<string | null>(null)
   // Estados interactivos para moderación
   const [aprobados, setAprobados] = useState(0)
   const [falsos, setFalsos] = useState(0)
@@ -88,6 +91,21 @@ const PaginaVeedor: FC = () => {
     }
   }
 
+  const iniciarSesion = async () => {
+    setErrorIngreso(null)
+    if (isSimulationMode) {
+      setAutenticado(true)
+      return
+    }
+
+    try {
+      await AguaVigiaAPI.loginVeedor(clave)
+      setAutenticado(true)
+    } catch {
+      setErrorIngreso('No se pudo iniciar sesion. Verifica la clave y que el backend este disponible.')
+    }
+  }
+
   if (!autenticado) {
     return (
       <PageWrapper>
@@ -111,9 +129,22 @@ const PaginaVeedor: FC = () => {
             <p style={{ color: 'var(--color-tinta-2)', marginBottom: '2.5rem', fontSize: '1rem', lineHeight: '1.6' }}>
               Área de control restringida. Los líderes comunitarios aprueban o descartan reportes aquí.
             </p>
+            {!isSimulationMode && (
+              <input
+                type="password"
+                value={clave}
+                onChange={(event) => setClave(event.target.value)}
+                placeholder="Clave del veedor"
+                aria-label="Clave del veedor"
+                style={{ width: '100%', padding: '0.85rem 1rem', marginBottom: '0.75rem', borderRadius: 'var(--radio-pill)', border: '1px solid var(--color-linea)', background: 'var(--color-superficie)', color: 'var(--color-tinta)' }}
+              />
+            )}
+            {errorIngreso && (
+              <p role="alert" style={{ color: 'var(--color-estado-sin)', marginBottom: '0.75rem' }}>{errorIngreso}</p>
+            )}
             <button
               type="button"
-              onClick={() => setAutenticado(true)}
+              onClick={iniciarSesion}
               style={{
                 backgroundColor: 'var(--color-acento)',
                 color: '#FFF',
@@ -132,7 +163,7 @@ const PaginaVeedor: FC = () => {
               }}
               className="hover-glowing"
             >
-              Simular Ingreso Seguro
+              {isSimulationMode ? 'Simular Ingreso Seguro' : 'Iniciar sesion'}
             </button>
           </div>
         </main>
@@ -154,7 +185,10 @@ const PaginaVeedor: FC = () => {
           </div>
           
           <button 
-            onClick={() => setAutenticado(false)}
+            onClick={() => {
+              AguaVigiaAPI.cerrarSesionVeedor()
+              setAutenticado(false)
+            }}
             className="hover-glowing"
             style={{ 
               padding: '0.5rem 1.25rem', borderRadius: 'var(--radio-pill)', border: '1px solid var(--color-linea)', 

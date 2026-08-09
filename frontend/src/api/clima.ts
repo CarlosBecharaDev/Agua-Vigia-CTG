@@ -1,3 +1,5 @@
+import { fetchWithTimeout } from './fetchWithTimeout'
+
 /**
  * clima.ts — Servicio de clima en tiempo real para Cartagena de Indias.
  *
@@ -44,7 +46,7 @@ export async function obtenerClimaActual(): Promise<ClimaCartagena> {
       + '&current=temperature_2m,relative_humidity_2m,precipitation,weather_code'
       + '&timezone=America/Bogota';
 
-    const res = await fetch(url);
+    const res = await fetchWithTimeout(url);
     if (!res.ok) throw new Error(`Open-Meteo respondió ${res.status}`);
 
     const data = await res.json();

@@ -8,6 +8,18 @@ import { FormularioReporte } from '../components/FormularioReporte'
 import { AguaVigiaAPI } from '../api/services'
 import { PageWrapper } from '../components/PageWrapper'
 
+const SECTORES_DEMO = [
+  { id: '1', nombre: 'BOCAGRANDE' },
+  { id: '2', nombre: 'CASTILLOGRANDE' },
+  { id: '3', nombre: 'EL LAGUITO' },
+  { id: '4', nombre: 'MANGA' },
+  { id: '5', nombre: 'PIE DE LA POPA' },
+  { id: '6', nombre: 'OLAYA HERRERA' },
+  { id: '7', nombre: 'GETSEMANI' },
+  { id: '8', nombre: 'EL CENTRO' },
+  { id: '9', nombre: 'LA BOQUILLA' },
+]
+
 const PaginaReportar: FC = () => {
   const [exito, setExito] = useState(false)
   const [sectorPreseleccionado, setSectorPreseleccionado] = useState('')
@@ -23,12 +35,15 @@ const PaginaReportar: FC = () => {
 
     AguaVigiaAPI.obtenerSectores()
       .then((res: any) => {
-        if (res && res.sectores) {
+        if (res && res.sectores && res.sectores.length > 0) {
           setSectores(res.sectores);
+        } else {
+          setSectores(SECTORES_DEMO);
         }
       })
       .catch(err => {
         console.warn("API de sectores no disponible", err);
+        setSectores(SECTORES_DEMO);
       });
   }, [])
 

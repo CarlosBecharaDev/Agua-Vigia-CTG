@@ -916,6 +916,14 @@ const PaginaEstadisticas: FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                 <div className="skeleton" style={{ width: '80%', height: '200px', borderRadius: '1rem' }}></div>
               </div>
+            ) : datosTimeline.length === 0 ? (
+              <div
+                role="status"
+                style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', color: 'var(--color-tinta-3)', padding: '2rem', lineHeight: 1.5 }}
+              >
+                Aun no hay suficientes boletines oficiales para construir esta linea de tiempo.
+                <br />Vuelve a intentarlo cuando la fuente de datos este disponible.
+              </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%" style={{ outline: 'none' }}>
                 <AreaChart data={datosTimeline} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} style={{ outline: 'none' }}>
@@ -994,6 +1002,35 @@ const PaginaEstadisticas: FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem' }}>
                 {[1,2,3,4,5].map(i => (
                   <div key={i} className="skeleton" style={{ height: '24px', borderRadius: '8px', width: `${90 - i * 12}%` }}></div>
+                ))}
+              </div>
+            ) : datosBarrios.length === 0 ? (
+              <div
+                role="img"
+                aria-label="No hay datos disponibles de barrios para el periodo seleccionado"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  gap: '0.75rem',
+                  padding: '1rem 2rem',
+                  boxSizing: 'border-box',
+                  opacity: 0.35,
+                }}
+              >
+                {[42, 68, 52, 30].map((width, index) => (
+                  <div
+                    key={index}
+                    aria-hidden="true"
+                    style={{
+                      width: `${width}%`,
+                      height: '0.65rem',
+                      borderRadius: 'var(--radio-pill)',
+                      background: 'var(--color-linea)',
+                    }}
+                  />
                 ))}
               </div>
             ) : (
