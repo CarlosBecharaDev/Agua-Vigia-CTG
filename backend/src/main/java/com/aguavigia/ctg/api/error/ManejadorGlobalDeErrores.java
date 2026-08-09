@@ -43,6 +43,19 @@ public class ManejadorGlobalDeErrores {
         return problema;
     }
 
+    /**
+     * Un caso de uso rechaza una transición de estado inválida (p. ej. RF017: cerrar un corte que
+     * ya estaba cerrado). 409 y no 400: la petición está bien formada, es el estado actual del
+     * recurso el que la vuelve inaplicable.
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public ProblemDetail conflicto(IllegalStateException e) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+        problema.setTitle("Conflicto de estado");
+        problema.setType(URI.create(BASE_TIPO + "conflicto-de-estado"));
+        return problema;
+    }
+
     /** RF006 — el dispositivo superó el límite de reportes en la ventana vigente. */
     @ExceptionHandler(LimiteReportesExcedidoException.class)
     public ProblemDetail limiteExcedido(LimiteReportesExcedidoException e) {
