@@ -9,6 +9,8 @@ import com.aguavigia.ctg.domain.ReporteId;
 import com.aguavigia.ctg.domain.Sector;
 import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.TipoReporte;
+import com.aguavigia.ctg.domain.ResultadoConsenso;
+import com.aguavigia.ctg.domain.port.in.EvaluarConsensoUseCase;
 import com.aguavigia.ctg.domain.port.out.ContadorReportesPort;
 import com.aguavigia.ctg.domain.port.out.RelojPort;
 import com.aguavigia.ctg.domain.port.out.ReporteCiudadanoRepository;
@@ -38,6 +40,7 @@ class RegistrarReporteServiceTest {
     private SectorRepository sectores;
     private ReporteCiudadanoRepository reportes;
     private ContadorReportesPort contadorReportes;
+    private EvaluarConsensoUseCase evaluarConsenso;
     private RegistrarReporteService servicio;
 
     @BeforeEach
@@ -45,12 +48,15 @@ class RegistrarReporteServiceTest {
         sectores = mock(SectorRepository.class);
         reportes = mock(ReporteCiudadanoRepository.class);
         contadorReportes = mock(ContadorReportesPort.class);
+        evaluarConsenso = mock(EvaluarConsensoUseCase.class);
         RelojPort reloj = () -> AHORA;
-        servicio = new RegistrarReporteService(sectores, reportes, contadorReportes, reloj, LIMITE, 30);
+        servicio = new RegistrarReporteService(sectores, reportes, contadorReportes, evaluarConsenso, reloj, LIMITE, 30);
 
         given(reportes.guardar(any(ReporteCiudadano.class)))
                 .willAnswer(invocacion -> invocacion.getArgument(0));
         given(reportes.listarRecientesPorSector(any(), any())).willReturn(List.of());
+        given(evaluarConsenso.evaluar(any()))
+                .willReturn(new ResultadoConsenso(new SectorId("bocagrande"), false, null, List.of()));
     }
 
     private ReporteCiudadano reportePrevio(HuellaDispositivo huella) {
@@ -69,6 +75,7 @@ class RegistrarReporteServiceTest {
         assertThat(reporte.tipo()).isEqualTo(TipoReporte.SIN_AGUA);
         assertThat(reporte.timestamp()).isEqualTo(AHORA);
         verify(contadorReportes).registrar(new SectorId("bocagrande"), HUELLA);
+        verify(evaluarConsenso).evaluar(new SectorId("bocagrande"));
     }
 
     @Test
@@ -91,6 +98,7 @@ class RegistrarReporteServiceTest {
 
         verify(reportes, never()).guardar(any());
         verify(contadorReportes, never()).registrar(any(), any());
+        verify(evaluarConsenso, never()).evaluar(any());
     }
 
     @Test
@@ -105,6 +113,7 @@ class RegistrarReporteServiceTest {
 
         verify(reportes, never()).guardar(any());
         verify(contadorReportes, never()).registrar(any(), any());
+        verify(evaluarConsenso, never()).evaluar(any());
     }
 
     @Test
