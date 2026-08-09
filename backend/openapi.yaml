@@ -17,8 +17,16 @@ servers:
 tags:
 - name: Suscripciones
   description: Alertas por correo cuando cambia el estado de un sector
+- name: Veedor - Moderación
+  description: Moderar reportes ciudadanos pendientes (RF018)
+- name: Bitácora
+  description: "Bitácora pública de eventos, de solo anexado (RF026-RF028)"
 - name: Sectores
   description: Estado del servicio de agua por sector de Cartagena
+- name: Veedor - Cortes
+  description: Registro y cierre de cortes oficiales (RF016-RF017)
+- name: Cumplimiento
+  description: Índice de Cumplimiento — prometido vs. real (RF020-RF022)
 - name: Reportes
   description: "Reportes ciudadanos de estado del servicio, sin registro"
 - name: Veedor
@@ -57,6 +65,53 @@ paths:
             '*/*':
               schema:
                 type: object
+  /api/veedor/cortes:
+    get:
+      tags:
+      - Veedor - Cortes
+      summary: Listar los cortes que afectan a un sector
+      operationId: listarPorSector
+      parameters:
+      - name: sectorId
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CorteRespuesta"
+    post:
+      tags:
+      - Veedor - Cortes
+      summary: Registrar un corte oficial
+      description: "Sectores afectados, inicio, fin prometido y causa (RF016). Origen\
+        \ VEEDOR."
+      operationId: registrar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolicitudCorte"
+        required: true
+      responses:
+        "201":
+          description: Corte registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CorteRespuesta"
+        "400":
+          description: Datos inválidos o algún sector no existe
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
   /api/suscripciones:
     post:
       tags:
@@ -94,7 +149,7 @@ paths:
         Sin registro ni cuenta (RF005). Limita automáticamente los reportes por
         dispositivo en la ventana vigente (RF006) — ver 429. La coordenada es opcional,
         solo si el usuario autorizó compartir su ubicación (RF007).
-      operationId: registrar
+      operationId: registrar_1
       requestBody:
         content:
           application/json:
@@ -116,6 +171,133 @@ paths:
                 $ref: "#/components/schemas/ProblemDetail"
         "429":
           description: El dispositivo superó el límite de reportes para este sector
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/veedor/reportes/{id}/descartar:
+    patch:
+      tags:
+      - Veedor - Moderación
+      summary: Descartar un reporte
+      operationId: descartar
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Reporte descartado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReporteModeracionRespuesta"
+        "400":
+          description: El reporte no existe
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/veedor/reportes/{id}/aprobar:
+    patch:
+      tags:
+      - Veedor - Moderación
+      summary: Aprobar un reporte
+      operationId: aprobar
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Reporte aprobado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReporteModeracionRespuesta"
+        "400":
+          description: El reporte no existe
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/veedor/cortes/{id}/cierre:
+    patch:
+      tags:
+      - Veedor - Cortes
+      summary: Cerrar un corte con la hora real de restablecimiento (RF017)
+      operationId: cerrar
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolicitudCierreCorte"
+        required: true
+      responses:
+        "200":
+          description: Corte cerrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CorteRespuesta"
+        "400":
+          description: El corte no existe
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "409":
+          description: El corte ya estaba cerrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/veedor/reportes/pendientes:
+    get:
+      tags:
+      - Veedor - Moderación
+      summary: Listar los reportes pendientes de moderación
+      operationId: listarPendientes
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReporteModeracionRespuesta"
+  /api/veedor/cortes/{id}:
+    get:
+      tags:
+      - Veedor - Cortes
+      summary: Consultar un corte por su identificador
+      operationId: consultar
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Corte encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CorteRespuesta"
+        "404":
+          description: No existe un corte con ese id
           content:
             application/problem+json:
               schema:
@@ -215,6 +397,96 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetail"
+  /api/cumplimiento:
+    get:
+      tags:
+      - Cumplimiento
+      summary: "Índice global de la ciudad, sobre todos los cortes cerrados"
+      operationId: global
+      responses:
+        "200":
+          description: Índice calculado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IndiceCumplimientoRespuesta"
+        "400":
+          description: Todavía no hay cortes cerrados
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/cumplimiento/sectores/{sectorId}:
+    get:
+      tags:
+      - Cumplimiento
+      summary: "Índice agregado de un sector, sobre sus cortes cerrados"
+      operationId: porSector
+      parameters:
+      - name: sectorId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Índice calculado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IndiceCumplimientoRespuesta"
+        "400":
+          description: El sector no tiene cortes cerrados todavía
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/cumplimiento/cortes/{corteId}:
+    get:
+      tags:
+      - Cumplimiento
+      summary: Índice de un corte cerrado
+      operationId: porCorte
+      parameters:
+      - name: corteId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Índice calculado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IndiceCumplimientoRespuesta"
+        "400":
+          description: El corte no existe
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "409":
+          description: El corte todavía no está cerrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/bitacora:
+    get:
+      tags:
+      - Bitácora
+      summary: "Listar los eventos de la bitácora, más recientes primero"
+      operationId: listar
+      responses:
+        "200":
+          description: Listado generado
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EventoBitacoraRespuesta"
 components:
   schemas:
     CredencialVeedor:
@@ -225,22 +497,34 @@ components:
           type: string
           description: Clave de acceso del veedor
       description: Credencial de acceso al panel del veedor
-    SolicitudSuscripcion:
+    SolicitudCorte:
+      required:
+      - finPrometido
+      - inicio
       type: object
       properties:
-        correo:
-          minLength: 1
-          type: string
-          description: Correo al que llegarán los avisos
-          example: vecino@correo.com
-        sectorIds:
+        sectoresAfectados:
           minItems: 1
           type: array
-          description: Identificadores de los sectores a seguir
+          description: Identificadores de los sectores afectados
+          example:
+          - manga
+          - bocagrande
           items:
             type: string
-            description: Identificadores de los sectores a seguir
-      description: Solicitud para suscribirse a los avisos de uno o más sectores
+            description: Identificadores de los sectores afectados
+            example: "[\"manga\",\"bocagrande\"]"
+        inicio:
+          type: string
+          format: date-time
+        finPrometido:
+          type: string
+          format: date-time
+        causa:
+          minLength: 1
+          type: string
+          example: Mantenimiento planta El Bosque
+      description: Registro de un corte oficial por el veedor (RF016)
     ProblemDetail:
       type: object
       properties:
@@ -261,6 +545,48 @@ components:
           type: object
           additionalProperties:
             type: object
+    CorteRespuesta:
+      type: object
+      properties:
+        id:
+          type: string
+        sectoresAfectados:
+          type: array
+          items:
+            type: string
+        inicio:
+          type: string
+          format: date-time
+        finPrometido:
+          type: string
+          format: date-time
+        finReal:
+          type: string
+          description: Nulo mientras el corte sigue abierto
+          format: date-time
+        causa:
+          type: string
+        origen:
+          type: string
+        estado:
+          type: string
+      description: Corte oficial (RF016-RF017)
+    SolicitudSuscripcion:
+      type: object
+      properties:
+        correo:
+          minLength: 1
+          type: string
+          description: Correo al que llegarán los avisos
+          example: vecino@correo.com
+        sectorIds:
+          minItems: 1
+          type: array
+          description: Identificadores de los sectores a seguir
+          items:
+            type: string
+            description: Identificadores de los sectores a seguir
+      description: Solicitud para suscribirse a los avisos de uno o más sectores
     SuscripcionRespuesta:
       type: object
       properties:
@@ -338,6 +664,33 @@ components:
           type: string
           format: date-time
       description: Reporte ciudadano registrado
+    ReporteModeracionRespuesta:
+      type: object
+      properties:
+        id:
+          type: string
+        sectorId:
+          type: string
+        tipo:
+          type: string
+        coordenada:
+          $ref: "#/components/schemas/CoordenadaDTO"
+        timestamp:
+          type: string
+          format: date-time
+        estadoModeracion:
+          type: string
+          description: "PENDIENTE, APROBADO o DESCARTADO"
+      description: Reporte ciudadano en la cola de moderación del veedor (RF018)
+    SolicitudCierreCorte:
+      required:
+      - horaReal
+      type: object
+      properties:
+        horaReal:
+          type: string
+          format: date-time
+      description: Cierre de un corte con la hora real de restablecimiento (RF017)
     RespuestaSectores:
       type: object
       properties:
@@ -379,3 +732,48 @@ components:
           format: date-time
           nullable: true
       description: Sector de Cartagena con el estado conocido de su servicio de agua
+    IndiceCumplimientoRespuesta:
+      type: object
+      properties:
+        sectorId:
+          type: string
+          description: "Nulo cuando el índice es por corte o global, no por sector"
+        duracionPrometidaSegundos:
+          type: integer
+          format: int64
+        duracionRealSegundos:
+          type: integer
+          format: int64
+        desviacionSegundos:
+          type: integer
+          description: duracionReal - duracionPrometida. Negativa si terminó antes
+            de lo prometido
+          format: int64
+        porcentajeCumplimiento:
+          type: number
+          description: Capado en 100 cuando el corte termina antes o a tiempo
+          format: double
+      description: |-
+        Índice de Cumplimiento (RF020-RF022): comparación explícita entre duración prometida y
+        real, nunca un porcentaje aislado.
+    EventoBitacoraRespuesta:
+      type: object
+      properties:
+        id:
+          type: string
+        tipo:
+          type: string
+          description: "CORTE_ANUNCIADO, CORTE_CONFIRMADO_POR_CIUDADANOS o CORTE_RESTABLECIDO"
+        sectorId:
+          type: string
+          description: Nulo si el evento no está atado a un sector
+        corteId:
+          type: string
+          description: Nulo si el evento no está atado a un corte oficial (p. ej.
+            consenso ciudadano)
+        timestamp:
+          type: string
+          format: date-time
+        descripcion:
+          type: string
+      description: "Evento de la bitácora pública, de solo anexado (RF026-RF028)"
