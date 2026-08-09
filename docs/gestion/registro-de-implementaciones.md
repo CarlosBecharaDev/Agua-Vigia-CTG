@@ -86,6 +86,7 @@ no la abre quien la produce el insumo, la abre su titular (`secuencia-de-trabajo
 | RF012 · RF013 (parcial) | func | M4: `POST /api/suscripciones` — primer caso de uso real en `application/` (`SuscribirseService`), valida sectores contra `SectorRepository`, persiste en Mongo y envía el correo de doble opt-in de forma asíncrona (`@Async` + `JavaMailSender`) usando las plantillas de `a6a8ae4`. Sin confirmar el token ni la baja de un clic todavía — RF013 completo y RF015 son Sprint 2 | D1 (Yordy) | [#78](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/78) | `./mvnw clean verify` → **95 pruebas, 0 fallos**, ArchUnit incluido · verificado además extremo a extremo contra Mailhog real: `POST` → 201 → correo recibido con asunto, sector y token de confirmación correctos |
 | RF005–RF008 | func | M2: `RegistrarReporteService` — segundo caso de uso real en `application/`, valida el sector contra `SectorRepository`, guarda el reporte y alimenta `ContadorReportesPort` (insumo de `EvaluarConsensoUseCase`, RF009-RF011, aún sin escribir). Incluye el adaptador Mongo de `ReporteCiudadanoRepository`, que no existía. Escrito y fusionado por D5 (Yordy) directo — capa de D2 (Carlos), decisión explícita para no atrasar más el Sprint 1 | D5 (Yordy), en capa de D2 | [#84](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/84) | `./mvnw clean verify` → **101 pruebas, 0 fallos**, ArchUnit incluido |
 | RF001–RF004 | func | M1/M5/M8: `SECTORES_MOCK`/`MOCK_EVENTOS` retirados de `useDatosEnVivo.ts`, `PaginaVeedor.tsx` y `PaginaBitacora.tsx` — cierra `DT-001`–`DT-005` | D4 (José) | [#85](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/85) | `npm run build` / `npm test` en verde |
+| RF006 · RF029–RF030 (parcial) | func | M2/M9: RF006 real en `RegistrarReporteService` (límite por `HuellaDispositivo`, `LimiteReportesExcedidoException` → 429) cerrando `BUG-032`; `BUG-033` cerrado (`ListaSectores.tsx`, reportes inventados). Además, colectores de ingesta — `AcuacarApiCollector` y `RssCollector` (M9), desbloqueados por el cierre de `BL-006`. Sin capa de IA todavía — bloqueada por `BL-005` | D5 (Yordy, en capa de D2/D4) · D3 (Sebastián/Jordy-Lv) | [#89](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/89) · [#98](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/98) | `./mvnw clean verify` → **110 pruebas, 0 fallos**, ArchUnit incluido · `npm test` → 12/12 |
 | — | proceso | Sala de control: secciones "qué falta para cerrar el sprint" (objetivo + criterio de cierre + checklist de compromisos), "quién está detenido, y por qué" (bloqueos con insumo e interlocutor), deuda técnica vigente y cobertura por módulo — antes solo había conteos agregados sin explicar el porqué | D5 (Yordy) | [#97](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/97) | `node scripts/generar-dashboard.mjs` sin advertencias de sección vacía · verificado en navegador (sin errores de consola, tema claro/oscuro, responsive 375px) · confirmado en producción tras el deploy automático |
 
 ⚠️ **El PR #12 introdujo datos simulados sin desbloqueo temporal registrado.** `SECTORES_MOCK`
@@ -190,21 +191,23 @@ requisitos —son `andamio`, no `func`— hasta que consuman la API real. Estado
 ## Estado de cobertura de requisitos
 
 Se actualiza al cerrar cada sprint. Es el insumo directo de `docs/ingenieria/matriz-trazabilidad.md`
-y del Capítulo IV del informe.
+y del Capítulo IV del informe. **Primera actualización real, al cerrar el Sprint 1** — hasta ahora
+esta tabla nunca se había llenado; verificado contra el código en `develop` (endpoints, controladores
+y componentes de frontend existentes), no contra lo que los PRs afirman en su descripción.
 
 | Módulo | Requisitos | Implementados | % |
 |---|---|---|---|
-| M1 Mapa en vivo | 4 | 0 | 0% |
-| M2 Reporte ciudadano | 4 | 0 | 0% |
-| M3 Consenso automático | 3 | 0 | 0% |
-| M4 Alertas por correo | 4 | 0 | 0% |
-| M5 Panel del veedor | 4 | 0 | 0% |
+| M1 Mapa en vivo | 4 | 4 (RF001–RF004) | 100% |
+| M2 Reporte ciudadano | 4 | 0 | 0% — `RegistrarReporteService` existe en `application/`, pero `POST /api/reportes` es Sprint 2 (`registro-de-bloqueos.md` §1, alcance de C2); sin endpoint no hay RF cerrado |
+| M3 Consenso automático | 3 | 0 | 0% — `EvaluarConsensoUseCase` no existe todavía en `application/` |
+| M4 Alertas por correo | 4 | 1 (RF012) | 25% — RF013 parcial (correo de doble opt-in se envía, pero `GET /api/suscripciones/confirmar` es Sprint 2); RF014–RF015 sin empezar |
+| M5 Panel del veedor | 4 | 1 (RF019) | 25% — login JWT funcional; RF016–RF018 (CRUD de cortes, moderación) sin casos de uso |
 | M6 Índice de Cumplimiento ⭐ | 3 | 0 | 0% |
-| M7 Estadísticas | 3 | 0 | 0% |
-| M8 Bitácora pública | 3 | 0 | 0% |
-| M9 Ingesta con IA ⭐ | 8 | 0 | 0% |
-| **Total funcionales** | **36** | **0** | **0%** |
-| **No funcionales** | **20** | **0** | **0%** |
+| M7 Estadísticas | 3 | 0 | 0% — el frontend deriva métricas de Acuacar en el cliente; sin agregación propia en el backend, y `ADR-013` sigue en *Propuesta* sobre a quién le toca |
+| M8 Bitácora pública | 3 | 0 | 0% — sin `GET /api/bitacora`; el frontend muestra boletines de Acuacar directamente, no una bitácora propia |
+| M9 Ingesta con IA ⭐ | 8 | 4 (RF029–RF031, RF036) | 50% — colectores y deduplicación reales (PR #59, #98); RF032–RF035 (clasificación IA) bloqueados por `BL-005` |
+| **Total funcionales** | **36** | **10** | **28%** |
+| **No funcionales** | **20** | **6 verificados** (RNF008, RNF010, RNF011, RNF017, RNF018, RNF020) | **30% verificado** — el resto (RNF001–007, RNF009, RNF012–016, RNF019) no se auditó esta sesión; queda para el Sprint 2 |
 
 ---
 
