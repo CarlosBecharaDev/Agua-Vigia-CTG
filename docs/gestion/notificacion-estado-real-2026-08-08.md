@@ -16,20 +16,16 @@
 
 ## LO QUE CADA UNO DEBE HACER AHORA
 
-### 🔴 **D1 — SIN TITULAR** (BLOQUEADOR CRÍTICO)
+### ✅ **D1 — Rafael Sarmiento Peña** (ASIGNADO)
 
-**ACCIÓN:** Necesita asignarse a la 5.ª persona del equipo.
+**ACCIÓN INMEDIATA:** Resolver bloqueadores de M4 (Alertas) y M8 (Bitácora).
 
-**Por qué bloqueador:**
-- M4 (Alertas) y M8 (Bitácora en tiempo real) dependen de Spring Mail + append-only storage
-- BL-006: `COLLECTOR_USER_AGENT` debe configurarse con un correo real (actualmente dice `pendiente`)
-- Sin esto, D3 no puede probar sus colectores del pipeline M9 contra Acuacar, Google News, Zona Cero
-
-**Tareas concretas de D1 (cuando esté asignado):**
+**Tareas concretas:**
 1. Leer `docs/equipo/D1-notificaciones-bitacora.md` (especificación completa)
-2. Configurar `COLLECTOR_USER_AGENT` en `.env` con formato `AguaVigía-CTG/1.0 (+correo@domain.com)`
-3. Implementar `NotificacionPort` (infrastructure/mail/)
-4. Implementar `BitacoraAppendOnlyPort` (infrastructure/)
+2. **BL-006 URGENTE:** Configurar `COLLECTOR_USER_AGENT` en `.env` con formato `AguaVigía-CTG/1.0 (+correo@domain.com)`
+   - Esto desbloquea a D3 para probar colectores contra Acuacar, Google News, Zona Cero
+3. Implementar `NotificacionPort` (infrastructure/mail/) — Spring Mail
+4. Implementar `BitacoraAppendOnlyPort` (infrastructure/) — append-only storage
 
 ---
 
