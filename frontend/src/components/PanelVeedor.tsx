@@ -1,0 +1,139 @@
+import { useMemo, useState } from 'react'
+import type { FormEvent } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Check, ClipboardCheck, Droplets, LogOut, Plus, RefreshCw, X } from 'lucide-react'
+import {
+  cerrarCorteOficial,
+  crearCorteOficial,
+  listarCortesPorSector,
+  listarReportesPendientes,
+  moderarReporte,
+  obtenerSectores,
+} from '../api/services'
+import { normalizarErrorApi } from '../api/client'
+import './PanelVeedor.css'
+
+interface Props { onCerrarSesion: () => void }
+
+function fechaLocalAISO(valor: string): string {
+  return new Date(valor).toISOString()
+}
+
+export function PanelVeedor({ onCerrarSesion }: Props) {
+  const queryClient = useQueryClient()
+  const [sectorFiltro, setSectorFiltro] = useState('')
+  const [sectoresNuevos, setSectoresNuevos] = useState<string[]>([])
+  const [inicio, setInicio] = useState('')
+  const [finPrometido, setFinPrometido] = useState('')
+  const [causa, setCausa] = useState('')
+
+  const reportes = useQuery({ queryKey: ['veedor', 'reportes', 'pendientes'], queryFn: listarReportesPendientes })
+  const sectores = useQuery({ queryKey: ['sectores'], queryFn: obtenerSectores })
+  const cortes = useQuery({
+    queryKey: ['veedor', 'cortes', sectorFiltro],
+    queryFn: () => listarCortesPorSector(sectorFiltro),
+    enabled: Boolean(sectorFiltro),
+  })
+
+  const moderar = useMutation({
+    mutationFn: ({ id, decision }: { id: string; decision: 'aprobar' | 'descartar' }) => moderarReporte(id, decision),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['veedor', 'reportes', 'pendientes'] }),
+  })
+  const registrarCorte = useMutation({
+    mutationFn: crearCorteOficial,
+    onSuccess: async () => {
+      const primerSector = sectoresNuevos[0]
+      setCausa(''); setInicio(''); setFinPrometido('')
+      setSectoresNuevos([])
+      if (primerSector) setSectorFiltro(primerSector)
+      await queryClient.invalidateQueries({ queryKey: ['veedor', 'cortes'] })
+    },
+  })
+  const cerrarCorte = useMutation({
+    mutationFn: (id: string) => cerrarCorteOficial(id, new Date().toISOString()),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['veedor', 'cortes'] }),
+  })
+
+  const barrios = useMemo(
+    () => [...(sectores.data?.sectores ?? [])].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')),
+    [sectores.data],
+  )
+  const error = reportes.error || sectores.error || cortes.error || moderar.error || registrarCorte.error || cerrarCorte.error
+
+  const crearCorte = (event: FormEvent) => {
+    event.preventDefault()
+    if (sectoresNuevos.length === 0 || !inicio || !finPrometido || !causa.trim()) return
+    registrarCorte.mutate({ sectoresAfectados: sectoresNuevos, inicio: fechaLocalAISO(inicio), finPrometido: fechaLocalAISO(finPrometido), causa: causa.trim() })
+  }
+
+  return (
+    <main id="contenido-principal" className="panel-veedor" aria-labelledby="titulo-panel-veedor">
+      <header className="panel-veedor-cabecera">
+        <div><p className="eyebrow">Operación protegida</p><h1 id="titulo-panel-veedor">Centro operativo del veedor</h1><p>Modera reportes ciudadanos y administra cortes oficiales con trazabilidad.</p></div>
+        <button type="button" className="boton boton-secundario" onClick={onCerrarSesion}><LogOut size={17} /> Cerrar sesión</button>
+      </header>
+
+      {error && <p className="mensaje-error panel-veedor-error" role="alert">{normalizarErrorApi(error).detalle}</p>}
+
+      <section className="panel-veedor-grid">
+        <article className="panel-operativo" aria-labelledby="titulo-moderacion">
+          <header><span className="panel-icono"><ClipboardCheck /></span><div><p className="eyebrow">RF018</p><h2 id="titulo-moderacion">Reportes pendientes</h2></div><button type="button" className="boton-icono" aria-label="Actualizar reportes" onClick={() => void reportes.refetch()}><RefreshCw size={17} /></button></header>
+          {reportes.isPending && <p role="status">Cargando reportes…</p>}
+          {!reportes.isPending && reportes.data?.length === 0 && <div className="panel-vacio"><Check /><strong>Cola al día</strong><p>No hay reportes pendientes de moderación.</p></div>}
+          <div className="lista-moderacion">
+            {reportes.data?.map((reporte) => (
+              <article key={reporte.id} className="reporte-pendiente">
+                <div><strong>{reporte.tipo.replaceAll('_', ' ')}</strong><span>{reporte.sectorId}</span><small>{new Date(reporte.timestamp).toLocaleString('es-CO')}</small></div>
+                <div className="acciones-moderacion">
+                  <button type="button" className="boton aprobar" disabled={moderar.isPending} onClick={() => moderar.mutate({ id: reporte.id, decision: 'aprobar' })}><Check size={16} /> Aprobar</button>
+                  <button type="button" className="boton descartar" disabled={moderar.isPending} onClick={() => moderar.mutate({ id: reporte.id, decision: 'descartar' })}><X size={16} /> Descartar</button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </article>
+
+        <article className="panel-operativo" aria-labelledby="titulo-cortes">
+          <header><span className="panel-icono"><Droplets /></span><div><p className="eyebrow">RF016–RF017</p><h2 id="titulo-cortes">Cortes oficiales</h2></div></header>
+          <label htmlFor="sector-cortes">Consultar barrio</label>
+          <select id="sector-cortes" value={sectorFiltro} onChange={(event) => setSectorFiltro(event.target.value)}><option value="">Selecciona un barrio</option>{barrios.map((sector) => <option key={sector.id} value={sector.id}>{sector.nombre}</option>)}</select>
+          {cortes.isFetching && <p role="status">Consultando cortes…</p>}
+          {sectorFiltro && !cortes.isFetching && cortes.data?.length === 0 && <div className="panel-vacio"><Check /><strong>Sin cortes registrados</strong><p>No existen cortes para este barrio.</p></div>}
+          <div className="lista-cortes">
+            {cortes.data?.map((corte) => (
+              <article key={corte.id} className="corte-oficial">
+                <div><strong>{corte.causa}</strong><span>{corte.estado}</span><small>Prometido: {corte.finPrometido ? new Date(corte.finPrometido).toLocaleString('es-CO') : 'Sin fecha'}</small></div>
+                {corte.estado !== 'CERRADO' && corte.id && <button type="button" className="boton boton-secundario" disabled={cerrarCorte.isPending} onClick={() => cerrarCorte.mutate(corte.id!)}>Marcar restablecido</button>}
+              </article>
+            ))}
+          </div>
+        </article>
+      </section>
+
+      <section className="panel-operativo crear-corte" aria-labelledby="titulo-crear-corte">
+        <header><span className="panel-icono"><Plus /></span><div><p className="eyebrow">Nuevo registro oficial</p><h2 id="titulo-crear-corte">Registrar corte</h2></div></header>
+        <form onSubmit={crearCorte}>
+          <fieldset className="campo-sectores">
+            <legend>Barrios afectados</legend>
+            <div className="selector-sectores-corte">
+              {barrios.map((sector) => (
+                <label key={sector.id}>
+                  <input
+                    type="checkbox"
+                    checked={sectoresNuevos.includes(sector.id)}
+                    onChange={(event) => setSectoresNuevos((actuales) => event.target.checked ? [...actuales, sector.id] : actuales.filter((id) => id !== sector.id))}
+                  />
+                  <span>{sector.nombre}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <label>Inicio<input required type="datetime-local" value={inicio} onChange={(event) => setInicio(event.target.value)} /></label>
+          <label>Fin prometido<input required type="datetime-local" value={finPrometido} onChange={(event) => setFinPrometido(event.target.value)} /></label>
+          <label className="campo-causa">Causa<input required value={causa} onChange={(event) => setCausa(event.target.value)} placeholder="Mantenimiento o daño reportado" /></label>
+          <button className="boton boton-primario" type="submit" disabled={registrarCorte.isPending}>{registrarCorte.isPending ? 'Registrando…' : 'Registrar corte oficial'}</button>
+        </form>
+      </section>
+    </main>
+  )
+}
