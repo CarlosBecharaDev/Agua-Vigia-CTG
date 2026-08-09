@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react'
 import type { FC } from 'react'
 import { InsigniaEstado } from '../components/InsigniaEstado'
-import { obtenerBoletinesRecientes } from '../api/acuacar'
+import { determinarEstadoBoletin, obtenerBoletinesRecientes } from '../api/acuacar'
 import type { BoletinAcuacar } from '../api/acuacar'
 import type { EstadoServicio } from '../types/tipos-dominio'
 import { RefreshCw, ExternalLink, MapPin, Activity, CheckCircle2, AlertTriangle, Info } from 'lucide-react'
@@ -25,14 +25,7 @@ const formatearFecha = (isoString: string) => {
 
 /** Determina el estado de un boletín analizando su título */
 function estadoDeBoletin(titulo: string): EstadoServicio {
-  const t = titulo.toLowerCase();
-  if (t.includes('interrupción') || t.includes('falla') || t.includes('suspensión') || t.includes('avance del'))
-    return 'SIN_SERVICIO';
-  if (t.includes('mantenimiento') || t.includes('programad') || t.includes('realizará') || t.includes('intervendrá'))
-    return 'CORTE_PROGRAMADO';
-  if (t.includes('restablec') || t.includes('normaliz') || t.includes('recuperación'))
-    return 'CON_SERVICIO';
-  return 'CON_SERVICIO';
+  return determinarEstadoBoletin(titulo)
 }
 
 /* ── Estilos glassmorphism reutilizables ── */

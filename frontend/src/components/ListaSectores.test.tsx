@@ -37,4 +37,17 @@ describe('ListaSectores', () => {
 
     expect(screen.getByRole('alert')).toHaveTextContent(/No pudimos cargar los sectores/i)
   })
+
+  it('no inventa reportes para sectores sin datos', () => {
+    render(
+      <ListaSectores
+        sectores={[{ id: 'sin-dato', nombre: 'MANGA', estado: null, actualizadoEn: null }]}
+        cargando={false}
+        error={null}
+      />,
+    )
+
+    expect(screen.getByText('MANGA')).toBeInTheDocument()
+    expect(screen.queryByText(/reportes ciudadanos/i)).not.toBeInTheDocument()
+  })
 })

@@ -134,7 +134,7 @@ const PaginaMapa: FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1.25rem', gap: '1rem', flexWrap: 'wrap' }}>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', color: 'var(--color-tinta-3)', fontWeight: '600', backgroundColor: 'var(--color-superficie)', padding: '0.4rem 0.75rem', borderRadius: 'var(--radio-pill)', border: '1px solid var(--color-linea)' }}>
                 <span className="pulse-dot" style={{ width: '8px', height: '8px', backgroundColor: 'var(--color-estado-sin)', borderRadius: '50%', display: 'inline-block' }}></span>
-                🔥 {sectores.filter(s => s.estado !== 'CON_SERVICIO').length} barrios reportan problemas
+                🔥 {sectores.filter(s => s.estado !== null && s.estado !== 'CON_SERVICIO').length} barrios reportan problemas
               </span>
               <button 
                 onClick={() => {

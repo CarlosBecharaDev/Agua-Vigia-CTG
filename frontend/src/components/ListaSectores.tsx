@@ -64,7 +64,7 @@ export const ListaSectores: FC<Props> = ({ sectores, cargando, error, onSectorSe
 
   // Genera un número de reportes estático falso para diseño
   const obtenerReportesMock = (sector: Sector) => {
-    if (sector.estado === 'CON_SERVICIO') return 0;
+    if (sector.estado === null || sector.estado === 'CON_SERVICIO') return 0;
     if (sector.estado === 'CORTE_PROGRAMADO') return Math.floor(parseInt(sector.id) * 2);
     return parseInt(sector.id) * 4 + 7;
   }

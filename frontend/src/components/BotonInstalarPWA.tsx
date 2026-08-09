@@ -2,15 +2,20 @@ import { useState, useEffect } from 'react'
 import type { FC } from 'react'
 import { Download } from 'lucide-react'
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+}
+
 export const BotonInstalarPWA: FC = () => {
-  const [eventoInstalacion, setEventoInstalacion] = useState<any>(null)
+  const [eventoInstalacion, setEventoInstalacion] = useState<BeforeInstallPromptEvent | null>(null)
   const [appInstalada, setAppInstalada] = useState(false)
 
   useEffect(() => {
     // Escuchar el evento que indica que la PWA se puede instalar
     const interceptarInstalacion = (e: Event) => {
       e.preventDefault()
-      setEventoInstalacion(e)
+      setEventoInstalacion(e as BeforeInstallPromptEvent)
     }
 
     // Detectar si ya está instalada (Standalone mode)
@@ -21,15 +26,17 @@ export const BotonInstalarPWA: FC = () => {
     }
 
     window.addEventListener('beforeinstallprompt', interceptarInstalacion)
-    window.addEventListener('appinstalled', () => {
+    const marcarComoInstalada = () => {
       setAppInstalada(true)
       setEventoInstalacion(null)
-    })
+    }
+    window.addEventListener('appinstalled', marcarComoInstalada)
     
     detectarStandalone()
 
     return () => {
       window.removeEventListener('beforeinstallprompt', interceptarInstalacion)
+      window.removeEventListener('appinstalled', marcarComoInstalada)
     }
   }, [])
 
@@ -38,11 +45,19 @@ export const BotonInstalarPWA: FC = () => {
   }
 
   const solicitarInstalacion = async () => {
-    if (!eventoInstalacion) return
-    eventoInstalacion.prompt()
-    const resultado = await eventoInstalacion.userChoice
-    if (resultado.outcome === 'accepted') {
-      console.log('El usuario aceptó instalar la PWA de AguaVigía')
+    const evento = eventoInstalacion
+    if (!evento) return
+
+    try {
+      await evento.prompt()
+      const resultado = await evento.userChoice
+      if (resultado.outcome === 'accepted') {
+        console.log('El usuario aceptó instalar la PWA de AguaVigía')
+      }
+    } catch (error) {
+      console.warn('No se pudo mostrar el diálogo de instalación:', error)
+    } finally {
+      // El evento solo puede consumirse una vez, incluso si el usuario cancela.
       setEventoInstalacion(null)
     }
   }
