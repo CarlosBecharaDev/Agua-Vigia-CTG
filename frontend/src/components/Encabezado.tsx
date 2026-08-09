@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 import type { FC } from 'react'
 import { NavLink, Link } from 'react-router-dom'
 import { SelectorTema } from './SelectorTema'
+import { BotonInstalarPWA } from './BotonInstalarPWA'
 import type { useTheme } from '../hooks/useTheme'
 import { Map, BarChart3, Clock, Droplet, ShieldCheck } from 'lucide-react'
 
@@ -98,6 +99,7 @@ export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema }) => {
 
       {/* Zona de Reloj y Selector de Tema */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <BotonInstalarPWA />
         <RelojTiempoReal />
         <SelectorTema temaActivo={temaActivo} onAlternar={onAlternarTema} />
       </div>
