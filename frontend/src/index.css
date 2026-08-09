@@ -53,14 +53,17 @@
   :root:not([data-theme="light"]) {
     --color-acento:       #54c6ca;
     --color-acento-vivo:  #78d9db;
-    --color-acento-suave: #153f44;
-    --color-tinta:        #edf8f7;
-    --color-tinta-2:      #a7bdbd;
-    --color-tinta-3:      #71898c;
-    --color-marino:       #061b22;
-    --color-linea:        #234a4f;
-    --color-superficie:   #102f36;
-    --color-fondo:        #071f26;
+    --color-acento-suave: #0d465d;
+
+    --color-tinta:        #e6f4f1;
+    --color-tinta-2:      #9cbabc;
+    --color-tinta-3:      #688a91;
+    --color-marino:       #001824;
+
+    --color-linea:        #185975;
+    --color-superficie:   #063b52;
+    --color-fondo:        #002436;
+
     --color-estado-con:   #30d158;
     --color-estado-sin:   #ff453a;
     --color-estado-baja:  #ff9f0a;
