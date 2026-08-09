@@ -15,6 +15,24 @@ import PaginaBitacora from './pages/PaginaBitacora'
 import PaginaVeedor from './pages/PaginaVeedor'
 import { SplashScreen } from './components/SplashScreen'
 
+import { AnimatePresence } from 'framer-motion'
+import { useLocation } from 'react-router-dom'
+
+function RutasAnimadas() {
+  const location = useLocation()
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/"              element={<PaginaMapa />} />
+        <Route path="/reportar"      element={<PaginaReportar />} />
+        <Route path="/estadisticas"  element={<PaginaEstadisticas />} />
+        <Route path="/bitacora"      element={<PaginaBitacora />} />
+        <Route path="/veedor"        element={<PaginaVeedor />} />
+      </Routes>
+    </AnimatePresence>
+  )
+}
+
 function App() {
   const { temaActivo, alternarTema } = useTheme()
 
@@ -52,13 +70,7 @@ function App() {
 
       <Encabezado temaActivo={temaActivo} onAlternarTema={alternarTema} />
 
-      <Routes>
-        <Route path="/"              element={<PaginaMapa />} />
-        <Route path="/reportar"      element={<PaginaReportar />} />
-        <Route path="/estadisticas"  element={<PaginaEstadisticas />} />
-        <Route path="/bitacora"      element={<PaginaBitacora />} />
-        <Route path="/veedor"        element={<PaginaVeedor />} />
-      </Routes>
+      <RutasAnimadas />
     </BrowserRouter>
   )
 }

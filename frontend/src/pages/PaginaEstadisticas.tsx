@@ -29,6 +29,7 @@ import {
 import { Download, AlertTriangle, Clock, Sparkles, Activity, Newspaper } from 'lucide-react'
 import { obtenerBoletinesRecientes } from '../api/acuacar'
 import type { BoletinAcuacar } from '../api/acuacar'
+import { PageWrapper } from '../components/PageWrapper'
 
 // ──────────────────────────────────────────────────────────────
 // Funciones de análisis de datos reales
@@ -754,8 +755,9 @@ const PaginaEstadisticas: FC = () => {
   }
 
   return (
-    <main id="contenido-principal" role="main" aria-label="Estadísticas del servicio de agua en Cartagena">
-      <div style={{ padding: '2rem 1.25rem', maxWidth: '1000px', margin: '0 auto' }}>
+    <PageWrapper>
+      <main id="contenido-principal" role="main" aria-label="Estadísticas del servicio de agua en Cartagena">
+        <div style={{ padding: '2rem 1.25rem', maxWidth: '1000px', margin: '0 auto' }}>
         
         <div style={{ marginBottom: '1rem' }}>
           <h1 style={{
@@ -1105,9 +1107,9 @@ const PaginaEstadisticas: FC = () => {
             <Download size={16} /> Descargar Informe Interactivo
           </button>
         </div>
-
-      </div>
-    </main>
+        </div>
+      </main>
+    </PageWrapper>
   )
 }
 

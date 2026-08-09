@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 import { Plus, Check, X, ShieldAlert, Activity, Users, Send } from 'lucide-react'
 import { AguaVigiaAPI } from '../api/services'
 import type { FC } from 'react'
+import { PageWrapper } from '../components/PageWrapper'
 
 const SECTORES_MOCK = [
   { id: '1', nombre: 'BOCAGRANDE' },
@@ -89,55 +90,60 @@ const PaginaVeedor: FC = () => {
 
   if (!autenticado) {
     return (
-      <main id="contenido-principal" role="main" aria-label="Ingreso al panel del veedor">
-        <div style={{ padding: '4rem 1.5rem', maxWidth: '420px', margin: '0 auto', textAlign: 'center' }}>
-          
-          <div style={{ 
-            width: '80px', height: '80px', borderRadius: '2rem', 
-            background: 'linear-gradient(135deg, #0066cc 0%, #2997ff 100%)',
-            margin: '0 auto 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 8px 24px rgba(0, 102, 204, 0.4)'
-          }}>
-            <ShieldAlert size={40} color="#FFF" />
-          </div>
+      <PageWrapper>
+        <main id="contenido-principal" role="main" aria-label="Ingreso al panel del veedor" style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 60px)', padding: '1.25rem'
+        }}>
+          <div style={{ padding: '4rem 1.5rem', maxWidth: '420px', margin: '0 auto', textAlign: 'center' }}>
+            
+            <div style={{ 
+              width: '80px', height: '80px', borderRadius: '2rem', 
+              background: 'linear-gradient(135deg, #0066cc 0%, #2997ff 100%)',
+              margin: '0 auto 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 8px 24px rgba(0, 102, 204, 0.4)'
+            }}>
+              <ShieldAlert size={40} color="#FFF" />
+            </div>
 
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', marginBottom: '0.75rem', color: 'var(--color-tinta)', fontWeight: '800', letterSpacing: '-0.5px' }}>
-            Panel del Veedor
-          </h1>
-          <p style={{ color: 'var(--color-tinta-2)', marginBottom: '2.5rem', fontSize: '1rem', lineHeight: '1.6' }}>
-            Área de control restringida. Los líderes comunitarios aprueban o descartan reportes aquí.
-          </p>
-          <button
-            type="button"
-            onClick={() => setAutenticado(true)}
-            style={{
-              backgroundColor: 'var(--color-acento)',
-              color: '#FFF',
-              padding: '0.85rem 2rem',
-              border: 'none',
-              borderRadius: 'var(--radio-pill)',
-              fontWeight: '700',
-              fontSize: '1rem',
-              cursor: 'pointer',
-              boxShadow: '0 6px 16px rgba(2, 132, 199, 0.35)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              width: '100%',
-              justifyContent: 'center'
-            }}
-            className="hover-glowing"
-          >
-            Simular Ingreso Seguro
-          </button>
-        </div>
-      </main>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '2rem', marginBottom: '0.75rem', color: 'var(--color-tinta)', fontWeight: '800', letterSpacing: '-0.5px' }}>
+              Panel del Veedor
+            </h1>
+            <p style={{ color: 'var(--color-tinta-2)', marginBottom: '2.5rem', fontSize: '1rem', lineHeight: '1.6' }}>
+              Área de control restringida. Los líderes comunitarios aprueban o descartan reportes aquí.
+            </p>
+            <button
+              type="button"
+              onClick={() => setAutenticado(true)}
+              style={{
+                backgroundColor: 'var(--color-acento)',
+                color: '#FFF',
+                padding: '0.85rem 2rem',
+                border: 'none',
+                borderRadius: 'var(--radio-pill)',
+                fontWeight: '700',
+                fontSize: '1rem',
+                cursor: 'pointer',
+                boxShadow: '0 6px 16px rgba(2, 132, 199, 0.35)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                width: '100%',
+                justifyContent: 'center'
+              }}
+              className="hover-glowing"
+            >
+              Simular Ingreso Seguro
+            </button>
+          </div>
+        </main>
+      </PageWrapper>
     )
   }
 
   return (
-    <main id="contenido-principal" role="main" aria-label="Dashboard del veedor">
-      <div style={{ padding: '2rem 1.25rem', maxWidth: '900px', margin: '0 auto' }}>
+    <PageWrapper>
+      <main id="contenido-principal" role="main" aria-label="Dashboard del veedor">
+        <div style={{ padding: '2rem 1.25rem', maxWidth: '900px', margin: '0 auto' }}>
         
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2.5rem' }}>
           <div>
@@ -310,8 +316,9 @@ const PaginaVeedor: FC = () => {
           </div>
         </section>
         
-      </div>
-    </main>
+        </div>
+      </main>
+    </PageWrapper>
   )
 }
 

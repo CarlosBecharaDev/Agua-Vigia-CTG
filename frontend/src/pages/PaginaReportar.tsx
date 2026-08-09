@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 import type { FC } from 'react'
 import { FormularioReporte } from '../components/FormularioReporte'
 import { AguaVigiaAPI } from '../api/services'
+import { PageWrapper } from '../components/PageWrapper'
 
 const PaginaReportar: FC = () => {
   const [exito, setExito] = useState(false)
@@ -33,10 +34,11 @@ const PaginaReportar: FC = () => {
 
   if (exito) {
     return (
-      <main id="contenido-principal" role="main" aria-label="Reporte enviado con éxito">
-        <div style={{ padding: '3rem 1.5rem', maxWidth: '500px', margin: '0 auto', textAlign: 'center' }}>
-          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>✅</div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', marginBottom: '1rem', color: 'var(--color-tinta)' }}>
+      <PageWrapper>
+        <main id="contenido-principal" role="main" aria-label="Reporte enviado con éxito">
+          <div style={{ padding: '3rem 1.5rem', maxWidth: '500px', margin: '0 auto', textAlign: 'center' }}>
+            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>✅</div>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', marginBottom: '1rem', color: 'var(--color-tinta)' }}>
             ¡Reporte recibido!
           </h1>
           <p style={{ color: 'var(--color-tinta-2)', marginBottom: '2rem', lineHeight: '1.5' }}>
@@ -58,13 +60,15 @@ const PaginaReportar: FC = () => {
             Volver al mapa
           </a>
         </div>
-      </main>
+        </main>
+      </PageWrapper>
     )
   }
 
   return (
-    <main id="contenido-principal" role="main" aria-label="Reportar problema con el servicio de agua">
-      <div style={{ padding: '2rem 1.25rem', maxWidth: '500px', margin: '0 auto' }}>
+    <PageWrapper>
+      <main id="contenido-principal" role="main" aria-label="Reportar problema con el servicio de agua">
+        <div style={{ padding: '2rem 1.25rem', maxWidth: '500px', margin: '0 auto' }}>
         
         <h1 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', marginBottom: '0.5rem', color: 'var(--color-tinta)' }}>
           Reportar estado
@@ -85,7 +89,8 @@ const PaginaReportar: FC = () => {
           Tus datos son anónimos. Si tienes una emergencia o daño grave, contacta a Acuacar directamente al 604 660 3030.
         </p>
       </div>
-    </main>
+      </main>
+    </PageWrapper>
   )
 }
 
