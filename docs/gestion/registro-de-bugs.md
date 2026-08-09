@@ -102,7 +102,7 @@ de error propio.
 ### BUG-018 — `BUG-008` no quedó corregido del todo
 
 - **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M1 · **Responsable:** D4
-- **Estado:** Abierto
+- **Estado:** Cerrado — corregido en PR #87
 
 **Síntoma:** `BUG-008` (el mapa pinta "con servicio" los sectores sin dato) figura `Cerrado` en este
 mismo registro desde el PR #67. Pero `frontend/src/components/MapaCartagena.tsx:149` —el `style`
@@ -128,7 +128,7 @@ referencia desde este, según decida el equipo.
 ### BUG-019 — Sectores sin dato se cuentan como "con problema"
 
 - **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M1 · **Responsable:** D4
-- **Estado:** Abierto
+- **Estado:** Cerrado — corregido en PR #87
 
 **Síntoma:** `PaginaMapa.tsx:135` cuenta "🔥 N barrios reportan problemas" con
 `s.estado !== 'CON_SERVICIO'`, lo que también cuenta `estado === null` como problema. Por separado,
@@ -152,7 +152,7 @@ API real, ningún camino nuevo distingue "sin dato" de "con problema".
 ### BUG-020 — El cruce de nombres Acuacar↔sector no normaliza texto
 
 - **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M1/M9 · **Responsable:** D4
-- **Estado:** Abierto
+- **Estado:** Cerrado — corregido en PR #87
 
 **Síntoma:** `useDatosEnVivo.ts:105` (`combinarSectoresConAcuacar`) une el nombre de barrio derivado
 de Acuacar con el sector real vía `Map.get(sector.nombre)` exacto, sin la normalización que
@@ -263,7 +263,7 @@ con su trigger `schedule` a `main`, o disparar el refresco por otro medio mientr
 ### BUG-024 — Preselección de sector y respaldo sin API rotos en `PaginaReportar`
 
 - **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M2 · **Responsable:** D4
-- **Estado:** Abierto
+- **Estado:** Cerrado — corregido en PR #87
 
 **Síntoma:** dos regresiones del PR #68 al quitar `SECTORES_MOCK`:
 1. `FormularioReporte.tsx:16` — `sectorId` se inicializa desde `sectorPreseleccionado` solo dentro de
@@ -288,7 +288,7 @@ quedaron en el mismo PR (`PaginaReportar` sin respaldo, `PaginaVeedor` con mock 
 ### BUG-025 — El botón "Instalar App" revienta si se reintenta tras descartar el diálogo
 
 - **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M7 · **Responsable:** D4
-- **Estado:** Abierto
+- **Estado:** Cerrado — corregido en PR #87
 
 **Síntoma:** `BotonInstalarPWA.tsx:42` solo limpia el evento `BeforeInstallPromptEvent` capturado
 cuando el resultado es `'accepted'`. Si el usuario descarta el diálogo (`'dismissed'`), el evento ya
@@ -311,7 +311,7 @@ tras el primer intento.
 ### BUG-026 — El mapa deja de reaccionar al hacer clic en un sector tras el primer render
 
 - **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M1 · **Responsable:** D4
-- **Estado:** Abierto
+- **Estado:** Cerrado — corregido en PR #87
 
 **Síntoma:** el `useEffect` que construye la capa GeoJSON en `MapaCartagena.tsx:194` recortó sus
 dependencias de `[sectores, onSectorSeleccionado]` a solo `[onSectorSeleccionado]` (un `useCallback`
@@ -335,7 +335,7 @@ actualización de datos, pero rompió la lectura fresca dentro del handler de cl
 ### BUG-027 — La Bitácora y el Mapa clasifican el mismo boletín de forma distinta
 
 - **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M1/M8 · **Responsable:** D4
-- **Estado:** Abierto
+- **Estado:** Cerrado — corregido en PR #87
 
 **Síntoma:** `PaginaBitacora.tsx` (`estadoDeBoletin`) y `acuacar.ts` (`determinarEstadoBarrios`)
 clasifican el mismo texto de boletín en `SIN_SERVICIO`/`CORTE_PROGRAMADO`/`CON_SERVICIO`, pero
@@ -358,7 +358,7 @@ el proyecto vende (`brief.md`).
 ### BUG-028 — Detección de barrio por GPS no es un point-in-polygon real
 
 - **Fecha:** 2026-08-09 · **Severidad:** S3 · **Módulo:** M2 · **Responsable:** D4
-- **Estado:** Abierto
+- **Estado:** Cerrado — corregido en PR #87
 
 **Síntoma:** `FormularioReporte.tsx:45` compara la coordenada del usuario contra **el primer vértice**
 de cada polígono (`geometry.coordinates[0][0]`) por distancia euclidiana, no contra un
