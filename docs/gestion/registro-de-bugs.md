@@ -698,7 +698,9 @@ publique una versión que negocie sola.
 ### BUG-006 — La rama `vista-previa-total` vuelve a pedir la contraseña `'1234'` y borra la prueba que lo impedía
 
 - **Fecha:** 2026-08-08 · **Severidad:** S2 · **Módulo:** M5 · **Responsable:** D4
-- **Estado:** Abierto — **no está en `develop`**; se dispara solo si la rama se fusiona sin poner al día
+- **Estado:** Cerrado — 2026-08-09, reverificado tras un desbloqueo temporal (`DT-006`,
+  `registro-de-bloqueos.md` §4) que autorizaba a D5 a corregirlo; la reverificación mostró que ya no
+  reproduce, sin que D5 tocara código
 
 **Síntoma:** en `origin/vista-previa-total`, `frontend/src/pages/PaginaVeedor.tsx:16` vuelve a
 contener `if (contraseña === '1234')` y el texto *"Código de acceso temporal (MOCK: usa 1234)"* en la
@@ -722,9 +724,18 @@ condición de cierre.
 `develop`. Al fusionarla, su versión antigua del archivo pisa la corregida y arrastra consigo el
 borrado del test. No es un cambio deliberado de D4: es divergencia por una rama larga sin rebase.
 
-**Corrección:** pendiente. Condición de entrada del PR de M5 (paso 4 del plan de integración):
-`git rebase origin/develop` sobre la rama, conservar `PaginaVeedor.test.tsx` y correr `npm test` en
-verde antes de abrir el PR. Sin eso, el PR no se fusiona.
+**Corrección:** ninguna necesaria — José Daniel ya corrigió el archivo directamente en
+`origin/vista-previa-total` en algún punto después del 2026-08-08 (la rama pasó a ser ancestro de
+`develop`: `git merge-base --is-ancestor origin/vista-previa-total origin/develop` → cierto). Reverificado
+el 2026-08-09 con la misma reproducción exacta de este bug:
+```
+git show origin/vista-previa-total:frontend/src/pages/PaginaVeedor.tsx | grep -c 1234
+→ 0   (era 2)
+git diff --name-status origin/develop origin/vista-previa-total -- frontend/src/pages/PaginaVeedor.test.tsx
+→ M   (era D — el archivo ya no está borrado)
+```
+No se rebaseó ni se hizo `push` a la rama de José Daniel — verificar antes de actuar evitó una
+reescritura de historial innecesaria sobre trabajo en curso de otra persona.
 
 ---
 
