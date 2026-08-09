@@ -233,8 +233,8 @@ select {
 /* ─── Tarjetas y Paneles (Glassmorphism Apple-style) ─── */
 .panel-glass {
   background: linear-gradient(135deg, rgba(var(--glass-r), var(--glass-g), var(--glass-b), 0.7) 0%, rgba(var(--glass-r), var(--glass-g), var(--glass-b), 0.4) 100%);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255,255,255,0.18);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255,255,255,0.2);
 }
@@ -254,7 +254,6 @@ select {
 /* ─── Efectos Interactivos (Sutiles al estilo Apple) ─── */
 .hover-glowing {
   transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease, box-shadow 0.2s ease !important;
-  will-change: transform;
 }
 .hover-glowing:hover {
   transform: translateY(-2px) scale(1.01);
@@ -770,8 +769,8 @@ select { font: inherit; }
   background: color-mix(in srgb, var(--color-superficie) 92%, transparent);
   border: 1px solid var(--color-linea);
   box-shadow: var(--sombra-suave);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .app-header {
