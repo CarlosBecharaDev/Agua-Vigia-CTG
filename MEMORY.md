@@ -88,7 +88,8 @@ throttling propio en el Sprint 0.
 | 2026-08-07 | Toda implementación, bug y sesión de trabajo con IA se registra en `docs/gestion/`. Es parte de la definición de terminado y es el insumo del Capítulo IV. Ver `ADR-008`. |
 | 2026-08-07 | Una información vive en **un solo archivo**. Los archivos permanentes tienen presupuesto: `CLAUDE.md` ≤ 200 líneas, `MEMORY.md` ≤ 150, `DESIGN.md` ≤ 200. Ver `docs/gestion/protocolo-de-contexto.md`. |
 | 2026-08-07 | El Scrum Master rota cada sprint (D1→D2→D3→D4→D5). Cierra el sprint y rota los registros. |
-| 2026-08-07 | Roles asignados por nombre: **D2** Carlos Bechara Arias · **D3** Sebastián Montes Olivera · **D4** José Daniel Zambrano · **D5** Yordy Pardo Pajaro. **D1 sigue sin titular.** Fuente única: `docs/equipo/roles-y-tareas.md`. |
+| 2026-08-07 | Roles asignados por nombre: **D1** Rafael Sarmiento Peña · **D2** Carlos Bechara Arias · **D3** Sebastián Montes Olivera · **D4** José Daniel Zambrano · **D5** Yordy Pardo Pajaro. Fuente única: `docs/equipo/roles-y-tareas.md`. |
+| 2026-08-08 | D1 asignado a Rafael Sarmiento Peña — puede iniciar M4 Alertas, M8 Bitácora, BL-006 (COLLECTOR_USER_AGENT). |
 | 2026-08-07 | La secuencia **D5 → D2 → D3 y D1 → D4 → D5 (QA)** es obligatoria y se controla con **4 compuertas verificables** (C0–C3). Un rol bloqueado se detiene, registra en `docs/gestion/registro-de-bloqueos.md` y **avisa en el chat**; nunca rodea el bloqueo inventando el insumo que falta. |
 | 2026-08-07 | **El agente nunca figura como colaborador del repositorio**: sin `Co-Authored-By`, sin firmas en commits o PRs. La autoría es de las 5 personas. Forzado con `includeCoAuthoredBy: false`. Ver `CLAUDE.md` § Convenciones de Git. |
 

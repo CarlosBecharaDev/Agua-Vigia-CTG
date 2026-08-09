@@ -15,7 +15,7 @@ repositorio se usa el código (`D1`–`D5`); si necesitas el nombre, vuelve aqu�
 
 | Rol | Integrante | Responsabilidad en una línea |
 |---|---|---|
-| **D1** | ⚠️ *por asignar — 5.º integrante* | Notificaciones, bitácora pública y documentación académica asistida por IA |
+| **D1** | **Rafael Sarmiento Peña** | Notificaciones, bitácora pública y documentación académica asistida por IA |
 | **D2** | **Carlos Bechara Arias** | Dominio y casos de uso: Java puro, responde por la Regla de Oro |
 | **D3** | **Sebastián Montes Olivera** | Infraestructura e integraciones: MongoDB, Redis, ingesta con IA, contrato OpenAPI |
 | **D4** | **José Daniel Zambrano** | Frontend: SPA React, mapas, accesibilidad |
