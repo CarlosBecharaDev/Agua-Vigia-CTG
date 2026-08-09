@@ -17,6 +17,7 @@ import 'leaflet/dist/leaflet.css'
 import type { Sector } from '../types/tipos-dominio'
 import { COLOR_POR_ESTADO, COLOR_SIN_DATOS } from '../types/tipos-dominio'
 import { nombresBarrioCoinciden, normalizarNombreBarrio } from '../utils/geografia'
+import { sectorDesdeGeojson } from '../utils/sectorGeojson'
 import { EtiquetaFrescura } from './EtiquetaFrescura'
 import { InsigniaEstado } from './InsigniaEstado'
 
@@ -179,17 +180,9 @@ export const MapaCartagena: FC<Props> = ({
 
             layer.on('click', () => {
               const sector = buscarSector(indiceSectores.current, nombre)
-              // Si el barrio no está en la BD, lo generamos al vuelo como CON_SERVICIO
-              const sectorClick = sector || {
-                id: `geo-${normalizarNombre(nombre)}`,
-                nombre: nombre,
-                estado: null,
-                reportesActivos: 0,
-                actualizadoHace: 'En este momento',
-                actualizadoEn: new Date().toISOString()
-              };
+              const sectorClick = sectorDesdeGeojson(nombre, sector)
               
-              onSectorSeleccionadoRef.current?.(sectorClick as Sector)
+              onSectorSeleccionadoRef.current?.(sectorClick)
             })
 
             layer.on('mouseover', (e) => {

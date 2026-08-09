@@ -7,7 +7,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { Component, lazy, Suspense } from 'react'
 import type { ErrorInfo, ReactNode } from 'react'
-import { AnimatePresence } from 'framer-motion'
 import { Encabezado } from './components/Encabezado'
 import { useTheme } from './hooks/useTheme'
 
@@ -17,6 +16,7 @@ const PaginaReportar = lazy(() => import('./pages/PaginaReportar'))
 const PaginaEstadisticas = lazy(() => import('./pages/PaginaEstadisticas'))
 const PaginaBitacora = lazy(() => import('./pages/PaginaBitacora'))
 const PaginaVeedor = lazy(() => import('./pages/PaginaVeedor'))
+const PaginaNoEncontrada = lazy(() => import('./pages/PaginaNoEncontrada'))
 
 interface RouteErrorBoundaryProps { children: ReactNode }
 interface RouteErrorBoundaryState { hasError: boolean }
@@ -54,17 +54,16 @@ class RouteErrorBoundary extends Component<RouteErrorBoundaryProps, RouteErrorBo
 function RutasAnimadas() {
   const location = useLocation()
   return (
-    <RouteErrorBoundary>
+    <RouteErrorBoundary key={location.pathname}>
       <Suspense fallback={<div className="cargando-pagina" role="status"><span /> Cargando experiencia…</div>}>
-        <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<PaginaMapa />} />
             <Route path="/reportar" element={<PaginaReportar />} />
             <Route path="/estadisticas" element={<PaginaEstadisticas />} />
             <Route path="/bitacora" element={<PaginaBitacora />} />
             <Route path="/veedor" element={<PaginaVeedor />} />
+            <Route path="*" element={<PaginaNoEncontrada />} />
           </Routes>
-        </AnimatePresence>
       </Suspense>
     </RouteErrorBoundary>
   )

@@ -7,37 +7,30 @@
    para éxito/error/advertencia/enlace genéricos de la interfaz.
    ============================================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto:wght@500;700&display=swap');
 @import "tailwindcss";
 
-/* ─── Modo claro (por defecto - Apple Style) ─── */
+/* ─── Modo claro ─── */
 :root {
-  /* Teal Blue Accent */
   --color-acento:        #087f8c;
   --color-acento-vivo:   #0a9cab;
   --color-acento-suave:  #d9f1f0;
-
-  /* Ink (Dark bluish gray) */
   --color-tinta:         #12333d;
   --color-tinta-2:       #5d7379;
   --color-tinta-3:       #8da0a4;
   --color-marino:        #082f3c;
-
-  /* Surfaces (Soft bluish white) */
   --color-linea:         #dce8e8;
   --color-superficie:    #ffffff;
   --color-fondo:         #f3f8f7;
 
   /* ── Colores de ESTADO DEL SERVICIO ── */
-  --color-estado-con:    #34c759;   /* Apple Green */
-  --color-estado-sin:    #ff3b30;   /* Apple Red  */
-  --color-estado-baja:   #ff9500;   /* Apple Orange */
-  --color-estado-prog:   #8e8e93;   /* Apple Gray */
+  --color-estado-con:    #34c759;
+  --color-estado-sin:    #ff453a;
+  --color-estado-baja:   #ff9f0a;
+  --color-estado-prog:   #98989d;
 
-  /* Tipografía Apple */
-  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
-  --font-cuerpo:  -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-  --font-util:    "SF Mono", ui-monospace, monospace;
+  --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --font-cuerpo: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-util: ui-monospace, "Cascadia Mono", Consolas, monospace;
 
   /* Espaciado base (Apple Corners) */
   --radio-base: 8px;
@@ -55,7 +48,7 @@
   color-scheme: light;
 }
 
-/* ─── Modo oscuro — media query del SO (Apple Dark Mode) ─── */
+/* ─── Modo oscuro — media query del SO ─── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --color-acento:       #54c6ca;
@@ -122,9 +115,9 @@
   --color-fondo:         #f3f8f7;
 
   --color-estado-con:    #34c759;
-  --color-estado-sin:    #ff3b30;
-  --color-estado-baja:   #ff9500;
-  --color-estado-prog:   #8e8e93;
+  --color-estado-sin:    #ff453a;
+  --color-estado-baja:   #ff9f0a;
+  --color-estado-prog:   #98989d;
 
   color-scheme: light;
 }
@@ -375,7 +368,8 @@ select {
 
 /* Quitar el outline rectangular punteado al hacer click en un polígono en Leaflet */
 .leaflet-interactive:focus {
-  outline: none !important;
+  outline: 3px solid var(--color-acento) !important;
+  outline-offset: 2px;
 }
 
 /* Animación de pulso suave para el barrio seleccionado */
@@ -659,7 +653,78 @@ select {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   REDISEÑO AGUAVIGÍA — experiencia cívica, cálida y responsive
+   ═══════════════════════════════════════════════════════════ */
+:root {
+  --color-acento: #087f8c;
+  --color-acento-vivo: #0a9cab;
+  --color-acento-suave: #d9f1f0;
+  --color-coral: #087f8c;
+  --color-coral-oscuro: #085761;
+  --color-tinta: #12333d;
+  --color-tinta-2: #5d7379;
+  --color-tinta-3: #8da0a4;
+  --color-linea: #dce8e8;
+  --color-superficie: #ffffff;
+  --color-fondo: #f3f8f7;
+  --color-marino: #082f3c;
+  --color-estado-con: #34c759;
+  --color-estado-sin: #ff453a;
+  --color-estado-baja: #ff9f0a;
+  --color-estado-prog: #98989d;
+  --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --font-cuerpo: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-util: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --radio-base: 10px;
+  --radio-md: 16px;
+  --radio-lg: 24px;
+  --sombra-suave: 0 12px 40px rgba(16, 61, 70, 0.08);
+  --sombra-elevada: 0 22px 60px rgba(10, 48, 60, 0.14);
+}
 
+:root[data-theme="dark"] {
+  --color-acento: #54c6ca;
+  --color-acento-vivo: #78d9db;
+  --color-acento-suave: #153f44;
+  --color-coral: #ff8066;
+  --color-coral-oscuro: #ff947e;
+  --color-tinta: #edf8f7;
+  --color-tinta-2: #a7bdbd;
+  --color-tinta-3: #71898c;
+  --color-linea: #234a4f;
+  --color-superficie: #102f36;
+  --color-fondo: #071f26;
+  --color-estado-con: #30d158;
+  --color-estado-sin: #ff453a;
+  --color-estado-baja: #ff9f0a;
+  --color-estado-prog: #98989d;
+  --color-marino: #061b22;
+  --glass-r: 16;
+  --glass-g: 47;
+  --glass-b: 54;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-acento: #54c6ca;
+    --color-acento-vivo: #78d9db;
+    --color-acento-suave: #153f44;
+    --color-coral: #ff8066;
+    --color-coral-oscuro: #ff947e;
+    --color-tinta: #edf8f7;
+    --color-tinta-2: #a7bdbd;
+    --color-tinta-3: #71898c;
+    --color-linea: #234a4f;
+    --color-superficie: #102f36;
+    --color-fondo: #071f26;
+    --color-estado-con: #30d158;
+    --color-estado-sin: #ff453a;
+    --color-estado-baja: #ff9f0a;
+    --color-estado-prog: #98989d;
+    --color-marino: #061b22;
+  }
+}
 
 body {
   background:
@@ -1137,4 +1202,98 @@ select { font: inherit; }
   .bloque-comunidad { padding-top: 3rem; }
   .feed-cabecera { align-items: flex-start; }
   .feed-cabecera h2 { font-size: 1.4rem; }
+}
+
+/* ─── Frontend endurecido: estados honestos, mapa primero ─── */
+.transicion-pagina { animation: entrada-pagina 180ms ease-out both; }
+@keyframes entrada-pagina { from { opacity: 0; transform: translateY(4px); } }
+.estado-compacto {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1rem 0 .25rem;
+}
+.estado-compacto h1 { margin: .25rem 0; font-size: clamp(1.75rem, 4vw, 3.2rem); letter-spacing: -.035em; }
+.estado-compacto > div > p:last-child { color: var(--color-tinta-2); font-size: .9rem; }
+.resumen-compacto { display: grid; grid-template-columns: repeat(3, minmax(76px, 1fr)); min-width: 310px; background: var(--color-superficie); border: 1px solid var(--color-linea); border-radius: 16px; }
+.resumen-compacto div { display: grid; padding: .7rem .9rem; border-right: 1px solid var(--color-linea); }
+.resumen-compacto div:last-child { border-right: 0; }
+.resumen-compacto dt { color: var(--color-tinta-2); font-size: .66rem; text-transform: uppercase; letter-spacing: .06em; }
+.resumen-compacto dd { font-family: var(--font-display); font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+.estado-conexion { margin-left: auto; color: var(--color-tinta-2); font-size: .75rem; font-weight: 700; white-space: nowrap; }
+.estado-conexion.estado-stale,
+.estado-conexion.estado-error { color: var(--color-tinta); text-decoration: underline; text-decoration-style: dotted; }
+.estado-desconocido-bg { background: #788290; }
+.estado-recurso { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1rem; margin: 0 0 1rem; padding: 1rem; color: var(--color-tinta); background: var(--color-superficie); border: 1px solid var(--color-linea); border-radius: 14px; }
+.estado-recurso > svg { color: var(--color-acento); }
+.estado-recurso p { color: var(--color-tinta-2); font-size: .82rem; }
+
+.pagina-estado { display: grid; place-items: center; min-height: calc(100dvh - 74px); padding: 2rem 1rem; }
+.estado-pagina,
+.acceso-veedor { width: min(100%, 620px); padding: clamp(1.5rem, 5vw, 3.5rem); background: var(--color-superficie); border: 1px solid var(--color-linea); border-radius: 20px; box-shadow: var(--sombra-suave); }
+.estado-pagina-icono { display: grid; place-items: center; width: 52px; height: 52px; margin-bottom: 1rem; color: var(--color-acento); background: var(--color-acento-suave); border-radius: 14px; }
+.estado-pagina h1,
+.acceso-veedor h1 { margin: .4rem 0 .8rem; font-size: clamp(1.8rem, 5vw, 2.7rem); }
+.estado-pagina > p:not(.eyebrow),
+.acceso-veedor > p:not(.eyebrow) { color: var(--color-tinta-2); }
+.estado-pagina small { display: block; margin-top: 1rem; color: var(--color-tinta-3); }
+.estado-pagina-acciones { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.5rem; }
+.boton-secundario { color: var(--color-acento); background: var(--color-superficie); border: 1px solid var(--color-acento); }
+.boton:disabled { cursor: not-allowed; opacity: .55; transform: none; }
+.mensaje-error { margin: .6rem 0; color: var(--color-tinta); font-size: .84rem; font-weight: 650; }
+.mensaje-error::before { content: 'Error: '; color: var(--color-acento); }
+.mensaje-campo { color: var(--color-tinta-2); font-size: .8rem; }
+
+.acceso-veedor form { display: grid; gap: .6rem; margin-top: 1.5rem; }
+.acceso-veedor label,
+.formulario-suscripcion label,
+.formulario-suscripcion legend { color: var(--color-tinta); font-size: .82rem; font-weight: 700; }
+.campo-con-icono { display: flex; align-items: center; gap: .6rem; padding: 0 .75rem; border: 1px solid var(--color-linea); border-radius: 12px; }
+.campo-con-icono svg { color: var(--color-tinta-3); }
+.campo-con-icono input { flex: 1; min-width: 0; color: var(--color-tinta); background: transparent; border: 0; outline: 0; }
+
+.bloque-suscripcion { width: min(100%, 900px); margin: 2rem auto 0; }
+.formulario-suscripcion { display: grid; gap: .65rem; padding: clamp(1.25rem, 4vw, 2rem); background: var(--color-superficie); border: 1px solid var(--color-linea); border-radius: 20px; }
+.suscripcion-titulo { display: flex; gap: .8rem; align-items: start; margin-bottom: .4rem; }
+.suscripcion-titulo svg { flex: 0 0 auto; color: var(--color-acento); }
+.suscripcion-titulo h3 { font-size: 1.35rem; }
+.suscripcion-titulo p { color: var(--color-tinta-2); font-size: .82rem; }
+.formulario-suscripcion > input { width: 100%; padding: .7rem .85rem; color: var(--color-tinta); background: var(--color-fondo); border: 1px solid var(--color-linea); border-radius: 12px; }
+.formulario-suscripcion fieldset { min-width: 0; border: 0; }
+.formulario-suscripcion legend { margin-bottom: .4rem; }
+.selector-sectores-suscripcion { display: grid; grid-template-columns: repeat(3, 1fr); gap: .35rem; max-height: 180px; padding: .4rem; overflow-y: auto; background: var(--color-fondo); border: 1px solid var(--color-linea); border-radius: 12px; }
+.selector-sectores-suscripcion label { display: flex; align-items: center; gap: .45rem; min-width: 0; padding: .25rem; font-weight: 500; }
+.selector-sectores-suscripcion input { accent-color: var(--color-acento); }
+.selector-sectores-suscripcion span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.suscripcion-exito { display: flex; align-items: center; gap: 1rem; padding: 1.5rem; color: var(--color-tinta); background: var(--color-superficie); border: 1px solid var(--color-acento); border-radius: 18px; }
+.suscripcion-exito svg { color: var(--color-acento); }
+.suscripcion-exito p { color: var(--color-tinta-2); font-size: .84rem; }
+
+@media (max-width: 899px) {
+  .pagina-inicio { padding-top: .25rem; }
+  .estado-compacto { align-items: start; gap: .75rem; padding-top: .5rem; }
+  .estado-compacto > div > p:last-child { display: none; }
+  .estado-compacto h1 { font-size: 1.65rem; }
+  .resumen-compacto { min-width: 260px; }
+  .barra-contexto { margin: .45rem 0; padding: .5rem .7rem; }
+  .selector-vista { margin-bottom: .45rem; }
+  .cabecera-panel { padding-bottom: .45rem; }
+  .cabecera-panel h2 { font-size: 1.2rem; }
+  .marco-mapa { height: calc(100dvh - 315px); min-height: 420px; }
+}
+
+@media (max-width: 600px) {
+  .estado-compacto { display: block; }
+  .estado-compacto .eyebrow { font-size: .6rem; }
+  .estado-compacto h1 { margin-bottom: .45rem; font-size: 1.5rem; }
+  .resumen-compacto { min-width: 0; width: 100%; }
+  .resumen-compacto div { padding: .4rem .65rem; }
+  .resumen-compacto dd { font-size: 1.25rem; }
+  .barra-contexto .estado-conexion { display: none; }
+  .leyenda-mapa { grid-template-columns: 1fr 1fr; }
+  .marco-mapa { height: calc(100dvh - 355px); min-height: 390px; }
+  .selector-sectores-suscripcion { grid-template-columns: 1fr 1fr; }
+  .estado-recurso { grid-template-columns: auto 1fr; }
+  .estado-recurso .boton { grid-column: 1 / -1; }
 }
