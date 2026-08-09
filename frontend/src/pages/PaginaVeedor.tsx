@@ -27,6 +27,7 @@ const PaginaVeedor: FC = () => {
   const [falsos, setFalsos] = useState(0)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [registroExitoso, setRegistroExitoso] = useState(false)
+  const [errorPanel, setErrorPanel] = useState<string | null>(null)
 
   const [reportes, setReportes] = useState<Array<{ id: number; barrio: string; problema: string; tiempo: string; color: string }>>([])
 
@@ -40,7 +41,8 @@ const PaginaVeedor: FC = () => {
           if (data && data.length > 0) setReportes(data as any);
         })
         .catch(err => {
-          console.warn("API de reportes no disponible, usando MOCKS", err);
+          console.warn('API de reportes no disponible', err);
+          setErrorPanel('No se pudieron cargar los reportes pendientes. Intenta nuevamente cuando el backend esté disponible.')
         });
 
       AguaVigiaAPI.obtenerSectores()
@@ -58,6 +60,10 @@ const PaginaVeedor: FC = () => {
 
   // Lógica de moderación
   const procesarReporte = async (id: number, accion: 'aprobar' | 'rechazar') => {
+    const reporte = reportes.find(item => item.id === id)
+    if (!reporte) return
+
+    setErrorPanel(null)
     // Actualización UI Optimista (instantánea) para eliminar el retraso (lag)
     setReportes(prev => prev.filter(r => r.id !== id))
     if (accion === 'aprobar') {
@@ -69,7 +75,14 @@ const PaginaVeedor: FC = () => {
     try {
       await AguaVigiaAPI.procesarReporte(id, accion);
     } catch (err) {
-      console.warn(`No se pudo ${accion} en el servidor, UI actualizada localmente`, err);
+      console.warn(`No se pudo ${accion} en el servidor`, err);
+      setReportes(prev => [reporte, ...prev])
+      if (accion === 'aprobar') {
+        setAprobados(prev => Math.max(0, prev - 1))
+      } else {
+        setFalsos(prev => Math.max(0, prev - 1))
+      }
+      setErrorPanel('La acción no se pudo guardar. El reporte volvió a la bandeja para intentar nuevamente.')
     }
   }
 
@@ -243,6 +256,7 @@ const PaginaVeedor: FC = () => {
                 <form 
                   onSubmit={async (e) => { 
                     e.preventDefault(); 
+                    setErrorPanel(null)
                     const form = e.target as HTMLFormElement;
                     const sector = form.querySelector('select:nth-of-type(1)') as HTMLSelectElement;
                     const tipo = form.querySelectorAll('select')[1] as HTMLSelectElement;
@@ -255,7 +269,9 @@ const PaginaVeedor: FC = () => {
                         mensaje: mensaje?.value
                       });
                     } catch (err) {
-                      console.warn("API falló, simulando éxito", err);
+                      console.warn('No se pudo publicar el aviso oficial', err);
+                      setErrorPanel('No se pudo publicar el aviso. Verifica la conexión e inténtalo nuevamente.')
+                      return
                     }
                     setRegistroExitoso(true);
                   }} 
@@ -295,7 +311,13 @@ const PaginaVeedor: FC = () => {
           )}
         </section>
 
-        {/* 2. Moderar reportes (RF018) */}
+          {errorPanel && (
+            <p role="alert" style={{ color: 'var(--color-estado-sin)', marginBottom: '1rem' }}>
+              {errorPanel}
+            </p>
+          )}
+
+          {/* 2. Moderar reportes (RF018) */}
         <section>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', paddingLeft: '0.5rem' }}>
             <Users size={20} color="var(--color-tinta-2)" />
