@@ -63,6 +63,7 @@ Tres razones concretas, no burocráticas:
 | BUG-036 | 2026-08-09 | S1 | M2/M5/M7/M8 | Pantallas sin endpoint se presentaban como operativas con datos y confirmaciones simuladas | Cerrado | D4 |
 | BUG-037 | 2026-08-09 | S2 | M1 | En 360×800 y 390×844 el mapa empezaba debajo del primer viewport | Cerrado | D4 |
 | BUG-038 | 2026-08-09 | S3 | M1 | Una URL inexistente mostraba solo el encabezado sin mensaje ni salida | Cerrado | D4 |
+| BUG-039 | 2026-08-09 | S2 | — (CI/integración) | CI del PR #105 fallaba en "Verificar cliente OpenAPI": `schema.ts` desactualizado tras avanzar `develop` con `/api/reportes` | Cerrado | Equipo (fusión) |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -968,6 +969,39 @@ cuando exista una fuente real de conteo de reportes por sector.
 
 ---
 
+### BUG-039 — CI del PR #105 fallaba en "Verificar cliente OpenAPI"
+
+- **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** — (CI/integración) · **Responsable:** Equipo (fusión)
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** el job `Lint, tests y build` del PR #105 (`codex/frontend-hardening`) fallaba en el paso
+`npm run api:check`, con `git diff --exit-code -- src/api/generated/schema.ts` detectando drift:
+`openapi-typescript` regeneraba el cliente y agregaba `/api/reportes` y `CoordenadaDTO`, que el
+`schema.ts` comiteado no tenía.
+
+**Reproducción:** `develop` avanzó con el PR #104 (`feat(D3): POST /api/reportes`, commit `e42a8ec`)
+**después** del último merge de esta rama con `develop` (commit `df59f7c`). GitHub Actions ejecuta el
+`pull_request` trigger sobre el merge automático entre el head del PR y el `develop` **actual**, así
+que `backend/openapi.yaml` en CI ya traía el endpoint nuevo aunque la rama del PR, en su propio
+`HEAD`, todavía no.
+
+**Esperado:** que `schema.ts` refleje siempre el contrato vigente de `backend/openapi.yaml` en la rama
+que se va a fusionar.
+
+**Causa raíz:** divergencia por rama larga sin sincronizar — mismo patrón que `BUG-006`/`BUG-011`/
+`BUG-012`: el defecto solo existe en la intersección de dos ramas que avanzaron en paralelo, no en
+ninguna de las dos por separado.
+
+**Corrección:** se fusionó `origin/develop` en `codex/frontend-hardening` (merge limpio, sin
+conflictos — los componentes que esta rama había retirado deliberadamente, como
+`FormularioReporte.tsx`, no fueron tocados por `develop`) y se regeneró `schema.ts` con
+`npm run api:sync`. Verificado: `npm run lint`, `npm run test -- --run` (23/23), `npm run build` y
+`npm run api:check` en verde localmente; `./mvnw -o clean compile` del backend también en verde tras
+el merge. Confirmado en CI real tras el push: los 3 checks del PR #105 pasan
+(run [31298506722](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/actions/runs/31298506722)).
+
+---
+
 ## Regla especial: bugs que publican información falsa
 
 Un defecto que haga que la plataforma muestre un corte que no existe, o un Índice de Cumplimiento
@@ -992,5 +1026,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-039
+Siguiente número disponible: BUG-040
 -->
