@@ -7,6 +7,7 @@ import com.aguavigia.ctg.domain.ReporteCiudadano;
 import com.aguavigia.ctg.domain.ReporteId;
 import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.TipoReporte;
+import com.aguavigia.ctg.domain.port.in.EvaluarConsensoUseCase;
 import com.aguavigia.ctg.domain.port.in.RegistrarReporteUseCase;
 import com.aguavigia.ctg.domain.port.out.ContadorReportesPort;
 import com.aguavigia.ctg.domain.port.out.RelojPort;
@@ -28,6 +29,9 @@ import java.util.UUID;
  * ContadorReportesPort: ese ZSET alimenta el consenso (RF009-RF011) y a propósito no deduplica por
  * huella (ver su javadoc). Este servicio consulta ReporteCiudadanoRepository directamente —el
  * único puerto con datos filtrables por HuellaDispositivo— antes de guardar (BUG-032).
+ *
+ * RF009: cada reporte dispara la evaluación de consenso de su sector — "automáticamente" no
+ * significa "en un job aparte que alguien tiene que acordarse de programar".
  */
 @Service
 public class RegistrarReporteService implements RegistrarReporteUseCase {
@@ -35,6 +39,7 @@ public class RegistrarReporteService implements RegistrarReporteUseCase {
     private final SectorRepository sectores;
     private final ReporteCiudadanoRepository reportes;
     private final ContadorReportesPort contadorReportes;
+    private final EvaluarConsensoUseCase evaluarConsenso;
     private final RelojPort reloj;
     private final int limitePorDispositivo;
     private final Duration ventanaLimite;
@@ -42,12 +47,14 @@ public class RegistrarReporteService implements RegistrarReporteUseCase {
     public RegistrarReporteService(SectorRepository sectores,
                                     ReporteCiudadanoRepository reportes,
                                     ContadorReportesPort contadorReportes,
+                                    EvaluarConsensoUseCase evaluarConsenso,
                                     RelojPort reloj,
                                     @Value("${aguavigia.reportes.limite-por-dispositivo:3}") int limitePorDispositivo,
                                     @Value("${aguavigia.reportes.ventana-limite-minutos:30}") long ventanaLimiteMinutos) {
         this.sectores = sectores;
         this.reportes = reportes;
         this.contadorReportes = contadorReportes;
+        this.evaluarConsenso = evaluarConsenso;
         this.reloj = reloj;
         this.limitePorDispositivo = limitePorDispositivo;
         this.ventanaLimite = Duration.ofMinutes(ventanaLimiteMinutos);
@@ -77,6 +84,7 @@ public class RegistrarReporteService implements RegistrarReporteUseCase {
 
         ReporteCiudadano guardado = reportes.guardar(reporte);
         contadorReportes.registrar(sectorId, huella);
+        evaluarConsenso.evaluar(sectorId);
         return guardado;
     }
 }

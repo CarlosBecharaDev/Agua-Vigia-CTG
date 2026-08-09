@@ -11,14 +11,14 @@
 
 /* ─── Modo claro ─── */
 :root {
-  --color-acento:        #0A6C78;
-  --color-acento-vivo:   #0E8A98;
-  --color-tinta:         #0B1F26;
-  --color-tinta-2:       #3E585F;
-  --color-tinta-3:       #6E878D;
-  --color-linea:         #C9D9D8;
-  --color-superficie:    #FFFFFF;
-  --color-fondo:         #EEF3F3;
+  --color-acento:        #087f8c;
+  --color-acento-vivo:   #0a9cab;
+  --color-tinta:         #1d1d1f;
+  --color-tinta-2:       #7a7a7a;
+  --color-tinta-3:       #cccccc;
+  --color-linea:         #e0e0e0;
+  --color-superficie:    #ffffff;
+  --color-fondo:         #f5f5f7;
 
   /* ── Colores de ESTADO DEL SERVICIO ── */
   --color-estado-con:    #1C7F55;
@@ -49,14 +49,14 @@
 /* ─── Modo oscuro — media query del SO ─── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --color-acento:       #45BFCB;
-    --color-acento-vivo:  #6FD6DF;
-    --color-tinta:        #E4EFEF;
-    --color-tinta-2:      #9DB8BE;
-    --color-tinta-3:      #6B8C94;
-    --color-linea:        #1B3B45;
-    --color-superficie:   #0C2027;
-    --color-fondo:        #061418;
+    --color-acento:       #54c6ca;
+    --color-acento-vivo:  #78d9db;
+    --color-tinta:        #ffffff;
+    --color-tinta-2:      #a1a1a6;
+    --color-tinta-3:      #6e6e73;
+    --color-linea:        #38383a;
+    --color-superficie:   #1c1c1e;
+    --color-fondo:        #000000;
     --color-estado-con:   #4FBF89;
     --color-estado-sin:   #E2695B;
     --color-estado-baja:  #D9A63C;
@@ -68,14 +68,14 @@
 
 /* ─── Modo oscuro — interruptor manual ─── */
 :root[data-theme="dark"] {
-  --color-acento:       #45BFCB;
-  --color-acento-vivo:  #6FD6DF;
-  --color-tinta:        #E4EFEF;
-  --color-tinta-2:      #9DB8BE;
-  --color-tinta-3:      #6B8C94;
-  --color-linea:        #1B3B45;
-  --color-superficie:   #0C2027;
-  --color-fondo:        #061418;
+  --color-acento:       #54c6ca;
+  --color-acento-vivo:  #78d9db;
+  --color-tinta:        #ffffff;
+  --color-tinta-2:      #a1a1a6;
+  --color-tinta-3:      #6e6e73;
+  --color-linea:        #38383a;
+  --color-superficie:   #1c1c1e;
+  --color-fondo:        #000000;
   --color-estado-con:   #4FBF89;
   --color-estado-sin:   #E2695B;
   --color-estado-baja:  #D9A63C;
@@ -86,14 +86,14 @@
 
 /* ─── Modo claro forzado por interruptor ─── */
 :root[data-theme="light"] {
-  --color-acento:        #0A6C78;
-  --color-acento-vivo:   #0E8A98;
-  --color-tinta:         #0B1F26;
-  --color-tinta-2:       #3E585F;
-  --color-tinta-3:       #6E878D;
-  --color-linea:         #C9D9D8;
-  --color-superficie:    #FFFFFF;
-  --color-fondo:         #EEF3F3;
+  --color-acento:        #087f8c;
+  --color-acento-vivo:   #0a9cab;
+  --color-tinta:         #1d1d1f;
+  --color-tinta-2:       #7a7a7a;
+  --color-tinta-3:       #cccccc;
+  --color-linea:         #e0e0e0;
+  --color-superficie:    #ffffff;
+  --color-fondo:         #f5f5f7;
   --color-estado-con:    #1C7F55;
   --color-estado-sin:    #AE3428;
   --color-estado-baja:   #A87310;
@@ -638,17 +638,17 @@ select {
    REDISEÑO AGUAVIGÍA — experiencia cívica, cálida y responsive
    ═══════════════════════════════════════════════════════════ */
 :root {
-  --color-acento: #0A6C78;
-  --color-acento-vivo: #0E8A98;
+  --color-acento: #087f8c;
+  --color-acento-vivo: #0a9cab;
   --color-acento-suave: #d9f1f0;
-  --color-coral: #0A6C78;
+  --color-coral: #087f8c;
   --color-coral-oscuro: #085761;
-  --color-tinta: #0B1F26;
-  --color-tinta-2: #3E585F;
-  --color-tinta-3: #6E878D;
-  --color-linea: #C9D9D8;
+  --color-tinta: #1d1d1f;
+  --color-tinta-2: #7a7a7a;
+  --color-tinta-3: #cccccc;
+  --color-linea: #e0e0e0;
   --color-superficie: #ffffff;
-  --color-fondo: #EEF3F3;
+  --color-fondo: #f5f5f7;
   --color-marino: #082f3c;
   --color-estado-con: #1C7F55;
   --color-estado-sin: #AE3428;
@@ -665,17 +665,17 @@ select {
 }
 
 :root[data-theme="dark"] {
-  --color-acento: #45BFCB;
-  --color-acento-vivo: #6FD6DF;
+  --color-acento: #54c6ca;
+  --color-acento-vivo: #78d9db;
   --color-acento-suave: #153f44;
   --color-coral: #ff8066;
   --color-coral-oscuro: #ff947e;
-  --color-tinta: #E4EFEF;
-  --color-tinta-2: #9DB8BE;
-  --color-tinta-3: #6B8C94;
-  --color-linea: #1B3B45;
-  --color-superficie: #0C2027;
-  --color-fondo: #061418;
+  --color-tinta: #ffffff;
+  --color-tinta-2: #a1a1a6;
+  --color-tinta-3: #6e6e73;
+  --color-linea: #38383a;
+  --color-superficie: #1c1c1e;
+  --color-fondo: #000000;
   --color-estado-con: #4FBF89;
   --color-estado-sin: #E2695B;
   --color-estado-baja: #D9A63C;
@@ -688,17 +688,17 @@ select {
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --color-acento: #45BFCB;
-    --color-acento-vivo: #6FD6DF;
+    --color-acento: #54c6ca;
+    --color-acento-vivo: #78d9db;
     --color-acento-suave: #153f44;
     --color-coral: #ff8066;
     --color-coral-oscuro: #ff947e;
-    --color-tinta: #E4EFEF;
-    --color-tinta-2: #9DB8BE;
-    --color-tinta-3: #6B8C94;
-    --color-linea: #1B3B45;
-    --color-superficie: #0C2027;
-    --color-fondo: #061418;
+    --color-tinta: #ffffff;
+    --color-tinta-2: #a1a1a6;
+    --color-tinta-3: #6e6e73;
+    --color-linea: #38383a;
+    --color-superficie: #1c1c1e;
+    --color-fondo: #000000;
     --color-estado-con: #4FBF89;
     --color-estado-sin: #E2695B;
     --color-estado-baja: #D9A63C;

@@ -64,6 +64,7 @@ Tres razones concretas, no burocráticas:
 | BUG-037 | 2026-08-09 | S2 | M1 | En 360×800 y 390×844 el mapa empezaba debajo del primer viewport | Cerrado | D4 |
 | BUG-038 | 2026-08-09 | S3 | M1 | Una URL inexistente mostraba solo el encabezado sin mensaje ni salida | Cerrado | D4 |
 | BUG-039 | 2026-08-09 | S2 | — (CI/integración) | CI del PR #105 fallaba en "Verificar cliente OpenAPI": `schema.ts` desactualizado tras avanzar `develop` con `/api/reportes` | Cerrado | Equipo (fusión) |
+| BUG-040 | 2026-08-09 | S3 | M7 | `index.css` redeclara los tokens de color del tema (`--color-acento` y compañía) en un segundo bloque `:root`/`:root[data-theme]` posterior — editar el primer bloque no cambia nada visualmente | Cerrado | D5 (Yordy) |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -1002,6 +1003,39 @@ el merge. Confirmado en CI real tras el push: los 3 checks del PR #105 pasan
 
 ---
 
+### BUG-040 — Tokens de color del tema duplicados en `index.css`: el primer bloque es letra muerta
+
+- **Fecha:** 2026-08-09 · **Severidad:** S3 · **Módulo:** M7 · **Responsable:** D5 (Yordy)
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** `frontend/src/index.css` declara `--color-acento` y el resto de tokens de tema dos veces:
+una vez cerca del inicio del archivo (`:root`, `:root[data-theme="dark"]`,
+`@media (prefers-color-scheme: dark)`) y otra vez, con los mismos valores, bajo el comentario
+`REDISEÑO AGUAVIGÍA — experiencia cívica, cálida y responsive` (antes de esta corrección, ~línea 640).
+Por especificidad y orden de cascada CSS, el segundo bloque siempre gana: editar el primero no cambia
+nada en pantalla.
+
+**Reproducción:** al resolver el conflicto de merge de `frontend/src/index.css` entre esta rama y
+`develop` (commit `8933c04`, "restaurar color de acento turquesa azulado preferido"), actualizar solo
+el primer bloque de tokens seguía dejando `#0A6C78` (petróleo) en el CSS compilado —
+`dist/assets/index-*.css` no mostraba ningún `#087f8c` hasta corregir también el segundo bloque.
+
+**Esperado:** un único lugar declara cada token de color; nadie debería poder editar un color del
+tema sin que el cambio se vea.
+
+**Causa raíz:** el segundo bloque (`REDISEÑO AGUAVIGÍA`) no existe en `develop` — es propio de esta
+rama, probablemente una sección añadida en un rediseño posterior que re-declaró los mismos custom
+properties en vez de reutilizar el primer bloque.
+
+**Corrección:** se sincronizaron los tres sub-bloques del `REDISEÑO AGUAVIGÍA`
+(`:root`, `:root[data-theme="dark"]`, `@media (prefers-color-scheme: dark)`) con la misma paleta
+turquesa del bloque de arriba. Verificado: `dist/assets/index-*.css` contiene `#087f8c`/`#54c6ca` y
+cero ocurrencias de `#0A6C78`/`#45BFCB` tras `npm run build`. **Pendiente para el equipo:** unificar
+ambos bloques en uno solo (eliminar la duplicación) — no se hizo aquí para no ampliar el alcance del
+merge del PR #105.
+
+---
+
 ## Regla especial: bugs que publican información falsa
 
 Un defecto que haga que la plataforma muestre un corte que no existe, o un Índice de Cumplimiento
@@ -1026,5 +1060,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-040
+Siguiente número disponible: BUG-041
 -->

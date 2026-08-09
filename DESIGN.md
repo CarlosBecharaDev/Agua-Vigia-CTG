@@ -32,7 +32,7 @@ Todo el producto gira alrededor de cuatro estados. Son la única jerarquía crom
 | **Corte programado** | Azul `#2A628F` / `#6BA8DA` | Anunciado, aún no iniciado | No usar azul para enlaces |
 
 **Regla estricta:** estos cuatro colores están reservados para el estado del servicio. La interfaz
-usa el acento petróleo para todo lo demás. Si un botón de "guardar" es verde, el mapa pierde su
+usa el acento turquesa para todo lo demás. Si un botón de "guardar" es verde, el mapa pierde su
 lenguaje.
 
 **El color nunca va solo.** Cada estado se acompaña de forma o texto — un punto con etiqueta, un
@@ -44,18 +44,18 @@ solo es un refuerzo, no el mensaje.
 ## 3. Paleta base
 
 ```
-Acento petróleo   #0A6C78  (claro)   #45BFCB  (oscuro)
-Acento vivo       #0E8A98            #6FD6DF
-Tinta             #0B1F26            #E4EFEF
-Tinta secundaria  #3E585F            #9DB8BE
-Tinta terciaria   #6E878D            #6B8C94
-Línea             #C9D9D8            #1B3B45
-Superficie        #FFFFFF            #0C2027
-Fondo             #EEF3F3            #061418
+Acento turquesa   #087f8c  (claro)   #54c6ca  (oscuro)
+Acento vivo       #0a9cab            #78d9db
+Tinta             #1d1d1f            #ffffff
+Tinta secundaria  #7a7a7a            #a1a1a6
+Tinta terciaria   #cccccc            #6e6e73
+Línea             #e0e0e0            #38383a
+Superficie        #ffffff            #1c1c1e
+Fondo             #f5f5f7            #000000
 ```
 
-Los neutros están **sesgados hacia el verde-azul**, no son grises puros. Es una decisión: el gris
-neutro se lee como plantilla sin criterio; un neutro con temperatura se lee como elegido.
+Los neutros son grises planos al estilo Apple, sin glassmorphism ni sesgo de temperatura hacia el
+verde-azul.
 
 **Ambos temas son obligatorios.** Se definen como custom properties en `:root`, se redefinen bajo
 `@media (prefers-color-scheme: dark)` y de nuevo bajo `:root[data-theme="dark"]` /
