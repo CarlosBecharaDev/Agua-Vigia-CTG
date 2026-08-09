@@ -8,6 +8,26 @@ server:
   port: ${SERVER_PORT:8080}
 
 aguavigia:
+  cache:
+    ttl-segundos-por-cache:
+      # 15s y no los 30 por defecto: el estado de un sector es el dato que el mapa muestra en vivo,
+      # y DESIGN.md §6 exige frescura visible. El @CacheEvict de SectorMongoAdapter.guardar() ya
+      # invalida al confirmarse un corte; este TTL solo acota lo que cambie por fuera del adaptador.
+      sectores: 15
+  rate-limit:
+    # Limite por IP, no por huella (ADR-018). Cierra el hueco que ADR-016 dejo senalado.
+    reglas:
+      # Fuerza bruta contra la unica credencial del veedor: 8h de sesion (RNF011) valen mas que
+      # la comodidad de reintentar rapido. 5 intentos por 5 minutos.
+      - ruta: /api/veedor/sesion
+        limite: 5
+        ventana-segundos: 300
+      # Segunda linea, no la primera: RF006 ya limita por dispositivo dentro de
+      # RegistrarReporteService. Esto frena el flood desde una IP que rote la huella, y por eso
+      # el limite es holgado — un edificio entero sin agua sale por una sola IP.
+      - ruta: /api/reportes
+        limite: 30
+        ventana-segundos: 60
   jwt:
     # HS256 exige >= 32 bytes. Vacio por defecto: JwtProvider valida al usarse, no al arrancar
     # (ver su comentario), para que el resto del backend no dependa de esto para levantar.

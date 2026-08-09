@@ -5,8 +5,12 @@ import com.aguavigia.ctg.domain.Sector;
 import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.port.out.RelojPort;
 import com.aguavigia.ctg.domain.port.out.SectorRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,14 +38,28 @@ public class SectorMongoAdapter implements SectorRepository {
         return repositorio.findBySlug(id.valor()).map(SectorMongoAdapter::aDominio);
     }
 
+    /**
+     * Se cachea la lista completa, no cada sector por separado: el mapa pide siempre los 213 de
+     * golpe y una sola llave se invalida entera cuando el consenso mueve un estado.
+     *
+     * ArrayList y no el List inmutable de toList(): el serializador del cache escribe la clase
+     * concreta del valor, y ImmutableCollections$ListN no se puede reconstruir al leerla de vuelta.
+     */
     @Override
+    @Cacheable("sectores")
     public List<Sector> listarTodos() {
-        return repositorio.findAll(Sort.by(Sort.Direction.ASC, "nombre")).stream()
+        return new ArrayList<>(repositorio.findAll(Sort.by(Sort.Direction.ASC, "nombre")).stream()
                 .map(SectorMongoAdapter::aDominio)
-                .toList();
+                .toList());
     }
 
+    /**
+     * Invalida el cache aunque el estado no haya cambiado. Sin esto, un corte confirmado por
+     * consenso tardaria hasta un TTL entero en verse en el mapa, que es justo la desinformacion
+     * que el proyecto existe para evitar (DESIGN.md §6).
+     */
     @Override
+    @CacheEvict(value = "sectores", allEntries = true)
     public Sector guardar(Sector sector) {
         // Se lee el documento existente en vez de construir uno nuevo: la geometria y los datos
         // censales los sembro D5 y este adaptador no los produce. Un save() sobre un documento
