@@ -26,11 +26,21 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 2
 
+### 2026-08-09 · D3 (Sebastián) · `feature/d3-moderacion-reportes`
+**Qué:** `ModerarReporteService` (RF018, M5) — el veedor aprueba o descarta reportes ciudadanos.
+`ADR-023`: nadie había definido qué hace "dudoso" a un reporte, así que se interpreta como "todo
+reporte sin moderar" (nace `PENDIENTE`) en vez de inventar una heurística de fraude no pedida.
+`ReporteCiudadano` gana `EstadoModeracion`; `ModeracionReporteController` en `/api/veedor/reportes`.
+209/209 pruebas en verde. M7 (estadísticas) sigue bloqueado por `ADR-013` en estado *Propuesta* — no
+se toca hasta que José Daniel (D4) la ratifique.
+**Sigue:** PR pendiente de revisor. Alcance acotado a propósito: descartar no recalcula consenso ni
+el conteo de RF006 (ver el propio ADR).
+
 ### 2026-08-09 · D1 (Sebastián) · `feature/d1-bitacora-publica`
 **Qué:** `BitacoraController` público en `GET /api/bitacora` (RF027), directo a
-`EventoBitacoraRepository` sin caso de uso (ADR-015). 178/178 pruebas en verde. PR pendiente.
-**Sigue:** Completa M8 junto con el PR #119, ya fusionado (`RegistrarEventoBitacoraService` + anexar
-`CORTE_ANUNCIADO`/`CORTE_RESTABLECIDO`).
+`EventoBitacoraRepository` sin caso de uso (ADR-015). 178/178 pruebas en verde. Fusionado a
+`develop` en el PR #120 — **M8 completo**.
+**Sigue:** —
 
 ### 2026-08-09 · D3 (Sebastián) · `feature/d3-crud-cortes-veedor` (PR #119, no #116)
 **Qué:** `RegistrarEventoBitacoraService` (RF026, capa de D2) y `GestionarCorteOficialService`
