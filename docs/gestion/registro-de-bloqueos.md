@@ -55,12 +55,12 @@ Al conectar el frontend a estos dos endpoints caducan `DT-001` y `DT-002`.
 
 ## 2. Bloqueos abiertos — detalle
 
-### BL-004 — D2 (Carlos) no puede empezar la lógica de consenso ni la de reportes: el Sprint 0 no ha cerrado formalmente
+### BL-004 — D2 (Carlos) no puede empezar la lógica de consenso ni la de reportes: el Sprint 0 no ha cerrado formalmente *(cerrado, ver §3)*
 
 - **Fecha:** 2026-08-08 · **Rol bloqueado:** D2 · **Compuerta:** ninguna — es la frontera de fase de
   `ADR-009`, no una compuerta C0–C3 · **Titular que lo resuelve:** D5 (Yordy Pardo Pajaro, Scrum Master
   interino del Sprint 0)
-- **Estado:** Abierto
+- **Estado:** **Cerrado 2026-08-08** — ver tabla §3
 
 **Tarea detenida:** `EvaluarConsensoService` (RF009–RF011, patrón Strategy) y `RegistrarReporteService`
 (RF005–RF007) — lo que la hoja de ruta de `secuencia-de-trabajo.md` §4 marca como Sprint 2 de D2, pero
@@ -77,7 +77,11 @@ sentido técnico** — es que falta la ceremonia que autoriza escribir el siguie
 `bitacora-sesiones.md` (sin entradas después del PR #33); ratificar `ADR-012`; corregir la mención de
 `NotificacionPort` en `secuencia-de-trabajo.md` §3 Paso 2, que ya no es tarea de D2 desde la corrección
 del `modelo-de-dominio.md` §5.
-**Cierre:** pendiente.
+**Cierre:** 2026-08-08 — D5 (Yordy) celebró el Review del Sprint 0 y abrió el Planning del Sprint 1.
+Reverificación: `ls docs/gestion/sprint-1.md` → existe; `sprint-0.md` §4 con la columna "¿Aceptado?"
+llena y fecha de cierre en la cabecera. **Carlos ya puede escribir `RegistrarReporteService` en
+`application/`** — está comprometido en `sprint-1.md` §2. Issue
+[#70](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/issues/70) listo para cerrarse.
 
 ---
 
@@ -176,6 +180,7 @@ prefiltro sin tener que rehacer nada anterior.
 | BL-001 | 2026-08-07 | D5 | C0 (tarea parcial) | 0 | El equipo acordó no configurar branch protection técnica: la regla "no se hace push directo a `main`/`develop` sin PR revisado" queda como **política documentada**, formalizado en `ADR-010`. Yordy queda en `write`, no `admin` — en un repo personal no hay forma de subir el rol de un colaborador existente sin quitarlo y reinvitarlo, y Carlos decidió no interrumpirlo por esto (ver nota en §2). No bloquea nada porque la resolución fue política, no técnica. |
 | — | 2026-08-08 | D5 (verificación de C0) | C0 | 1 | Mientras tanto, Carlos (D2, dueño del repo) había corrido el comando completo en su máquina y autorizó por escrito empezar el dominio sin esperar la declaración formal de D5 — excepción registrada, no un rodeo silencioso. D5 instaló el cliente de Docker (no lo tenía) para verificar por su cuenta con el comando **literal** de la compuerta. Al correrlo encontró un bug real (`BUG-003`): fallaba en cualquier clon limpio por depender de un `.env` no versionado. Lo corrigió (`env_file` opcional), volvió a correr `docker compose config -q && ls backend frontend` → **exit code 0**, y declaró C0 abierta formalmente. |
 | BL-002 | 2026-08-07 | D4 | C0 | 1 | El único insumo pendiente era que D5 declarara C0 abierta (ya ocurrió el 2026-08-08, ver fila anterior) y que D4 instalara Docker Desktop — tarea propia, sin dependencia de nadie. Reverificado el 2026-08-08: `docker compose config -q && ls backend frontend` → exit code 0, `backend/` y `frontend/` presentes. D4 ya puede integrar el frontend contra el entorno Docker. |
+| BL-004 | 2026-08-08 | D2 | ninguna (frontera de fase, `ADR-009`) | 1 | Cerrado 2026-08-08 con el Review del Sprint 0 y el Planning del Sprint 1, ambos celebrados por D5 (Yordy) como Scrum Master interino. No hizo falta ningún artefacto de código: el bloqueo era una ceremonia pendiente. **Se aceptó el sprint con una salvedad registrada en vez de ocultarla** — la máquina de D5 no tiene motor de contenedores, así que el comando que define C0 nunca probó que el entorno levante (`sprint-0.md` §4, nota 1). Corregirlo es la primera acción del Sprint 1 |
 | BL-003 | 2026-08-07 | D1 (vacante) | ninguna | 1 | D1 se reasigna temporalmente a Yordy Pardo Pajaro (D5), efectivo 2026-08-08 — `ADR-011`. Yordy pasa a responder también por M4, M8, documentación académica con IA y Scrum Master interino del Sprint 0. Reverificado: `grep "por asignar" docs/equipo/roles-y-tareas.md docs/equipo/D1-notificaciones-bitacora.md` → sin coincidencias. Sigue pendiente, pero ya no como bloqueo sino como trabajo por hacer de D1: enviar los dos correos (plantilla oficial, ICPSR) y producir los Anexos 1–3. |
 
 **Los días detenidos son un dato del Capítulo IV**, no un reproche. Miden si la secuencia funcionó.
