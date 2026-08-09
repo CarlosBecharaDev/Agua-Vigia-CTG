@@ -672,22 +672,10 @@ select {
    REDISEÑO AGUAVIGÍA — experiencia cívica, cálida y responsive
    ═══════════════════════════════════════════════════════════ */
 :root {
-  --color-acento: #087f8c;
-  --color-acento-vivo: #0a9cab;
-  --color-acento-suave: #d9f1f0;
+  /* Colores del tema: declarados una sola vez arriba (BUG-040) — aquí solo lo que es propio de este
+     bloque y no se duplica en ningún otro lugar del archivo. */
   --color-coral: #087f8c;
   --color-coral-oscuro: #085761;
-  --color-tinta: #12333d;
-  --color-tinta-2: #5d7379;
-  --color-tinta-3: #8da0a4;
-  --color-linea: #dce8e8;
-  --color-superficie: #ffffff;
-  --color-fondo: #f3f8f7;
-  --color-marino: #082f3c;
-  --color-estado-con: #34c759;
-  --color-estado-sin: #ff453a;
-  --color-estado-baja: #ff9f0a;
-  --color-estado-prog: #98989d;
   --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   --font-cuerpo: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-util: ui-monospace, "Cascadia Mono", Consolas, monospace;
@@ -699,45 +687,14 @@ select {
 }
 
 :root[data-theme="dark"] {
-  --color-acento: #54c6ca;
-  --color-acento-vivo: #78d9db;
-  --color-acento-suave: #153f44;
   --color-coral: #ff8066;
   --color-coral-oscuro: #ff947e;
-  --color-tinta: #edf8f7;
-  --color-tinta-2: #a7bdbd;
-  --color-tinta-3: #71898c;
-  --color-linea: #234a4f;
-  --color-superficie: #102f36;
-  --color-fondo: #071f26;
-  --color-estado-con: #30d158;
-  --color-estado-sin: #ff453a;
-  --color-estado-baja: #ff9f0a;
-  --color-estado-prog: #98989d;
-  --color-marino: #061b22;
-  --glass-r: 16;
-  --glass-g: 47;
-  --glass-b: 54;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --color-acento: #54c6ca;
-    --color-acento-vivo: #78d9db;
-    --color-acento-suave: #153f44;
     --color-coral: #ff8066;
     --color-coral-oscuro: #ff947e;
-    --color-tinta: #edf8f7;
-    --color-tinta-2: #a7bdbd;
-    --color-tinta-3: #71898c;
-    --color-linea: #234a4f;
-    --color-superficie: #102f36;
-    --color-fondo: #071f26;
-    --color-estado-con: #30d158;
-    --color-estado-sin: #ff453a;
-    --color-estado-baja: #ff9f0a;
-    --color-estado-prog: #98989d;
-    --color-marino: #061b22;
   }
 }
 
