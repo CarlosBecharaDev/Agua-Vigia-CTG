@@ -155,5 +155,5 @@ Se revisa al cerrar cada sprint. Un hueco aquí es un hallazgo del docente esper
 
 | Hueco | Detectado | Estado |
 |---|---|---|
-| Ninguna historia de usuario redactada todavía (Anexo 4, Sprint 1) | 2026-08-07 | Abierto |
+| Ninguna historia de usuario redactada todavía (Anexo 4, Sprint 1) | 2026-08-07 | ✅ **Cerrado 2026-08-08** — `docs/anexos/anexo-4-historias-de-usuario.md` cubre RF001–RF036 (HU001–HU036), uno por cada requisito |
 | Ningún caso de prueba redactado todavía (Anexo 5, Sprint 5) | 2026-08-07 | Abierto |
