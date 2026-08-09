@@ -2,14 +2,12 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import { apiClient } from '../api/client'
-import PaginaReportar from './PaginaReportar'
 import PaginaEstadisticas from './PaginaEstadisticas'
 import PaginaBitacora from './PaginaBitacora'
 import PaginaNoEncontrada from './PaginaNoEncontrada'
 
 describe('pantallas sin contrato backend', () => {
   it.each([
-    [PaginaReportar, /envío de reportes aún no está habilitado/i],
     [PaginaEstadisticas, /estadísticas todavía no están disponibles/i],
     [PaginaBitacora, /bitácora pública está en preparación/i],
   ])('muestra indisponibilidad sin consultar la API', (Pagina, titulo) => {

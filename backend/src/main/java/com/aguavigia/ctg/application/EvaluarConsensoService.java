@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -71,7 +70,7 @@ public class EvaluarConsensoService implements EvaluarConsensoUseCase {
         }
 
         List<ReporteCiudadano> sustento = reportes.listarRecientesPorSector(sectorId, ventanaConsenso);
-        EstadoServicio nuevoEstado = estadoPorMayoria(sustento);
+        EstadoServicio nuevoEstado = estadoPorMayoria(sustento, sector.estadoActual());
 
         // Sin cambio real de estado no hay evento nuevo que anexar a la bitácora (RF028: no editar,
         // pero tampoco duplicar un evento idéntico cada vez que alguien vuelve a evaluar el mismo sector).
@@ -94,14 +93,25 @@ public class EvaluarConsensoService implements EvaluarConsensoUseCase {
         return new ResultadoConsenso(sectorId, true, nuevoEstado, ids);
     }
 
-    private static EstadoServicio estadoPorMayoria(List<ReporteCiudadano> sustento) {
+    // Empate entre tipos de reporte = evidencia ambigua, no motivo para cambiar el estado publicado
+    // (CLAUDE.md, ética de datos: nada se publica sin poder sustentarlo). El orden de iteración de
+    // un HashMap sobre una enum no está garantizado por el JLS, así que resolver el empate por el
+    // primer máximo encontrado no era determinista — quedaba a merced del hashing de la JVM.
+    private static EstadoServicio estadoPorMayoria(List<ReporteCiudadano> sustento, EstadoServicio estadoActual) {
         Map<TipoReporte, Long> conteoPorTipo = sustento.stream()
                 .collect(Collectors.groupingBy(ReporteCiudadano::tipo, Collectors.counting()));
-        TipoReporte mayoritario = conteoPorTipo.entrySet().stream()
-                .max(Comparator.comparingLong(Map.Entry::getValue))
-                .map(Map.Entry::getKey)
+        long maximo = conteoPorTipo.values().stream()
+                .mapToLong(Long::longValue)
+                .max()
                 .orElseThrow(() -> new IllegalStateException("No hay reportes para sustentar el consenso"));
-        return switch (mayoritario) {
+        List<TipoReporte> mayoritarios = conteoPorTipo.entrySet().stream()
+                .filter(entrada -> entrada.getValue() == maximo)
+                .map(Map.Entry::getKey)
+                .toList();
+        if (mayoritarios.size() > 1) {
+            return estadoActual;
+        }
+        return switch (mayoritarios.get(0)) {
             case SIN_AGUA -> EstadoServicio.SIN_SERVICIO;
             case PRESION_BAJA -> EstadoServicio.PRESION_BAJA;
             case SERVICIO_RESTABLECIDO -> EstadoServicio.CON_SERVICIO;

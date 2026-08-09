@@ -5,10 +5,11 @@
  * El tema se inicializa aquí y se propaga al DOM vía data-theme en :root.
  */
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
-import { Component, lazy, Suspense } from 'react'
+import { Component, lazy, Suspense, useState } from 'react'
 import type { ErrorInfo, ReactNode } from 'react'
 import { Encabezado } from './components/Encabezado'
 import { useTheme } from './hooks/useTheme'
+import { ModalSuscripcion } from './components/ModalSuscripcion'
 
 // Cada vista carga solo cuando se visita, especialmente útil en conexiones móviles.
 const PaginaMapa = lazy(() => import('./pages/PaginaMapa'))
@@ -71,12 +72,14 @@ function RutasAnimadas() {
 
 function App() {
   const { temaActivo, alternarTema } = useTheme()
+  const [suscripcionAbierta, setSuscripcionAbierta] = useState(false)
 
   return (
     <BrowserRouter>
       <a href="#contenido-principal" id="saltar-al-contenido">Ir al contenido principal</a>
-      <Encabezado temaActivo={temaActivo} onAlternarTema={alternarTema} />
+      <Encabezado temaActivo={temaActivo} onAlternarTema={alternarTema} onAbrirSuscripcion={() => setSuscripcionAbierta(true)} />
       <RutasAnimadas />
+      <ModalSuscripcion abierto={suscripcionAbierta} onCerrar={() => setSuscripcionAbierta(false)} />
     </BrowserRouter>
   )
 }

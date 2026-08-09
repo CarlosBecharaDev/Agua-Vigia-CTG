@@ -24,6 +24,87 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ---
 
+## Sprint 2
+
+### 2026-08-09 · D4 (José) · `feat/redeseno-profesional-limpio`
+**Qué:** Reemplazado el rediseño roto del PR #128 por un shell lateral responsive sobre `develop`, sin tocar API ni funcionalidad; actualizado el cierre documental del PR #129. API check, lint, 28 pruebas y build en verde.
+**Sigue:** Fusionar el PR visual limpio y conectar el panel del veedor a moderación/cortes reales en una rama separada.
+
+### 2026-08-09 · D4 (José) · `fix/integrar-formulario-reportes`
+**Qué:** RF008 conectado a `POST /api/reportes`: formulario real en dos pasos, huella anónima SHA-256, ubicación opcional, errores RFC 7807 y contrato OpenAPI regenerado; 26 pruebas, lint, build y `npm audit` en verde.
+**Sigue:** Revisar y fusionar el PR a `develop`; después registrar la entrega en `registro-de-implementaciones.md`.
+
+### 2026-08-09 · D3 (Sebastián) · `develop` (cierre de sesión)
+**Qué:** Sesión larga con permiso de Jordy (D5) para todo el backend — 8 PRs fusionados (#112, #113,
+#116, #118, #119, #120, #121, #124). Con esto **M1–M6 y M8 quedan completos**: los 9 puertos de
+entrada y 8 de salida del dominio tienen implementación real. Regenerado `backend/openapi.yaml` (de 7
+a 17 rutas — faltaban los cuatro módulos nuevos, PR #124). Puesta al día `registro-de-implementaciones.md`
+(7 PRs sin registrar) y su tabla de cobertura, que seguía en el estado del Sprint 1 (36 RF: 28% → 78%
+funcional real). `/security-review` sobre las cuatro superficies nuevas: sin hallazgos que superaran
+el umbral de confianza.
+**Hallazgo real:** RF014 (avisar al suscriptor cuando su sector cambia de estado) sigue sin conectar
+— `NotificacionPort` solo se dispara al suscribirse (`SuscribirseService`), ni `EvaluarConsensoService`
+ni `GestionarCorteOficialService` lo llaman. M4 queda en 75%, no 100%, por esto.
+**Sigue:** M7 bloqueado por `ADR-013` (🟡 Propuesta, falta ratificación de José Daniel/D4). M9 (etapa
+IA) bloqueado por `BL-005` (sin `ANTHROPIC_API_KEY`). RF014 es el hueco funcional real más concreto
+que queda en lo ya construido.
+
+### 2026-08-09 · D3 (Sebastián) · `feature/d3-moderacion-reportes`
+**Qué:** `ModerarReporteService` (RF018, M5) — el veedor aprueba o descarta reportes ciudadanos.
+`ADR-023`: nadie había definido qué hace "dudoso" a un reporte, así que se interpreta como "todo
+reporte sin moderar" (nace `PENDIENTE`) en vez de inventar una heurística de fraude no pedida.
+`ReporteCiudadano` gana `EstadoModeracion`; `ModeracionReporteController` en `/api/veedor/reportes`.
+209/209 pruebas en verde. M7 (estadísticas) sigue bloqueado por `ADR-013` en estado *Propuesta* — no
+se toca hasta que José Daniel (D4) la ratifique.
+**Sigue:** PR pendiente de revisor. Alcance acotado a propósito: descartar no recalcula consenso ni
+el conteo de RF006 (ver el propio ADR).
+
+### 2026-08-09 · D1 (Sebastián) · `feature/d1-bitacora-publica`
+**Qué:** `BitacoraController` público en `GET /api/bitacora` (RF027), directo a
+`EventoBitacoraRepository` sin caso de uso (ADR-015). 178/178 pruebas en verde. Fusionado a
+`develop` en el PR #120 — **M8 completo**.
+**Sigue:** —
+
+### 2026-08-09 · D3 (Sebastián) · `feature/d3-crud-cortes-veedor` (PR #119, no #116)
+**Qué:** `RegistrarEventoBitacoraService` (RF026, capa de D2) y `GestionarCorteOficialService`
+actualizado para anexar un evento de bitácora por cada sector afectado al registrar
+(`CORTE_ANUNCIADO`) y al cerrar (`CORTE_RESTABLECIDO`) un corte — antes solo el consenso ciudadano
+anexaba. 176/176 pruebas en verde. Fusionado a `develop`.
+**Hallazgo de proceso:** el PR #116 se fusionó *antes* de que este commit llegara al remoto —
+quedó huérfano en la misma rama con el PR ya cerrado, así que abrí el PR #119 sobre el mismo commit.
+Pasa cuando se empuja a una rama cuyo PR ya fue aprobado y fusionado por otra persona en paralelo;
+vale la pena revisar el estado del PR (`gh pr view <N> --json state`) antes de empujar, no solo al
+abrirlo.
+**Sigue:** RF018 (moderación de reportes) sigue fuera — sin puerto de dominio todavía.
+
+### 2026-08-09 · D3 (Sebastián) · `feature/d2-indice-cumplimiento`
+**Qué:** `CalcularCumplimientoService` (RF020-RF022, M6 — el diferencial del proyecto), capa de D2.
+`ADR-022`: agrega por suma de duraciones, no promedio de porcentajes. `IndiceCumplimientoController`
+público en `/api/cumplimiento` (porCorte, porSector, global). Agregado
+`CorteAguaRepository.listarTodos()`. 178/178 pruebas en verde. Fusionado a `develop` en el PR #118.
+**Sigue:** —
+
+### 2026-08-09 · D3 (Sebastián) · `feature/d3-crud-cortes-veedor`
+**Qué:** `GestionarCorteOficialService` (RF016-RF017, capa de D2) y `CorteController` en
+`/api/veedor/cortes` (registrar, cerrar, consultar, listar por sector), protegido por el JWT ya
+existente sin tocar `SecurityConfig`. Cerrar un corte ya cerrado responde 409 (nuevo
+`IllegalStateException` en `ManejadorGlobalDeErrores`). 175/175 pruebas en verde. Fusionado a
+`develop` en el PR #116.
+**Sigue:** RF018 (moderación de reportes) queda fuera — sin puerto de dominio todavía.
+
+### 2026-08-09 · D3 (Sebastián) · `feature/d3-corteagua-mongo-adapter`
+**Qué:** Construido `CorteAguaMongoAdapter` (RF016-RF017) — el dominio de `CorteAgua` existía sin
+adaptador que lo persistiera. Índice de `sectoresAfectados` agregado a `IndicesMongo`. 154/154
+pruebas en verde. Trabajo adelantado de Sprint 3, con permiso de Jordy (D5) para todo el backend.
+**Sigue:** Fusionado a `develop` en el PR #113.
+
+### 2026-08-09 · D3 (Sebastián) · `feature/d3-cache-sectores-y-rate-limit`
+**Qué:** Activados los dos pendientes de D3 (`sprint-2.md` §2): `@Cacheable` en `GET /api/sectores`
+con invalidación al confirmar consenso, y reglas de rate limiting para `/api/veedor/sesion` y
+`/api/reportes`. 155/155 pruebas en verde. `REC-006` registrada (trampa de `RateLimitConfig` en
+`@WebMvcTest`). Fusionado a `develop` en el PR #112, implementación registrada.
+**Sigue:** —
+
 ## Sprint 1
 
 ### 2026-08-09 · D4 · `codex/frontend-hardening`

@@ -1,10 +1,22 @@
 import type { components } from './generated/schema'
 import { apiClient, sesionVeedor } from './client'
+import { obtenerHuellaDispositivo } from '../utils/huellaDispositivo'
 
 type SectorApi = components['schemas']['SectorRespuesta']
 type RespuestaSectoresApi = components['schemas']['RespuestaSectores']
 export type SolicitudSuscripcion = Required<components['schemas']['SolicitudSuscripcion']>
 export type SuscripcionRespuesta = components['schemas']['SuscripcionRespuesta']
+type SolicitudReporteApi = components['schemas']['SolicitudReporte']
+export type SolicitudReporte = Required<Pick<SolicitudReporteApi, 'sectorId' | 'tipo' | 'huella'>> &
+  Pick<SolicitudReporteApi, 'coordenada'>
+export type ReporteRespuesta = components['schemas']['ReporteRespuesta']
+export type TipoReporte = 'SIN_AGUA' | 'PRESION_BAJA' | 'SERVICIO_RESTABLECIDO'
+type ReporteModeracionApi = components['schemas']['ReporteModeracionRespuesta']
+export type ReporteModeracion = Required<Pick<ReporteModeracionApi, 'id' | 'sectorId' | 'tipo' | 'timestamp' | 'estadoModeracion'>> &
+  Pick<ReporteModeracionApi, 'coordenada'>
+type SolicitudCorteApi = components['schemas']['SolicitudCorte']
+export type SolicitudCorte = Required<Pick<SolicitudCorteApi, 'sectoresAfectados' | 'inicio' | 'finPrometido' | 'causa'>>
+export type CorteOficial = components['schemas']['CorteRespuesta']
 
 export interface SectorSeguro {
   id: string
@@ -46,6 +58,53 @@ export async function obtenerSectores(): Promise<RespuestaSectoresSegura> {
 
 export async function crearSuscripcion(datos: SolicitudSuscripcion): Promise<SuscripcionRespuesta> {
   const { data } = await apiClient.post<SuscripcionRespuesta>('/suscripciones', datos)
+  return data
+}
+
+export async function crearReporte(datos: SolicitudReporte): Promise<ReporteRespuesta> {
+  const { data } = await apiClient.post<ReporteRespuesta>('/reportes', datos)
+  return data
+}
+
+/** Flujo ciudadano abreviado usado desde el mapa y la pantalla de reporte. */
+export async function registrarReporteCiudadano(sectorId: string, tipo: TipoReporte): Promise<ReporteRespuesta> {
+  return crearReporte({
+    sectorId,
+    tipo,
+    huella: await obtenerHuellaDispositivo(),
+  })
+}
+
+export async function listarReportesPendientes(): Promise<ReporteModeracion[]> {
+  const { data } = await apiClient.get<ReporteModeracionApi[]>('/veedor/reportes/pendientes')
+  if (!Array.isArray(data)) throw new Error('El servidor devolvió una cola de moderación inválida.')
+  const reportes = data.filter((reporte): reporte is ReporteModeracion =>
+    typeof reporte.id === 'string' &&
+    typeof reporte.sectorId === 'string' &&
+    typeof reporte.tipo === 'string' &&
+    typeof reporte.timestamp === 'string' &&
+    typeof reporte.estadoModeracion === 'string')
+  if (reportes.length !== data.length) throw new Error('Uno o más reportes no cumplen el contrato OpenAPI.')
+  return reportes
+}
+
+export async function moderarReporte(id: string, decision: 'aprobar' | 'descartar'): Promise<ReporteModeracionApi> {
+  const { data } = await apiClient.patch<ReporteModeracionApi>(`/veedor/reportes/${encodeURIComponent(id)}/${decision}`)
+  return data
+}
+
+export async function listarCortesPorSector(sectorId: string): Promise<CorteOficial[]> {
+  const { data } = await apiClient.get<CorteOficial[]>('/veedor/cortes', { params: { sectorId } })
+  return data
+}
+
+export async function crearCorteOficial(solicitud: SolicitudCorte): Promise<CorteOficial> {
+  const { data } = await apiClient.post<CorteOficial>('/veedor/cortes', solicitud)
+  return data
+}
+
+export async function cerrarCorteOficial(id: string, horaReal: string): Promise<CorteOficial> {
+  const { data } = await apiClient.patch<CorteOficial>(`/veedor/cortes/${encodeURIComponent(id)}/cierre`, { horaReal })
   return data
 }
 

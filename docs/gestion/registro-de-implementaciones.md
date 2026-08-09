@@ -178,11 +178,19 @@ propio PR para que el equipo la complete después.
 | RF005–RF008 | func | M2: `POST /api/reportes`, expone `RegistrarReporteService` (Sprint 1) — la API quedaba cerrada a propósito hasta este sprint. Sin registro ni cuenta, coordenada opcional, `429` real cuando el dispositivo supera el límite. Escrito y fusionado por D5 (Yordy) directo — capa de D3 (Sebastián), decisión explícita para no atrasar más el Sprint 2 | D5 (Yordy), en capa de D3 | [#104](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/104) | `./mvnw clean verify` → **116 pruebas, 0 fallos**, ArchUnit incluido · probado extremo a extremo contra Mongo real: 3 reportes del mismo dispositivo pasan, el cuarto → 429 |
 | RF009–RF011 | func | M3: `EvaluarConsensoService`, patrón Strategy (`UmbralFijoEstrategiaConsenso`, `UmbralProporcionalEstrategiaConsenso`, elegible por configuración). `RegistrarReporteService` la dispara automáticamente tras cada reporte. Anexa el cambio real de estado a `eventos_bitacora` (`TipoEvento.CORTE_CONFIRMADO_POR_CIUDADANOS`), sin duplicar si el estado no cambió. Incluye el adaptador Mongo mínimo de `EventoBitacoraRepository`, que no existía. Escrito y fusionado por D5 (Yordy) directo — capa de D2 (Carlos), decisión explícita | D5 (Yordy), en capa de D2 | [#106](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/106) | `./mvnw clean verify` → **134 pruebas, 0 fallos**, ArchUnit incluido · probado extremo a extremo: sector de 500 habitantes, 3 reportes independientes → `SIN_SERVICIO` solo, evento real anexado |
 | RF013 (completo) · RF015 | func | M4: `GET /api/suscripciones/confirmar` y `GET /api/suscripciones/cancelar`. `Suscripcion.confirmar()`/`cancelar()` como nuevas transiciones de estado; `SuscripcionRepository.buscarPorToken`. Confirmar dos veces no falla (idempotente); token inválido → 400 real. Escrito y fusionado por D5 (Yordy) directo — capa de D1 (Rafael), decisión explícita | D5 (Yordy), en capa de D1 | [#107](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/107) | `./mvnw clean verify` → **150 pruebas, 0 fallos**, ArchUnit incluido · probado extremo a extremo: suscribirse → confirmar → confirmar de nuevo (200) → cancelar → token inválido (400) |
+| RNF003 | infra | M2/M5: activados los dos pendientes de D3 del sprint — `@Cacheable` en `GET /api/sectores` (TTL 15s, `@CacheEvict` al confirmar un cambio de estado por consenso) y reglas de `aguavigia.rate-limit.reglas` para `/api/veedor/sesion` (5/300s, cierra el hueco de `ADR-016`) y `/api/reportes` (30/60s). La infraestructura ya existía desde el Sprint 1 (PR #60, #61) sin usarse. `REC-006` registrada: `RateLimitConfig` se instancia en cualquier `@WebMvcTest` aunque no se importe | D3 (Sebastián) | [#112](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/112) | `./mvnw clean verify` → **155 pruebas, 0 fallos**, ArchUnit incluido · `SectorMongoAdapterCacheTest` (Mongo + Redis reales, Testcontainers) y `ReglasDeRateLimitDeProduccionTest` contra el `application.yml` real |
+| RF016–RF017 | infra | `CorteAguaMongoAdapter` — el dominio de `CorteAgua` existía desde el Sprint 1 sin adaptador que lo persistiera. Índice de `sectoresAfectados` agregado a `IndicesMongo`. Adelanto de Sprint 3, capa de D3 | D3 (Sebastián) | [#113](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/113) | `./mvnw clean verify` → **154 pruebas, 0 fallos**, ArchUnit incluido · Mongo real (Testcontainers) |
+| RF016–RF017 | func | M5: `GestionarCorteOficialService` + `CorteController` en `/api/veedor/cortes` (registrar, cerrar, consultar, listar por sector), protegido por el JWT ya existente. Cerrar un corte ya cerrado responde 409. Adelanto de Sprint 3 | D3 (Sebastián), en capa de D2 — permiso de Jordy (D5) para todo el backend | [#116](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/116) | `./mvnw clean verify` → **175 pruebas, 0 fallos**, ArchUnit incluido |
+| RF020–RF022 | func | M6 (el diferencial): `CalcularCumplimientoService` + `IndiceCumplimientoController` público en `/api/cumplimiento`. `ADR-022`: agrega por suma de duraciones, no promedio de porcentajes. Agregado `CorteAguaRepository.listarTodos()`. Adelanto de Sprint 4 | D3 (Sebastián), en capa de D2 — permiso de Jordy (D5) | [#118](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/118) | `./mvnw clean verify` → **178 pruebas, 0 fallos**, ArchUnit incluido |
+| RF026 | func | `RegistrarEventoBitacoraService` (puerto sin implementación desde el Sprint 1) y `GestionarCorteOficialService` anexando `CORTE_ANUNCIADO`/`CORTE_RESTABLECIDO` por cada sector afectado — antes solo el consenso ciudadano anexaba a la bitácora | D3 (Sebastián), en capa de D2 — permiso de Jordy (D5) | [#119](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/119) | `./mvnw clean verify` → **176 pruebas, 0 fallos**, ArchUnit incluido |
+| RF027 | func | M8: `BitacoraController` público en `GET /api/bitacora`, directo al puerto de salida sin caso de uso (`ADR-015`). Cierra M8 completo junto con el PR #119 | D1 (Sebastián) — permiso de Jordy (D5) | [#120](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/120) | `./mvnw clean verify` → **178 pruebas, 0 fallos**, ArchUnit incluido |
+| RF018 | func | M5: `ModerarReporteService` + `ModeracionReporteController` en `/api/veedor/reportes` (listar pendientes, aprobar, descartar). `ADR-023`: "dudoso" es "todo reporte sin moderar" — nadie había definido el criterio, y no se inventó una heurística de fraude no pedida | D3 (Sebastián) — capa asignada en `D3-backend-infraestructura.md` | [#121](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/121) | `./mvnw clean verify` → **209 pruebas, 0 fallos**, ArchUnit incluido |
+| — | proceso | Regenerado `backend/openapi.yaml` contra la app corriendo (Mongo/Redis reales): de 7 a 17 rutas — faltaban por completo los cuatro módulos de los PRs #116, #118, #119 y #120. Sin esto, D4 no podía generar un cliente que los viera | D3 (Sebastián) | [#124](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/124) | YAML válido, `openapi: 3.0.1` confirmado (`estado` anulable de sectores se preserva, `ADR-014`) |
+| RF005 · RF007 · RF008 | func | M2 frontend integrado: formulario ciudadano real en dos pasos contra `POST /api/reportes`, huella anónima SHA-256 estable, coordenada opcional, errores RFC 7807 y confirmación únicamente después del `201`. Cliente OpenAPI sincronizado con las 17 rutas del backend | D4 (José) | [#129](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/129) | Frontend CI: `api:check`, lint, **26 pruebas** y build en verde · `npm audit` sin vulnerabilidades |
 
-**Pendiente de este sprint:** D4 (José) conectar `FormularioReporte` al `POST /api/reportes` real —
-sigue usando el fallback que produce `BUG-017`, y el contrato exige un campo `huella` (huella anónima
-de dispositivo, `ADR-007`) que el frontend todavía no genera. Documentado en el PR #104 para quien lo
-tome.
+**Entregado en este sprint:** D4 (José) conectó `FormularioReporte` al `POST /api/reportes` real en el
+PR #129. La huella anónima exigida por `ADR-007` se genera en el navegador y se transmite como SHA-256;
+el flujo no contiene fallback ni confirmaciones simuladas.
 
 ---
 
@@ -205,24 +213,25 @@ requisitos —son `andamio`, no `func`— hasta que consuman la API real. Estado
 
 ## Estado de cobertura de requisitos
 
-Se actualiza al cerrar cada sprint. Es el insumo directo de `docs/ingenieria/matriz-trazabilidad.md`
-y del Capítulo IV del informe. **Primera actualización real, al cerrar el Sprint 1** — hasta ahora
-esta tabla nunca se había llenado; verificado contra el código en `develop` (endpoints, controladores
-y componentes de frontend existentes), no contra lo que los PRs afirman en su descripción.
+Se actualiza al cerrar cada sprint — y esta vez también a media sesión, porque el salto fue grande y
+dejar la tabla en el estado del Sprint 1 habría sido activamente engañoso. Es el insumo directo de
+`docs/ingenieria/matriz-trazabilidad.md` y del Capítulo IV del informe. Verificado contra el código
+en `develop` (endpoints, controladores y casos de uso existentes), no contra lo que los PRs afirman
+en su descripción.
 
 | Módulo | Requisitos | Implementados | % |
 |---|---|---|---|
 | M1 Mapa en vivo | 4 | 4 (RF001–RF004) | 100% |
-| M2 Reporte ciudadano | 4 | 0 | 0% — `RegistrarReporteService` existe en `application/`, pero `POST /api/reportes` es Sprint 2 (`registro-de-bloqueos.md` §1, alcance de C2); sin endpoint no hay RF cerrado |
-| M3 Consenso automático | 3 | 0 | 0% — `EvaluarConsensoUseCase` no existe todavía en `application/` |
-| M4 Alertas por correo | 4 | 1 (RF012) | 25% — RF013 parcial (correo de doble opt-in se envía, pero `GET /api/suscripciones/confirmar` es Sprint 2); RF014–RF015 sin empezar |
-| M5 Panel del veedor | 4 | 1 (RF019) | 25% — login JWT funcional; RF016–RF018 (CRUD de cortes, moderación) sin casos de uso |
-| M6 Índice de Cumplimiento ⭐ | 3 | 0 | 0% |
-| M7 Estadísticas | 3 | 0 | 0% — el frontend deriva métricas de Acuacar en el cliente; sin agregación propia en el backend, y `ADR-013` sigue en *Propuesta* sobre a quién le toca |
-| M8 Bitácora pública | 3 | 0 | 0% — sin `GET /api/bitacora`; el frontend muestra boletines de Acuacar directamente, no una bitácora propia |
-| M9 Ingesta con IA ⭐ | 8 | 4 (RF029–RF031, RF036) | 50% — colectores y deduplicación reales (PR #59, #98); RF032–RF035 (clasificación IA) bloqueados por `BL-005` |
-| **Total funcionales** | **36** | **10** | **28%** |
-| **No funcionales** | **20** | **6 verificados** (RNF008, RNF010, RNF011, RNF017, RNF018, RNF020) | **30% verificado** — el resto (RNF001–007, RNF009, RNF012–016, RNF019) no se auditó esta sesión; queda para el Sprint 2 |
+| M2 Reporte ciudadano | 4 | 4 (RF005–RF008) | 100% — `POST /api/reportes` (PR #104), RF006 real con límite por dispositivo |
+| M3 Consenso automático | 3 | 3 (RF009–RF011) | 100% — `EvaluarConsensoService`, patrón Strategy, sustento trazado en la bitácora |
+| M4 Alertas por correo | 4 | 3 (RF012, RF013, RF015) | 75% — falta RF014: `NotificacionPort` solo se dispara en la suscripción (`SuscribirseService`), nadie avisa al suscriptor cuando su sector cambia de estado — `EvaluarConsensoService` y `GestionarCorteOficialService` no lo llaman |
+| M5 Panel del veedor | 4 | 4 (RF016–RF019) | 100% — CRUD de cortes (PR #116), moderación de reportes (PR #121, `ADR-023`), login JWT |
+| M6 Índice de Cumplimiento ⭐ | 3 | 3 (RF020–RF022) | 100% — `CalcularCumplimientoService`, `ADR-022` (PR #118) |
+| M7 Estadísticas | 3 | 0 | 0% — el frontend deriva métricas de Acuacar en el cliente; sin agregación propia en el backend, y `ADR-013` sigue en *Propuesta* sin ratificar por José Daniel (D4) — bloqueado, no se toca hasta que se ratifique |
+| M8 Bitácora pública | 3 | 3 (RF026–RF028) | 100% — `GET /api/bitacora` público (PR #120), eventos de todo el ciclo de vida del corte anexados (PR #119), inmutable por diseño del puerto (sin editar ni eliminar) |
+| M9 Ingesta con IA ⭐ | 8 | 4 (RF029–RF031, RF036) | 50% — colectores y deduplicación reales (PR #59, #98); RF032–RF035 (clasificación IA) bloqueados por `BL-005` (sin `ANTHROPIC_API_KEY`) |
+| **Total funcionales** | **36** | **28** | **78%** |
+| **No funcionales** | **20** | **6 verificados** (RNF008, RNF010, RNF011, RNF017, RNF018, RNF020) | **30% verificado** — el resto no se auditó esta sesión; `RNF003` (caché de sectores) está implementado desde el PR #112 pero falta verificarlo formalmente aquí |
 
 ---
 

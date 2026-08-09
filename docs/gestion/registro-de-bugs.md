@@ -47,13 +47,13 @@ Tres razones concretas, no burocráticas:
 | BUG-020 | 2026-08-09 | S2 | M1/M9 | El cruce de nombres entre boletines de Acuacar y sectores reales no normaliza texto ni usa límites de palabra — pierde o duplica barrios con nombres compuestos | Cerrado | D4 |
 | BUG-021 | 2026-08-09 | S2 | — (bot WhatsApp) | El bot de resumen diario interpola títulos de PRs/bugs sin escapar `*`/`_` — un título real del propio repo puede corromper el formato del mensaje | Cerrado | Equipo (bot WhatsApp) |
 | BUG-022 | 2026-08-09 | S2 | — (bot WhatsApp) | El bot de WhatsApp llama `process.exit(1)` ante cualquier evento `close`, incluso con un envío todavía pendiente | Cerrado | Equipo (bot WhatsApp) |
-| BUG-023 | 2026-08-09 | S2 | — (sala de control) | El cron de `dashboard.yml` nunca va a ejecutarse: GitHub solo lee triggers `schedule` desde la rama por defecto (`main`), que no tiene workflows | Abierto | Equipo (sala de control) |
+| BUG-023 | 2026-08-09 | S2 | — (sala de control) | El cron de `dashboard.yml` nunca va a ejecutarse: GitHub solo lee triggers `schedule` desde la rama por defecto (`main`), que no tiene workflows | Cerrado | Equipo (sala de control) |
 | BUG-024 | 2026-08-09 | S2 | M2 | La preselección de sector por URL (`/reportar?sector=X`) y el respaldo sin API de `PaginaReportar` se rompieron al quitar `SECTORES_MOCK` | Cerrado | D4 |
 | BUG-025 | 2026-08-09 | S2 | M7 | El botón "Instalar App" lanza una excepción no capturada si el usuario descarta el diálogo nativo y vuelve a hacer clic | Cerrado | D4 |
 | BUG-026 | 2026-08-09 | S2 | M1 | El mapa deja de reaccionar a datos nuevos al hacer clic en un sector después del primer render (dependencias del efecto recortadas en `MapaCartagena.tsx`) | Cerrado | D4 |
 | BUG-027 | 2026-08-09 | S2 | M1/M8 | La clasificación del estado de un boletín de Acuacar difiere entre la Bitácora y el Mapa/Estadísticas para el mismo texto | Cerrado | D4 |
 | BUG-028 | 2026-08-09 | S3 | M2 | La detección de barrio por GPS compara solo contra el primer vértice del polígono, no es un point-in-polygon real | Cerrado | D4 |
-| BUG-029 | 2026-08-09 | S4 | — (sala de control / M7) | Detalles menores encontrados en la misma revisión: layout de `.narrativa` en 3-4 columnas en vez de 2, campo `urgente` muerto en bugs, y falta cleanup del listener `appinstalled` en `BotonInstalarPWA.tsx` | 🟡 Parcial — ítems 1, 2, 4 y 5 (sala de control) cerrados; ítem 3 (`BotonInstalarPWA.tsx`, D4) sigue abierto | Equipo / D4 |
+| BUG-029 | 2026-08-09 | S4 | — (sala de control / M7) | Detalles menores encontrados en la misma revisión: layout de `.narrativa` en 3-4 columnas en vez de 2, campo `urgente` muerto en bugs, y falta cleanup del listener `appinstalled` en `BotonInstalarPWA.tsx` | Cerrado | Equipo / D4 |
 | BUG-030 | 2026-08-08 | S3 | — (proceso) | El comando de la compuerta C0 solo validaba el YAML: la máquina de D5 no tenía ningún motor de contenedores instalado | Cerrado | D5 |
 | BUG-031 | 2026-08-09 | S2 | — (sala de control) | `leerDetalleSprint` asumía siempre 5 columnas en la tabla de Compromisos; `sprint-1.md` (recién abierto, en planificación pura) tiene solo 4 sin columna Estado, y `generar-dashboard.mjs` tumbaba con `TypeError: Cannot read properties of undefined (reading 'startsWith')` | Cerrado | Equipo (sala de control) |
 | BUG-032 | 2026-08-09 | S2 | M2 | `RegistrarReporteService` (PR #84, ya en `develop`) no implementa RF006 pese a que su propio javadoc dice que sí está cubierto | Cerrado | D5 (Yordy), en capa de D2 |
@@ -65,6 +65,9 @@ Tres razones concretas, no burocráticas:
 | BUG-038 | 2026-08-09 | S3 | M1 | Una URL inexistente mostraba solo el encabezado sin mensaje ni salida | Cerrado | D4 |
 | BUG-039 | 2026-08-09 | S2 | — (CI/integración) | CI del PR #105 fallaba en "Verificar cliente OpenAPI": `schema.ts` desactualizado tras avanzar `develop` con `/api/reportes` | Cerrado | Equipo (fusión) |
 | BUG-040 | 2026-08-09 | S3 | M7 | `index.css` redeclara los tokens de color del tema (`--color-acento` y compañía) en un segundo bloque `:root`/`:root[data-theme]` posterior — editar el primer bloque no cambia nada visualmente | Cerrado — duplicación eliminada, no solo resincronizada | D5 (Yordy) |
+| BUG-041 | 2026-08-09 | S2 | M4 | `ConfirmarSuscripcionService` (ya en `develop`) nunca revisa el vencimiento del token, aunque `confirmar-suscripcion.html` le promete al vecino que el enlace vence en `{{horasVigencia}}` horas; tampoco había índice único sobre `tokenConfirmacion` en Mongo | Cerrado | D1/D5 (`ConfirmarSuscripcionService` original de D5; hallazgo del PR #110 de Rafael, D1) |
+| BUG-042 | 2026-08-09 | S3 | M4 | `aviso-corte.html` y el README de plantillas se quedaron fuera de `develop`: el commit que los trajo llegó a su rama después de fusionado el PR #45, y solo `confirmar-suscripcion.html` cruzó | Cerrado — plantilla y README recuperados | D1 (autoría original de Yordy, D5) |
+| BUG-043 | 2026-08-09 | S1 | M3 | `EvaluarConsensoService` desempataba entre tipos de reporte según el orden de iteración de un `HashMap<TipoReporte,Long>`, no garantizado por el JLS | Cerrado | D2 (Carlos), hallado al revisar el PR #106 de Yordy |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -215,7 +218,7 @@ corte real y termina el proceso en 1.
 ### BUG-023 — El cron de la sala de control nunca va a ejecutarse
 
 - **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** — (sala de control) · **Responsable:** Equipo (sala de control)
-- **Estado:** Abierto
+- **Estado:** Cerrado — 2026-08-09, cierre del Sprint 0 hacia `main` (PR #111)
 
 **Síntoma:** el PR #62 agregó un trigger `schedule` a `.github/workflows/dashboard.yml` en `develop`
 para refrescar la sala de control cada hora. GitHub solo evalúa triggers `schedule` usando el
@@ -235,8 +238,12 @@ Mientras `develop` no se fusione a `main` (algo que solo pasa al cerrar un sprin
 **Causa raíz:** comportamiento de GitHub Actions poco conocido — los triggers `schedule` no siguen la
 misma regla que `push`/`workflow_dispatch` (que sí usan la rama que los disparó).
 
-**Corrección:** pendiente — es del equipo (sala de control). Posible arreglo: mover el `dashboard.yml`
-con su trigger `schedule` a `main`, o disparar el refresco por otro medio mientras tanto.
+**Corrección:** el Sprint 0 ya había cerrado formalmente (Review + Planning, `BL-004` cerrado) pero
+nunca se había hecho la fusión `develop` → `main` que le corresponde a ese cierre según `CLAUDE.md`.
+Se abrió y fusionó el PR [#111](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/111)
+(`develop` → `main`, con conflicto resuelto en `MEMORY.md`) y se etiquetó `main` como `sprint-0`.
+Verificado: `gh workflow list` ahora reporta `Sala de control` como `active` (antes no aparecía, al no
+existir en la rama por defecto). El cron corre por primera vez en la próxima hora en punto.
 
 ---
 
@@ -359,7 +366,8 @@ solo vértice arbitrario.
 ### BUG-029 — Detalles menores encontrados en la misma revisión
 
 - **Fecha:** 2026-08-09 · **Severidad:** S4 · **Módulo:** — (sala de control / M7) · **Responsable:** Equipo / D4
-- **Estado:** 🟡 Parcial — ítems 1, 2, 4 y 5 (sala de control) cerrados; ítem 3 (`BotonInstalarPWA.tsx`) sigue abierto, es capa de D4
+- **Estado:** Cerrado — ítems 1, 2, 4 y 5 corregidos aquí mismo (sala de control); ítem 3 lo cerró
+  José Daniel (D4) por su cuenta en el commit `51746ba` ("resolver BUG-017 a BUG-027")
 
 Cinco hallazgos de bajo impacto, agrupados para no saturar el registro con entradas de una línea:
 
@@ -391,8 +399,9 @@ Cinco hallazgos de bajo impacto, agrupados para no saturar el registro con entra
    y se quitaron de `.rec-item` las propiedades que `.card` ya cubre (fondo, borde, radio, sombra,
    padding, `overflow-wrap`).
 
-Ítem 3 (`BotonInstalarPWA.tsx`) sigue abierto — es capa de D4, no se corrigió desde aquí por frontera
-de propiedad.
+**Ítem 3 (`BotonInstalarPWA.tsx`) — cerrado por José Daniel (D4), verificado el 2026-08-09:**
+`BotonInstalarPWA.tsx` ya tiene `window.removeEventListener('appinstalled', marcarComoInstalada)` en
+el cleanup del efecto, junto al `addEventListener` correspondiente — commit `51746ba`.
 
 ---
 
@@ -691,7 +700,9 @@ publique una versión que negocie sola.
 ### BUG-006 — La rama `vista-previa-total` vuelve a pedir la contraseña `'1234'` y borra la prueba que lo impedía
 
 - **Fecha:** 2026-08-08 · **Severidad:** S2 · **Módulo:** M5 · **Responsable:** D4
-- **Estado:** Abierto — **no está en `develop`**; se dispara solo si la rama se fusiona sin poner al día
+- **Estado:** Cerrado — 2026-08-09, reverificado tras un desbloqueo temporal (`DT-006`,
+  `registro-de-bloqueos.md` §4) que autorizaba a D5 a corregirlo; la reverificación mostró que ya no
+  reproduce, sin que D5 tocara código
 
 **Síntoma:** en `origin/vista-previa-total`, `frontend/src/pages/PaginaVeedor.tsx:16` vuelve a
 contener `if (contraseña === '1234')` y el texto *"Código de acceso temporal (MOCK: usa 1234)"* en la
@@ -715,9 +726,18 @@ condición de cierre.
 `develop`. Al fusionarla, su versión antigua del archivo pisa la corregida y arrastra consigo el
 borrado del test. No es un cambio deliberado de D4: es divergencia por una rama larga sin rebase.
 
-**Corrección:** pendiente. Condición de entrada del PR de M5 (paso 4 del plan de integración):
-`git rebase origin/develop` sobre la rama, conservar `PaginaVeedor.test.tsx` y correr `npm test` en
-verde antes de abrir el PR. Sin eso, el PR no se fusiona.
+**Corrección:** ninguna necesaria — José Daniel ya corrigió el archivo directamente en
+`origin/vista-previa-total` en algún punto después del 2026-08-08 (la rama pasó a ser ancestro de
+`develop`: `git merge-base --is-ancestor origin/vista-previa-total origin/develop` → cierto). Reverificado
+el 2026-08-09 con la misma reproducción exacta de este bug:
+```
+git show origin/vista-previa-total:frontend/src/pages/PaginaVeedor.tsx | grep -c 1234
+→ 0   (era 2)
+git diff --name-status origin/develop origin/vista-previa-total -- frontend/src/pages/PaginaVeedor.test.tsx
+→ M   (era D — el archivo ya no está borrado)
+```
+No se rebaseó ni se hizo `push` a la rama de José Daniel — verificar antes de actuar evitó una
+reescritura de historial innecesaria sobre trabajo en curso de otra persona.
 
 ---
 
@@ -894,6 +914,127 @@ pueda declarar en verde sin un motor real corriendo.
 **Prueba que impide la regresión:** ninguna automatizada — es una condición de la máquina local, no del
 código. Mitigación: el comando de C0 ahora exige `docker compose up -d --wait`, que falla explícitamente
 si no hay daemon, en vez de degradarse en silencio a validar solo YAML.
+
+---
+
+### BUG-042 — La plantilla del aviso de corte nunca llegó a `develop`: quedó huérfana en una rama fusionada
+
+- **Fecha:** 2026-08-09 · **Severidad:** S3 · **Módulo:** M4 · **Responsable:** D1
+- **Estado:** Cerrado
+
+**Síntoma:** `backend/src/main/resources/plantillas-correo/` contenía en `develop` un solo archivo,
+`confirmar-suscripcion.html`, sin el README que documenta los marcadores. `aviso-corte.html` —el correo
+que avisa al vecino de un corte, que es la razón de ser de M4— no existía en ninguna rama viva pese a
+estar escrito desde el 2026-08-08.
+
+**Cómo se encontró:** auditando las 79 ramas del repositorio antes de un cierre de sprint. El commit
+`a6a8ae4` ("feat(D1): plantillas de correo de M4 y estructura del adaptador", Yordy) está en la rama
+`feature/d5-dockerfile-frontend-y-jacoco` con fecha **posterior** a la fusión del PR #45, que es lo
+último que esa rama aportó. Al fusionarse por squash, GitHub no vuelve a mirar la rama: todo lo que se
+empuje después queda inalcanzable desde `main` y `develop` sin que nada lo señale.
+
+**Esperado:** que un archivo empujado a una rama de trabajo termine en `develop` o quede visiblemente
+pendiente. Un entregable no puede desaparecer en silencio.
+
+**Causa raíz:** empujar trabajo nuevo a una rama cuyo PR ya se fusionó. `confirmar-suscripcion.html`
+sí llegó porque el PR #78 lo tomó aparte al implementar el envío; sus dos archivos hermanos, no. El
+riesgo es estructural del squash merge, no un descuido puntual — la rama sigue viéndose "fusionada"
+en la interfaz de GitHub.
+
+**Corrección:** recuperados `aviso-corte.html` (íntegro, sin tocar) y su README desde `a6a8ae4`. El
+README se actualizó donde el tiempo lo volvió falso: `NotificacionPort` y `MailNotificacionAdapter`
+ya existen y la confirmación ya se envía, así que la sección "lo que falta" ahora dice lo que de
+verdad falta —el método de aviso de corte en el puerto y quién dispara el envío—. No se recuperó
+`package-info.java` del mismo commit: describe el paquete como *"vacío hasta el Sprint 1"* y hoy tiene
+dos clases, así que entraría desactualizado. Verificado: `./mvnw clean verify` → 209 pruebas, 0 fallos,
+ArchUnit incluido.
+
+**Regla que deja este bug:** al fusionar un PR, borrar su rama. Una rama fusionada que sigue viva
+acepta commits que nadie volverá a mirar. En esta misma auditoría se borraron las 77 ramas ya
+integradas por esa razón.
+
+---
+
+### BUG-041 — El token de confirmación de suscripción nunca vencía, pese a que el correo lo promete
+
+- **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** M4 · **Responsable:** D1/D5
+- **Estado:** Cerrado
+
+**Síntoma:** `confirmar-suscripcion.html:89` le dice al vecino *"El enlace vence en {{horasVigencia}}
+horas"* (`MailNotificacionAdapter` rellena esa variable con `aguavigia.suscripcion.horas-vigencia-token`,
+48 por defecto). Pero `ConfirmarSuscripcionService`, ya fusionado a `develop`, nunca comparaba la fecha
+de creación de la suscripción contra ese plazo: un enlace de confirmación seguía funcionando
+indefinidamente. Tampoco había índice único sobre `tokenConfirmacion` en `SuscripcionDocumento`
+— cada búsqueda por token escaneaba toda la colección, sin garantía de unicidad a nivel de base de datos.
+
+**Cómo se encontró:** el PR #110 (Rafael Sarmiento, D1, titular real de M4) implementó de forma
+independiente `ConfirmarSuscripcionService`/`CancelarSuscripcionService` — sin saber que Yordy (D5) ya
+había escrito y fusionado una versión propia a `develop` directamente en la capa de D1, como parte del
+mismo patrón de avance cruzado autorizado en sesiones anteriores. Las dos versiones chocan en un
+conflicto *add/add* en git: mismos archivos, implementaciones distintas. Comparando ambas surgió que
+la versión de Yordy en `develop` no aplicaba el vencimiento — el propio Javadoc del controlador en
+`develop` documenta la omisión como decisión consciente ("el token es de un solo enlace, no de un solo
+uso"), pero no contempla que el correo sí promete una fecha límite.
+
+**Esperado:** que el sistema cumpla lo que el propio correo le afirma al vecino — coherente con
+`ADR-006` ("no afirmar lo que no se puede sostener").
+
+**Causa raíz:** dos personas implementaron el mismo requisito (RF013/RF015) sin coordinarse, con
+lecturas distintas del alcance. Ninguna de las dos es "la equivocada" en el diseño general — pero la
+promesa concreta del correo (una fecha de vencimiento) sí quedó sin cumplir en la versión que llegó a
+`develop`.
+
+**Corrección:** no se fusionó el PR #110 completo (ya redundante con lo que hay en `develop`). Se portó
+el chequeo de vencimiento y el índice único de Mongo al código ya existente:
+`ConfirmarSuscripcionService` ahora recibe `RelojPort` y `horas-vigencia-token`, y rechaza con 400 un
+token vencido; `SuscripcionDocumento.tokenConfirmacion` lleva `@Indexed(unique = true)`.
+`ConfirmarSuscripcionServiceTest` suma los casos de token vencido y de token válido justo antes de
+vencer. El PR #110 se cerró dando crédito a Rafael por el hallazgo, sin fusionar su código duplicado.
+Verificado: `./mvnw clean verify` → 152 pruebas, 0 fallos, ArchUnit incluido.
+
+**Pendiente de decisión del equipo, no resuelto aquí:** si confirmar un token ya `CONFIRMADA` debe
+seguir siendo idempotente (como quedó en `develop`) o debe rechazarse como "de un solo uso" (como
+proponía el PR #110) — es una decisión de producto de D1, no algo que este bug decida por su cuenta.
+
+---
+
+### BUG-043 — El consenso ciudadano podía resolver un empate de forma no determinista
+
+- **Fecha:** 2026-08-09 · **Severidad:** S1 · **Módulo:** M3 · **Responsable:** D2 (Carlos)
+- **Estado:** Cerrado
+
+**Síntoma:** `EvaluarConsensoService.estadoPorMayoria` (PR #106, ya en `develop`) agrupaba los reportes
+recientes en un `Map<TipoReporte, Long>` y elegía el ganador con
+`.max(Comparator.comparingLong(Map.Entry::getValue))`. Cuando dos tipos de reporte empataban en
+conteo (p. ej. 2 `SIN_AGUA` y 2 `SERVICIO_RESTABLECIDO`), `Stream.max` devuelve el primer máximo que
+encuentra recorriendo las entradas del `HashMap`, y el JLS no garantiza ningún orden de iteración
+para un `HashMap` sobre claves `enum` — depende del hash de identidad de la JVM en tiempo de
+ejecución, no del contenido del empate.
+
+**Cómo se encontró:** revisión propia de D2 sobre el PR #106, fusionado por Yordy (D5) sin pasar por
+revisión del titular de `application/` (mismo patrón señalado en `BUG-005`). No hacía falta
+reproducirlo con datos reales: se detectó leyendo el código, y se confirmó con un test nuevo que fija
+el escenario de empate.
+
+**Esperado:** RF011 exige que el nuevo estado lo decida "la mayoría de tipos entre los reportes que
+sustentan el consenso". Un empate no es una mayoría — no hay tipo mayoritario que sostenga un cambio
+de estado. Publicar un estado elegido por el orden de un `HashMap` equivale a publicar un corte (o su
+levantamiento) sin evidencia real que lo sustente, lo que la ética de datos del proyecto (`CLAUDE.md`
+punto 4, `ADR-006`) prohíbe — de ahí la severidad S1 aunque el caso sea poco frecuente.
+
+**Causa raíz:** el desempate nunca se diseñó explícitamente; `Stream.max` sobre un `Map.Entry` sin un
+comparador de desempate secundario delega el resultado en un detalle de implementación de `HashMap`
+no especificado por el lenguaje.
+
+**Corrección:** `estadoPorMayoria` ahora calcula el conteo máximo, junta todos los tipos que lo
+alcanzan y, si hay más de uno, mantiene el `estadoActual` del sector en vez de forzar un cambio
+(`EvaluarConsensoService.java`). Nueva prueba
+`debeMantenerElEstadoActualSiHayEmpateEntreTiposDeReporte`. Verificado: `EvaluarConsensoServiceTest`
+(7/7) y `ReglaDeOroArchitectureTest` (3/3) en verde; 199/199 pruebas sin Testcontainers también en
+verde. Las 3 pruebas de infraestructura que sí usan Testcontainers (`SuscripcionMongoAdapterTest`,
+`RedisContadorReportesAdapterTest`, `RateLimitingInterceptorTest`) no corrieron en esta verificación
+porque el motor de Docker de esta máquina estaba detenido (`com.docker.service` en `Stopped`) —no
+relacionado con este cambio, que no toca `infrastructure/`.
 
 ---
 
@@ -1096,5 +1237,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-041
+Siguiente número disponible: BUG-043
 -->

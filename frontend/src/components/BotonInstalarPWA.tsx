@@ -52,12 +52,9 @@ export const BotonInstalarPWA: FC = () => {
 
     try {
       await evento.prompt()
-      const resultado = await evento.userChoice
-      if (resultado.outcome === 'accepted') {
-        console.log('El usuario aceptó instalar la PWA de AguaVigía')
-      }
-    } catch (error) {
-      console.warn('No se pudo mostrar el diálogo de instalación:', error)
+      await evento.userChoice
+    } catch {
+      // El navegador puede retirar el diálogo sin afectar el resto de la aplicación.
     }
   }
 

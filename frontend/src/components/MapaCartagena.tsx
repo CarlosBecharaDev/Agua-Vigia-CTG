@@ -9,7 +9,7 @@
  *
  * Leaflet requiere que su CSS se importe antes de crear el mapa.
  */
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { FC } from 'react'
 // (No se requiere Link aquí)
 import L from 'leaflet'
@@ -19,7 +19,7 @@ import { COLOR_POR_ESTADO, COLOR_SIN_DATOS } from '../types/tipos-dominio'
 import { nombresBarrioCoinciden, normalizarNombreBarrio } from '../utils/geografia'
 import { sectorDesdeGeojson } from '../utils/sectorGeojson'
 import { EtiquetaFrescura } from './EtiquetaFrescura'
-import { InsigniaEstado } from './InsigniaEstado'
+import { LocateFixed } from 'lucide-react'
 
 // Cartagena de Indias — centro, límites y zoom inicial
 const CENTRO: L.LatLngExpression = [10.3950, -75.4800]
@@ -36,7 +36,6 @@ interface Props {
   ultimaActualizacion: string | null
   sectorActivo: Sector | null
   onSectorSeleccionado?: (sector: Sector | null) => void
-  onAbrirReporte?: (sectorId: string) => void
 }
 
 /** Convierte el NOMBRE del GeoJSON al id del sector para hacer lookup */
@@ -57,11 +56,12 @@ export const MapaCartagena: FC<Props> = ({
   ultimaActualizacion,
   sectorActivo,
   onSectorSeleccionado,
-  onAbrirReporte
 }) => {
   const contenedorRef = useRef<HTMLDivElement>(null)
   const mapaRef = useRef<L.Map | null>(null)
   const capaRef = useRef<L.GeoJSON | null>(null)
+  const capaBaseRef = useRef<L.TileLayer | null>(null)
+  const [mapaListo, setMapaListo] = useState(false)
 
   // Índice de sectores por nombre normalizado para lookup O(1)
   const indiceSectores = useRef<Map<string, Sector>>(new Map())
@@ -128,13 +128,38 @@ export const MapaCartagena: FC<Props> = ({
       attributionControl: true,
     })
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom: 19,
-    }).addTo(mapa)
+    const mediaOscura = window.matchMedia('(prefers-color-scheme: dark)')
+    const usarMapaOscuro = () => document.documentElement.dataset.theme === 'dark'
+      || (!document.documentElement.dataset.theme && mediaOscura.matches)
+    const actualizarCapaBase = () => {
+      capaBaseRef.current?.remove()
+      const oscuro = usarMapaOscuro()
+      capaBaseRef.current = L.tileLayer(
+        oscuro
+          ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+          : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {
+          attribution: oscuro
+            ? '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>'
+            : '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          maxZoom: 19,
+        },
+      ).addTo(mapa)
+    }
+    actualizarCapaBase()
+
+    const observarTema = new MutationObserver(actualizarCapaBase)
+    observarTema.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    mediaOscura.addEventListener('change', actualizarCapaBase)
 
     mapaRef.current = mapa
-    return () => { mapa.remove(); mapaRef.current = null }
+    return () => {
+      observarTema.disconnect()
+      mediaOscura.removeEventListener('change', actualizarCapaBase)
+      mapa.remove()
+      mapaRef.current = null
+      capaBaseRef.current = null
+    }
   }, [])
 
   // Cargar GeoJSON y colorear polígonos
@@ -175,9 +200,6 @@ export const MapaCartagena: FC<Props> = ({
           },
           onEachFeature: (feature, layer) => {
             const nombre = feature?.properties?.NOMBRE ?? 'Sector desconocido'
-            // Tooltip con nombre siempre visible
-            layer.bindTooltip(nombre, { sticky: true, className: 'leaflet-tooltip-av' })
-
             layer.on('click', () => {
               const sector = buscarSector(indiceSectores.current, nombre)
               const sectorClick = sectorDesdeGeojson(nombre, sector)
@@ -196,44 +218,25 @@ export const MapaCartagena: FC<Props> = ({
         }).addTo(mapa)
 
         capaRef.current = capa
+        setMapaListo(true)
       })
-      .catch(console.error)
+      .catch(() => setMapaListo(true))
 
     return () => { montado = false; }
   }, [])
 
   return (
-    <div style={{ position: 'relative', height: '100%', width: '100%' }}>
-      {/* Barra de estado superior — responde "¿tengo agua?" en < 5 s (DESIGN.md §1) */}
-      <div
-        className="panel-glass"
-        style={{
-          position: 'absolute',
-          top: '0.75rem',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 1000,
-          borderRadius: 'var(--radio-pill)',
-          padding: '0.5rem 1.25rem',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-          maxWidth: 'calc(100vw - 4rem)',
-        }}
-      >
+    <div className="mapa-shell">
+      <div className="mapa-status" role="status" aria-live="polite">
+        <span className={`mapa-status-punto${cargando ? ' actualizando' : ''}`} />
         {cargando && (
-          <span style={{ color: 'var(--color-tinta-2)', fontSize: '0.85rem', fontFamily: 'var(--font-util)' }}>
-            Cargando sectores…
-          </span>
+          <span>Cargando sectores…</span>
         )}
         {error && sectores.length === 0 && (
-          <span style={{ color: 'var(--color-estado-sin)', fontSize: '0.85rem', fontFamily: 'var(--font-util)' }}>
-            No pudimos cargar los sectores. Revisa tu conexión.
-          </span>
+          <span>No pudimos cargar los sectores</span>
         )}
         {!cargando && !error && (
-          <span style={{ fontSize: '0.85rem', color: 'var(--color-tinta)', fontFamily: 'var(--font-util)' }}>
+          <span>
             {sectores.length > 0
               ? `${sectores.filter(s => s.estado === 'SIN_SERVICIO').length} sectores sin servicio`
               : 'Toca tu barrio en el mapa'}
@@ -241,108 +244,17 @@ export const MapaCartagena: FC<Props> = ({
         )}
       </div>
 
-      {/* Contenedor del mapa */}
       <div
         ref={contenedorRef}
         id="contenedor-mapa"
-        role="img"
+        role="region"
         aria-label="Mapa interactivo de sectores de Cartagena con estado del servicio de agua"
-        style={{ height: 'calc(100% - 36px)', width: '100%' }}
+        className="mapa-lienzo"
       />
-
-      {/* Pie del mapa con la frescura de datos */}
-      <div style={{ height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--color-fondo)', borderTop: '1px solid var(--color-linea)' }}>
-        <EtiquetaFrescura timestampIso={ultimaActualizacion} />
-      </div>
-
-      {/* Panel de detalle del sector seleccionado */}
-      {sectorActivo && (
-        <div
-          role="dialog"
-          aria-label={`Detalle del sector ${sectorActivo.nombre}`}
-          className="panel-glass"
-          style={{
-            position: 'absolute',
-            bottom: '1.5rem',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 1000,
-            borderRadius: 'var(--radio-lg)',
-            padding: '1rem 1.25rem',
-            minWidth: '260px',
-            maxWidth: 'calc(100vw - 3rem)',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' }}>
-            <div>
-              <p style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', fontWeight: '600', marginBottom: '0.35rem' }}>
-                {sectorActivo.nombre}
-              </p>
-              <InsigniaEstado estado={sectorActivo.estado} />
-            </div>
-            <button
-              aria-label="Cerrar detalle del sector"
-              onClick={() => onSectorSeleccionado?.(null)}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--color-tinta-3)',
-                fontSize: '1.2rem',
-                padding: '0.25rem',
-                minHeight: '44px',
-                minWidth: '44px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              ✕
-            </button>
-          </div>
-          <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <EtiquetaFrescura timestampIso={sectorActivo.actualizadoEn} />
-            <button
-              onClick={() => onAbrirReporte?.(sectorActivo.id)}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '0.8rem',
-                color: 'var(--color-acento)',
-                textDecoration: 'underline',
-                fontFamily: 'var(--font-util)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                minHeight: '44px',
-                padding: '0'
-              }}
-            >
-              Reportar problema en este sector →
-            </button>
-          </div>
-        </div>
-      )}
+      <div className="mapa-pie"><span><LocateFixed size={14} /> Cartagena de Indias</span><EtiquetaFrescura timestampIso={ultimaActualizacion} /></div>
 
       {/* Overlay de carga con skeleton */}
-      {cargando && (
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundColor: 'var(--color-fondo)',
-            opacity: 0.7,
-            zIndex: 999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <div className="skeleton" style={{ width: '180px', height: '24px', borderRadius: 'var(--radio-lg)' }} />
-        </div>
-      )}
+      {(cargando || !mapaListo) && <div className="mapa-cargando" aria-hidden="true"><div className="skeleton mapa-skeleton" /></div>}
     </div>
   )
 }

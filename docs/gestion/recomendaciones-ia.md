@@ -20,6 +20,7 @@
 | REC-003 | 2026-08-08 | C2 (contrato OpenAPI) es el cuello de botella real ahora mismo | Resuelta |
 | REC-004 | 2026-08-08 | La cobertura de pruebas del frontend está muy por debajo de la del backend | Pendiente |
 | REC-005 | 2026-08-08 | El ROSTER de `generar-dashboard.mjs` está escrito a mano, no se lee de ningún documento | Pendiente |
+| REC-006 | 2026-08-09 | `RateLimitConfig` se cuela en cualquier `@WebMvcTest` aunque no se importe, y rompe pruebas en silencio al activar reglas reales | Pendiente |
 
 **Estado:** `Pendiente` (sin revisar) · `Validada` (el equipo está de acuerdo, puede pasar a
 ADR/issue/tarea) · `Descartada` (el equipo no está de acuerdo — deja el motivo en el detalle) ·
@@ -85,3 +86,17 @@ Es exactamente el mismo tipo de dato "vive en un solo lugar" que `protocolo-de-c
 evitar duplicar. Si el roster cambia (como en `REC-001`) y alguien actualiza `roles-y-tareas.md` sin
 tocar el script, el dashboard queda mintiendo con toda confianza. Vale la pena, en algún momento,
 mover ese mapeo a un archivo que ambos lean.
+
+### REC-006 — `RateLimitConfig` se cuela en cualquier `@WebMvcTest` aunque no se importe, y rompe pruebas en silencio al activar reglas reales
+
+- **Fecha:** 2026-08-09 · **Estado:** Pendiente
+
+Al llenar `aguavigia.rate-limit.reglas` con las reglas de `/api/veedor/sesion` y `/api/reportes`
+(`feature/d3-cache-sectores-y-rate-limit`), 9 pruebas en `ReporteControllerTest` y
+`VeedorAuthControllerTest` empezaron a fallar con 500: `RateLimitConfig` implementa
+`WebMvcConfigurer`, así que Spring lo instancia en cualquier slice `@WebMvcTest` aunque la clase no
+lo importe, y con reglas vacías nadie lo había notado. Se resolvió con
+`@TestPropertySource(properties = "aguavigia.rate-limit.reglas=")` en los dos slices afectados. Vale
+la pena que el equipo decida si dejarlo anotado en el propio `RateLimitConfig.java` o como convención
+de plantilla para nuevos `@WebMvcTest`, para que no vuelva a morder a la próxima persona que agregue
+una regla.

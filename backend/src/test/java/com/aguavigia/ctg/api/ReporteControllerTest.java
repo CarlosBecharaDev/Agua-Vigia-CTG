@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -31,6 +32,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ReporteController.class)
 @Import({ReporteApiMapperImpl.class, ManejadorGlobalDeErrores.class, SecurityConfig.class})
+// Sin reglas de rate limiting: este slice prueba el contrato del controlador, y con la regla real
+// de application.yml el interceptor llamaria al RedisTemplate mockeado. El limitador tiene su
+// propia prueba contra un Redis real (RateLimitConfigTest).
+@TestPropertySource(properties = "aguavigia.rate-limit.reglas=")
 class ReporteControllerTest {
 
     private static final Instant AHORA = Instant.parse("2026-08-08T15:30:00Z");

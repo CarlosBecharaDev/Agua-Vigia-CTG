@@ -1,38 +1,84 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import PaginaVeedor from './PaginaVeedor'
 
-const iniciarSesionVeedor = vi.fn()
+const api = vi.hoisted(() => ({
+  iniciarSesionVeedor: vi.fn(),
+  listarReportesPendientes: vi.fn(),
+  obtenerSectores: vi.fn(),
+  listarCortesPorSector: vi.fn(),
+  moderarReporte: vi.fn(),
+  crearCorteOficial: vi.fn(),
+  cerrarCorteOficial: vi.fn(),
+}))
 
 vi.mock('../api/services', () => ({
-  iniciarSesionVeedor: (...args: unknown[]) => iniciarSesionVeedor(...args),
+  ...api,
   cerrarSesionVeedor: () => sessionStorage.removeItem('aguavigia_veedor_token'),
 }))
 
+function renderizar() {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
+  return render(<QueryClientProvider client={client}><MemoryRouter><PaginaVeedor /></MemoryRouter></QueryClientProvider>)
+}
+
 afterEach(() => {
-  iniciarSesionVeedor.mockReset()
+  Object.values(api).forEach((mock) => mock.mockReset())
   sessionStorage.clear()
 })
 
 describe('PaginaVeedor', () => {
-  it('envía la clave usando el contrato real y bloquea la moderación', async () => {
-    iniciarSesionVeedor.mockImplementation(async () => {
-      sessionStorage.setItem('aguavigia_veedor_token', 'token-prueba')
-    })
-    render(<MemoryRouter><PaginaVeedor /></MemoryRouter>)
+  it('inicia sesión y carga la cola real de moderación', async () => {
+    api.iniciarSesionVeedor.mockImplementation(async () => sessionStorage.setItem('aguavigia_veedor_token', 'token-prueba'))
+    api.listarReportesPendientes.mockResolvedValue([{ id: 'r1', sectorId: 'manga', tipo: 'SIN_AGUA', timestamp: '2026-08-09T10:00:00Z', estadoModeracion: 'PENDIENTE' }])
+    api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [{ id: 'manga', nombre: 'MANGA', estado: null, actualizadoEn: null }] })
+    renderizar()
 
     fireEvent.change(screen.getByLabelText(/clave del veedor/i), { target: { value: 'secreta' } })
     fireEvent.click(screen.getByRole('button', { name: /iniciar sesión/i }))
 
-    await waitFor(() => expect(iniciarSesionVeedor).toHaveBeenCalledWith('secreta'))
-    expect(await screen.findByRole('heading', { name: /sesión iniciada; moderación pendiente/i })).toBeInTheDocument()
-    expect(screen.queryByText(/cola de validación/i)).not.toBeInTheDocument()
+    await waitFor(() => expect(api.iniciarSesionVeedor).toHaveBeenCalledWith('secreta'))
+    expect(await screen.findByRole('heading', { name: /centro operativo del veedor/i })).toBeInTheDocument()
+    expect(await screen.findByText('SIN AGUA')).toBeInTheDocument()
+  })
+
+  it('aprueba un reporte usando la API protegida', async () => {
+    sessionStorage.setItem('aguavigia_veedor_token', 'token-prueba')
+    api.listarReportesPendientes.mockResolvedValue([{ id: 'r1', sectorId: 'manga', tipo: 'SIN_AGUA', timestamp: '2026-08-09T10:00:00Z', estadoModeracion: 'PENDIENTE' }])
+    api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [] })
+    api.moderarReporte.mockResolvedValue({ id: 'r1', estadoModeracion: 'APROBADO' })
+    renderizar()
+
+    fireEvent.click(await screen.findByRole('button', { name: /aprobar/i }))
+    await waitFor(() => expect(api.moderarReporte).toHaveBeenCalledWith('r1', 'aprobar'))
+  })
+
+  it('registra un corte oficial para los barrios seleccionados', async () => {
+    sessionStorage.setItem('aguavigia_veedor_token', 'token-prueba')
+    api.listarReportesPendientes.mockResolvedValue([])
+    api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [{ id: 'manga', nombre: 'MANGA', estado: null, actualizadoEn: null }] })
+    api.crearCorteOficial.mockResolvedValue({ id: 'c1', estado: 'ABIERTO' })
+    renderizar()
+
+    fireEvent.click(await screen.findByRole('checkbox', { name: 'MANGA' }))
+    fireEvent.change(screen.getByLabelText(/^inicio$/i), { target: { value: '2026-08-09T10:00' } })
+    fireEvent.change(screen.getByLabelText(/fin prometido/i), { target: { value: '2026-08-09T12:00' } })
+    fireEvent.change(screen.getByLabelText(/^causa$/i), { target: { value: 'Mantenimiento preventivo' } })
+    fireEvent.click(screen.getByRole('button', { name: /registrar corte oficial/i }))
+
+    await waitFor(() => expect(api.crearCorteOficial.mock.calls[0]?.[0]).toEqual({
+      sectoresAfectados: ['manga'],
+      inicio: expect.any(String),
+      finPrometido: expect.any(String),
+      causa: 'Mantenimiento preventivo',
+    }))
   })
 
   it('explica un 503 sin simular el ingreso', async () => {
-    iniciarSesionVeedor.mockRejectedValue({ isAxiosError: true, response: { status: 503, data: {} } })
-    render(<MemoryRouter><PaginaVeedor /></MemoryRouter>)
+    api.iniciarSesionVeedor.mockRejectedValue({ isAxiosError: true, response: { status: 503, data: {} } })
+    renderizar()
     fireEvent.change(screen.getByLabelText(/clave del veedor/i), { target: { value: 'secreta' } })
     fireEvent.click(screen.getByRole('button', { name: /iniciar sesión/i }))
     expect(await screen.findByRole('alert')).toHaveTextContent(/todavía no está configurada/i)

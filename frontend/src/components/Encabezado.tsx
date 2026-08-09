@@ -1,6 +1,6 @@
-import type { FC } from 'react'
-import { Link, NavLink } from 'react-router-dom'
-import { BarChart3, BookOpenText, Droplets, Map, Megaphone, ShieldCheck } from 'lucide-react'
+import type { CSSProperties, FC } from 'react'
+import { Link, NavLink, useLocation } from 'react-router-dom'
+import { BarChart3, BellRing, BookOpenText, Droplets, Map, Megaphone, ShieldCheck } from 'lucide-react'
 import { SelectorTema } from './SelectorTema'
 import { BotonInstalarPWA } from './BotonInstalarPWA'
 import type { useTheme } from '../hooks/useTheme'
@@ -10,6 +10,7 @@ type ThemeProps = ReturnType<typeof useTheme>
 interface Props {
   temaActivo: ThemeProps['temaActivo']
   onAlternarTema: ThemeProps['alternarTema']
+  onAbrirSuscripcion: () => void
 }
 
 const ENLACES = [
@@ -19,10 +20,13 @@ const ENLACES = [
   { a: '/veedor', etiqueta: 'Veedor', Icono: ShieldCheck },
 ]
 
-const Navegacion: FC<{ movil?: boolean }> = ({ movil = false }) => (
-  <nav
+const Navegacion: FC<{ movil?: boolean }> = ({ movil = false }) => {
+  const { pathname } = useLocation()
+  const indiceActivo = Math.max(0, ENLACES.findIndex(({ a }) => a === '/' ? pathname === '/' : pathname.startsWith(a)))
+  return <nav
     className={movil ? 'nav-movil' : 'nav-principal'}
     aria-label={movil ? 'Navegación móvil' : 'Navegación principal'}
+    style={movil ? undefined : { '--nav-index': indiceActivo } as CSSProperties}
   >
     {ENLACES.map(({ a, etiqueta, Icono }) => (
       <NavLink
@@ -45,9 +49,9 @@ const Navegacion: FC<{ movil?: boolean }> = ({ movil = false }) => (
       </NavLink>
     )}
   </nav>
-)
+}
 
-export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema }) => (
+export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema, onAbrirSuscripcion }) => (
   <>
     <header role="banner" className="app-header">
       <div className="header-contenido">
@@ -66,6 +70,10 @@ export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema }) => (
         <div className="header-acciones">
           <BotonInstalarPWA />
           <SelectorTema temaActivo={temaActivo} onAlternar={onAlternarTema} />
+          <button type="button" className="boton boton-avisos-header" onClick={onAbrirSuscripcion} aria-label="Suscribirse a avisos por correo">
+            <BellRing size={17} aria-hidden="true" />
+            <span>Avisos</span>
+          </button>
           <Link to="/reportar" className="boton boton-reporte-header">
             <Megaphone size={17} aria-hidden="true" />
             Reportar estado
