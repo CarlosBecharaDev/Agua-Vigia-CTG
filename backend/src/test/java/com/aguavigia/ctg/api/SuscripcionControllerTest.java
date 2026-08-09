@@ -7,6 +7,8 @@ import com.aguavigia.ctg.domain.EstadoSuscripcion;
 import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.Suscripcion;
 import com.aguavigia.ctg.domain.SuscripcionId;
+import com.aguavigia.ctg.domain.port.in.CancelarSuscripcionUseCase;
+import com.aguavigia.ctg.domain.port.in.ConfirmarSuscripcionUseCase;
 import com.aguavigia.ctg.domain.port.in.SuscribirseUseCase;
 import com.aguavigia.ctg.infrastructure.config.SecurityConfig;
 import com.aguavigia.ctg.infrastructure.security.JwtProvider;
@@ -23,6 +25,7 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -38,6 +41,12 @@ class SuscripcionControllerTest {
 
     @MockitoBean
     private SuscribirseUseCase suscribirse;
+
+    @MockitoBean
+    private ConfirmarSuscripcionUseCase confirmarSuscripcion;
+
+    @MockitoBean
+    private CancelarSuscripcionUseCase cancelarSuscripcion;
 
     @MockitoBean
     private JwtProvider jwtProvider;
@@ -96,5 +105,50 @@ class SuscripcionControllerTest {
                                 {"correo":"vecino@correo.com","sectorIds":["no-existe"]}"""))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail").value("No existe el sector 'no-existe'"));
+    }
+
+    @Test
+    void debeConfirmarLaSuscripcionYResponder200() throws Exception {
+        Suscripcion confirmada = new Suscripcion(
+                new SuscripcionId("s1"), new CorreoElectronico("vecino@correo.com"),
+                List.of(new SectorId("bocagrande")), EstadoSuscripcion.CONFIRMADA,
+                "token-1", AHORA);
+        given(confirmarSuscripcion.confirmar("token-1")).willReturn(confirmada);
+
+        mockMvc.perform(get("/api/suscripciones/confirmar").param("token", "token-1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("CONFIRMADA"));
+    }
+
+    @Test
+    void debeResponder400SiElTokenDeConfirmacionNoExiste() throws Exception {
+        given(confirmarSuscripcion.confirmar("no-existe"))
+                .willThrow(new IllegalArgumentException("Token de confirmación inválido o inexistente"));
+
+        mockMvc.perform(get("/api/suscripciones/confirmar").param("token", "no-existe"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail").value("Token de confirmación inválido o inexistente"));
+    }
+
+    @Test
+    void debeCancelarLaSuscripcionYResponder200() throws Exception {
+        Suscripcion cancelada = new Suscripcion(
+                new SuscripcionId("s1"), new CorreoElectronico("vecino@correo.com"),
+                List.of(new SectorId("bocagrande")), EstadoSuscripcion.CANCELADA,
+                "token-1", AHORA);
+        given(cancelarSuscripcion.cancelar("token-1")).willReturn(cancelada);
+
+        mockMvc.perform(get("/api/suscripciones/cancelar").param("token", "token-1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("CANCELADA"));
+    }
+
+    @Test
+    void debeResponder400SiElTokenDeCancelacionNoExiste() throws Exception {
+        given(cancelarSuscripcion.cancelar("no-existe"))
+                .willThrow(new IllegalArgumentException("Token de suscripción inválido o inexistente"));
+
+        mockMvc.perform(get("/api/suscripciones/cancelar").param("token", "no-existe"))
+                .andExpect(status().isBadRequest());
     }
 }

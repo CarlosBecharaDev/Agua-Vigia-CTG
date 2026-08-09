@@ -120,6 +120,59 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetail"
+  /api/suscripciones/confirmar:
+    get:
+      tags:
+      - Suscripciones
+      summary: Confirmar la suscripción (doble opt-in)
+      description: "Enlace del correo de confirmación. El token es de un solo enlace,\
+        \ no de un solo uso: confirmarla dos veces no falla (RF013)."
+      operationId: confirmar
+      parameters:
+      - name: token
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Suscripción confirmada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuscripcionRespuesta"
+        "400":
+          description: "Token inválido, inexistente o de una suscripción ya cancelada"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/suscripciones/cancelar:
+    get:
+      tags:
+      - Suscripciones
+      summary: Darse de baja en un clic (RF015)
+      description: Sin pedir credenciales — el token que llega en cada correo es suficiente.
+      operationId: cancelar
+      parameters:
+      - name: token
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Suscripción cancelada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuscripcionRespuesta"
+        "400":
+          description: Token inválido o inexistente
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
   /api/sectores:
     get:
       tags:
