@@ -31,6 +31,11 @@ async function main() {
     process.exit(1);
   }
 
+  // BUG-022: un `close` es normal e inevitable en cuanto llamamos sock.end() nosotros mismos tras
+  // enviar — sin esta bandera, ese cierre autoinducido se trataba igual que un corte real a mitad
+  // del envio y el proceso terminaba en 1 aunque el mensaje SI hubiera salido.
+  let terminado = false;
+
   sock.ev.on("connection.update", async (u) => {
     if (u.connection === "open") {
       try {
@@ -38,18 +43,19 @@ async function main() {
         const texto = construirMensaje(datos);
         await sock.sendMessage(grupoJid, { text: texto });
         console.log("Mensaje enviado a " + grupoJid);
-        process.exitCode = 0;
+        terminado = true;
+        sock.end();
+        process.exit(0);
       } catch (e) {
         console.error("Error generando o enviando el mensaje:", e);
-        process.exitCode = 1;
-      } finally {
+        terminado = true;
         sock.end();
-        process.exit(process.exitCode);
+        process.exit(1);
       }
     }
-    if (u.connection === "close") {
+    if (u.connection === "close" && !terminado) {
       const motivo = u.lastDisconnect && u.lastDisconnect.error;
-      console.error("No se pudo conectar:", motivo ? motivo.message : motivo);
+      console.error("Conexión cerrada antes de completar el envío:", motivo ? motivo.message : motivo);
       process.exit(1);
     }
   });

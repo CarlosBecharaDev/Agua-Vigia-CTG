@@ -345,10 +345,6 @@
   .chip-mini.resuelta { background: var(--color-estado-prog-bg); color: var(--color-estado-prog); }
   .lista-recomendaciones { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
   @media (max-width: 780px) { .lista-recomendaciones { grid-template-columns: 1fr; } }
-  .rec-item {
-    background: var(--color-superficie); border: 1px solid var(--color-linea); border-radius: var(--radio-lg);
-    box-shadow: var(--sombra); padding: 1.1rem 1.25rem; overflow-wrap: anywhere;
-  }
   .rec-cab { display: flex; align-items: baseline; gap: 0.55rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
   .rec-id { font-family: var(--font-util); font-size: 0.72rem; color: var(--color-acento); }
   .rec-titulo { font-family: var(--font-display); font-size: 0.98rem; font-weight: 600; color: var(--color-tinta); }
@@ -377,7 +373,7 @@
   .vacio-notas { font-size: 0.77rem; color: var(--color-tinta-3); font-style: italic; padding: 0.5rem 0; }
   .aviso-local { font-size: 0.69rem; color: var(--color-tinta-3); max-width: 36ch; line-height: 1.45; margin-top: 0.9rem; }
 
-  .narrativa { column-width: 34ch; column-gap: 2.4rem; }
+  .narrativa { column-width: 34ch; column-count: 2; column-gap: 2.4rem; }
   .narrativa p { font-family: var(--font-display); font-size: 0.98rem; line-height: 1.75; color: var(--color-tinta-2); margin-bottom: 1.1rem; break-inside: avoid-column; }
   .narrativa p:last-child { margin-bottom: 0; }
   .narrativa strong { color: var(--color-tinta); font-weight: 600; }
@@ -947,7 +943,7 @@ window.addEventListener("error", function (ev) {
     });
     DATA.bugs.filter(function (b) { return b.estado === "Abierto"; }).forEach(function (b) {
       var grave = b.sev === "S1" || b.sev === "S2";
-      atencion.push({ icon: "alert-triangle", titulo: b.id + " — " + b.titulo, href: null, desc: "Severidad " + b.sev + " · responsable: " + b.responsable, quien: null, urgente: grave, critica: grave });
+      atencion.push({ icon: "alert-triangle", titulo: b.id + " — " + b.titulo, href: null, desc: "Severidad " + b.sev + " · responsable: " + b.responsable, quien: null, critica: grave });
     });
     atencion.sort(function (a, b) { return (b.critica ? 1 : 0) - (a.critica ? 1 : 0); });
     var contA = document.getElementById("lista-atencion");
@@ -985,10 +981,10 @@ window.addEventListener("error", function (ev) {
   }
   (function renderRecomendaciones() {
     var cont = document.getElementById("lista-recomendaciones");
-    if (!DATA.recomendaciones.length) { cont.innerHTML = '<p class="vacio-atencion">Sin recomendaciones registradas todavía.</p>'; return; }
+    if (!DATA.recomendaciones.length) { cont.innerHTML = '<p class="vacio-atencion" style="grid-column:1/-1">Sin recomendaciones registradas todavía.</p>'; return; }
     var claseEstado = { "Pendiente": "pendiente", "Validada": "validada", "Descartada": "descartada", "Resuelta": "resuelta" };
     cont.innerHTML = DATA.recomendaciones.map(function (r) {
-      return '<div class="rec-item"><div class="rec-cab"><span class="rec-id">' + r.id + '</span>' +
+      return '<div class="card rec-item"><div class="rec-cab"><span class="rec-id">' + r.id + '</span>' +
         '<span class="rec-titulo">' + formatearInline(r.titulo) + '</span>' +
         '<span class="chip-mini ' + (claseEstado[r.estado] || "pendiente") + '">' + escapeHtml(r.estado) + '</span></div>' +
         '<div class="rec-detalle">' + formatearInline(r.detalle) + '</div></div>';

@@ -40,6 +40,11 @@ async function main() {
     console.log("Sesión ya vinculada, reconectando...");
   }
 
+  // BUG-022 (mismo patron que enviar.mjs): sock.end() propio dispara un `close` normal — sin esta
+  // bandera se trataba igual que un corte real y el proceso terminaba en 1 aunque ya hubiera
+  // impreso los grupos correctamente.
+  let terminado = false;
+
   sock.ev.on("connection.update", async (u) => {
     if (u.connection === "open") {
       console.log("\nConectado.");
@@ -52,10 +57,11 @@ async function main() {
         lista.forEach((g) => console.log(`  "${g.subject}" — JID: ${g.id}`));
         console.log("\nCopia el JID del grupo del equipo y guárdalo como el secreto WHATSAPP_GROUP_JID en GitHub (Settings > Secrets and variables > Actions).");
       }
+      terminado = true;
       sock.end();
       process.exit(0);
     }
-    if (u.connection === "close") {
+    if (u.connection === "close" && !terminado) {
       const motivo = u.lastDisconnect && u.lastDisconnect.error;
       console.error("Conexión cerrada antes de completar:", motivo ? motivo.message : motivo);
       process.exit(1);

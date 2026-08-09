@@ -9,6 +9,18 @@ function nombreDe(login) {
   return (ROSTER[login] && ROSTER[login].nombre) || login;
 }
 
+// BUG-021: un titulo de PR/bug real (texto de terceros, no controlado por este bot) puede traer un
+// *, _, ~ o ` suelto sin pareja y dejar el resto del mensaje en negrita/cursiva/tachado. WhatsApp no
+// tiene caracter de escape, asi que se sustituyen por sus variantes de ancho completo (se ven casi
+// igual, pero el parser de formato de WhatsApp no las reconoce).
+function neutralizarFormato(texto) {
+  return String(texto)
+    .replace(/\*/g, "＊")
+    .replace(/_/g, "＿")
+    .replace(/~/g, "～")
+    .replace(/`/g, "｀");
+}
+
 export function construirMensaje(datos) {
   const a = datos.avanceProyecto;
   const bugsAbiertos = datos.bugs.filter((b) => b.estado === "Abierto");
@@ -23,12 +35,12 @@ export function construirMensaje(datos) {
 
   if (bugsGraves.length) {
     lineas.push("🔴 *Bugs graves abiertos*");
-    bugsGraves.forEach((b) => lineas.push(`• ${b.id} (${b.sev}) — ${b.titulo} _(responsable: ${b.responsable})_`));
+    bugsGraves.forEach((b) => lineas.push(`• ${b.id} (${b.sev}) — ${neutralizarFormato(b.titulo)} _(responsable: ${neutralizarFormato(b.responsable)})_`));
     lineas.push("");
   }
   if (bugsOtros.length) {
     lineas.push("🟡 *Otros bugs abiertos*");
-    bugsOtros.forEach((b) => lineas.push(`• ${b.id} (${b.sev}) — ${b.titulo}`));
+    bugsOtros.forEach((b) => lineas.push(`• ${b.id} (${b.sev}) — ${neutralizarFormato(b.titulo)}`));
     lineas.push("");
   }
   if (datos.bloqueos.abiertos) {
@@ -37,7 +49,7 @@ export function construirMensaje(datos) {
   }
   if (prsAbiertos.length) {
     lineas.push("👀 *PRs esperando revisión*");
-    prsAbiertos.forEach((p) => lineas.push(`• #${p.numero} — ${p.titulo} _(${nombreDe(p.login)})_`));
+    prsAbiertos.forEach((p) => lineas.push(`• #${p.numero} — ${neutralizarFormato(p.titulo)} _(${nombreDe(p.login)})_`));
     lineas.push("");
   }
   if (!bugsGraves.length && !bugsOtros.length && !datos.bloqueos.abiertos && !prsAbiertos.length) {
