@@ -120,8 +120,7 @@ se remonta—, todo barrio sin dato se pinta verde brillante como si tuviera ser
 callback `style` que la capa usa en su creación — dos caminos que pintan el mismo dato, uno corregido
 y el otro no.
 
-**Corrección:** pendiente — es capa de D4. Sugerido: registrar aquí que `BUG-008` se reabre o se
-referencia desde este, según decida el equipo.
+**Corrección:** Implementada en PR #87; el estilo inicial de la capa usa ahora el estado visual "sin datos".
 
 ---
 
@@ -145,7 +144,7 @@ misma regla que `ADR-014` fija en el backend, ahora violada en dos lugares del f
 **Causa raíz:** el frontend se construyó contra mocks donde todo sector tenía estado; al conectar la
 API real, ningún camino nuevo distingue "sin dato" de "con problema".
 
-**Corrección:** pendiente — es capa de D4.
+**Corrección:** Implementada en PR #87; los estados nulos ya no cuentan como problemas ni muestran reportes inventados.
 
 ---
 
@@ -172,7 +171,7 @@ todos los cruces de nombre de barrio del proyecto.
 **Causa raíz:** dos implementaciones distintas del mismo tipo de cruce, escritas por separado sin
 compartir la utilidad de normalización que ya existe en `MapaCartagena.tsx`.
 
-**Corrección:** pendiente — es capa de D4.
+**Corrección:** Implementada en PR #87 con normalización y coincidencia segura entre Acuacar, sectores y GeoJSON.
 
 ---
 
@@ -281,7 +280,7 @@ red no debe dejar el formulario sin ningún nombre de sector.
 quedaron en el mismo PR (`PaginaReportar` sin respaldo, `PaginaVeedor` con mock local,
 `useDatosEnVivo` con su propio mock) — nadie las unificó en un solo hook compartido.
 
-**Corrección:** pendiente — es capa de D4.
+**Corrección:** Implementada en PR #87; la preselección se sincroniza y el formulario conserva el respaldo de sectores.
 
 ---
 
@@ -304,7 +303,7 @@ tras el primer intento.
 
 **Causa raíz:** el manejo del resultado del prompt solo contempló el camino de éxito.
 
-**Corrección:** pendiente — es capa de D4.
+**Corrección:** Implementada en PR #87; el evento se libera después de cualquier resultado y los errores quedan capturados.
 
 ---
 
@@ -328,7 +327,7 @@ detalle y el botón "Reportar problema" operan sobre datos permanentemente viejo
 **Causa raíz:** el recorte de dependencias probablemente buscaba evitar reconstruir la capa en cada
 actualización de datos, pero rompió la lectura fresca dentro del handler de clic.
 
-**Corrección:** pendiente — es capa de D4.
+**Corrección:** Implementada en PR #87 usando el índice actualizado dentro del manejador de clic.
 
 ---
 
@@ -351,7 +350,7 @@ el proyecto vende (`brief.md`).
 
 **Causa raíz:** dos implementaciones independientes de la misma clasificación, sin compartir lógica.
 
-**Corrección:** pendiente — es capa de D4.
+**Corrección:** Implementada en PR #87 al compartir la clasificación de boletines de Acuacar.
 
 ---
 
@@ -372,7 +371,7 @@ solo vértice arbitrario.
 
 **Causa raíz:** simplificación de la comparación geoespacial sin usar una librería de point-in-polygon.
 
-**Corrección:** pendiente — es capa de D4.
+**Corrección:** Implementada en PR #87 con soporte para Polygon y MultiPolygon GeoJSON.
 
 ---
 
