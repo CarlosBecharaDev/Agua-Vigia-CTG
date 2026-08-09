@@ -24,6 +24,15 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ---
 
+## Sprint 2
+
+### 2026-08-09 · D3 (Sebastián) · `feature/d3-cache-sectores-y-rate-limit`
+**Qué:** Activados los dos pendientes de D3 (`sprint-2.md` §2): `@Cacheable` en `GET /api/sectores`
+con invalidación al confirmar consenso, y reglas de rate limiting para `/api/veedor/sesion` y
+`/api/reportes`. 155/155 pruebas en verde. `REC-006` registrada (trampa de `RateLimitConfig` en
+`@WebMvcTest`). PR #112 abierto contra `develop`.
+**Sigue:** Conseguir revisor para el PR #112 y fusionarlo; luego registrar la implementación.
+
 ## Sprint 1
 
 ### 2026-08-09 · D4 · `codex/frontend-hardening`
