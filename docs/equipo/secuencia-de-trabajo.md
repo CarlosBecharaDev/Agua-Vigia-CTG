@@ -35,7 +35,7 @@ Mientras está cerrada, quien depende de ella **no empieza**: registra el bloque
 
 | # | Compuerta | La abre | Habilita a | Artefacto que la abre | Se verifica con |
 |---|---|---|---|---|---|
-| **C0** | Entorno reproducible | D5 **verifica y declara**; D2 aporta `/backend`, D4 aportó `/frontend` | Todos | Proyectos `/backend` y `/frontend` que compilan, `docker-compose.yml` levantando Mongo, Redis y Mailhog, y CI en verde. **No** incluye los Dockerfiles de backend y frontend: son de los Sprints 1 y 3 | `docker compose config -q && ls backend frontend` |
+| **C0** | Entorno reproducible | D5 **verifica y declara**; D2 aporta `/backend`, D4 aportó `/frontend` | Todos | Proyectos `/backend` y `/frontend` que compilan, `docker-compose.yml` levantando Mongo, Redis y Mailhog, y CI en verde. **No** incluye los Dockerfiles de backend y frontend: son de los Sprints 1 y 3 | `docker compose up -d --wait && cd backend && ./mvnw clean verify` *(exige un motor de contenedores real corriendo — `docker compose config -q` solo valida YAML y no basta, `BUG-030`)* |
 | **C1** | Dominio y puertos | D2 | D3 · D1 | Entidades, objetos de valor y `domain/port/**` fusionados en `develop`, ArchUnit en verde | `ls backend/src/main/java/com/aguavigia/ctg/domain/port/out` |
 | **C2** | Contrato OpenAPI | D3 · D1 | D4 | `backend/openapi.yaml` versionado en `develop` | `git show develop:backend/openapi.yaml \| head -5` |
 | **C3** | SPA integrada | D4 | D5 (QA) | Frontend consumiendo la API real, build sin errores | `cd frontend && npm run build` |

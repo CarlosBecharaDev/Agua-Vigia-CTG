@@ -8,7 +8,8 @@ Cruza los avisos oficiales de Acuacar con reportes ciudadanos georreferenciados 
 > Proyecto de aula · Fundación Universitaria Tecnológico Comfenalco
 > Tecnología en Desarrollo de Software · Cartagena de Indias D.T. y C. · 2026
 
-**Estado actual: Sprint 0 — fase de documentación.** El código de la aplicación aún no se ha iniciado.
+**Estado actual: Sprint 1.** Backend con API de sectores, mapa conectado a datos reales y PWA
+instalable ya en `develop`. Detalle vivo: [`docs/gestion/sprint-1.md`](docs/gestion/sprint-1.md).
 
 ---
 
@@ -132,11 +133,20 @@ cerrar por entregable deja el avance medido en lo único que se puede demostrar 
 
 ## Cómo levantar el proyecto
 
-> Aún no aplica — el código no ha iniciado. Cuando exista:
+Requiere un **motor de contenedores** corriendo, no solo el cliente de Docker. En Linux o con Docker
+Desktop no hace falta nada más. En macOS sin Docker Desktop, instala [Colima](https://github.com/abiosoft/colima)
+(`brew install colima && colima start`) y exporta estas dos variables antes de compilar el backend o
+levantar el entorno — son necesarias para que Testcontainers encuentre el daemon y monte el socket
+correcto (`BUG-030`):
+
+```bash
+export DOCKER_HOST="unix://$HOME/.colima/default/docker.sock"
+export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
+```
 
 ```bash
 cp .env.example .env     # ajusta tus variables
-docker compose up        # Mongo + Redis + Mailhog + backend + frontend
+docker compose up -d --wait   # Mongo + Redis + Mailhog + backend + frontend, falla si algo no arranca
 ```
 
 ---
