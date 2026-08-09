@@ -46,4 +46,40 @@ class SuscripcionTest {
                 EstadoSuscripcion.PENDIENTE_CONFIRMACION, "token-1", AHORA))
                 .isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void confirmarDebeCambiarElEstadoAConfirmada() {
+        Suscripcion pendiente = new Suscripcion(
+                new SuscripcionId("s1"), CORREO, List.of(new SectorId("bocagrande")),
+                EstadoSuscripcion.PENDIENTE_CONFIRMACION, "token-1", AHORA);
+
+        assertThat(pendiente.confirmar().estado()).isEqualTo(EstadoSuscripcion.CONFIRMADA);
+    }
+
+    @Test
+    void confirmarDebeSerIdempotenteSiYaEstabaConfirmada() {
+        Suscripcion confirmada = new Suscripcion(
+                new SuscripcionId("s1"), CORREO, List.of(new SectorId("bocagrande")),
+                EstadoSuscripcion.CONFIRMADA, "token-1", AHORA);
+
+        assertThat(confirmada.confirmar().estado()).isEqualTo(EstadoSuscripcion.CONFIRMADA);
+    }
+
+    @Test
+    void confirmarDebeRechazarUnaSuscripcionYaCancelada() {
+        Suscripcion cancelada = new Suscripcion(
+                new SuscripcionId("s1"), CORREO, List.of(new SectorId("bocagrande")),
+                EstadoSuscripcion.CANCELADA, "token-1", AHORA);
+
+        assertThatThrownBy(cancelada::confirmar).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void cancelarDebeCambiarElEstadoACanceladaDesdeCualquierEstado() {
+        Suscripcion confirmada = new Suscripcion(
+                new SuscripcionId("s1"), CORREO, List.of(new SectorId("bocagrande")),
+                EstadoSuscripcion.CONFIRMADA, "token-1", AHORA);
+
+        assertThat(confirmada.cancelar().estado()).isEqualTo(EstadoSuscripcion.CANCELADA);
+    }
 }

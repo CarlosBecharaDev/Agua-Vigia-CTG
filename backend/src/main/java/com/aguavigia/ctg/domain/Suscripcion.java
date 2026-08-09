@@ -34,4 +34,17 @@ public record Suscripcion(
         }
         sectorIds = List.copyOf(sectorIds);
     }
+
+    /** RF013 — doble opt-in: de PENDIENTE_CONFIRMACION a CONFIRMADA. Idempotente si ya estaba confirmada. */
+    public Suscripcion confirmar() {
+        if (estado == EstadoSuscripcion.CANCELADA) {
+            throw new IllegalStateException("No se puede confirmar una suscripción ya cancelada");
+        }
+        return new Suscripcion(id, correo, sectorIds, EstadoSuscripcion.CONFIRMADA, tokenConfirmacion, creadaEn);
+    }
+
+    /** RF015 — baja en 1 clic, sin pedir credenciales. Idempotente si ya estaba cancelada. */
+    public Suscripcion cancelar() {
+        return new Suscripcion(id, correo, sectorIds, EstadoSuscripcion.CANCELADA, tokenConfirmacion, creadaEn);
+    }
 }

@@ -67,6 +67,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/suscripciones/confirmar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Confirmar la suscripción (doble opt-in)
+         * @description Enlace del correo de confirmación. El token es de un solo enlace, no de un solo uso: confirmarla dos veces no falla (RF013).
+         */
+        get: operations["confirmar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/suscripciones/cancelar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Darse de baja en un clic (RF015)
+         * @description Sin pedir credenciales — el token que llega en cada correo es suficiente.
+         */
+        get: operations["cancelar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/sectores": {
         parameters: {
             query?: never;
@@ -335,6 +375,68 @@ export interface operations {
             };
             /** @description El dispositivo superó el límite de reportes para este sector */
             429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    confirmar: {
+        parameters: {
+            query: {
+                token: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Suscripción confirmada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuscripcionRespuesta"];
+                };
+            };
+            /** @description Token inválido, inexistente o de una suscripción ya cancelada */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    cancelar: {
+        parameters: {
+            query: {
+                token: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Suscripción cancelada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuscripcionRespuesta"];
+                };
+            };
+            /** @description Token inválido o inexistente */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };

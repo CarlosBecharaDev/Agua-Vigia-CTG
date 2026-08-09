@@ -26,10 +26,10 @@ Todo el producto gira alrededor de cuatro estados. Son la única jerarquía crom
 
 | Estado | Color | Uso | Nunca |
 |---|---|---|---|
-| **Con servicio** | Verde `#1C7F55` (claro) / `#4FBF89` (oscuro) | Sector operando normal | No usar verde para "éxito" genérico de la interfaz |
-| **Sin servicio** | Rojo `#AE3428` / `#E2695B` | Corte confirmado | No usar rojo para errores de formulario |
-| **Presión baja** | Ámbar `#A87310` / `#D9A63C` | Servicio degradado | No usar ámbar para advertencias de la interfaz |
-| **Corte programado** | Azul `#2A628F` / `#6BA8DA` | Anunciado, aún no iniciado | No usar azul para enlaces |
+| **Con servicio** | Verde `#34c759` (claro) / `#30d158` (oscuro) | Sector operando normal | No usar verde para "éxito" genérico de la interfaz |
+| **Sin servicio** | Rojo `#ff453a` (ambos temas) | Corte confirmado | No usar rojo para errores de formulario |
+| **Presión baja** | Ámbar `#ff9f0a` (ambos temas) | Servicio degradado | No usar ámbar para advertencias de la interfaz |
+| **Corte programado** | Gris `#98989d` (ambos temas) | Anunciado, aún no iniciado | No usar este gris para texto secundario genérico |
 
 **Regla estricta:** estos cuatro colores están reservados para el estado del servicio. La interfaz
 usa el acento turquesa para todo lo demás. Si un botón de "guardar" es verde, el mapa pierde su
@@ -46,16 +46,17 @@ solo es un refuerzo, no el mensaje.
 ```
 Acento turquesa   #087f8c  (claro)   #54c6ca  (oscuro)
 Acento vivo       #0a9cab            #78d9db
-Tinta             #1d1d1f            #ffffff
-Tinta secundaria  #7a7a7a            #a1a1a6
-Tinta terciaria   #cccccc            #6e6e73
-Línea             #e0e0e0            #38383a
-Superficie        #ffffff            #1c1c1e
-Fondo             #f5f5f7            #000000
+Acento suave      #d9f1f0            #153f44
+Tinta             #12333d            #edf8f7
+Tinta secundaria  #5d7379            #a7bdbd
+Tinta terciaria   #8da0a4            #71898c
+Línea             #dce8e8            #234a4f
+Superficie        #ffffff            #102f36
+Fondo             #f3f8f7            #071f26
 ```
 
-Los neutros son grises planos al estilo Apple, sin glassmorphism ni sesgo de temperatura hacia el
-verde-azul.
+Los neutros tienen un sesgo azulado sutil, no son grises puros. Es una decisión: el gris neutro se lee
+como plantilla sin criterio; un neutro con temperatura se lee como elegido.
 
 **Ambos temas son obligatorios.** Se definen como custom properties en `:root`, se redefinen bajo
 `@media (prefers-color-scheme: dark)` y de nuevo bajo `:root[data-theme="dark"]` /
