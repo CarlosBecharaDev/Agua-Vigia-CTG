@@ -31,8 +31,8 @@ function estadoDeBoletin(titulo: string, contenido: string): EstadoServicio {
 /* ── Estilos glassmorphism reutilizables ── */
 const estiloGlass: React.CSSProperties = {
   background: 'linear-gradient(135deg, rgba(var(--glass-r, 255), var(--glass-g, 255), var(--glass-b, 255), 0.65) 0%, rgba(var(--glass-r, 255), var(--glass-g, 255), var(--glass-b, 255), 0.3) 100%)',
-  backdropFilter: 'blur(24px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+  backdropFilter: 'blur(12px)',
+  WebkitBackdropFilter: 'blur(12px)',
   border: '1px solid rgba(255, 255, 255, 0.2)',
   boxShadow: '0 12px 40px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
 }
