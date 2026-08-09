@@ -1,4 +1,5 @@
 import { fetchWithTimeout } from './fetchWithTimeout'
+import { normalizarNombreBarrio } from '../utils/geografia'
 
 /**
  * acuacar.ts — Servicio para consumir la API REST pública de Acuacar (WordPress).
@@ -54,11 +55,19 @@ const BARRIOS_CONOCIDOS = [
 
 /** Normaliza un texto para comparación (minúsculas, sin acentos) */
 function normalizar(texto: string): string {
-  return texto
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim();
+  return normalizarNombreBarrio(texto)
+}
+
+export function determinarEstadoBoletin(titulo: string): EstadoBarrioAcuacar['estado'] {
+  const tituloNorm = normalizar(titulo)
+
+  if (tituloNorm.includes('interrupcion') || tituloNorm.includes('falla') || tituloNorm.includes('avance del') || tituloNorm.includes('suspension')) {
+    return 'SIN_SERVICIO'
+  }
+  if (tituloNorm.includes('restablec') || tituloNorm.includes('normaliz') || tituloNorm.includes('recuperacion')) {
+    return 'CON_SERVICIO'
+  }
+  return 'CORTE_PROGRAMADO'
 }
 
 // ── Funciones públicas ──────────────────────────────────────
@@ -106,16 +115,22 @@ export async function obtenerBoletinesRecientes(cantidad: number = 15): Promise<
  */
 export function extraerBarriosDeTexto(texto: string): string[] {
   const textoNorm = normalizar(texto);
-  const encontrados: string[] = [];
+  const encontrados = BARRIOS_CONOCIDOS.flatMap((barrio) => {
+    const barrioNorm = normalizar(barrio).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const coincidencia = new RegExp(`(?<![a-z0-9])${barrioNorm}(?![a-z0-9])`).exec(textoNorm)
+    return coincidencia
+      ? [{ barrio, inicio: coincidencia.index, fin: coincidencia.index + coincidencia[0].length }]
+      : []
+  })
 
-  for (const barrio of BARRIOS_CONOCIDOS) {
-    const barrioNorm = normalizar(barrio);
-    if (textoNorm.includes(barrioNorm)) {
-      encontrados.push(barrio);
-    }
-  }
-
-  return encontrados;
+  return encontrados
+    .filter((encontrado) => !encontrados.some((otro) =>
+      otro !== encontrado
+      && otro.inicio <= encontrado.inicio
+      && otro.fin >= encontrado.fin
+      && (otro.fin - otro.inicio) > (encontrado.fin - encontrado.inicio)
+    ))
+    .map(({ barrio }) => barrio)
 }
 
 /**
@@ -141,31 +156,7 @@ export function determinarEstadoBarrios(boletines: BoletinAcuacar[]): EstadoBarr
     const horasTranscurridas = (ahora - fechaBoletin) / (1000 * 60 * 60);
     const esVigente = horasTranscurridas <= HORAS_VIGENCIA;
 
-    // Determinar tipo de afectación por el título
-    const tituloNorm = normalizar(boletin.titulo);
-    let estado: 'SIN_SERVICIO' | 'CORTE_PROGRAMADO' | 'CON_SERVICIO' = 'CORTE_PROGRAMADO';
-
-    if (
-      tituloNorm.includes('interrupcion') ||
-      tituloNorm.includes('falla') ||
-      tituloNorm.includes('avance del') ||
-      tituloNorm.includes('suspension')
-    ) {
-      estado = 'SIN_SERVICIO';
-    } else if (
-      tituloNorm.includes('restablec') ||
-      tituloNorm.includes('normaliz') ||
-      tituloNorm.includes('recuperacion')
-    ) {
-      estado = 'CON_SERVICIO';
-    } else if (
-      tituloNorm.includes('mantenimiento') ||
-      tituloNorm.includes('programad') ||
-      tituloNorm.includes('realizara') ||
-      tituloNorm.includes('intervendr')
-    ) {
-      estado = 'CORTE_PROGRAMADO';
-    }
+    const estado = determinarEstadoBoletin(boletin.titulo)
 
     for (const barrio of boletin.barriosAfectados) {
       // Solo agregar si no existe ya uno más reciente

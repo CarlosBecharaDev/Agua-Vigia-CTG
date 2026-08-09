@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { FC } from 'react'
 import { DropletOff, ArrowDownToLine, CheckCircle2, MapPin, MessageSquare, Mail, User } from 'lucide-react'
 import { AguaVigiaAPI } from '../api/services'
 import { isSimulationMode } from '../config'
+import { geometriaContienePunto, normalizarNombreBarrio } from '../utils/geografia'
 
 
 export type TipoReporte = 'SIN_AGUA' | 'PRESION_BAJA' | 'SERVICIO_RESTABLECIDO'
@@ -25,6 +26,14 @@ export const FormularioReporte: FC<Props> = ({ sectores, sectorPreseleccionado, 
   const [estaAutenticado, setEstaAutenticado] = useState(false)
   const [quiereSuscribirse, setQuiereSuscribirse] = useState(true)
   const [comentario, setComentario] = useState('')
+
+  // La URL puede resolverse después del primer render de PaginaReportar.
+  // Sincronizar aquí evita perder el sector preseleccionado en ese caso.
+  useEffect(() => {
+    if (sectorPreseleccionado && !sectorId && !sessionStorage.getItem('gps_verificado')) {
+      setSectorId(sectorPreseleccionado)
+    }
+  }, [sectorId, sectorPreseleccionado])
 
   // Verificación de ubicación GPS obligatoria (Anti-Fraude)
   const alternarUbicacion = () => {
@@ -51,41 +60,26 @@ export const FormularioReporte: FC<Props> = ({ sectores, sectorPreseleccionado, 
           const res = await fetch('/barrios-cartagena.geojson')
           const geojson = await res.json()
           
-          let nombreCercano = 'Cartagena';
-          let idCercano = '11';
-          let menorDistancia = Infinity;
+          const featureEncontrado = geojson.features.find((feature: any) =>
+            geometriaContienePunto(feature.geometry, userLat, userLng)
+          )
 
-          geojson.features.forEach((feature: any) => {
-            // Buscamos la coordenada más cercana del polígono
-            const geom = feature.geometry.coordinates[0];
-            const coordsTest = Array.isArray(geom[0]) ? geom[0] : geom; // Ajuste por si es MultiPolygon o Polygon
+          if (!featureEncontrado) {
+            setCompartirUbicacion(false)
+            setError('No pudimos ubicarte dentro de un barrio de Cartagena. Verifica tu ubicación e intenta de nuevo.')
+            return
+          }
 
-            if (coordsTest && coordsTest.length >= 2) {
-              const lon = coordsTest[0];
-              const lat = coordsTest[1];
-              const dist = Math.pow(lat - userLat, 2) + Math.pow(lon - userLng, 2);
-              
-              if (dist < menorDistancia) {
-                menorDistancia = dist;
-                nombreCercano = feature.properties.NOMBRE;
-                const norm = nombreCercano.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
-                idCercano = `geo-${norm}`;
-              }
-            }
-          });
-
-          setSectorId(idCercano)
-          setSectorNombreGPS(nombreCercano)
-          sessionStorage.setItem('gps_sectorId', idCercano)
-          sessionStorage.setItem('gps_sectorNombre', nombreCercano)
+          const nombreBarrio = featureEncontrado.properties.NOMBRE
+          const idBarrio = `geo-${normalizarNombreBarrio(nombreBarrio)}`
+          setSectorId(idBarrio)
+          setSectorNombreGPS(nombreBarrio)
+          sessionStorage.setItem('gps_sectorId', idBarrio)
+          sessionStorage.setItem('gps_sectorNombre', nombreBarrio)
           sessionStorage.setItem('gps_verificado', 'true')
         } catch {
-          // Fallback a El Socorro si algo falla al leer el GeoJSON
-          setSectorId('11')
-          setSectorNombreGPS('EL SOCORRO')
-          sessionStorage.setItem('gps_sectorId', '11')
-          sessionStorage.setItem('gps_sectorNombre', 'EL SOCORRO')
-          sessionStorage.setItem('gps_verificado', 'true')
+          setCompartirUbicacion(false)
+          setError('No pudimos leer el mapa de barrios. Intenta de nuevo cuando tengas conexión.')
         }
       },
       (errorGPS) => {

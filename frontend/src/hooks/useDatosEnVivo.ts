@@ -19,6 +19,7 @@ import type { ClimaCartagena } from '../api/clima';
 import { obtenerNoticiasAgua } from '../api/noticias';
 import type { NoticiaAgua } from '../api/noticias';
 import { AguaVigiaAPI } from '../api/services';
+import { nombresBarrioCoinciden } from '../utils/geografia';
 
 // ──────────────────────────────────────────────────────────────
 // DATOS MOCK de respaldo — idénticos a los que venían en PaginaMapa.tsx
@@ -92,17 +93,8 @@ export function useDatosEnVivo(): DatosEnVivo {
    * y los combina con la lista real de sectores del backend (C2).
    */
   const combinarSectoresConAcuacar = useCallback((sectoresBackend: Sector[], estadosAcuacar: EstadoBarrioAcuacar[]): Sector[] => {
-    // Crear un mapa de barrios afectados (el más reciente gana)
-    const mapaEstados = new Map<string, EstadoBarrioAcuacar>();
-    estadosAcuacar.forEach(e => {
-      const existente = mapaEstados.get(e.nombre);
-      if (!existente || new Date(e.fechaBoletin) > new Date(existente.fechaBoletin)) {
-        mapaEstados.set(e.nombre, e);
-      }
-    });
-
     return sectoresBackend.map(sector => {
-      const estadoAcuacar = mapaEstados.get(sector.nombre);
+      const estadoAcuacar = estadosAcuacar.find(e => nombresBarrioCoinciden(e.nombre, sector.nombre));
       if (estadoAcuacar) {
         return {
           ...sector,

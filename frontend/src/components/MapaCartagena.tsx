@@ -14,8 +14,9 @@ import type { FC } from 'react'
 // (No se requiere Link aquí)
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import type { EstadoServicio, Sector } from '../types/tipos-dominio'
+import type { Sector } from '../types/tipos-dominio'
 import { COLOR_POR_ESTADO, COLOR_SIN_DATOS } from '../types/tipos-dominio'
+import { nombresBarrioCoinciden, normalizarNombreBarrio } from '../utils/geografia'
 import { EtiquetaFrescura } from './EtiquetaFrescura'
 import { InsigniaEstado } from './InsigniaEstado'
 
@@ -39,7 +40,13 @@ interface Props {
 
 /** Convierte el NOMBRE del GeoJSON al id del sector para hacer lookup */
 function normalizarNombre(nombre: string): string {
-  return nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
+  return normalizarNombreBarrio(nombre)
+}
+
+function buscarSector(indice: Map<string, Sector>, nombre: string): Sector | undefined {
+  const nombreNormalizado = normalizarNombre(nombre)
+  return indice.get(nombreNormalizado)
+    ?? [...indice.entries()].find(([clave]) => nombresBarrioCoinciden(clave, nombreNormalizado))?.[1]
 }
 
 export const MapaCartagena: FC<Props> = ({
@@ -75,7 +82,7 @@ export const MapaCartagena: FC<Props> = ({
 
     capaRef.current.setStyle((feature) => {
       const nombre = feature?.properties?.NOMBRE ?? ''
-      const sector = indiceSectores.current.get(normalizarNombre(nombre))
+      const sector = buscarSector(indiceSectores.current, nombre)
       
       let color = COLOR_SIN_DATOS.claro;
       if (sector) {
@@ -98,7 +105,7 @@ export const MapaCartagena: FC<Props> = ({
     if (sectorActivo) {
       capaRef.current.eachLayer((layer: any) => {
         const nombre = layer.feature?.properties?.NOMBRE ?? ''
-        const sector = indiceSectores.current.get(normalizarNombre(nombre))
+        const sector = buscarSector(indiceSectores.current, nombre)
         if (sector && sector.id === sectorActivo.id && mapaRef.current) {
           mapaRef.current.flyToBounds(layer.getBounds(), { padding: [20, 20], duration: 1.5 })
         }
@@ -145,9 +152,10 @@ export const MapaCartagena: FC<Props> = ({
         const capa = L.geoJSON(geojson, {
           style: (feature) => {
             const nombre = feature?.properties?.NOMBRE ?? ''
-            const sector = indiceSectores.current.get(normalizarNombre(nombre))
-            const estado: EstadoServicio = sector?.estado ?? 'CON_SERVICIO'
-            const color = COLOR_POR_ESTADO[estado].claro
+            const sector = buscarSector(indiceSectores.current, nombre)
+            const color = sector?.estado
+              ? COLOR_POR_ESTADO[sector.estado].claro
+              : COLOR_SIN_DATOS.claro
             const esActivo = sectorActivoRef.current && sector && sectorActivoRef.current.id === sector.id
 
             return {
@@ -161,12 +169,11 @@ export const MapaCartagena: FC<Props> = ({
           },
           onEachFeature: (feature, layer) => {
             const nombre = feature?.properties?.NOMBRE ?? 'Sector desconocido'
-            const sector = indiceSectores.current.get(normalizarNombre(nombre))
-
             // Tooltip con nombre siempre visible
             layer.bindTooltip(nombre, { sticky: true, className: 'leaflet-tooltip-av' })
 
             layer.on('click', () => {
+              const sector = buscarSector(indiceSectores.current, nombre)
               // Si el barrio no está en la BD, lo generamos al vuelo como CON_SERVICIO
               const sectorClick = sector || {
                 id: `geo-${normalizarNombre(nombre)}`,
