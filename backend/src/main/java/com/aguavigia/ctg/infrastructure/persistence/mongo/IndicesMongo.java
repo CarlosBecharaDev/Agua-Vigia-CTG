@@ -34,14 +34,18 @@ public class IndicesMongo {
     @EventListener(ApplicationReadyEvent.class)
     public void asegurarIndices() {
         try {
-            var indices = mongoTemplate.indexOps(SectorDocumento.class);
-            indices.ensureIndex(new GeospatialIndex("geometry").typed(GeoSpatialIndexType.GEO_2DSPHERE));
-            indices.ensureIndex(new Index().on("slug", Sort.Direction.ASC).unique());
+            var indicesSectores = mongoTemplate.indexOps(SectorDocumento.class);
+            indicesSectores.ensureIndex(new GeospatialIndex("geometry").typed(GeoSpatialIndexType.GEO_2DSPHERE));
+            indicesSectores.ensureIndex(new Index().on("slug", Sort.Direction.ASC).unique());
             log.info("Indices de `sectores` asegurados: geometry (2dsphere) y slug (unico)");
+
+            var indicesCortes = mongoTemplate.indexOps(CorteAguaDocumento.class);
+            indicesCortes.ensureIndex(new Index().on("sectoresAfectados", Sort.Direction.ASC));
+            log.info("Indices de `cortes` asegurados: sectoresAfectados");
         } catch (DataAccessException noHayMongo) {
             // El backend no debe caerse porque Mongo no este disponible al arrancar (DoD de D3,
             // punto 2). Se registra y se sigue: las consultas fallaran con su propio error.
-            log.warn("No se pudieron asegurar los indices de `sectores`: {}", noHayMongo.getMessage());
+            log.warn("No se pudieron asegurar los indices: {}", noHayMongo.getMessage());
         }
     }
 }
