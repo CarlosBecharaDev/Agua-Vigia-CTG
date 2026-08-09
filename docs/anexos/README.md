@@ -14,13 +14,14 @@ repositorio.
 **Tarea bloqueante del Sprint 0 (D1):** validar esta lista contra el documento del docente y corregir
 lo que difiera. Ver [`../informe-metodologico/README.md`](../informe-metodologico/README.md).
 
-**D1 ya tiene titular:** Yordy Pardo Pajaro (D5) lo asumió temporalmente el 2026-08-08 (`ADR-011`,
-`BL-003` cerrado). Los Anexos 1 y 2 ya están redactados —
+**D1 tiene titular real: Rafael Sarmiento Peña, desde el 2026-08-08** (`ADR-021`). Del 2026-08-07 al
+2026-08-08 lo sostuvo temporalmente Yordy Pardo Pajaro (D5) (`ADR-011`, *Reemplazada*, `BL-003`
+cerrado). Los Anexos 1 y 2 ya están redactados —
 [`anexo-1-encuesta.md`](anexo-1-encuesta.md) · [`anexo-2-guion-entrevista.md`](anexo-2-guion-entrevista.md),
 [PR #32](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/32). Enviar el correo con la
-plantilla oficial al docente queda deliberadamente **pendiente, fuera de esta sesión** — sin eso, la
-numeración de esta tabla sigue siendo provisional. Anexo 3 tampoco se puede escribir todavía: exige
-aplicar esos instrumentos a población real, no es un bloqueo de equipo sino de calendario.
+plantilla oficial al docente sigue **pendiente, ahora de Rafael** — sin eso, la numeración de esta
+tabla sigue siendo provisional. Anexo 3 tampoco se puede escribir todavía: exige aplicar esos
+instrumentos a población real, no es un bloqueo de equipo sino de calendario.
 
 ---
 

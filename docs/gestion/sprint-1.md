@@ -2,7 +2,8 @@
 
 **Abierto:** 2026-08-08 · **Cerrado:** — *(cierra cuando el mapa muestre los sectores reales de
 Cartagena servidos por la API, con los datos de demostración ya retirados del código)* · **Scrum
-Master del sprint:** Yordy Pardo Pajaro (D5), interino (`ADR-011`)
+Master del sprint:** Yordy Pardo Pajaro (D5) — sigue por continuidad operativa aunque D1 pasó a
+Rafael Sarmiento Peña a mitad de sprint (`ADR-021`)
 
 > **Este sprint abre con la mayor parte de su alcance ya entregada.** No es un error de planificación:
 > es la consecuencia de que el Sprint 0 tardara tres días en cerrar formalmente mientras el equipo
@@ -34,8 +35,8 @@ a ser código muerto que alguien confundirá con producción.
 
 | Resp. | RF/RNF | Entregable | Depende de |
 |---|---|---|---|
-| D1 (Yordy) | RF012–RF014 | `POST /api/suscripciones` con DTOs y envío de correo asíncrono (`@Async` + `JavaMailSender`) contra Mailhog | C1 ✅ · plantillas HTML ya listas, sin fusionar |
-| D1 (Yordy) | — | Capítulo I del informe (planteamiento, justificación, objetivos) y validación de la plantilla oficial de Comfenalco | — *(no depende de nadie)* |
+| D1 (Yordy) | RF012–RF014 | ✅ Entregado — `POST /api/suscripciones` con DTOs y envío de correo asíncrono (`@Async` + `JavaMailSender`) contra Mailhog, probado extremo a extremo contra Mailhog real | C1 ✅ · plantillas HTML ya listas, sin fusionar · [PR #78](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/78) |
+| D1 (Rafael) | — | Capítulo I del informe (planteamiento, justificación, objetivos) y validación de la plantilla oficial de Comfenalco | — *(no depende de nadie; heredado de Yordy como D1 interino, `ADR-021`)* |
 | D4 | RF001–RF004 | **Retirar los datos de demostración** de `useDatosEnVivo.ts:27`, `PaginaVeedor.tsx:10` y `PaginaBitacora.tsx:17`, conservando la señalización de estado que ya existe pero mostrando "sin datos" en vez de valores inventados. Caducan `DT-001`–`DT-005` e issues #34–#36, #38, #39 | C2 ✅ · C3 ✅ |
 | D2 | RF005–RF007 | Primeros casos de uso reales en `application/` — `RegistrarReporteService`. **Desbloqueado por el cierre del Sprint 0** | C1 ✅ · Review del Sprint 0 ✅ |
 | D5 (Yordy) | RNF | Motor de contenedores instalado y **C0 reverificada levantando el entorno de verdad**; cambiar su comando de verificación | — *(no depende de nadie)* |
@@ -64,7 +65,7 @@ empezada, porque el rol estuvo vacante hasta el 2026-08-08) y la limpieza de los
 |---|---|---|---|---|
 | BL-004 | — | D2 | 3 | Cerrado 2026-08-08 con el Review del Sprint 0 (`sprint-0.md` §4) |
 | BL-005 | — | D3 | — | Abierto — falta `ANTHROPIC_API_KEY` |
-| BL-006 | — | D3 | — | Abierto — falta el correo real del colector. **Lo destraba D1 (Yordy)** |
+| BL-006 | — | D3 | — | Abierto — falta el correo real del colector. **Lo destraba D1 (Rafael)** |
 
 ---
 
