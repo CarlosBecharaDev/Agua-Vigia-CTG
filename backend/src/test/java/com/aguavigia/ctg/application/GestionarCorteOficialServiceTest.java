@@ -4,13 +4,18 @@ import com.aguavigia.ctg.domain.CorteAgua;
 import com.aguavigia.ctg.domain.CorteId;
 import com.aguavigia.ctg.domain.EstadoCorte;
 import com.aguavigia.ctg.domain.EstadoServicio;
+import com.aguavigia.ctg.domain.EventoBitacora;
 import com.aguavigia.ctg.domain.OrigenCorte;
 import com.aguavigia.ctg.domain.Sector;
 import com.aguavigia.ctg.domain.SectorId;
+import com.aguavigia.ctg.domain.TipoEvento;
+import com.aguavigia.ctg.domain.port.in.RegistrarEventoBitacoraUseCase;
 import com.aguavigia.ctg.domain.port.out.CorteAguaRepository;
+import com.aguavigia.ctg.domain.port.out.RelojPort;
 import com.aguavigia.ctg.domain.port.out.SectorRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -28,16 +33,20 @@ import static org.mockito.Mockito.verify;
 class GestionarCorteOficialServiceTest {
 
     private static final Instant INICIO = Instant.parse("2026-08-09T10:00:00Z");
+    private static final Instant AHORA = Instant.parse("2026-08-09T20:00:00Z");
 
     private CorteAguaRepository cortes;
     private SectorRepository sectores;
+    private RegistrarEventoBitacoraUseCase registrarEvento;
     private GestionarCorteOficialService servicio;
 
     @BeforeEach
     void montar() {
         cortes = mock(CorteAguaRepository.class);
         sectores = mock(SectorRepository.class);
-        servicio = new GestionarCorteOficialService(cortes, sectores);
+        registrarEvento = mock(RegistrarEventoBitacoraUseCase.class);
+        RelojPort reloj = () -> AHORA;
+        servicio = new GestionarCorteOficialService(cortes, sectores, registrarEvento, reloj);
 
         given(cortes.guardar(any(CorteAgua.class))).willAnswer(invocacion -> invocacion.getArgument(0));
     }
@@ -67,6 +76,33 @@ class GestionarCorteOficialServiceTest {
     }
 
     @Test
+    void debeAnexarUnEventoAnunciadoPorCadaSectorAfectado() {
+        given(sectores.buscarPorId(any())).willReturn(
+                Optional.of(new Sector(new SectorId("manga"), "MANGA", 5000, EstadoServicio.SIN_SERVICIO)));
+        CorteAgua corteConDosSectores = CorteAgua.builder()
+                .id(new CorteId("corte-1"))
+                .sectoresAfectados(List.of(new SectorId("manga"), new SectorId("bocagrande")))
+                .inicio(INICIO)
+                .finPrometido(INICIO.plus(6, ChronoUnit.HOURS))
+                .causa("Mantenimiento")
+                .origen(OrigenCorte.VEEDOR)
+                .build();
+
+        servicio.registrar(corteConDosSectores);
+
+        ArgumentCaptor<EventoBitacora> captor = ArgumentCaptor.forClass(EventoBitacora.class);
+        verify(registrarEvento, org.mockito.Mockito.times(2)).registrar(captor.capture());
+        assertThat(captor.getAllValues()).extracting(EventoBitacora::tipo)
+                .containsExactly(TipoEvento.CORTE_ANUNCIADO, TipoEvento.CORTE_ANUNCIADO);
+        assertThat(captor.getAllValues()).extracting(EventoBitacora::sectorId)
+                .containsExactly(new SectorId("manga"), new SectorId("bocagrande"));
+        assertThat(captor.getAllValues()).allSatisfy(evento -> {
+            assertThat(evento.corteId()).isEqualTo(new CorteId("corte-1"));
+            assertThat(evento.timestamp()).isEqualTo(AHORA);
+        });
+    }
+
+    @Test
     void debeRechazarElRegistroSiAlgunSectorNoExiste() {
         given(sectores.buscarPorId(new SectorId("manga"))).willReturn(Optional.empty());
 
@@ -74,6 +110,7 @@ class GestionarCorteOficialServiceTest {
                 .isInstanceOf(IllegalArgumentException.class);
 
         verify(cortes, never()).guardar(any());
+        verify(registrarEvento, never()).registrar(any());
     }
 
     @Test
@@ -85,6 +122,11 @@ class GestionarCorteOficialServiceTest {
 
         assertThat(cerrado.estado()).isEqualTo(EstadoCorte.RESTABLECIDO);
         assertThat(cerrado.ventana().finReal()).isEqualTo(finReal);
+
+        ArgumentCaptor<EventoBitacora> captor = ArgumentCaptor.forClass(EventoBitacora.class);
+        verify(registrarEvento).registrar(captor.capture());
+        assertThat(captor.getValue().tipo()).isEqualTo(TipoEvento.CORTE_RESTABLECIDO);
+        assertThat(captor.getValue().sectorId()).isEqualTo(new SectorId("manga"));
     }
 
     @Test
@@ -105,5 +147,6 @@ class GestionarCorteOficialServiceTest {
                 .isInstanceOf(IllegalStateException.class);
 
         verify(cortes, never()).guardar(any());
+        verify(registrarEvento, never()).registrar(any());
     }
 }
