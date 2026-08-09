@@ -18,6 +18,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -78,5 +79,40 @@ class SuscripcionMongoAdapterTest {
         Suscripcion resultado = adaptador.guardar(suscripcion);
 
         assertThat(resultado).isEqualTo(suscripcion);
+    }
+
+    @Test
+    void debeEncontrarUnaSuscripcionPorSuTokenDeConfirmacion() {
+        Suscripcion suscripcion = new Suscripcion(
+                new SuscripcionId("s3"), new CorreoElectronico("vecino@correo.com"),
+                List.of(new SectorId("bocagrande")), EstadoSuscripcion.PENDIENTE_CONFIRMACION,
+                "token-unico", AHORA);
+        adaptador.guardar(suscripcion);
+
+        Optional<Suscripcion> encontrada = adaptador.buscarPorToken("token-unico");
+
+        assertThat(encontrada).isPresent();
+        assertThat(encontrada.get().id()).isEqualTo(new SuscripcionId("s3"));
+    }
+
+    @Test
+    void buscarPorTokenDebeDevolverVacioSiNoExiste() {
+        assertThat(adaptador.buscarPorToken("no-existe")).isEmpty();
+    }
+
+    @Test
+    void guardarDosVecesConElMismoIdDebeActualizarElEstadoEnVezDeDuplicar() {
+        Suscripcion pendiente = new Suscripcion(
+                new SuscripcionId("s4"), new CorreoElectronico("vecino@correo.com"),
+                List.of(new SectorId("bocagrande")), EstadoSuscripcion.PENDIENTE_CONFIRMACION,
+                "token-4", AHORA);
+        adaptador.guardar(pendiente);
+
+        adaptador.guardar(pendiente.confirmar());
+
+        assertThat(mongoTemplate.getDb().getCollection("suscripciones").countDocuments()).isEqualTo(1);
+        Optional<Suscripcion> actualizada = adaptador.buscarPorToken("token-4");
+        assertThat(actualizada).isPresent();
+        assertThat(actualizada.get().estado()).isEqualTo(EstadoSuscripcion.CONFIRMADA);
     }
 }
