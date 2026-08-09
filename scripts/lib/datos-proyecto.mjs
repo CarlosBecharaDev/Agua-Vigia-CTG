@@ -186,7 +186,10 @@ function leerDetalleSprint(n) {
   const compromisos = tabla
     ? tabla[1].trim().split("\n").filter((l) => l.startsWith("|")).map((f) => {
         const cols = columnasDeFila(f).filter((_, i, arr) => i > 0 && i < arr.length - 1);
-        const [resp, , entregable, , estadoRaw] = cols;
+        // Una tabla en planificacion pura (ej. sprint-1.md recien abierto) no tiene columna Estado
+        // todavia — 4 columnas en vez de 5. Sin ella, todo compromiso es "pendiente" por definicion.
+        const [resp, , entregable] = cols;
+        const estadoRaw = cols[4] || "";
         const estado = estadoRaw.startsWith("✅") ? "hecho" : estadoRaw.startsWith("🟡") ? "parcial" : "pendiente";
         return { resp, entregable, estado, nota: estadoRaw.replace(/^✅\s*|^🟡\s*/, "") };
       })

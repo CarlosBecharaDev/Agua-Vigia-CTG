@@ -45,16 +45,17 @@ Tres razones concretas, no burocráticas:
 | BUG-018 | 2026-08-09 | S2 | M1 | `BUG-008` no quedó corregido del todo: el estilo inicial de la capa GeoJSON en `MapaCartagena.tsx` sigue pintando "con servicio" por defecto | Abierto | D4 |
 | BUG-019 | 2026-08-09 | S2 | M1 | Sectores sin dato (`estado: null`) se cuentan como "con problema" en el badge del mapa y en los reportes falsos de `ListaSectores` | Abierto | D4 |
 | BUG-020 | 2026-08-09 | S2 | M1/M9 | El cruce de nombres entre boletines de Acuacar y sectores reales no normaliza texto ni usa límites de palabra — pierde o duplica barrios con nombres compuestos | Abierto | D4 |
-| BUG-021 | 2026-08-09 | S2 | — (bot WhatsApp) | El bot de resumen diario interpola títulos de PRs/bugs sin escapar `*`/`_` — un título real del propio repo puede corromper el formato del mensaje | Abierto | Equipo (bot WhatsApp) |
-| BUG-022 | 2026-08-09 | S2 | — (bot WhatsApp) | El bot de WhatsApp llama `process.exit(1)` ante cualquier evento `close`, incluso con un envío todavía pendiente | Abierto | Equipo (bot WhatsApp) |
+| BUG-021 | 2026-08-09 | S2 | — (bot WhatsApp) | El bot de resumen diario interpola títulos de PRs/bugs sin escapar `*`/`_` — un título real del propio repo puede corromper el formato del mensaje | Cerrado | Equipo (bot WhatsApp) |
+| BUG-022 | 2026-08-09 | S2 | — (bot WhatsApp) | El bot de WhatsApp llama `process.exit(1)` ante cualquier evento `close`, incluso con un envío todavía pendiente | Cerrado | Equipo (bot WhatsApp) |
 | BUG-023 | 2026-08-09 | S2 | — (sala de control) | El cron de `dashboard.yml` nunca va a ejecutarse: GitHub solo lee triggers `schedule` desde la rama por defecto (`main`), que no tiene workflows | Abierto | Equipo (sala de control) |
 | BUG-024 | 2026-08-09 | S2 | M2 | La preselección de sector por URL (`/reportar?sector=X`) y el respaldo sin API de `PaginaReportar` se rompieron al quitar `SECTORES_MOCK` | Abierto | D4 |
 | BUG-025 | 2026-08-09 | S2 | M7 | El botón "Instalar App" lanza una excepción no capturada si el usuario descarta el diálogo nativo y vuelve a hacer clic | Abierto | D4 |
 | BUG-026 | 2026-08-09 | S2 | M1 | El mapa deja de reaccionar a datos nuevos al hacer clic en un sector después del primer render (dependencias del efecto recortadas en `MapaCartagena.tsx`) | Abierto | D4 |
 | BUG-027 | 2026-08-09 | S2 | M1/M8 | La clasificación del estado de un boletín de Acuacar difiere entre la Bitácora y el Mapa/Estadísticas para el mismo texto | Abierto | D4 |
 | BUG-028 | 2026-08-09 | S3 | M2 | La detección de barrio por GPS compara solo contra el primer vértice del polígono, no es un point-in-polygon real | Abierto | D4 |
-| BUG-029 | 2026-08-09 | S4 | — (sala de control / M7) | Detalles menores encontrados en la misma revisión: layout de `.narrativa` en 3-4 columnas en vez de 2, campo `urgente` muerto en bugs, y falta cleanup del listener `appinstalled` en `BotonInstalarPWA.tsx` | Abierto | Equipo |
+| BUG-029 | 2026-08-09 | S4 | — (sala de control / M7) | Detalles menores encontrados en la misma revisión: layout de `.narrativa` en 3-4 columnas en vez de 2, campo `urgente` muerto en bugs, y falta cleanup del listener `appinstalled` en `BotonInstalarPWA.tsx` | 🟡 Parcial — ítems 1, 2, 4 y 5 (sala de control) cerrados; ítem 3 (`BotonInstalarPWA.tsx`, D4) sigue abierto | Equipo / D4 |
 | BUG-030 | 2026-08-08 | S3 | — (proceso) | El comando de la compuerta C0 solo validaba el YAML: la máquina de D5 no tenía ningún motor de contenedores instalado | Cerrado | D5 |
+| BUG-031 | 2026-08-09 | S2 | — (sala de control) | `leerDetalleSprint` asumía siempre 5 columnas en la tabla de Compromisos; `sprint-1.md` (recién abierto, en planificación pura) tiene solo 4 sin columna Estado, y `generar-dashboard.mjs` tumbaba con `TypeError: Cannot read properties of undefined (reading 'startsWith')` | Cerrado | Equipo (sala de control) |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -176,7 +177,7 @@ compartir la utilidad de normalización que ya existe en `MapaCartagena.tsx`.
 ### BUG-021 — El bot de WhatsApp no escapa símbolos de formato en texto interpolado
 
 - **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** — (bot WhatsApp) · **Responsable:** Equipo (bot WhatsApp)
-- **Estado:** Abierto
+- **Estado:** Cerrado
 
 **Síntoma:** `bot-whatsapp/mensaje.mjs:26` interpola títulos reales de PRs/bugs en texto con formato
 WhatsApp (`*negrita*`, `_cursiva_`) sin escapar. Es el mismo tipo de defecto que `BUG-015` (JSON sin
@@ -193,14 +194,19 @@ mensaje completo.
 **Causa raíz:** el formateador de WhatsApp se agregó sin la misma disciplina de escape que
 `generar-dashboard.mjs` ya aplica para HTML tras `BUG-015`.
 
-**Corrección:** pendiente — es del equipo (bot de WhatsApp, sin titular único claro).
+**Corrección:** `bot-whatsapp/mensaje.mjs` agrega `neutralizarFormato()`: sustituye `*`, `_`, `~` y
+` en cualquier texto de terceros (título de bug, título de PR, responsable) por sus variantes de
+ancho completo (`＊＿～｀`) — visualmente casi idénticas, pero el parser de formato de WhatsApp no las
+reconoce. El texto que el propio bot controla (encabezados, etiquetas) sigue usando `*`/`_` reales.
+Prueba: `node -e` interpolando un título con `*asterisco*` y `_guion_bajo_` de prueba — confirmado que
+salen con las variantes de ancho completo en el mensaje generado, sin romper el formato del resto.
 
 ---
 
 ### BUG-022 — El bot de WhatsApp mata el proceso con cualquier evento `close`
 
 - **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** — (bot WhatsApp) · **Responsable:** Equipo (bot WhatsApp)
-- **Estado:** Abierto
+- **Estado:** Cerrado
 
 **Síntoma:** `bot-whatsapp/enviar.mjs:50` — el listener de `connection.update` trata todo evento
 `close` como fatal y llama `process.exit(1)` sin condición, sin verificar si el envío del mensaje
@@ -216,7 +222,11 @@ pendiente.
 **Causa raíz:** manejo de eventos de conexión simplificado al mínimo, sin considerar la carrera entre
 el `close` y el `await` del envío.
 
-**Corrección:** pendiente — es del equipo (bot de WhatsApp).
+**Corrección:** `enviar.mjs` y `vincular.mjs` agregan una bandera `terminado` que se pone en `true`
+justo antes de que el propio script llame `sock.end()` tras completar su trabajo (con éxito o con
+error) — el `close` que eso mismo dispara ya no se trata como fatal. Solo un `close` que llega
+**antes** de que el script decida terminar por su cuenta (`!terminado`) sigue tratándose como un
+corte real y termina el proceso en 1.
 
 ---
 
@@ -366,10 +376,10 @@ solo vértice arbitrario.
 
 ### BUG-029 — Detalles menores encontrados en la misma revisión
 
-- **Fecha:** 2026-08-09 · **Severidad:** S4 · **Módulo:** — (sala de control / M7) · **Responsable:** Equipo
-- **Estado:** Abierto
+- **Fecha:** 2026-08-09 · **Severidad:** S4 · **Módulo:** — (sala de control / M7) · **Responsable:** Equipo / D4
+- **Estado:** 🟡 Parcial — ítems 1, 2, 4 y 5 (sala de control) cerrados; ítem 3 (`BotonInstalarPWA.tsx`) sigue abierto, es capa de D4
 
-Tres hallazgos de bajo impacto, agrupados para no saturar el registro con entradas de una línea:
+Cinco hallazgos de bajo impacto, agrupados para no saturar el registro con entradas de una línea:
 
 1. **`scripts/dashboard-template.html:380`** — `.narrativa` usa `column-width: 34ch` sin
    `column-count`, así que en el ancho máximo del sitio (1360px) el navegador arma 3-4 columnas en
@@ -387,7 +397,20 @@ Tres hallazgos de bajo impacto, agrupados para no saturar el registro con entrad
    de `.card` en vez de reusarla (que sí se reusa para las tarjetas de "Equipo") — un futuro ajuste al
    token visual de `.card` no se reflejaría en las tarjetas de recomendaciones.
 
-**Corrección:** pendiente — es del equipo (sala de control) y de D4 (botón PWA).
+**Corrección (ítems 1, 2, 4, 5 — sala de control):**
+1. `.narrativa` agrega `column-count: 2` junto a `column-width: 34ch`, así el navegador nunca arma más
+   de 2 columnas sin importar el ancho disponible.
+2. Se quitó el campo `urgente: grave` (redundante) del `push` de bugs graves en "Necesita atención" —
+   queda solo `critica: grave`, que es el que el ternario de renderizado realmente lee para ese caso.
+   `urgente` sigue en uso, sin cambios, para las decisiones (ADR) pendientes.
+4. El mensaje de "sin recomendaciones" ahora lleva `style="grid-column:1/-1"` inline, así ocupa el
+   ancho completo de la grilla en vez de quedar en la primera celda.
+5. `.rec-item` ya no duplica las reglas de `.card` — el HTML generado ahora lleva `class="card rec-item"`
+   y se quitaron de `.rec-item` las propiedades que `.card` ya cubre (fondo, borde, radio, sombra,
+   padding, `overflow-wrap`).
+
+Ítem 3 (`BotonInstalarPWA.tsx`) sigue abierto — es capa de D4, no se corrigió desde aquí por frontera
+de propiedad.
 
 ---
 
@@ -878,6 +901,34 @@ si no hay daemon, en vez de degradarse en silencio a validar solo YAML.
 
 ---
 
+### BUG-031 — `leerDetalleSprint` tumbaba el generador con una tabla de Compromisos sin columna Estado
+
+- **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** — (sala de control) · **Responsable:** Equipo (sala de control)
+- **Estado:** Cerrado
+
+**Síntoma:** `node scripts/generar-dashboard.mjs` fallaba con `TypeError: Cannot read properties of
+undefined (reading 'startsWith')` en `scripts/lib/datos-proyecto.mjs:190`.
+
+**Reproducción:** consistente, en cuanto existió `docs/gestion/sprint-1.md`. Su tabla de "Compromisos"
+tiene 4 columnas (`Resp. | RF/RNF | Entregable | Depende de`), sin la quinta columna `Estado` que sí
+tiene `sprint-0.md` — correcto para un sprint en planificación pura, donde todavía no hay nada que
+reportar como hecho o parcial.
+
+**Esperado:** que el generador soporte una tabla de Compromisos sin columna `Estado`, tratando cada
+fila como `pendiente` por defecto.
+
+**Causa raíz:** `leerDetalleSprint` desestructuraba un quinto elemento (`estadoRaw`) de un arreglo que,
+en una tabla de 4 columnas, solo tiene 4 posiciones — `estadoRaw` llegaba `undefined` y el `.startsWith`
+sobre `undefined` tumbaba todo el script.
+
+**Corrección:** `scripts/lib/datos-proyecto.mjs` — `estadoRaw` ahora se lee como `cols[4] || ""` en vez
+de por desestructuración posicional; una cadena vacía cae naturalmente en la rama `"pendiente"` del
+mismo ternario que ya existía, sin necesitar una rama especial.
+**Prueba:** `node scripts/generar-dashboard.mjs` corre limpio con `sprint-0.md` (5 columnas) y
+`sprint-1.md` (4 columnas) presentes a la vez.
+
+---
+
 ## Regla especial: bugs que publican información falsa
 
 Un defecto que haga que la plataforma muestre un corte que no existe, o un Índice de Cumplimiento
@@ -902,5 +953,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-031
+Siguiente número disponible: BUG-032
 -->
