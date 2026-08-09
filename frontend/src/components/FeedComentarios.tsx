@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { FC } from 'react'
 import { MessageSquare, ThumbsUp, MapPin, Clock } from 'lucide-react'
 
@@ -30,27 +31,30 @@ const COMENTARIOS_MOCK = [
 ]
 
 export const FeedComentarios: FC = () => {
+  const [votos, setVotos] = useState<Record<number, boolean>>({})
+
   return (
-    <section aria-label="Comentarios recientes de la comunidad" style={{ marginTop: '2rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', padding: '0 0.5rem' }}>
-        <div style={{ backgroundColor: 'var(--color-acento)', padding: '0.6rem', borderRadius: 'var(--radio-md)', color: '#fff' }}>
+    <section aria-label="Comentarios recientes de la comunidad" className="feed-comunidad">
+      <div className="feed-cabecera">
+        <div className="feed-icono">
           <MessageSquare size={20} />
         </div>
         <div>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.35rem', fontWeight: '700', color: 'var(--color-tinta)' }}>
-            Voz Comunitaria
+          <span className="eyebrow">Pulso de la ciudad</span>
+          <h2>
+            Lo que reportan tus vecinos
           </h2>
           <p style={{ fontSize: '0.875rem', color: 'var(--color-tinta-2)' }}>
-            Últimos comentarios reportados por tus vecinos
+            Testimonios recientes verificados por sector.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="feed-grid">
         {COMENTARIOS_MOCK.map((comentario) => (
           <article 
             key={comentario.id} 
-            className="panel-glass shadow-lg"
+            className="comentario-card"
             style={{ 
               borderRadius: '1.5rem',
               border: '1px solid var(--color-linea)', 
@@ -90,12 +94,15 @@ export const FeedComentarios: FC = () => {
                 {comentario.sector}
               </span>
               
-              <button 
-                style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', color: 'var(--color-tinta-2)', fontSize: '0.8rem', fontWeight: '600', transition: 'color var(--transicion)' }}
-                className="hover-glowing"
+              <button
+                type="button"
+                aria-pressed={Boolean(votos[comentario.id])}
+                aria-label={`${votos[comentario.id] ? 'Quitar apoyo a' : 'Apoyar'} este reporte`}
+                onClick={() => setVotos((actual) => ({ ...actual, [comentario.id]: !actual[comentario.id] }))}
+                className={`boton-apoyo${votos[comentario.id] ? ' activo' : ''}`}
               >
                 <ThumbsUp size={14} />
-                {comentario.votos}
+                {comentario.votos + (votos[comentario.id] ? 1 : 0)}
               </button>
             </div>
           </article>
