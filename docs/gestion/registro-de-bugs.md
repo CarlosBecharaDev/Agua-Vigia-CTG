@@ -215,7 +215,7 @@ corte real y termina el proceso en 1.
 ### BUG-023 — El cron de la sala de control nunca va a ejecutarse
 
 - **Fecha:** 2026-08-09 · **Severidad:** S2 · **Módulo:** — (sala de control) · **Responsable:** Equipo (sala de control)
-- **Estado:** Abierto
+- **Estado:** Cerrado — 2026-08-09, cierre del Sprint 0 hacia `main` (PR #111)
 
 **Síntoma:** el PR #62 agregó un trigger `schedule` a `.github/workflows/dashboard.yml` en `develop`
 para refrescar la sala de control cada hora. GitHub solo evalúa triggers `schedule` usando el
@@ -235,8 +235,12 @@ Mientras `develop` no se fusione a `main` (algo que solo pasa al cerrar un sprin
 **Causa raíz:** comportamiento de GitHub Actions poco conocido — los triggers `schedule` no siguen la
 misma regla que `push`/`workflow_dispatch` (que sí usan la rama que los disparó).
 
-**Corrección:** pendiente — es del equipo (sala de control). Posible arreglo: mover el `dashboard.yml`
-con su trigger `schedule` a `main`, o disparar el refresco por otro medio mientras tanto.
+**Corrección:** el Sprint 0 ya había cerrado formalmente (Review + Planning, `BL-004` cerrado) pero
+nunca se había hecho la fusión `develop` → `main` que le corresponde a ese cierre según `CLAUDE.md`.
+Se abrió y fusionó el PR [#111](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/111)
+(`develop` → `main`, con conflicto resuelto en `MEMORY.md`) y se etiquetó `main` como `sprint-0`.
+Verificado: `gh workflow list` ahora reporta `Sala de control` como `active` (antes no aparecía, al no
+existir en la rama por defecto). El cron corre por primera vez en la próxima hora en punto.
 
 ---
 

@@ -33,6 +33,13 @@ pruebas en verde. Trabajo adelantado de Sprint 3, con permiso de Jordy (D5) para
 **Sigue:** PR #113 pendiente de revisor; desatasca `GestionarCorteOficialService` (D2) y el CRUD de
 cortes del veedor (D3, Sprint 3).
 
+### 2026-08-09 · D3 (Sebastián) · `feature/d3-cache-sectores-y-rate-limit`
+**Qué:** Activados los dos pendientes de D3 (`sprint-2.md` §2): `@Cacheable` en `GET /api/sectores`
+con invalidación al confirmar consenso, y reglas de rate limiting para `/api/veedor/sesion` y
+`/api/reportes`. 155/155 pruebas en verde. `REC-006` registrada (trampa de `RateLimitConfig` en
+`@WebMvcTest`). Fusionado a `develop` en el PR #112.
+**Sigue:** Registrar la implementación en `registro-de-implementaciones.md`.
+
 ## Sprint 1
 
 ### 2026-08-09 · D4 · `codex/frontend-hardening`
