@@ -59,3 +59,11 @@ Después actualiza la tabla **Estado de cobertura de requisitos** al final del a
 - **La prueba se nombra.** `RegistrarReporteServiceTest`, `reporte.spec.ts`. "Probado manualmente" no
   es una prueba: es un recuerdo.
 - **Una fila por unidad entregada**, no una por commit ni una por sprint.
+
+## Efecto en la Sala de control
+
+Esta fila alimenta la Sala de control (`docs/gestion/README.md`), que se regenera sola en cada push a
+`develop` — **el HTML no se edita a mano**. Si el PR además cerró un compromiso del sprint, marca su
+`docs/gestion/sprint-N.md` §2, con `✅`/`🟡` al inicio del Entregable: sin eso
+el tablero seguirá diciendo que el trabajo está sin empezar, y el avance del proyecto saldrá más bajo
+de lo que es.

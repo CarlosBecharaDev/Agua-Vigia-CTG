@@ -184,10 +184,11 @@ No es opcional: es parte de la definición de terminado y el insumo del Capítul
 | Se elige entre alternativas técnicas | `docs/design-decisions.md` | `registrar-decision` |
 | Se verifica una fuente de datos | `docs/ingenieria/auditoria-fuentes-de-datos.md` | `verificar-fuente` |
 | Una tarea no puede avanzar por falta del insumo de otro rol | `docs/gestion/registro-de-bloqueos.md` **+ aviso en el chat** | `registrar-bloqueo` |
-| Cambia el estado de un sprint, una compuerta o un bloqueo | **el tablero HTML de estado del equipo**, en el mismo PR | — *(lo sube D2 — ruta por confirmar)* |
+| Avanza un compromiso del sprint (entregado o a medias) | `docs/gestion/sprint-N.md` §2 — `✅`/`🟡` al inicio del Entregable | — |
 
-**El tablero HTML es obligatorio para los agentes.** Es lo que los cinco miran para saber cómo van sin
-abrir el repositorio; si el código cambia y el tablero no, el tablero miente y deja de servir.
+**Quien avanza, actualiza su registro — humano o IA, sin excepción.** La Sala de control que los cinco
+miran (`https://carlosbecharadev.github.io/Agua-Vigia-CTG/`) **se genera sola de estas filas y nadie
+edita su HTML**: lo que no se registre aquí, allá no existe. Detalle: `docs/gestion/README.md`.
 
 ---
 

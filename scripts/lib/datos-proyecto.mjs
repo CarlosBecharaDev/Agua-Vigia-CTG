@@ -161,17 +161,82 @@ function obtenerCompuertas() {
 }
 
 // ─── Bloqueos: docs/gestion/registro-de-bloqueos.md §2 (abiertos) y §3 (cerrados) ───
+/** Extrae el valor de un campo `**Nombre:** ...` hasta el siguiente campo, linea en blanco o fin. */
+function campoDeBloque(bloque, nombre) {
+  const re = new RegExp(`\\*\\*${nombre}:\\*\\*\\s*([\\s\\S]*?)(?=\\n\\s*\\n|\\n\\*\\*|$)`);
+  const m = bloque.match(re);
+  return m ? m[1].replace(/\s*\n\s*/g, " ").trim() : null;
+}
+
+/** Campo dentro de una linea con varios separados por `·` — no debe tragarse los siguientes. */
+function campoEnLinea(bloque, nombre) {
+  const re = new RegExp(`\\*\\*${nombre}:\\*\\*\\s*([^·\\n]+)`);
+  const m = bloque.match(re);
+  return m ? m[1].replace(/\*\*/g, "").trim() : null;
+}
+
+// El detalle de cada bloqueo abierto es lo que responde "quien esta detenido y por que" en la Sala
+// de control: sin el, un contador de bloqueos abiertos no le dice a nadie que hacer al respecto.
 function obtenerBloqueos() {
   const texto = leer("docs/gestion/registro-de-bloqueos.md");
   const seccionAbiertos = texto.match(/## 2\. Bloqueos abiertos.*?\n([\s\S]*?)\n## 3\./);
-  const abiertos = seccionAbiertos
-    ? (seccionAbiertos[1].match(/^### BL-\d+.*$/gm) || []).filter((l) => !/cerrad[oa]/i.test(l)).length
-    : 0;
+
+  const detalle = [];
+  if (seccionAbiertos) {
+    for (const bloque of seccionAbiertos[1].split(/\n(?=### BL-)/)) {
+      const cab = bloque.match(/^### (BL-\d+) — (.+)$/m);
+      if (!cab) continue;
+      const titulo = cab[2].trim();
+      const estado = campoEnLinea(bloque, "Estado") || "";
+      // Un bloqueo ya cerrado deja su bloque en §2 con la marca en el titulo o en Estado.
+      if (/cerrad[oa]/i.test(titulo) || /cerrad[oa]/i.test(estado)) continue;
+      const fecha = (bloque.match(/\*\*Fecha:\*\*\s*(\d{4}-\d{2}-\d{2})/) || [])[1] || null;
+      detalle.push({
+        id: cab[1],
+        titulo: titulo.replace(/\*/g, "").trim(),
+        fecha,
+        diasDetenido: fecha ? Math.max(0, Math.round((Date.now() - new Date(`${fecha}T12:00:00`)) / 86400000)) : null,
+        rol: campoEnLinea(bloque, "Rol bloqueado"),
+        compuerta: campoEnLinea(bloque, "Compuerta"),
+        titular: campoEnLinea(bloque, "Titular que lo resuelve") || campoEnLinea(bloque, "Titular que la abre"),
+        tareaDetenida: campoDeBloque(bloque, "Tarea detenida"),
+        insumoQueFalta: campoDeBloque(bloque, "Insumo que falta"),
+        verificacion: campoDeBloque(bloque, "Verificación"),
+        trabajoAlterno: campoDeBloque(bloque, "Trabajo alterno tomado"),
+        cierre: campoDeBloque(bloque, "Cierre")
+      });
+    }
+  }
+
   const seccionCerrados = texto.match(/## 3\. Bloqueos cerrados[\s\S]*?\n\|---.*?\n([\s\S]*?)\n\n/);
   const cerrados = seccionCerrados
     ? seccionCerrados[1].trim().split("\n").filter((l) => /^\|\s*(BL-\d+|—)\s*\|/.test(l) && !l.includes("| — | — | — |")).length
     : 0;
-  return { abiertos, cerrados };
+  return { abiertos: detalle.length, cerrados, detalle };
+}
+
+// ─── Deuda tecnica autorizada: registro-de-bloqueos.md §4 ───
+// Cada DT es un mock vivo con fecha de caducidad. Es lo que falta por limpiar antes de cerrar el
+// sprint que la caduca, y sin verlo en la Sala de control nadie recuerda que sigue ahi.
+function obtenerDeudaTecnica() {
+  const texto = leer("docs/gestion/registro-de-bloqueos.md");
+  const tabla = texto.match(/\| ID \| Compuerta \| Autoriza \|.*?\n\|---.*?\n([\s\S]*?)\n\n/);
+  if (!tabla) return [];
+  return tabla[1].trim().split("\n").filter((l) => l.startsWith("| DT-")).map((f) => {
+    const cols = columnasDeFila(f).filter((_, i, arr) => i > 0 && i < arr.length - 1);
+    const [id, compuerta, autoriza, quePermite, caduca, issueRaw, estado] = cols;
+    const issueM = (issueRaw || "").match(/\[#(\d+)\]\(([^)]+)\)/);
+    return {
+      id,
+      compuerta,
+      autoriza: (autoriza || "").replace(/^✅\s*/, "").trim(),
+      quePermite,
+      caduca: (caduca || "").replace(/\*\*/g, "").trim(),
+      issue: issueM ? { numero: Number(issueM[1]), url: issueM[2] } : null,
+      estado: (estado || "").replace(/\*\*/g, "").replace(/^[🟡🟢🔴]\s*/u, "").trim(),
+      vigente: /vigente/i.test(estado || "")
+    };
+  });
 }
 
 // ─── Detalle de un sprint: docs/gestion/sprint-N.md (si existe) ───
@@ -183,19 +248,38 @@ function leerDetalleSprint(n) {
   const texto = leer(`docs/gestion/sprint-${n}.md`);
   const abiertoM = texto.match(/\*\*Abierto:\*\*\s*(\d{4}-\d{2}-\d{2})/);
   const cerradoM = texto.match(/\*\*Cerrado:\*\*\s*(\d{4}-\d{2}-\d{2})/);
+  // "Un sprint no cierra por calendario: cierra cuando su entregable se demuestra funcionando"
+  // (CLAUDE.md). Ese criterio esta escrito entre parentesis al lado de "Cerrado: —".
+  const criterioM = texto.match(/\*\*Cerrado:\*\*\s*—\s*\*\(([\s\S]*?)\)\*/);
+  const objetivoM = texto.match(/## 1\. Objetivo del sprint\s*\n+\*\*([\s\S]*?)\*\*/);
+  const limpiarParrafo = (s) => s.replace(/\s*\n\s*/g, " ").trim();
   const tabla = texto.match(/\| Resp\. \| RF\/RNF \| Entregable \|.*?\n\|---.*?\n([\s\S]*?)\n\n/);
   const compromisos = tabla
     ? tabla[1].trim().split("\n").filter((l) => l.startsWith("|")).map((f) => {
         const cols = columnasDeFila(f).filter((_, i, arr) => i > 0 && i < arr.length - 1);
-        // Una tabla en planificacion pura (ej. sprint-1.md recien abierto) no tiene columna Estado
-        // todavia — 4 columnas en vez de 5. Sin ella, todo compromiso es "pendiente" por definicion.
-        const [resp, , entregable] = cols;
+        const [resp, rf, entregableRaw, dependeDe] = cols;
+        // El estado se lee de dos formas, porque el equipo usa las dos: una columna `Estado` al final
+        // (5 columnas) o el mismo `✅`/`🟡` al principio del Entregable, que es como se ha venido
+        // marcando en sprint-1.md. Si se soportara solo la columna, cuatro entregables ya entregados
+        // seguirian contando como pendientes y el avance del proyecto saldria mas bajo de lo real.
+        const marcaEnEntregable = (entregableRaw || "").match(/^(✅|🟡)\s*([^—\-]*)[—\-]?\s*/u);
         const estadoRaw = cols[4] || "";
-        const estado = estadoRaw.startsWith("✅") ? "hecho" : estadoRaw.startsWith("🟡") ? "parcial" : "pendiente";
-        return { resp, entregable, estado, nota: estadoRaw.replace(/^✅\s*|^🟡\s*/, "") };
+        const marca = estadoRaw.match(/^(✅|🟡)/u) ? estadoRaw[0] : (marcaEnEntregable ? marcaEnEntregable[1] : "");
+        const estado = marca === "✅" ? "hecho" : marca === "🟡" ? "parcial" : "pendiente";
+        const nota = estadoRaw
+          ? estadoRaw.replace(/^(✅|🟡)\s*/u, "")
+          : (marcaEnEntregable ? marcaEnEntregable[2].trim() : "");
+        const entregable = marcaEnEntregable ? entregableRaw.slice(marcaEnEntregable[0].length) : entregableRaw;
+        return { resp, rf, entregable, dependeDe, estado, nota };
       })
     : [];
-  return { abierto: abiertoM ? abiertoM[1] : null, cerrado: cerradoM ? cerradoM[1] : null, compromisos };
+  return {
+    abierto: abiertoM ? abiertoM[1] : null,
+    cerrado: cerradoM ? cerradoM[1] : null,
+    objetivo: objetivoM ? limpiarParrafo(objetivoM[1]) : null,
+    criterioCierre: criterioM ? limpiarParrafo(criterioM[1]) : null,
+    compromisos
+  };
 }
 
 // ─── Sprints: docs/equipo/secuencia-de-trabajo.md §4 ───
@@ -282,9 +366,31 @@ function obtenerCobertura() {
   const texto = leer("docs/gestion/registro-de-implementaciones.md");
   const totalFunc = texto.match(/\*\*Total funcionales\*\* \| \*\*(\d+)\*\* \| \*\*(\d+)\*\* \| \*\*(\d+)%\*\*/);
   const noFunc = texto.match(/\*\*No funcionales\*\* \| \*\*(\d+)\*\* \| \*\*(\d+)\*\* \| \*\*(\d+)%\*\*/);
+
+  // Desglose por modulo: el total solo dice "vamos en 0%"; el desglose dice de que modulo se trata.
+  const tabla = texto.match(/\| Módulo \| Requisitos \| Implementados \| % \|\n\|---.*?\n([\s\S]*?)\n\n/);
+  const porModulo = tabla
+    ? tabla[1].trim().split("\n")
+        .filter((l) => /^\|\s*M\d/.test(l))
+        .map((f) => {
+          const cols = columnasDeFila(f).filter((_, i, arr) => i > 0 && i < arr.length - 1);
+          const [modulo, requisitos, implementados] = cols;
+          const total = Number(requisitos) || 0;
+          const hechos = Number(implementados) || 0;
+          return {
+            modulo: modulo.replace(/\*\*/g, "").trim(),
+            estrella: modulo.includes("⭐"),
+            total,
+            implementados: hechos,
+            porcentaje: total ? Math.round((hechos / total) * 100) : 0
+          };
+        })
+    : [];
+
   return {
     funcionales: totalFunc ? { total: Number(totalFunc[1]), implementados: Number(totalFunc[2]) } : { total: 0, implementados: 0 },
-    noFuncionales: noFunc ? { total: Number(noFunc[1]), implementados: Number(noFunc[2]) } : { total: 0, implementados: 0 }
+    noFuncionales: noFunc ? { total: Number(noFunc[1]), implementados: Number(noFunc[2]) } : { total: 0, implementados: 0 },
+    porModulo
   };
 }
 
@@ -296,6 +402,7 @@ export function generarDatos() {
   const bugs = obtenerBugs();
   const recomendaciones = obtenerRecomendaciones();
   const bloqueos = obtenerBloqueos();
+  const deudaTecnica = obtenerDeudaTecnica();
   const compuertas = obtenerCompuertas();
   const sprints = obtenerSprints();
   const cobertura = obtenerCobertura();
@@ -312,6 +419,7 @@ export function generarDatos() {
     bugs,
     recomendaciones,
     bloqueos,
+    deudaTecnica,
     compuertas,
     sprints,
     cobertura,

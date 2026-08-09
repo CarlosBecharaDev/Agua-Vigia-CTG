@@ -45,8 +45,41 @@ inventando el insumo que falta —tipos escritos a mano, un contrato "provisiona
 conocida de que cinco personas construyan cinco sistemas incompatibles. Ver
 `docs/equipo/secuencia-de-trabajo.md` §2 y §5.
 
-Las cuatro tienen skill propia: `registrar-implementacion`, `registrar-bug`, `cerrar-sesion`,
+**5. Quien avanza, actualiza el registro que le toca — humano o IA, sin excepción.**
+Terminar una funcionalidad, arreglar un bug, destrabar un bloqueo o retirar un mock **no está
+completo hasta que su registro lo dice**. No es burocracia: la [Sala de
+control](https://carlosbecharadev.github.io/Agua-Vigia-CTG/) que los cinco miran para saber cómo va
+el proyecto se genera de estos archivos y de nada más.
+
+Las cuatro primeras tienen skill propia: `registrar-implementacion`, `registrar-bug`, `cerrar-sesion`,
 `registrar-bloqueo`.
+
+---
+
+## La Sala de control — se actualiza sola, si tú actualizas tu registro
+
+`https://carlosbecharadev.github.io/Agua-Vigia-CTG/` · se regenera en **cada push a `develop`** y cada
+hora (`.github/workflows/dashboard.yml` → `scripts/generar-dashboard.mjs`).
+
+**Nadie edita ese HTML. No se puede "arreglar el tablero" a mano.** El generador lee PRs e issues
+reales con `gh` y parsea los archivos de esta carpeta; si un dato no está escrito donde toca, para el
+tablero no existe. Lo que muestra cada sección y de dónde sale:
+
+| En la Sala de control se ve | Sale de |
+|---|---|
+| Qué falta para cerrar el sprint | `sprint-N.md` §2 — `✅` hecho · `🟡` parcial · sin marca, pendiente. Sirve al **principio del Entregable** (`✅ Entregado — …`, como se viene marcando) o en una columna `Estado` al final de la fila |
+| Objetivo y criterio de cierre del sprint | `sprint-N.md` §1 y el paréntesis de `**Cerrado:** —` en la cabecera |
+| Quién está detenido y por qué | `registro-de-bloqueos.md` §2 — campos **Rol bloqueado**, **Insumo que falta**, **Titular** |
+| Deuda técnica / mocks vigentes | `registro-de-bloqueos.md` §4 — columna **Estado** (`🟡 Vigente`) |
+| Compuertas y quién habilita a quién | `registro-de-bloqueos.md` §1 |
+| Bugs, con severidad y responsable | `registro-de-bugs.md` — tabla de estado |
+| Cobertura por módulo | `registro-de-implementaciones.md` — tabla **Estado de cobertura** |
+| Decisiones pendientes | `docs/design-decisions.md` — campo **Estado** de cada ADR |
+| Recomendaciones de la IA | `recomendaciones-ia.md` |
+
+**Si cambias el formato de una de esas tablas, se rompe el extractor.** Antes de fusionar un cambio
+de formato, corre `node scripts/generar-dashboard.mjs` y revisa que los conteos que imprime al final
+sigan siendo los correctos: el comando avisa cuando una sección queda vacía.
 
 ---
 

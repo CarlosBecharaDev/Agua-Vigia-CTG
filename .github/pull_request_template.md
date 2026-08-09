@@ -37,6 +37,20 @@
 
 - [ ] Fila agregada en `docs/gestion/registro-de-implementaciones.md` (skill `registrar-implementacion`)
 
+### Lo que este PR le cambia a la Sala de control — obligatorio
+
+La [Sala de control](https://carlosbecharadev.github.io/Agua-Vigia-CTG/) se regenera sola en cada
+push a `develop`: **nadie edita el HTML**. Pero solo sabe lo que estos archivos digan, así que un PR
+que avanza el trabajo sin actualizarlos deja el tablero mintiéndole a las cinco personas. Marca lo
+que corresponda — si no aplica ninguno, di por qué en el cuerpo del PR.
+
+- [ ] **Compromiso del sprint** entregado o a medias → `docs/gestion/sprint-N.md` §2, marcando `✅ Entregado — …` o `🟡 …` al principio de su Entregable
+- [ ] **Bug** encontrado o cerrado → `docs/gestion/registro-de-bugs.md` (skill `registrar-bug`)
+- [ ] **Bloqueo** abierto o cerrado → `docs/gestion/registro-de-bloqueos.md` §2/§3 (skill `registrar-bloqueo`)
+- [ ] **Compuerta** que este PR abre → tabla §1 de `registro-de-bloqueos.md`, con su comando de verificación
+- [ ] **Mock retirado** → la fila `DT-00N` de `registro-de-bloqueos.md` §4 pasa a saldada
+- [ ] **Requisito demostrado en review** → tabla de cobertura por módulo en `registro-de-implementaciones.md`
+
 ---
 
 ## Para el revisor
