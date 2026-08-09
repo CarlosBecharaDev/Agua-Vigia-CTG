@@ -26,6 +26,20 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 1
 
+### 2026-08-09 · D5 (Yordy) · `docs/cerrar-sprint-1`
+**Qué:** Reverificada C0 con motor real (Colima, `BUG-030`, PR #74). Traspasado D1 a Rafael Sarmiento
+Peña, 5.º integrante confirmado (`ADR-021`, reemplaza `ADR-011`). Entregado `POST /api/suscripciones`
+(M4, PR #78) y, por autorización explícita del usuario para no atrasar más el sprint,
+`RegistrarReporteService` en capa de D2 (PR #84) con RF006 real (`BUG-032`, PR #89) y `BUG-033`
+(reportes inventados en `ListaSectores.tsx`, capa de D4). Cerrado formalmente el **Sprint 1**: los 6
+frentes comprometidos entregados, cobertura real medida (`domain/` 74%, `application/` 100%),
+110/110 pruebas backend y 12/12 frontend en verde (PR #100).
+**Sigue:** Sprint 2 sin abrir todavía — arrastra `POST /api/reportes`, confirmación de suscripción +
+baja en 1 clic, `EvaluarConsensoUseCase` (M3) y la capa de IA de M9, bloqueada por `BL-005`
+(`ANTHROPIC_API_KEY`, requiere que una persona la consiga). Nota de proceso: coincidí trabajando en
+paralelo con al menos otras dos sesiones (`Jordy-Lv`, `sarmientordev`) sin coordinación previa —
+produjo trabajo duplicado real, ver retrospectiva de `sprint-1.md` §6.
+
 ### 2026-08-08 · D5/D1 (Yordy) · `docs/cierre-sprint-0-y-planning-sprint-1`
 **Qué:** Se celebró el **Review del Sprint 0** reverificando cada compuerta con su comando (C0, C1,
 C2 y C3 abiertas) y se abrió el **Planning del Sprint 1**, que arranca con 4 de sus 5 frentes ya
