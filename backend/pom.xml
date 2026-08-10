@@ -13,7 +13,7 @@
 
   <groupId>com.aguavigia</groupId>
   <artifactId>ctg-backend</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>1.0.0</version>
   <name>ctg-backend</name>
   <description>AguaVigia CTG - backend</description>
 
@@ -237,7 +237,10 @@
                     <limit>
                       <counter>INSTRUCTION</counter>
                       <value>COVEREDRATIO</value>
-                      <minimum>0.00</minimum>
+                      <!-- RNF017: >= 70% en domain/ y application/. Real al momento de fijar
+                           este umbral: ~93.7% — el margen es intencional, no hay que perseguir
+                           el 100% para mantener el build en verde. -->
+                      <minimum>0.70</minimum>
                     </limit>
                   </limits>
                 </rule>

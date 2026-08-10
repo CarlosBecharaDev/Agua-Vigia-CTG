@@ -53,7 +53,14 @@ services:
       SPRING_DATA_MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/aguavigia}
       SPRING_DATA_REDIS_HOST: ${REDIS_HOST:-redis}
       SPRING_DATA_REDIS_PORT: ${REDIS_PORT:-6379}
+      # application-prod.yml los declara sin default a proposito (fallar ruidosamente, no
+      # conectar en silencio a localhost) — sin esto, un .env de despliegue al que se le olvido
+      # MAIL_HOST/MAIL_PORT solo falla hasta que Spring arranca dentro del contenedor.
+      MAIL_HOST: ${MAIL_HOST:?Falta MAIL_HOST en el .env de produccion}
+      MAIL_PORT: ${MAIL_PORT:?Falta MAIL_PORT en el .env de produccion}
     # En producción el proxy reverso manejará el tráfico, NO exponemos 8080 directo
+    volumes:
+      - fotos-data:/app/data/fotos
     depends_on:
       mongo:
         condition: service_healthy
@@ -85,3 +92,4 @@ services:
 volumes:
   mongo-data:
   redis-data:
+  fotos-data:

@@ -69,6 +69,8 @@ services:
       SPRING_MAIL_PORT: ${MAIL_PORT:-1025}
     ports:
       - "8081:8080"
+    volumes:
+      - fotos-data:/app/data/fotos
     depends_on:
       mongo:
         condition: service_healthy
@@ -102,3 +104,4 @@ services:
 volumes:
   mongo-data:
   redis-data:
+  fotos-data:
