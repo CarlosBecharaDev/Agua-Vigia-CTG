@@ -54,14 +54,9 @@ class RegistrarReporteServiceTest {
 
         given(reportes.guardar(any(ReporteCiudadano.class)))
                 .willAnswer(invocacion -> invocacion.getArgument(0));
-        given(reportes.listarRecientesPorSector(any(), any())).willReturn(List.of());
+        given(reportes.contarRecientesPorSectorYDispositivo(any(), any(), any())).willReturn(0L);
         given(evaluarConsenso.evaluar(any()))
                 .willReturn(new ResultadoConsenso(new SectorId("bocagrande"), false, null, List.of()));
-    }
-
-    private ReporteCiudadano reportePrevio(HuellaDispositivo huella) {
-        return new ReporteCiudadano(new ReporteId("previo"), new SectorId("bocagrande"),
-                TipoReporte.SIN_AGUA, null, huella, AHORA);
     }
 
     @Test
@@ -105,8 +100,8 @@ class RegistrarReporteServiceTest {
     void debeRechazarElReporteCuandoElDispositivoAlcanzaElLimite() {
         Sector bocagrande = new Sector(new SectorId("bocagrande"), "BOCAGRANDE", 12000, EstadoServicio.SIN_SERVICIO);
         given(sectores.buscarPorId(new SectorId("bocagrande"))).willReturn(Optional.of(bocagrande));
-        given(reportes.listarRecientesPorSector(any(), any())).willReturn(
-                List.of(reportePrevio(HUELLA), reportePrevio(HUELLA), reportePrevio(HUELLA)));
+        given(reportes.contarRecientesPorSectorYDispositivo(new SectorId("bocagrande"), Duration.ofMinutes(30), HUELLA))
+                .willReturn(3L);
 
         assertThatThrownBy(() -> servicio.registrar(new SectorId("bocagrande"), TipoReporte.SIN_AGUA, null, HUELLA))
                 .isInstanceOf(LimiteReportesExcedidoException.class);
@@ -121,8 +116,8 @@ class RegistrarReporteServiceTest {
         Sector bocagrande = new Sector(new SectorId("bocagrande"), "BOCAGRANDE", 12000, EstadoServicio.SIN_SERVICIO);
         given(sectores.buscarPorId(new SectorId("bocagrande"))).willReturn(Optional.of(bocagrande));
         HuellaDispositivo otroDispositivo = new HuellaDispositivo("hash-otro");
-        given(reportes.listarRecientesPorSector(any(), any())).willReturn(
-                List.of(reportePrevio(otroDispositivo), reportePrevio(otroDispositivo), reportePrevio(otroDispositivo)));
+        given(reportes.contarRecientesPorSectorYDispositivo(new SectorId("bocagrande"), Duration.ofMinutes(30), otroDispositivo))
+                .willReturn(3L);
 
         ReporteCiudadano reporte = servicio.registrar(new SectorId("bocagrande"), TipoReporte.SIN_AGUA, null, HUELLA);
 

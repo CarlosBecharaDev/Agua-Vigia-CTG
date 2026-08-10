@@ -27,8 +27,9 @@ import java.util.UUID;
  * un problema distinto — fuerza bruta de login), así que dos dispositivos detrás del mismo NAT se
  * limitarían entre sí y uno con varias IPs no se limitaría nunca. Tampoco lo hace
  * ContadorReportesPort: ese ZSET alimenta el consenso (RF009-RF011) y a propósito no deduplica por
- * huella (ver su javadoc). Este servicio consulta ReporteCiudadanoRepository directamente —el
- * único puerto con datos filtrables por HuellaDispositivo— antes de guardar (BUG-032).
+ * huella (ver su javadoc). Este servicio consulta ReporteCiudadanoRepository directamente antes de
+ * guardar (BUG-032), con un conteo que a propósito no filtra por moderación (BUG-041): si filtrara
+ * DESCARTADO, moderar a un spammer le reiniciaría el cupo.
  *
  * RF009: cada reporte dispara la evaluación de consenso de su sector — "automáticamente" no
  * significa "en un job aparte que alguien tiene que acordarse de programar".
@@ -65,9 +66,7 @@ public class RegistrarReporteService implements RegistrarReporteUseCase {
         sectores.buscarPorId(sectorId)
                 .orElseThrow(() -> new IllegalArgumentException("No existe el sector '" + sectorId.valor() + "'"));
 
-        long reportesDelDispositivo = reportes.listarRecientesPorSector(sectorId, ventanaLimite).stream()
-                .filter(r -> r.huella().equals(huella))
-                .count();
+        long reportesDelDispositivo = reportes.contarRecientesPorSectorYDispositivo(sectorId, ventanaLimite, huella);
         if (reportesDelDispositivo >= limitePorDispositivo) {
             throw new LimiteReportesExcedidoException(
                     "Ya reportaste %d veces en '%s' en los últimos %d minutos. Espera antes de volver a reportar."

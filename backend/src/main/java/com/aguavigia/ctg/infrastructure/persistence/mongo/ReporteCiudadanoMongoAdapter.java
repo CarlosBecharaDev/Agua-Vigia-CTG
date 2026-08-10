@@ -12,8 +12,11 @@ import com.aguavigia.ctg.domain.port.out.ReporteCiudadanoRepository;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class ReporteCiudadanoMongoAdapter implements ReporteCiudadanoRepository {
@@ -49,9 +52,17 @@ public class ReporteCiudadanoMongoAdapter implements ReporteCiudadanoRepository 
     @Override
     public List<ReporteCiudadano> listarRecientesPorSector(SectorId sectorId, Duration ventana) {
         var desde = reloj.ahora().minus(ventana);
-        return repositorio.findBySectorIdAndTimestampGreaterThanEqual(sectorId.valor(), desde).stream()
+        return repositorio.findBySectorIdAndTimestampGreaterThanEqualAndEstadoModeracionNot(
+                        sectorId.valor(), desde, EstadoModeracion.DESCARTADO.name()).stream()
                 .map(ReporteCiudadanoMongoAdapter::aDominio)
                 .toList();
+    }
+
+    @Override
+    public long contarRecientesPorSectorYDispositivo(SectorId sectorId, Duration ventana, HuellaDispositivo huella) {
+        var desde = reloj.ahora().minus(ventana);
+        return repositorio.countBySectorIdAndTimestampGreaterThanEqualAndHuella(
+                sectorId.valor(), desde, huella.hash());
     }
 
     @Override
@@ -64,6 +75,26 @@ public class ReporteCiudadanoMongoAdapter implements ReporteCiudadanoRepository 
         return repositorio.findPendientesIncluyendoNulo(EstadoModeracion.PENDIENTE.name()).stream()
                 .map(ReporteCiudadanoMongoAdapter::aDominio)
                 .toList();
+    }
+
+    @Override
+    public Set<String> listarNombresDeFotoReferenciados() {
+        return repositorio.findByFotoUrlIsNotNull().stream()
+                .map(ReporteCiudadanoDocumento::getFotoUrl)
+                .map(ReporteCiudadanoMongoAdapter::nombreDeArchivo)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public List<ReporteCiudadano> listarConFotoAnterioresA(Instant limite) {
+        return repositorio.findByFotoUrlIsNotNullAndTimestampBefore(limite).stream()
+                .map(ReporteCiudadanoMongoAdapter::aDominio)
+                .toList();
+    }
+
+    private static String nombreDeArchivo(String fotoUrl) {
+        int barra = fotoUrl.lastIndexOf('/');
+        return barra >= 0 ? fotoUrl.substring(barra + 1) : fotoUrl;
     }
 
     private static ReporteCiudadano aDominio(ReporteCiudadanoDocumento documento) {
