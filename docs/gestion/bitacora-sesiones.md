@@ -26,6 +26,10 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 5
 
+### 2026-08-09 · D4 (José) · `feature/sprint-5-pwa-a11y`
+**Qué:** Configurada la inyección en modo de desarrollo de `@axe-core/react` para auditoría continua de accesibilidad WCAG AA. Creado andamiaje y primer test de extremo a extremo (E2E) con Playwright (`home.spec.ts`). Verificado que PWA y Vitest pasan sin errores.
+**Sigue:** Ampliar la suite de Playwright para cubrir reportes y moderación, y crear PR para revisión.
+
 ### 2026-08-09 · D4 (José) · `feature/sprint-5-final-boss`
 **Qué:** Completados los 3 frentes finales del Sprint 5:
 1. **D3 (Agregaciones)**: Implementado `CalcularEstadisticasService` usando `MongoTemplate` y Pipelines de Agregación para calcular sectores más afectados, días pico y promedios reales.
