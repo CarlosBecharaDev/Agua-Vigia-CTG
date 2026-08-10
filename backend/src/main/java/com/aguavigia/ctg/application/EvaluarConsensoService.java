@@ -12,12 +12,9 @@ import com.aguavigia.ctg.domain.TipoReporte;
 import com.aguavigia.ctg.domain.port.in.EvaluarConsensoUseCase;
 import com.aguavigia.ctg.domain.port.in.RegistrarEventoBitacoraUseCase;
 import com.aguavigia.ctg.domain.port.out.ContadorReportesPort;
-import com.aguavigia.ctg.domain.port.out.NotificacionPort;
 import com.aguavigia.ctg.domain.port.out.RelojPort;
 import com.aguavigia.ctg.domain.port.out.ReporteCiudadanoRepository;
 import com.aguavigia.ctg.domain.port.out.SectorRepository;
-import com.aguavigia.ctg.domain.port.out.SuscripcionRepository;
-import com.aguavigia.ctg.domain.Suscripcion;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +28,11 @@ import java.util.stream.Collectors;
  * coinciden en una ventana de tiempo. "Coinciden" no exige el mismo `TipoReporte` exacto: el
  * nuevo estado es el que sostiene la mayoría de los reportes recientes, para que un reporte
  * aislado de signo contrario no bloquee el consenso.
+ *
+ * No notifica suscriptores directamente: sectores.guardar() publica SectorActualizadoEvent
+ * cuando el estado cambia, y NotificarSuscripcionesService es su único suscriptor. Ese evento
+ * también alimenta SSE y push, así que es el único disparador — duplicarlo aquí mandaba dos
+ * correos por cada cambio de estado.
  */
 @Service
 public class EvaluarConsensoService implements EvaluarConsensoUseCase {
@@ -42,8 +44,6 @@ public class EvaluarConsensoService implements EvaluarConsensoUseCase {
     private final RegistrarEventoBitacoraUseCase registrarEvento;
     private final RelojPort reloj;
     private final Duration ventanaConsenso;
-    private final SuscripcionRepository suscripciones;
-    private final NotificacionPort notificador;
 
     public EvaluarConsensoService(SectorRepository sectores,
                                    ReporteCiudadanoRepository reportes,
@@ -51,8 +51,6 @@ public class EvaluarConsensoService implements EvaluarConsensoUseCase {
                                    EstrategiaConsenso estrategia,
                                    RegistrarEventoBitacoraUseCase registrarEvento,
                                    RelojPort reloj,
-                                   SuscripcionRepository suscripciones,
-                                   NotificacionPort notificador,
                                    @Value("${aguavigia.consenso.ventana-minutos:30}") long ventanaMinutos) {
         this.sectores = sectores;
         this.reportes = reportes;
@@ -60,8 +58,6 @@ public class EvaluarConsensoService implements EvaluarConsensoUseCase {
         this.estrategia = estrategia;
         this.registrarEvento = registrarEvento;
         this.reloj = reloj;
-        this.suscripciones = suscripciones;
-        this.notificador = notificador;
         this.ventanaConsenso = Duration.ofMinutes(ventanaMinutos);
     }
 
@@ -90,11 +86,6 @@ public class EvaluarConsensoService implements EvaluarConsensoUseCase {
         List<ReporteId> ids = sustento.stream().map(ReporteCiudadano::id).toList();
         registrarEvento.registrar(EventoBitacoraFactory.consensoConfirmado(
                 sectorId, nuevoEstado, sustento.size(), reloj.ahora()));
-
-        List<Suscripcion> afectadas = suscripciones.buscarConfirmadasPorSector(sectorId);
-        for (Suscripcion s : afectadas) {
-            notificador.avisarCambioDeEstado(s, sectorGuardado);
-        }
 
         return new ResultadoConsenso(sectorId, true, nuevoEstado, ids);
     }

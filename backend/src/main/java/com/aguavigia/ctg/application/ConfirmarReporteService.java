@@ -7,7 +7,6 @@ import com.aguavigia.ctg.domain.port.in.ConfirmarReporteUseCase;
 import com.aguavigia.ctg.domain.port.in.EvaluarConsensoUseCase;
 import com.aguavigia.ctg.domain.port.out.ReporteCiudadanoRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ConfirmarReporteService implements ConfirmarReporteUseCase {
@@ -21,16 +20,17 @@ public class ConfirmarReporteService implements ConfirmarReporteUseCase {
     }
 
     @Override
-    @Transactional
     public ReporteCiudadano confirmar(ReporteId reporteId, HuellaDispositivo huella) {
         ReporteCiudadano reporte = reportes.buscarPorId(reporteId)
                 .orElseThrow(() -> new IllegalArgumentException("No existe el reporte '" + reporteId.valor() + "'"));
 
         ReporteCiudadano reporteConfirmado = reporte.confirmar(huella);
-        
+
         reportes.guardar(reporteConfirmado);
-        
-        // Re-evaluate consensus after confirmation
+
+        // M11 no alimenta el consenso: confirmar no llama a ContadorReportesPort.registrar(), así
+        // que esta reevaluación no puede cambiar el resultado de EvaluarConsensoService todavía.
+        // Se deja la llamada por si RF009-RF011 evoluciona a contar confirmaciones como sustento.
         evaluarConsenso.evaluar(reporteConfirmado.sectorId());
 
         return reporteConfirmado;
