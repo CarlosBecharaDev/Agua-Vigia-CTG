@@ -10,7 +10,7 @@ info:
     name: Equipo AguaVigia CTG — Tecnologico Comfenalco
   license:
     name: Proyecto de aula
-  version: 0.1.0
+  version: 1.0.0
 servers:
 - url: /
   description: Mismo origen que sirve la API
@@ -29,6 +29,8 @@ tags:
   description: Índice de Cumplimiento — prometido vs. real (RF020-RF022)
 - name: Reportes
   description: "Reportes ciudadanos de estado del servicio, sin registro"
+- name: Estadisticas
+  description: M7 — Estadísticas Públicas (RF023)
 - name: Veedor
   description: Autenticacion del panel del veedor
 paths:
@@ -175,6 +177,107 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetail"
+  /api/reportes/{id}/foto:
+    post:
+      tags:
+      - Reportes
+      summary: Agregar evidencia a un reporte
+      description: Permite subir una foto y asociarla a un reporte existente (M10).
+      operationId: agregarEvidencia
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - foto
+              type: object
+              properties:
+                foto:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Evidencia agregada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReporteRespuesta"
+        "400":
+          description: Error en la solicitud
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReporteRespuesta"
+        "404":
+          description: Reporte no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReporteRespuesta"
+  /api/reportes/{id}/confirmar:
+    post:
+      tags:
+      - Reportes
+      summary: Confirmar un reporte
+      description: Permite a otro vecino confirmar un reporte ciudadano (M11).
+      operationId: confirmar
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolicitudConfirmar"
+        required: true
+      responses:
+        "200":
+          description: Reporte confirmado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReporteRespuesta"
+        "400":
+          description: Error en la solicitud
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReporteRespuesta"
+        "404":
+          description: Reporte no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReporteRespuesta"
+  /api/iot/presion:
+    post:
+      tags:
+      - iot-controller
+      operationId: reportarPresion
+      parameters:
+      - name: X-IoT-Key
+        in: header
+        required: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IotPresionRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
   /api/veedor/reportes/{id}/descartar:
     patch:
       tags:
@@ -302,6 +405,20 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetail"
+  /api/v2/requests.json:
+    get:
+      tags:
+      - open-311-controller
+      operationId: getRequests
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Open311Response"
   /api/suscripciones/confirmar:
     get:
       tags:
@@ -309,7 +426,7 @@ paths:
       summary: Confirmar la suscripción (doble opt-in)
       description: "Enlace del correo de confirmación. El token es de un solo enlace,\
         \ no de un solo uso: confirmarla dos veces no falla (RF013)."
-      operationId: confirmar
+      operationId: confirmar_1
       parameters:
       - name: token
         in: query
@@ -397,6 +514,35 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetail"
+  /api/sectores/stream:
+    get:
+      tags:
+      - Sectores
+      summary: Suscribirse a cambios en vivo mediante SSE
+      operationId: streamSectores
+      responses:
+        "200":
+          description: OK
+          content:
+            text/event-stream:
+              schema:
+                $ref: "#/components/schemas/SseEmitter"
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SseEmitter"
+  /api/estadisticas:
+    get:
+      tags:
+      - Estadisticas
+      summary: Obtener estadísticas globales de la ciudad
+      operationId: globales
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EstadisticasRespuesta"
   /api/cumplimiento:
     get:
       tags:
@@ -663,7 +809,43 @@ components:
         timestamp:
           type: string
           format: date-time
+        fotoUrl:
+          type: string
+        confirmaciones:
+          type: integer
+          format: int32
       description: Reporte ciudadano registrado
+    SolicitudConfirmar:
+      type: object
+      properties:
+        huella:
+          maxLength: 128
+          minLength: 32
+          type: string
+          description: Huella hash del dispositivo del usuario que confirma (ADR-007)
+          example: 3a7b9c...
+      description: Solicitud para confirmar un reporte ciudadano por otro vecino
+    IotCoordenada:
+      type: object
+      properties:
+        lat:
+          type: number
+          format: double
+        lon:
+          type: number
+          format: double
+    IotPresionRequest:
+      type: object
+      properties:
+        sensorId:
+          type: string
+        sectorId:
+          type: string
+        presionPsi:
+          type: number
+          format: double
+        coordenada:
+          $ref: "#/components/schemas/IotCoordenada"
     ReporteModeracionRespuesta:
       type: object
       properties:
@@ -691,6 +873,17 @@ components:
           type: string
           format: date-time
       description: Cierre de un corte con la hora real de restablecimiento (RF017)
+    Open311Response:
+      type: object
+      properties:
+        service_request_id:
+          type: string
+        status:
+          type: string
+        service_name:
+          type: string
+        address:
+          type: string
     RespuestaSectores:
       type: object
       properties:
@@ -732,6 +925,39 @@ components:
           format: date-time
           nullable: true
       description: Sector de Cartagena con el estado conocido de su servicio de agua
+    SseEmitter:
+      type: object
+      properties:
+        timeout:
+          type: integer
+          format: int64
+    EstadisticaSectorRespuesta:
+      type: object
+      properties:
+        sectorId:
+          type: string
+        nombre:
+          type: string
+        cantidadCortes:
+          type: integer
+          format: int32
+      description: Sector con su cantidad de cortes registrados
+    EstadisticasRespuesta:
+      type: object
+      properties:
+        sectoresMasAfectados:
+          type: array
+          items:
+            $ref: "#/components/schemas/EstadisticaSectorRespuesta"
+        cortesPorDiaDeSemana:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int32
+        duracionPromedioHoras:
+          type: number
+          format: double
+      description: "Estadísticas públicas globales (M7, RF023)"
     IndiceCumplimientoRespuesta:
       type: object
       properties:

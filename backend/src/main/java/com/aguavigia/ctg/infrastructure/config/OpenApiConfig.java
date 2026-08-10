@@ -26,7 +26,7 @@ public class OpenApiConfig {
                 .servers(List.of(new Server().url("/").description("Mismo origen que sirve la API")))
                 .info(new Info()
                 .title("AguaVigia CTG — API publica")
-                .version("0.1.0")
+                .version("1.0.0")
                 .description("""
                         Monitoreo ciudadano del acueducto de Cartagena de Indias.
 

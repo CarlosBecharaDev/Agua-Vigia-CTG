@@ -94,8 +94,8 @@
 | RF | Historia | Caso de prueba | Obj. | Sprint | Estado |
 |---|---|---|---|---|---|
 | RF023 Sectores más afectados, duración y frecuencia | HU023 | CP023 | 3, 4 | 4 | ✅ |
-| RF024 Evolución del índice en el tiempo | HU024 | CP024 | 4 | 4 | ✅ |
-| RF025 Exportación en CSV | HU025 | CP025 | 3 | 5 | ✅ |
+| RF024 Evolución del índice en el tiempo | HU024 | CP024 | 4 | 4 | ⬜ (Pendiente — `IndiceCumplimientoController` solo expone agregado global/sector/corte, no serie temporal) |
+| RF025 Exportación en CSV | HU025 | CP025 | 3 | 5 | ⬜ (Pendiente — no existe ningún endpoint ni código de exportación) |
 
 ### M8 — Bitácora pública · D1
 
@@ -146,7 +146,7 @@
 
 | RF | Historia | Caso de prueba | Obj. | Sprint | Estado |
 |---|---|---|---|---|---|
-| RF041 Suscripción por WhatsApp/Telegram | HU041 | CP041 | 1, 3 | Fase 2 | ✅ |
+| RF041 Suscripción por WhatsApp/Telegram | HU041 | CP041 | 1, 3 | Fase 2 | ⬜ (Pendiente — `NotificadorPushWebhookAdapter` solo registra un log "Simulando envío", sin webhook real) |
 
 ---
 
