@@ -18,6 +18,19 @@ type SolicitudCorteApi = components['schemas']['SolicitudCorte']
 export type SolicitudCorte = Required<Pick<SolicitudCorteApi, 'sectoresAfectados' | 'inicio' | 'finPrometido' | 'causa'>>
 export type CorteOficial = components['schemas']['CorteRespuesta']
 
+// --- Interfaces de Estadísticas (M7) ---
+export interface EstadisticaSector {
+  sectorId: string
+  nombre: string
+  cantidadCortes: number
+}
+
+export interface EstadisticasGlobales {
+  sectoresMasAfectados: EstadisticaSector[]
+  cortesPorDiaDeSemana: Record<string, number>
+  duracionPromedioHoras: number
+}
+
 export interface SectorSeguro {
   id: string
   nombre: string
@@ -73,6 +86,12 @@ export async function registrarReporteCiudadano(sectorId: string, tipo: TipoRepo
     tipo,
     huella: await obtenerHuellaDispositivo(),
   })
+}
+
+// --- Estadísticas (M7) ---
+export async function obtenerEstadisticas(): Promise<EstadisticasGlobales> {
+  const { data } = await apiClient.get<EstadisticasGlobales>('/estadisticas')
+  return data
 }
 
 export async function listarReportesPendientes(): Promise<ReporteModeracion[]> {
