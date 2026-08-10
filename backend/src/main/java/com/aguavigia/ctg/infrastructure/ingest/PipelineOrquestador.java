@@ -14,18 +14,15 @@ public class PipelineOrquestador {
 
     private final AcuacarApiCollector acuacarApiCollector;
     private final RssCollector rssCollector;
-    private final PrefiltroDeterminista prefiltro;
     private final DeduplicadorReciente deduplicador;
     private final HeuristicaExtractor extractor;
 
     public PipelineOrquestador(AcuacarApiCollector acuacarApiCollector,
                                RssCollector rssCollector,
-                               PrefiltroDeterminista prefiltro,
                                DeduplicadorReciente deduplicador,
                                HeuristicaExtractor extractor) {
         this.acuacarApiCollector = acuacarApiCollector;
         this.rssCollector = rssCollector;
-        this.prefiltro = prefiltro;
         this.deduplicador = deduplicador;
         this.extractor = extractor;
     }
