@@ -58,6 +58,21 @@ class ReglaDeOroArchitectureTest {
     }
 
     /**
+     * CalcularEstadisticasService inyectaba MongoTemplate directamente: ni domain ni
+     * infrastructure lo detectaban, porque org.springframework.data.mongodb no es
+     * ..infrastructure.. ni el paquete propio del proyecto. La capa de aplicación no debe conocer
+     * el motor de persistencia, solo los puertos de domain/port/out.
+     */
+    @Test
+    void applicationNoDebeDependerDeSpringDataNiDeMongoDB() {
+        ArchRule regla = noClasses()
+                .that().resideInAPackage("..application..")
+                .should().dependOnClassesThat().resideInAnyPackage("org.springframework.data..", "com.mongodb..");
+
+        regla.check(CLASES);
+    }
+
+    /**
      * RF026 — EventoBitacora solo se crea de negocio vía EventoBitacoraFactory; la única excepción
      * es EventoBitacoraMongoAdapter, que rehidrata eventos ya existentes desde Mongo, no crea
      * eventos nuevos (ver Javadoc de EventoBitacora).

@@ -1,5 +1,7 @@
 package com.aguavigia.ctg.api;
 
+import com.aguavigia.ctg.api.dto.EstadisticasRespuesta;
+import com.aguavigia.ctg.api.mapper.EstadisticasApiMapper;
 import com.aguavigia.ctg.domain.port.in.CalcularEstadisticasUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,14 +16,16 @@ import org.springframework.web.bind.annotation.RestController;
 public class EstadisticasController {
 
     private final CalcularEstadisticasUseCase useCase;
+    private final EstadisticasApiMapper mapper;
 
-    public EstadisticasController(CalcularEstadisticasUseCase useCase) {
+    public EstadisticasController(CalcularEstadisticasUseCase useCase, EstadisticasApiMapper mapper) {
         this.useCase = useCase;
+        this.mapper = mapper;
     }
 
     @Operation(summary = "Obtener estadísticas globales de la ciudad")
     @GetMapping
-    public CalcularEstadisticasUseCase.EstadisticasGlobales globales() {
-        return useCase.calcularGlobales();
+    public EstadisticasRespuesta globales() {
+        return mapper.aRespuesta(useCase.calcularGlobales());
     }
 }
