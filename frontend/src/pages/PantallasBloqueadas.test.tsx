@@ -2,13 +2,11 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import { apiClient } from '../api/client'
-import PaginaEstadisticas from './PaginaEstadisticas'
 import PaginaBitacora from './PaginaBitacora'
 import PaginaNoEncontrada from './PaginaNoEncontrada'
 
 describe('pantallas sin contrato backend', () => {
   it.each([
-    [PaginaEstadisticas, /estadísticas todavía no están disponibles/i],
     [PaginaBitacora, /bitácora pública está en preparación/i],
   ])('muestra indisponibilidad sin consultar la API', (Pagina, titulo) => {
     const get = vi.spyOn(apiClient, 'get')
