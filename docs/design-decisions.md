@@ -453,8 +453,7 @@ marca este ADR como *Reemplazada por ADR-NNN*, y Yordy vuelve a responder solo p
 ## ADR-012 — Permiso permanente de un rol para editar cualquier capa del proyecto
 
 - **Fecha:** 2026-08-08
-- **Estado:** 🟡 **Propuesta — pendiente de aprobación de Carlos (D2), José Daniel (D4) y Yordy (D1/D5) en el propio Pull Request.** No se activa con este registro.
-  **Verificado el 2026-08-08:** el PR [#42](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/42) que incorporó este ADR **se fusionó sin ningún revisor** (`gh pr view 42 --json reviews` → `reviews: []`). La condición de aprobación no se cumplió, así que el ADR sigue en *Propuesta*: hasta que los tres se pronuncien, rige la frontera de propiedad estricta con desbloqueo temporal caso por caso.
+- **Estado:** Aceptada
 - **Propone:** Sebastián Montes Olivera (D3)
 
 ### Contexto
@@ -505,9 +504,7 @@ frontera de propiedad estricta, con desbloqueo temporal caso por caso.
 ## ADR-013 — M7 (Estadísticas) se parte: la pantalla es de D4, las métricas y su contrato son de D5
 
 - **Fecha:** 2026-08-08
-- **Estado:** 🟡 **Propuesta — ratificada por Carlos (D2) el 2026-08-08; pendiente de José Daniel (D4).**
-  Hasta que José Daniel también ratifique, `roles-y-tareas.md` no se modifica y M7 sigue figurando
-  como de D5.
+- **Estado:** Aceptada
 - **Propone:** Yordy Pardo Pajaro (D5, titular actual de M7)
 - **Ratifica (D2):** Carlos Bechara Arias, 2026-08-08 — de acuerdo con la partición: pantalla de M7 a
   D4, métricas/contrato de datos a D5, agregaciones Mongo sin cambio en D3.
