@@ -26,6 +26,13 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 5
 
+### 2026-08-09 · D4 (José) · `feature/sprint-5-final-boss`
+**Qué:** Completados los 3 frentes finales del Sprint 5:
+1. **D3 (Agregaciones)**: Implementado `CalcularEstadisticasService` usando `MongoTemplate` y Pipelines de Agregación para calcular sectores más afectados, días pico y promedios reales.
+2. **D1 (Correos)**: Escrito `NotificarSuscripcionesService` y actualizado `MailNotificacionAdapter` para enviar un email en texto plano vía JavaMailSender (Mailhog/SMTP) cada vez que se dispara un `SectorActualizadoEvent`.
+3. **D5 (DevOps)**: Creado el archivo `docker-compose.prod.yml` que empaqueta todo el sistema listo para despliegue sin exponer los puertos de bases de datos al host.
+**Sigue:** Revisión por pares, hacer *merge* y celebrar el fin del proyecto.
+
 ### 2026-08-09 · D4 (José) · `feature/sprint-5-cobertura`
 **Qué:** Escritas pruebas unitarias para `EventoBitacora`, `SuscripcionId` y endpoints SSE de `SectorController` (Mockito), para elevar la cobertura sin depender de Docker. Todas las pruebas de dominio pasaron en verde.
 **Sigue:** PR abierto para evaluación del equipo mientras resuelven la configuración local de Docker para los adaptadores.
