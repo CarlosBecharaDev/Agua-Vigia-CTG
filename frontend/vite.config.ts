@@ -84,6 +84,10 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    target: 'esnext',
+    cssCodeSplit: true,
+  },
   // @ts-ignore - Vitest types
   test: {
     globals: true,
