@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { normalizarErrorApi } from '../api/client'
+import { useState, useEffect } from 'react'
 import { obtenerSectores } from '../api/services'
 import type { Sector } from '../types/tipos-dominio'
 
@@ -15,13 +16,39 @@ export interface DatosEnVivo {
 }
 
 export function useDatosEnVivo(): DatosEnVivo {
+  const [sectores, setSectores] = useState<Sector[]>([])
+  const [ultimaActualizacion, setUltimaActualizacion] = useState<string | null>(null)
+
   const consulta = useQuery({
     queryKey: ['sectores'],
     queryFn: obtenerSectores,
     refetchInterval: 5 * 60_000,
   })
 
-  const sectores = consulta.data?.sectores ?? []
+  useEffect(() => {
+    if (consulta.data) {
+      setSectores(consulta.data.sectores)
+      setUltimaActualizacion(consulta.data.generadoEn)
+    }
+  }, [consulta.data])
+
+  useEffect(() => {
+    const eventSource = new EventSource('/api/sectores/stream')
+
+    const manejarEvento = (event: MessageEvent) => {
+      const data = JSON.parse(event.data)
+      setSectores(data.sectores)
+      setUltimaActualizacion(data.generadoEn)
+    }
+
+    eventSource.addEventListener('sectores', manejarEvento)
+
+    return () => {
+      eventSource.removeEventListener('sectores', manejarEvento)
+      eventSource.close()
+    }
+  }, [])
+
   const error = consulta.error ? normalizarErrorApi(consulta.error).detalle : null
   const estaDesactualizado = Boolean(consulta.isError && consulta.data)
   const estado: EstadoRecurso = consulta.isPending
@@ -39,7 +66,7 @@ export function useDatosEnVivo(): DatosEnVivo {
     cargando: consulta.isPending,
     error,
     sectores,
-    ultimaActualizacion: consulta.data?.generadoEn ?? null,
+    ultimaActualizacion,
     recargar: () => { void consulta.refetch() },
   }
 }
