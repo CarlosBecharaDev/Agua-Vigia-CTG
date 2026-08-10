@@ -2,7 +2,6 @@ import type { CSSProperties, FC } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { BarChart3, BellRing, BookOpenText, Droplets, Map, Megaphone, ShieldCheck } from 'lucide-react'
 import { SelectorTema } from './SelectorTema'
-import { BotonInstalarPWA } from './BotonInstalarPWA'
 import type { useTheme } from '../hooks/useTheme'
 
 type ThemeProps = ReturnType<typeof useTheme>
@@ -68,7 +67,6 @@ export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema, onAbrirSuscr
         <Navegacion />
 
         <div className="header-acciones">
-          <BotonInstalarPWA />
           <SelectorTema temaActivo={temaActivo} onAlternar={onAlternarTema} />
           <button type="button" className="boton boton-avisos-header" onClick={onAbrirSuscripcion} aria-label="Suscribirse a avisos por correo">
             <BellRing size={17} aria-hidden="true" />
