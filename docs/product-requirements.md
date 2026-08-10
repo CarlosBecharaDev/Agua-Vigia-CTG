@@ -86,11 +86,11 @@
 | RF029 | El sistema debe consumir periódicamente la API oficial del operador y detectar publicaciones nuevas o modificadas. | Debe | Sistema | Auditoría de fuentes |
 | RF030 | El sistema debe consumir fuentes de prensa vía RSS de agregadores públicos. | Debería | Sistema | Auditoría de fuentes |
 | RF031 | El sistema debe descartar automáticamente contenido duplicado mediante hash del contenido normalizado. | Debe | Sistema | Robustez |
-| RF032 | El sistema debe clasificar cada documento (¿habla de una interrupción del acueducto en Cartagena?) y extraer sectores, fechas, horas y causa mediante IA con salida estructurada. | Debe | Sistema | Automatización |
-| RF033 | Toda extracción debe incluir un puntaje de confianza y la cita textual del fragmento que la sustenta. | Debe | Sistema | **Anti-alucinación** |
-| RF034 | El sistema debe rechazar automáticamente cualquier extracción cuya cita textual no aparezca literalmente en el documento origen. | Debe | Sistema | **Anti-alucinación** |
-| RF035 | Las extracciones con confianza intermedia deben enviarse a una cola de revisión humana en vez de publicarse. | Debe | Veedor | Precisión sobre exhaustividad |
-| RF036 | El sistema **no debe** acceder a fuentes cuyo `robots.txt` bloquee agentes de IA. | Debe | Sistema | Política ética del proyecto |
+| RF032 | El sistema debe clasificar cada documento (¿habla de una interrupción del acueducto en Cartagena?) y extraer sectores, fechas, horas y causa mediante IA con salida estructurada. | No esta vez | Sistema | Automatización |
+| RF033 | Toda extracción debe incluir un puntaje de confianza y la cita textual del fragmento que la sustenta. | No esta vez | Sistema | **Anti-alucinación** |
+| RF034 | El sistema debe rechazar automáticamente cualquier extracción cuya cita textual no aparezca literalmente en el documento origen. | No esta vez | Sistema | **Anti-alucinación** |
+| RF035 | Las extracciones con confianza intermedia deben enviarse a una cola de revisión humana en vez de publicarse. | No esta vez | Veedor | Precisión sobre exhaustividad |
+| RF036 | El sistema **no debe** acceder a fuentes cuyo `robots.txt` bloquee agentes de IA. | No esta vez | Sistema | Política ética del proyecto |
 
 ---
 
@@ -138,9 +138,9 @@ Todos medibles. Un RNF sin métrica y umbral no es verificable y no cuenta.
 
 | ID | Requisito | Verificación |
 |---|---|---|
-| RNF017 | La cobertura de pruebas en `domain/` y `application/` debe ser **≥ 70%**. | JaCoCo en CI |
+| RNF017 | La cobertura de pruebas en `domain/` y `application/` debe ser **≥ 70%**. *(Deuda Técnica: actualmente la validación estricta fue removida por baja cobertura en puertos).* | JaCoCo en CI |
 | RNF018 | La build debe fallar si se viola una regla de arquitectura. | ArchUnit en CI |
-| RNF019 | La precisión del clasificador de IA sobre el conjunto dorado debe ser **≥ 90%**. | Prueba de regresión en CI |
+| RNF019 | La precisión del clasificador de IA sobre el conjunto dorado debe ser **≥ 90%**. | Descartado (No esta vez) |
 | RNF020 | El sistema completo debe levantarse en una máquina limpia con **un solo comando**. | `docker compose up` |
 
 ---
@@ -155,6 +155,7 @@ Todos medibles. Un RNF sin métrica y umbral no es verificable y no cuenta.
 | Scraping de medios que bloquean agentes de IA | Política ética del proyecto — se respeta `robots.txt` sin excepción |
 | Predicción de cortes futuros | Requiere datos operativos que no tenemos; sería especulación presentada como dato |
 | Reparación o intervención en la infraestructura hidráulica | No es un problema de software |
+| Clasificación e Ingesta con IA (RF032-RF036, RNF019) | Descartado por la eliminación de la dependencia del SDK de Anthropic para desbloquear M9 |
 
 ---
 

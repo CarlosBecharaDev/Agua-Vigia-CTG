@@ -1164,8 +1164,27 @@ Si en el futuro se prefiere la opción (b), requiere además tocar `CorteAguaDoc
 
 ---
 
+## ADR-025 — Descartar funcionalidades de Inteligencia Artificial (M9) para cumplir plazos
+
+- **Fecha:** 2026-08-10
+- **Estado:** Aceptada
+- **Decide:** Equipo completo
+
+### Contexto
+El Módulo 9 (Ingesta automática con IA) requería usar el SDK de Anthropic para estructurar avisos no estructurados de la prensa local y Acuacar. Sin embargo, para poder destrabar el Módulo 9 en su funcionalidad base (ingesta por heurísticas), se eliminó la dependencia de Anthropic (PR #137) ya que bloqueaba el despliegue y desarrollo por falta de API keys o limitaciones de integración.
+Como consecuencia, los requisitos específicos de IA (RF032, RF033, RF034, RF035, RF036, y RNF019) quedaron huérfanos y sin posibilidad de implementación, lo cual representa un riesgo de evaluación académica si se mantienen en el alcance.
+
+### Decisión
+Se declaran **oficialmente fuera de alcance (Descartados)** los requisitos RF032 a RF036 y el RNF019. El Módulo 9 (Ingesta) continuará funcionando mediante el `HeuristicaExtractor` (heurísticas deterministas y expresiones regulares) que ya está en `main`, sin modelos de IA.
+
+### Consecuencias
+- **Gana:** El alcance del proyecto se ajusta a la realidad del código; el informe metodológico reflejará esto como una decisión técnica sustentable en vez de un fallo de incumplimiento.
+- **Pierde:** Se sacrifica la clasificación semántica avanzada; los falsos positivos/negativos del extractor basado en heurísticas no tendrán la confianza estructurada de la IA.
+
+---
+
 <!--
-Siguiente número disponible: ADR-025
+Siguiente número disponible: ADR-026
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->

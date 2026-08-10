@@ -86,3 +86,76 @@ Para restaurar en caso de desastre:
 docker cp ./backups/backup_aguavigia.archive ctg-mongodb:/data/db/
 docker exec -it ctg-mongodb mongorestore --uri="mongodb://localhost:27017/aguavigia" --archive=/data/db/backup_aguavigia.archive --drop
 ```
+
+## 6. Casos de Prueba (QA Manual)
+
+A continuación se presentan los Casos de Prueba (CP) correspondientes a los Requisitos Funcionales, ejecutados de manera manual o verificados en el CI.
+
+### M1 — Mapa en vivo
+| ID | Descripción | Resultado Esperado | Estado |
+|---|---|---|---|
+| CP001 | Visualizar mapa con colores por estado | Los sectores se renderizan con los colores designados (verde, amarillo, rojo, gris). | ✅ |
+| CP002 | Seleccionar sector | Al hacer clic en un sector, se muestra un tooltip con su estado y detalles. | ✅ |
+| CP003 | Ver antigüedad de dato | El tooltip muestra la etiqueta de frescura (hace X minutos). | ✅ |
+| CP004 | Usar lista textual | La vista alternativa muestra todos los sectores en una lista ordenada y accesible. | ✅ |
+
+### M2 — Reporte ciudadano
+| ID | Descripción | Resultado Esperado | Estado |
+|---|---|---|---|
+| CP005 | Enviar reporte sin cuenta | El usuario puede reportar el estado de un sector sin login previo, recibiendo confirmación. | ✅ |
+| CP006 | Límite por dispositivo | Al enviar múltiples reportes rápidos, el sistema responde 429 Too Many Requests. | ✅ |
+| CP007 | Inferencia por coordenada | Al aceptar geolocalización, el sistema detecta el sector actual del usuario. | ✅ |
+| CP008 | Reporte ágil | El usuario completa el flujo en máximo dos clics desde el mapa. | ✅ |
+
+### M3 — Consenso automático
+| ID | Descripción | Resultado Esperado | Estado |
+|---|---|---|---|
+| CP009 | Cambio por umbral | Al llegar a N reportes coincidentes, el sector cambia de estado. | ✅ |
+| CP010 | Cambio de estrategia | Modificar configuración permite variar entre umbral fijo o porcentual. | ✅ |
+| CP011 | Trazabilidad de reportes | El evento de bitácora asocia los IDs de los reportes que desencadenaron el cambio. | ✅ |
+
+### M4 — Alertas por correo
+| ID | Descripción | Resultado Esperado | Estado |
+|---|---|---|---|
+| CP012 | Suscribirse a sector | Al ingresar el correo, se envía un mensaje con token de validación. | ✅ |
+| CP013 | Confirmación doble opt-in | Al hacer clic en el token, la suscripción pasa a activa. | ✅ |
+| CP014 | Notificación de corte | Un cambio de estado de servicio activa el envío asíncrono de un correo al suscriptor. | ✅ |
+| CP015 | Baja sin credenciales | El enlace en el footer del correo desactiva la suscripción inmediatamente. | ✅ |
+
+### M5 — Panel del veedor
+| ID | Descripción | Resultado Esperado | Estado |
+|---|---|---|---|
+| CP016 | Registrar corte oficial | El veedor logueado puede registrar un corte con inicio, fin prometido y causa. | ✅ |
+| CP017 | Cerrar corte oficial | El veedor puede marcar la hora real de restablecimiento de un corte activo. | ✅ |
+| CP018 | Moderar reportes | Los reportes ciudadanos en estado PENDIENTE pueden ser APROBADOS o DESCARTADOS. | ✅ |
+| CP019 | Proteger panel | Intentar acceder sin token (o con token expirado) redirige al login o devuelve 401. | ✅ |
+
+### M6 — Índice de Cumplimiento
+| ID | Descripción | Resultado Esperado | Estado |
+|---|---|---|---|
+| CP020 | Cálculo de desviación | El sistema calcula correctamente la diferencia entre fin prometido y fin real de los cortes cerrados. | ✅ |
+| CP021 | Índice global | La API retorna el promedio de cumplimiento global para la ciudad. | ✅ |
+| CP022 | UI del índice | El frontend muestra explícitamente el tiempo prometido vs. el real en gráficas. | ✅ |
+
+### M7 — Estadísticas
+| ID | Descripción | Resultado Esperado | Estado |
+|---|---|---|---|
+| CP023 | Sectores más afectados | El dashboard muestra los sectores con mayor tiempo acumulado sin servicio. | ✅ |
+| CP024 | Evolución temporal | Se presenta una gráfica histórica del índice de cumplimiento mes a mes. | ✅ |
+| CP025 | Exportar CSV | El botón de exportación genera un archivo CSV válido con la data actual del dashboard. | ✅ |
+
+### M8 — Bitácora pública
+| ID | Descripción | Resultado Esperado | Estado |
+|---|---|---|---|
+| CP026 | Registro inmutable | Cada cambio de estado genera un evento visible en la bitácora cronológica. | ✅ |
+| CP027 | Acceso público | La página de bitácora carga los eventos correctamente sin requerir sesión activa. | ✅ |
+| CP028 | Ausencia de edición | No existe endpoint (ni UI) para modificar un evento de bitácora una vez guardado. | ✅ |
+
+### M9 — Ingesta automática (Heurística determinista)
+| ID | Descripción | Resultado Esperado | Estado |
+|---|---|---|---|
+| CP029 | API Acuacar | El colector extrae correctamente los boletines desde el origen oficial (WordPress). | ✅ |
+| CP030 | RSS Prensa | El colector procesa el RSS de agregadores (Google News). | ✅ |
+| CP031 | Deduplicación | Un aviso que ingresa dos veces es descartado por el filtro SHA-256 en Redis. | ✅ |
+
+> **Nota:** CP032 a CP036 fueron descartados (Fuera de Alcance) por la eliminación de la integración con Anthropic SDK en el Módulo 9.
