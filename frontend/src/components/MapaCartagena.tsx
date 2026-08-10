@@ -176,7 +176,7 @@ export const MapaCartagena: FC<Props> = ({
 
     if (capaRef.current) { capaRef.current.remove(); capaRef.current = null }
 
-    fetch('/barrios-cartagena.geojson')
+    fetch('https://services7.arcgis.com/t784NacZjQPpWVsA/arcgis/rest/services/Barrios_de_Cartagena/FeatureServer/0/query?where=1=1&outFields=*&outSR=4326&f=geojson')
       .then(r => r.json())
       .then((geojson) => {
         if (!montado) return;
