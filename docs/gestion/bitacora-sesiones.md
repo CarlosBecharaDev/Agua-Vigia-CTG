@@ -24,6 +24,14 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ---
 
+## Sprint 5
+
+### 2026-08-09 · D4 (José) · `feature/sprint-5-cobertura`
+**Qué:** Escritas pruebas unitarias para `EventoBitacora`, `SuscripcionId` y endpoints SSE de `SectorController` (Mockito), para elevar la cobertura sin depender de Docker. Todas las pruebas de dominio pasaron en verde.
+**Sigue:** PR abierto para evaluación del equipo mientras resuelven la configuración local de Docker para los adaptadores.
+
+---
+
 ## Sprint 2
 
 ### 2026-08-09 · D4 (José) · `feat/redeseno-profesional-limpio`

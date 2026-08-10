@@ -30,4 +30,10 @@ class IdentificadoresTest {
     void huellaDispositivoDebeRechazarHashEnBlanco() {
         assertThatThrownBy(() -> new HuellaDispositivo("")).isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void suscripcionIdDebeRechazarValorEnBlancoO_Nulo() {
+        assertThatThrownBy(() -> new SuscripcionId(null)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> new SuscripcionId("   ")).isInstanceOf(IllegalArgumentException.class);
+    }
 }
