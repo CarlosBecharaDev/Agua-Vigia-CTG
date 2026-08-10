@@ -1,0 +1,205 @@
+.pagina-estadisticas {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.estadisticas-cabecera {
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.estadisticas-contexto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.estado-pagina-icono {
+  background: var(--color-fondo-2);
+  color: var(--color-primario);
+  padding: 1rem;
+  border-radius: 50%;
+  display: inline-flex;
+  margin-bottom: 1rem;
+}
+
+.metricas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.metrica-tarjeta {
+  background: var(--color-fondo-1);
+  border: 1px solid var(--color-linea);
+  border-radius: var(--radio-lg);
+  padding: 1.5rem;
+  box-shadow: var(--sombra-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.metrica-tarjeta:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--sombra-md);
+}
+
+.metrica-tarjeta.principal {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2.5rem;
+  background: linear-gradient(135deg, var(--color-fondo-2) 0%, var(--color-fondo-1) 100%);
+  border-color: var(--color-primario);
+}
+
+.metrica-tarjeta header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  color: var(--color-tinta-2);
+}
+
+.metrica-tarjeta.principal header {
+  justify-content: center;
+}
+
+.metrica-icono {
+  color: var(--color-primario);
+}
+
+.metrica-icono.warning {
+  color: var(--color-peligro);
+}
+
+.metrica-icono.info {
+  color: #3b82f6;
+}
+
+.metrica-tarjeta h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.metrica-valor {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.metrica-valor strong {
+  font-size: 4rem;
+  font-weight: 800;
+  color: var(--color-tinta-1);
+  line-height: 1;
+}
+
+.metrica-valor span {
+  font-size: 1.25rem;
+  color: var(--color-tinta-3);
+  font-weight: 500;
+}
+
+.metrica-nota {
+  color: var(--color-tinta-3);
+  font-size: 0.9rem;
+}
+
+.lista-barrios-afectados {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.lista-barrios-afectados li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.barrio-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+}
+
+.barrio-nombre {
+  font-weight: 500;
+  color: var(--color-tinta-1);
+}
+
+.barrio-conteo {
+  color: var(--color-tinta-3);
+  font-weight: 600;
+}
+
+.barra-progreso-bg {
+  width: 100%;
+  height: 8px;
+  background: var(--color-fondo-2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.barra-progreso-fill {
+  height: 100%;
+  background: var(--color-peligro);
+  border-radius: 4px;
+  transition: width 1s ease-out;
+}
+
+.grafico-barras {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 200px;
+  padding-top: 1rem;
+  gap: 0.5rem;
+}
+
+.barra-dia {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.barra-dia-fill {
+  width: 100%;
+  max-width: 40px;
+  background: #3b82f6;
+  border-radius: 6px 6px 0 0;
+  position: relative;
+  transition: height 1s ease-out;
+  min-height: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 0.25rem;
+}
+
+.barra-dia:hover .barra-dia-fill {
+  background: #2563eb;
+}
+
+.barra-etiqueta-valor {
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.barra-etiqueta {
+  font-size: 0.8rem;
+  color: var(--color-tinta-3);
+  font-weight: 500;
+}
