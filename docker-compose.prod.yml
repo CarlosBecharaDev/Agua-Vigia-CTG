@@ -1,0 +1,87 @@
+networks:
+  aguavigia:
+    driver: bridge
+
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: aguavigia-mongo
+    restart: always
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE:-aguavigia}
+    # En producción NO exponemos puertos de BBDD al host
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - aguavigia
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: aguavigia-redis
+    restart: always
+    # En producción NO exponemos puertos de BBDD al host
+    volumes:
+      - redis-data:/data
+    networks:
+      - aguavigia
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: aguavigia-backend
+    restart: always
+    env_file:
+      - path: .env
+        required: true # Prod requiere variables seguras
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      SERVER_PORT: ${SERVER_PORT:-8080}
+      SPRING_DATA_MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/aguavigia}
+      SPRING_DATA_REDIS_HOST: ${REDIS_HOST:-redis}
+      SPRING_DATA_REDIS_PORT: ${REDIS_PORT:-6379}
+    # En producción el proxy reverso manejará el tráfico, NO exponemos 8080 directo
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - aguavigia
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: aguavigia-frontend
+    restart: always
+    ports:
+      - "80:80" # Expuesto directo en puerto web estándar
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - aguavigia
+
+volumes:
+  mongo-data:
+  redis-data:

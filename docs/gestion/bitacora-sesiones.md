@@ -30,9 +30,27 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 **Qué:** Configurada la inyección en modo de desarrollo de `@axe-core/react` para auditoría continua de accesibilidad WCAG AA. Creado andamiaje y primer test de extremo a extremo (E2E) con Playwright (`home.spec.ts`). Verificado que PWA y Vitest pasan sin errores.
 **Sigue:** Ampliar la suite de Playwright para cubrir reportes y moderación, y crear PR para revisión.
 
+### 2026-08-09 · D4 (José) · `feature/sprint-5-final-boss`
+**Qué:** Completados los 3 frentes finales del Sprint 5:
+1. **D3 (Agregaciones)**: Implementado `CalcularEstadisticasService` usando `MongoTemplate` y Pipelines de Agregación para calcular sectores más afectados, días pico y promedios reales.
+2. **D1 (Correos)**: Escrito `NotificarSuscripcionesService` y actualizado `MailNotificacionAdapter` para enviar un email en texto plano vía JavaMailSender (Mailhog/SMTP) cada vez que se dispara un `SectorActualizadoEvent`.
+3. **D5 (DevOps)**: Creado el archivo `docker-compose.prod.yml` que empaqueta todo el sistema listo para despliegue sin exponer los puertos de bases de datos al host.
+**Sigue:** Revisión por pares, hacer *merge* y celebrar el fin del proyecto.
+
 ### 2026-08-09 · D4 (José) · `feature/sprint-5-cobertura`
 **Qué:** Escritas pruebas unitarias para `EventoBitacora`, `SuscripcionId` y endpoints SSE de `SectorController` (Mockito), para elevar la cobertura sin depender de Docker. Todas las pruebas de dominio pasaron en verde.
 **Sigue:** PR abierto para evaluación del equipo mientras resuelven la configuración local de Docker para los adaptadores.
+
+## Sprint 6 (Entrega final y documentación)
+
+### 2026-08-09 · Equipo Completo (Vía subagentes D1-D5)
+**Qué:** Ejecutadas en paralelo todas las tareas finales de documentación y puesta a punto de producción correspondientes al Sprint 6:
+1. **D1 (Documentación):** Redactados `docs/capitulo-4-informe.md` y `docs/informe-final.md` consolidando métricas, aprendizajes (ej. el fallo con `robots.txt`) y resultados del proyecto.
+2. **D2 (Dominio):** Elaborado el `docs/ingenieria/diagrama-de-clases.md` con justificación exhaustiva de la aplicación de principios SOLID en la Arquitectura Limpia.
+3. **D3 (Infraestructura):** Generado el `docs/ingenieria/diagrama-de-componentes.md` mapeando la comunicación entre Frontend (Vite), Backend (Spring Boot), MongoDB, Redis y Mailhog.
+4. **D4 (Frontend):** Redactado el `docs/manual-de-usuario.md` y optimizado el `vite.config.ts` para carga rápida (redes móviles 3G) mediante división de CSS y assets asíncronos.
+5. **D5 (DevOps/QA):** Creado el script `scripts/sembrar-historico-cortes.mjs` para poblar MongoDB con data realista (mayo a julio 2026) y probar el dashboard estadístico (M7) en la demostración.
+**Sigue:** Hacer commit, empujar y estar listos para la sustentación y demostración en vivo.
 
 ---
 
