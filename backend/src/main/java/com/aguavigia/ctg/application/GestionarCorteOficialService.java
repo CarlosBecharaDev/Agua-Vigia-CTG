@@ -7,11 +7,16 @@ import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.port.in.GestionarCorteOficialUseCase;
 import com.aguavigia.ctg.domain.port.in.RegistrarEventoBitacoraUseCase;
 import com.aguavigia.ctg.domain.port.out.CorteAguaRepository;
+import com.aguavigia.ctg.domain.port.out.NotificacionPort;
 import com.aguavigia.ctg.domain.port.out.RelojPort;
 import com.aguavigia.ctg.domain.port.out.SectorRepository;
+import com.aguavigia.ctg.domain.port.out.SuscripcionRepository;
+import com.aguavigia.ctg.domain.Sector;
+import com.aguavigia.ctg.domain.Suscripcion;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
 
 /**
  * RF016-RF017 — el veedor registra un corte oficial y lo cierra con la hora real de
@@ -32,15 +37,21 @@ public class GestionarCorteOficialService implements GestionarCorteOficialUseCas
     private final SectorRepository sectores;
     private final RegistrarEventoBitacoraUseCase registrarEvento;
     private final RelojPort reloj;
+    private final SuscripcionRepository suscripciones;
+    private final NotificacionPort notificador;
 
     public GestionarCorteOficialService(CorteAguaRepository cortes,
                                          SectorRepository sectores,
                                          RegistrarEventoBitacoraUseCase registrarEvento,
-                                         RelojPort reloj) {
+                                         RelojPort reloj,
+                                         SuscripcionRepository suscripciones,
+                                         NotificacionPort notificador) {
         this.cortes = cortes;
         this.sectores = sectores;
         this.registrarEvento = registrarEvento;
         this.reloj = reloj;
+        this.suscripciones = suscripciones;
+        this.notificador = notificador;
     }
 
     @Override
@@ -54,6 +65,12 @@ public class GestionarCorteOficialService implements GestionarCorteOficialUseCas
         CorteAgua guardado = cortes.guardar(corte);
         for (SectorId sectorId : guardado.sectoresAfectados()) {
             registrarEvento.registrar(EventoBitacoraFactory.corteAnunciado(guardado, sectorId, reloj.ahora()));
+            sectores.buscarPorId(sectorId).ifPresent(sector -> {
+                List<Suscripcion> afectadas = suscripciones.buscarConfirmadasPorSector(sectorId);
+                for (Suscripcion s : afectadas) {
+                    notificador.avisarCambioDeEstado(s, sector);
+                }
+            });
         }
         return guardado;
     }
@@ -69,6 +86,12 @@ public class GestionarCorteOficialService implements GestionarCorteOficialUseCas
         CorteAgua guardado = cortes.guardar(cerrado);
         for (SectorId sectorId : guardado.sectoresAfectados()) {
             registrarEvento.registrar(EventoBitacoraFactory.corteRestablecido(guardado, sectorId, reloj.ahora()));
+            sectores.buscarPorId(sectorId).ifPresent(sector -> {
+                List<Suscripcion> afectadas = suscripciones.buscarConfirmadasPorSector(sectorId);
+                for (Suscripcion s : afectadas) {
+                    notificador.avisarCambioDeEstado(s, sector);
+                }
+            });
         }
         return guardado;
     }
