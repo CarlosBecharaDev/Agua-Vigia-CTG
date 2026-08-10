@@ -26,6 +26,10 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 5
 
+### 2026-08-09 · D4 (José) · `feature/sprint-5-pwa-a11y`
+**Qué:** Configurada la inyección en modo de desarrollo de `@axe-core/react` para auditoría continua de accesibilidad WCAG AA. Creado andamiaje y primer test de extremo a extremo (E2E) con Playwright (`home.spec.ts`). Verificado que PWA y Vitest pasan sin errores.
+**Sigue:** Ampliar la suite de Playwright para cubrir reportes y moderación, y crear PR para revisión.
+
 ### 2026-08-09 · D4 (José) · `feature/sprint-5-cobertura`
 **Qué:** Escritas pruebas unitarias para `EventoBitacora`, `SuscripcionId` y endpoints SSE de `SectorController` (Mockito), para elevar la cobertura sin depender de Docker. Todas las pruebas de dominio pasaron en verde.
 **Sigue:** PR abierto para evaluación del equipo mientras resuelven la configuración local de Docker para los adaptadores.

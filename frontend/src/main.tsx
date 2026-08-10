@@ -5,6 +5,15 @@ import './index.css'
 import App from './App.tsx'
 import { queryClient } from './api/queryClient'
 
+import React from 'react'
+import ReactDOM from 'react-dom'
+
+if (import.meta.env.DEV) {
+  import('@axe-core/react').then(axe => {
+    axe.default(React, ReactDOM, 1000)
+  })
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
