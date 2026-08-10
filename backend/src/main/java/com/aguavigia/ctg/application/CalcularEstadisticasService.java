@@ -48,7 +48,8 @@ public class CalcularEstadisticasService implements CalcularEstadisticasUseCase 
             cortesPorDia.merge(diaCapitalizado, 1, Integer::sum);
 
             if (corte.ventana().estaCerrada()) {
-                totalDuracionSegundos += corte.ventana().duracionReal().orElseThrow().getSeconds();
+                long segundos = java.time.Duration.between(corte.ventana().inicio(), corte.ventana().finReal()).getSeconds();
+                totalDuracionSegundos += segundos;
                 cortesCerrados++;
             }
         }

@@ -35,14 +35,15 @@ public class PipelineOrquestador {
      */
     @Scheduled(fixedDelayString = "${ingesta.intervalo.milisegundos:600000}")
     public void ejecutarCiclo() {
-        List<DocumentoCrudo> deAcuacar = acuacarApiCollector.recolectar();
-        List<DocumentoCrudo> deRss = rssCollector.recolectar();
+        java.time.Instant desde = java.time.Instant.now().minus(java.time.Duration.ofDays(1));
+        List<DocumentoCrudo> deAcuacar = acuacarApiCollector.obtenerDesde(desde);
+        List<DocumentoCrudo> deRss = rssCollector.obtenerDesde(desde);
 
         Stream.concat(deAcuacar.stream(), deRss.stream())
-                .filter(doc -> !deduplicador.esDuplicado(doc.hash()))
-                .filter(prefiltro::pasaFiltro)
+                .filter(doc -> !deduplicador.yaVistoRecientemente(doc.hash()))
+                .filter(doc -> PrefiltroDeterminista.posibleInterrupcionDeAcueducto(doc.texto()))
                 .forEach(doc -> {
-                    deduplicador.registrar(doc.hash());
+                    deduplicador.marcarComoVisto(doc.hash());
                     EventoExtraido evento = extractor.extraer(doc);
                     enrutar(evento);
                 });
