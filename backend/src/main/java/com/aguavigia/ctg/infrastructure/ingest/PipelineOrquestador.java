@@ -1,5 +1,8 @@
 package com.aguavigia.ctg.infrastructure.ingest;
 
+import com.aguavigia.ctg.domain.EstadoServicio;
+import com.aguavigia.ctg.domain.Sector;
+import com.aguavigia.ctg.domain.port.out.SectorRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -16,15 +19,18 @@ public class PipelineOrquestador {
     private final RssCollector rssCollector;
     private final DeduplicadorReciente deduplicador;
     private final HeuristicaExtractor extractor;
+    private final SectorRepository sectorRepository;
 
     public PipelineOrquestador(AcuacarApiCollector acuacarApiCollector,
                                RssCollector rssCollector,
                                DeduplicadorReciente deduplicador,
-                               HeuristicaExtractor extractor) {
+                               HeuristicaExtractor extractor,
+                               SectorRepository sectorRepository) {
         this.acuacarApiCollector = acuacarApiCollector;
         this.rssCollector = rssCollector;
         this.deduplicador = deduplicador;
         this.extractor = extractor;
+        this.sectorRepository = sectorRepository;
     }
 
     /**
@@ -47,10 +53,41 @@ public class PipelineOrquestador {
     }
 
     private void enrutar(EventoExtraido evento) {
-        // Todo evento va a revisión manual por la política de confianza < 0.85 (actualmente 0.6 por carecer de IA)
         if (evento.esInterrupcionDeAcueducto()) {
-            System.out.println("Enviando evento a revisión manual (Moderación M5): " + evento.sectoresMencionados());
-            // Aquí iría el llamado a enviar el evento a la base de datos de Moderación.
+            System.out.println("Reflejando evento en la base de datos: " + evento.sectoresMencionados() + " - Tipo: " + evento.tipo());
+            List<Sector> todosSectores = sectorRepository.listarTodos();
+            
+            EstadoServicio nuevoEstado = EstadoServicio.SIN_SERVICIO;
+            if ("PRESION_BAJA".equals(evento.tipo())) {
+                nuevoEstado = EstadoServicio.PRESION_BAJA;
+            } else if ("SERVICIO_NORMAL".equals(evento.tipo())) {
+                nuevoEstado = EstadoServicio.CON_SERVICIO;
+            }
+            
+            for (String sectorMencionado : evento.sectoresMencionados()) {
+                String mencionadoNorm = normalizarParaComparacion(sectorMencionado);
+                EstadoServicio estadoFinal = nuevoEstado;
+                todosSectores.stream()
+                        .filter(s -> normalizarParaComparacion(s.nombre()).contains(mencionadoNorm) || 
+                                     mencionadoNorm.contains(normalizarParaComparacion(s.nombre())))
+                        .forEach(s -> {
+                            Sector actualizado = s.conEstado(estadoFinal);
+                            sectorRepository.guardar(actualizado);
+                            System.out.println("Sector actualizado: " + s.nombre() + " a " + estadoFinal);
+                        });
+            }
         }
     }
+    
+    private String normalizarParaComparacion(String texto) {
+        if (texto == null) return "";
+        return texto.toLowerCase()
+                .replaceAll("[áàäâ]", "a")
+                .replaceAll("[éèëê]", "e")
+                .replaceAll("[íìïî]", "i")
+                .replaceAll("[óòöô]", "o")
+                .replaceAll("[úùüû]", "u")
+                .replaceAll("[^a-z0-9]", "");
+    }
 }
+

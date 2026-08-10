@@ -21,6 +21,12 @@ public class HeuristicaExtractor {
     public EventoExtraido extraer(DocumentoCrudo documento) {
         String texto = documento.texto();
         boolean esInterrupcion = texto.toLowerCase().contains("suspensión") || texto.toLowerCase().contains("corte");
+        boolean esPresionBaja = texto.toLowerCase().contains("baja presión") || texto.toLowerCase().contains("presión baja");
+        boolean esNormal = texto.toLowerCase().contains("servicio restablecido") || texto.toLowerCase().contains("normalidad");
+        
+        String tipoEvento = "SUSPENSION_PROGRAMADA";
+        if (esPresionBaja) tipoEvento = "PRESION_BAJA";
+        if (esNormal) tipoEvento = "SERVICIO_NORMAL";
         
         List<String> sectores = List.of();
         Matcher mBarrios = PATRON_BARRIOS.matcher(texto);
@@ -35,8 +41,8 @@ public class HeuristicaExtractor {
         }
 
         return new EventoExtraido(
-                esInterrupcion,
-                "SUSPENSION_PROGRAMADA",
+                esInterrupcion || esPresionBaja || esNormal,
+                tipoEvento,
                 sectores.stream().map(String::trim).filter(s -> !s.isEmpty()).toList(),
                 Instant.now(), // Fallback: asume ahora
                 Instant.now().plusSeconds(3600 * 12), // Fallback: asume 12 horas
