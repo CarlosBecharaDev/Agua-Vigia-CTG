@@ -334,6 +334,21 @@
   .lista-adr { display: flex; flex-direction: column; }
   .fila-adr { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.75rem; padding: 0.58rem 0; border-bottom: 1px solid var(--color-linea); align-items: baseline; }
   .nota-estado-bug { flex-basis: 100%; font-size: 0.68rem; color: var(--color-tinta-3); line-height: 1.4; margin-top: 0.2rem; }
+  .detalle-bug { flex-basis: 100%; margin-top: 0.3rem; }
+  .detalle-bug > summary { cursor: pointer; font-family: var(--font-util); font-size: 0.66rem; color: var(--color-acento); list-style: none; user-select: none; width: fit-content; }
+  .detalle-bug > summary::-webkit-details-marker { display: none; }
+  .detalle-bug > summary::before { content: "▸ Ver posible solución"; }
+  .detalle-bug[open] > summary::before { content: "▾ Ocultar posible solución"; }
+  .detalle-bug > summary:hover { text-decoration: underline; }
+  .detalle-bug-cuerpo { font-size: 0.76rem; line-height: 1.65; color: var(--color-tinta-2); background: var(--color-superficie-2); border: 1px solid var(--color-linea); border-radius: var(--radio-base); padding: 0.75rem 0.9rem; margin-top: 0.4rem; overflow-wrap: anywhere; }
+  .detalle-bug-cuerpo p { margin: 0 0 0.6rem; }
+  .detalle-bug-cuerpo p:last-child { margin-bottom: 0; }
+  .detalle-bug-cuerpo ul, .detalle-bug-cuerpo ol { margin: 0 0 0.6rem 1.1rem; padding: 0; }
+  .detalle-bug-cuerpo li { margin-bottom: 0.25rem; }
+  .detalle-bug-cuerpo li:last-child { margin-bottom: 0; }
+  .detalle-bug-cuerpo strong { color: var(--color-tinta); }
+  .detalle-bug-cuerpo .bloque-codigo { background: var(--color-superficie); border: 1px solid var(--color-linea); border-radius: var(--radio-sm); padding: 0.55rem 0.7rem; overflow-x: auto; font-size: 0.72rem; margin: 0 0 0.6rem; white-space: pre; }
+  .detalle-bug-cuerpo .bloque-codigo:last-child { margin-bottom: 0; }
   .fila-adr:last-child { border-bottom: none; }
   .adr-titulo { font-size: 0.77rem; color: var(--color-tinta); }
   .adr-titulo .n { font-family: var(--font-util); color: var(--color-acento); margin-right: 0.4rem; }
@@ -1242,6 +1257,7 @@ window.addEventListener("error", function (ev) {
       if (!resuelto[b.estado] && b.responsable) h += ' <span class="mono" style="font-size:.66rem;color:var(--color-tinta-3)">· ' + escapeHtml(b.responsable) + '</span>';
       h += '</span><span class="chip-mini ' + (claseBug[b.estado] || "abierto") + '">' + escapeHtml(b.estado) + '</span>';
       if (b.notaEstado) h += '<div class="nota-estado-bug">' + escapeHtml(b.notaEstado) + '</div>';
+      if (b.detalle) h += '<details class="detalle-bug"><summary></summary><div class="detalle-bug-cuerpo">' + renderMarkdownLite(b.detalle) + '</div></details>';
       return h + '</div>';
     }).join("");
     document.getElementById("lista-bugs").innerHTML = htmlBug || '<p class="vacio-atencion">Sin bugs registrados.</p>';
@@ -1254,6 +1270,42 @@ window.addEventListener("error", function (ev) {
       .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
       .replace(/\*([^*]+)\*/g, "<em>$1</em>")
       .replace(/\[#(\d+)\]\((https:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">#$1</a>');
+  }
+
+  // Traductor mínimo de markdown a HTML para el detalle de un bug (docs/gestion/registro-de-bugs.md):
+  // bloques ``` como código, líneas `1.`/`-`/`*` como lista, el resto en párrafos con formatearInline.
+  // No es un parser de markdown general — solo cubre lo que el registro de bugs realmente usa.
+  function renderParrafos(texto) {
+    var itemRe = /^(\d+\.|[-*])\s+/;
+    return texto.trim().split(/\n\s*\n/).filter(Boolean).map(function (bloque) {
+      var lineas = bloque.split("\n").map(function (l) { return l.trim(); }).filter(Boolean);
+      // Un ítem de lista puede envolverse en varias líneas fuente; se reagrupan antes de
+      // decidir si el bloque es una lista, si no cada línea envuelta rompía la detección.
+      var items = [];
+      lineas.forEach(function (l) {
+        if (itemRe.test(l) || !items.length) items.push(l);
+        else items[items.length - 1] += " " + l;
+      });
+      var esLista = items.length > 0 && items.every(function (l) { return itemRe.test(l); });
+      if (esLista) {
+        var tag = /^\d+\./.test(items[0]) ? "ol" : "ul";
+        var html = items.map(function (l) {
+          return "<li>" + formatearInline(l.replace(itemRe, "")) + "</li>";
+        }).join("");
+        return "<" + tag + ">" + html + "</" + tag + ">";
+      }
+      return "<p>" + formatearInline(lineas.join(" ")) + "</p>";
+    }).join("");
+  }
+  function renderMarkdownLite(md) {
+    if (!md) return "";
+    var partes = md.split(/```([\s\S]*?)```/);
+    var html = "";
+    for (var i = 0; i < partes.length; i++) {
+      if (i % 2 === 1) html += '<pre class="bloque-codigo mono">' + escapeHtml(partes[i].trim()) + '</pre>';
+      else if (partes[i].trim()) html += renderParrafos(partes[i]);
+    }
+    return html;
   }
   (function renderRecomendaciones() {
     var cont = document.getElementById("lista-recomendaciones");

@@ -120,16 +120,32 @@ function normalizarEstadoBug(estadoRaw) {
   return { estado, notaEstado };
 }
 
+// Cada bug con sección propia trae el análisis completo (síntoma, reproducción, causa raíz,
+// corrección) bajo un encabezado `### BUG-NNN — ...`. La tabla de estado solo tiene el título corto;
+// esto es lo que la Sala de control despliega detrás del botón "Ver posible solución".
+function obtenerDetallesBugs(texto) {
+  const detalles = {};
+  const re = /\n### (BUG-\d+) — .*\n([\s\S]*?)(?=\n### BUG-\d+ — |\n## |$)/g;
+  let m;
+  while ((m = re.exec(texto))) {
+    const id = m[1];
+    const cuerpo = m[2].trim().replace(/\n?-{3,}\s*$/, "").trim();
+    if (!detalles[id] && cuerpo) detalles[id] = cuerpo;
+  }
+  return detalles;
+}
+
 function obtenerBugs() {
   const texto = leer("docs/gestion/registro-de-bugs.md");
   const tabla = texto.match(/\| ID \| Fecha \| Sev \|.*?\n\|---.*?\n([\s\S]*?)\n\n/);
   if (!tabla) return [];
+  const detalles = obtenerDetallesBugs(texto);
   const filas = tabla[1].trim().split("\n").filter((l) => l.startsWith("| BUG-"));
   return filas.map((f) => {
     const cols = columnasDeFila(f).filter((_, i, arr) => i > 0 && i < arr.length - 1);
     const [id, fecha, sev, modulo, titulo, estadoRaw, responsable] = cols;
     const { estado, notaEstado } = normalizarEstadoBug(estadoRaw);
-    return { id, fecha, sev, modulo, titulo, estado, notaEstado, responsable };
+    return { id, fecha, sev, modulo, titulo, estado, notaEstado, responsable, detalle: detalles[id] || null };
   });
 }
 
