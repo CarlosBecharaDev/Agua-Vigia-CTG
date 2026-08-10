@@ -37,6 +37,17 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 **Qué:** Escritas pruebas unitarias para `EventoBitacora`, `SuscripcionId` y endpoints SSE de `SectorController` (Mockito), para elevar la cobertura sin depender de Docker. Todas las pruebas de dominio pasaron en verde.
 **Sigue:** PR abierto para evaluación del equipo mientras resuelven la configuración local de Docker para los adaptadores.
 
+## Sprint 6 (Entrega final y documentación)
+
+### 2026-08-09 · Equipo Completo (Vía subagentes D1-D5)
+**Qué:** Ejecutadas en paralelo todas las tareas finales de documentación y puesta a punto de producción correspondientes al Sprint 6:
+1. **D1 (Documentación):** Redactados `docs/capitulo-4-informe.md` y `docs/informe-final.md` consolidando métricas, aprendizajes (ej. el fallo con `robots.txt`) y resultados del proyecto.
+2. **D2 (Dominio):** Elaborado el `docs/ingenieria/diagrama-de-clases.md` con justificación exhaustiva de la aplicación de principios SOLID en la Arquitectura Limpia.
+3. **D3 (Infraestructura):** Generado el `docs/ingenieria/diagrama-de-componentes.md` mapeando la comunicación entre Frontend (Vite), Backend (Spring Boot), MongoDB, Redis y Mailhog.
+4. **D4 (Frontend):** Redactado el `docs/manual-de-usuario.md` y optimizado el `vite.config.ts` para carga rápida (redes móviles 3G) mediante división de CSS y assets asíncronos.
+5. **D5 (DevOps/QA):** Creado el script `scripts/sembrar-historico-cortes.mjs` para poblar MongoDB con data realista (mayo a julio 2026) y probar el dashboard estadístico (M7) en la demostración.
+**Sigue:** Hacer commit, empujar y estar listos para la sustentación y demostración en vivo.
+
 ---
 
 ## Sprint 2
