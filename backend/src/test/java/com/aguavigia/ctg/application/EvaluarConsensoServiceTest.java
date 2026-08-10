@@ -13,9 +13,11 @@ import com.aguavigia.ctg.domain.TipoEvento;
 import com.aguavigia.ctg.domain.TipoReporte;
 import com.aguavigia.ctg.domain.port.in.RegistrarEventoBitacoraUseCase;
 import com.aguavigia.ctg.domain.port.out.ContadorReportesPort;
+import com.aguavigia.ctg.domain.port.out.NotificacionPort;
 import com.aguavigia.ctg.domain.port.out.RelojPort;
 import com.aguavigia.ctg.domain.port.out.ReporteCiudadanoRepository;
 import com.aguavigia.ctg.domain.port.out.SectorRepository;
+import com.aguavigia.ctg.domain.port.out.SuscripcionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -41,6 +43,10 @@ class EvaluarConsensoServiceTest {
     private ContadorReportesPort contadorReportes;
     private EstrategiaConsenso estrategia;
     private RegistrarEventoBitacoraUseCase registrarEvento;
+    private RelojPort reloj;
+    private SuscripcionRepository suscripciones;
+    private NotificacionPort notificador;
+
     private EvaluarConsensoService servicio;
 
     @BeforeEach
@@ -50,8 +56,13 @@ class EvaluarConsensoServiceTest {
         contadorReportes = mock(ContadorReportesPort.class);
         estrategia = mock(EstrategiaConsenso.class);
         registrarEvento = mock(RegistrarEventoBitacoraUseCase.class);
-        RelojPort reloj = () -> AHORA;
-        servicio = new EvaluarConsensoService(sectores, reportes, contadorReportes, estrategia, registrarEvento, reloj, 30);
+        reloj = mock(RelojPort.class);
+        suscripciones = mock(SuscripcionRepository.class);
+        notificador = mock(NotificacionPort.class);
+
+        given(reloj.ahora()).willReturn(AHORA);
+        servicio = new EvaluarConsensoService(
+                sectores, reportes, contadorReportes, estrategia, registrarEvento, reloj, suscripciones, notificador, 30);
     }
 
     private ReporteCiudadano reporte(String id, TipoReporte tipo) {
