@@ -3,11 +3,14 @@ package com.aguavigia.ctg.api;
 import com.aguavigia.ctg.api.dto.ReporteRespuesta;
 import com.aguavigia.ctg.api.dto.SolicitudReporte;
 import com.aguavigia.ctg.api.mapper.ReporteApiMapper;
+import com.aguavigia.ctg.api.dto.SolicitudConfirmar;
 import com.aguavigia.ctg.domain.Coordenada;
 import com.aguavigia.ctg.domain.HuellaDispositivo;
+import com.aguavigia.ctg.domain.ReporteId;
 import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.TipoReporte;
 import com.aguavigia.ctg.domain.port.in.AgregarEvidenciaUseCase;
+import com.aguavigia.ctg.domain.port.in.ConfirmarReporteUseCase;
 import com.aguavigia.ctg.domain.port.in.RegistrarReporteUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -27,7 +30,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RestController;
 
 /** M2 — RF005-RF008: reportar sin registro, en máximo dos toques. */
 @Tag(name = "Reportes", description = "Reportes ciudadanos de estado del servicio, sin registro")
@@ -37,12 +39,12 @@ public class ReporteController {
 
     private final RegistrarReporteUseCase registrarReporte;
     private final AgregarEvidenciaUseCase agregarEvidenciaUseCase;
-    private final com.aguavigia.ctg.domain.port.in.ConfirmarReporteUseCase confirmarReporte;
+    private final ConfirmarReporteUseCase confirmarReporte;
     private final ReporteApiMapper mapper;
 
-    public ReporteController(RegistrarReporteUseCase registrarReporte, 
-                             AgregarEvidenciaUseCase agregarEvidenciaUseCase, 
-                             com.aguavigia.ctg.domain.port.in.ConfirmarReporteUseCase confirmarReporte,
+    public ReporteController(RegistrarReporteUseCase registrarReporte,
+                             AgregarEvidenciaUseCase agregarEvidenciaUseCase,
+                             ConfirmarReporteUseCase confirmarReporte,
                              ReporteApiMapper mapper) {
         this.registrarReporte = registrarReporte;
         this.agregarEvidenciaUseCase = agregarEvidenciaUseCase;
@@ -90,7 +92,7 @@ public class ReporteController {
     public ResponseEntity<ReporteRespuesta> agregarEvidencia(
             @PathVariable("id") String id,
             @RequestParam("foto") MultipartFile foto) throws java.io.IOException {
-        var reporte = agregarEvidenciaUseCase.agregarEvidencia(id, foto.getOriginalFilename(), foto.getBytes());
+        var reporte = agregarEvidenciaUseCase.agregarEvidencia(id, foto.getContentType(), foto.getBytes());
         return ResponseEntity.ok(mapper.aRespuesta(reporte));
     }
 
@@ -104,8 +106,8 @@ public class ReporteController {
     @PostMapping(value = "/{id}/confirmar")
     public ResponseEntity<ReporteRespuesta> confirmar(
             @PathVariable("id") String id,
-            @Valid @RequestBody com.aguavigia.ctg.api.dto.SolicitudConfirmar solicitud) {
-        var reporte = confirmarReporte.confirmar(new com.aguavigia.ctg.domain.ReporteId(id), new HuellaDispositivo(solicitud.huella()));
+            @Valid @RequestBody SolicitudConfirmar solicitud) {
+        var reporte = confirmarReporte.confirmar(new ReporteId(id), new HuellaDispositivo(solicitud.huella()));
         return ResponseEntity.ok(mapper.aRespuesta(reporte));
     }
 }
