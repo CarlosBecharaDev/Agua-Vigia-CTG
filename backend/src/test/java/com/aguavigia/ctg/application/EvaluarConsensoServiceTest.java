@@ -11,8 +11,8 @@ import com.aguavigia.ctg.domain.Sector;
 import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.TipoEvento;
 import com.aguavigia.ctg.domain.TipoReporte;
+import com.aguavigia.ctg.domain.port.in.RegistrarEventoBitacoraUseCase;
 import com.aguavigia.ctg.domain.port.out.ContadorReportesPort;
-import com.aguavigia.ctg.domain.port.out.EventoBitacoraRepository;
 import com.aguavigia.ctg.domain.port.out.RelojPort;
 import com.aguavigia.ctg.domain.port.out.ReporteCiudadanoRepository;
 import com.aguavigia.ctg.domain.port.out.SectorRepository;
@@ -40,7 +40,7 @@ class EvaluarConsensoServiceTest {
     private ReporteCiudadanoRepository reportes;
     private ContadorReportesPort contadorReportes;
     private EstrategiaConsenso estrategia;
-    private EventoBitacoraRepository eventos;
+    private RegistrarEventoBitacoraUseCase registrarEvento;
     private EvaluarConsensoService servicio;
 
     @BeforeEach
@@ -49,9 +49,9 @@ class EvaluarConsensoServiceTest {
         reportes = mock(ReporteCiudadanoRepository.class);
         contadorReportes = mock(ContadorReportesPort.class);
         estrategia = mock(EstrategiaConsenso.class);
-        eventos = mock(EventoBitacoraRepository.class);
+        registrarEvento = mock(RegistrarEventoBitacoraUseCase.class);
         RelojPort reloj = () -> AHORA;
-        servicio = new EvaluarConsensoService(sectores, reportes, contadorReportes, estrategia, eventos, reloj, 30);
+        servicio = new EvaluarConsensoService(sectores, reportes, contadorReportes, estrategia, registrarEvento, reloj, 30);
     }
 
     private ReporteCiudadano reporte(String id, TipoReporte tipo) {
@@ -74,7 +74,7 @@ class EvaluarConsensoServiceTest {
         assertThat(resultado.reportesQueSustentan()).containsExactly(
                 new ReporteId("r1"), new ReporteId("r2"), new ReporteId("r3"));
         verify(sectores).guardar(sector.conEstado(EstadoServicio.SIN_SERVICIO));
-        verify(eventos).guardar(any(EventoBitacora.class));
+        verify(registrarEvento).registrar(any(EventoBitacora.class));
     }
 
     @Test
@@ -89,7 +89,7 @@ class EvaluarConsensoServiceTest {
         servicio.evaluar(SECTOR_ID);
 
         var captor = org.mockito.ArgumentCaptor.forClass(EventoBitacora.class);
-        verify(eventos).guardar(captor.capture());
+        verify(registrarEvento).registrar(captor.capture());
         assertThat(captor.getValue().tipo()).isEqualTo(TipoEvento.CORTE_CONFIRMADO_POR_CIUDADANOS);
         assertThat(captor.getValue().sectorId()).isEqualTo(SECTOR_ID);
     }
@@ -106,7 +106,7 @@ class EvaluarConsensoServiceTest {
         assertThat(resultado.alcanzado()).isFalse();
         assertThat(resultado.nuevoEstado()).isNull();
         verify(sectores, never()).guardar(any());
-        verify(eventos, never()).guardar(any());
+        verify(registrarEvento, never()).registrar(any());
     }
 
     @Test
@@ -122,7 +122,7 @@ class EvaluarConsensoServiceTest {
 
         assertThat(resultado.alcanzado()).isFalse();
         verify(sectores, never()).guardar(any());
-        verify(eventos, never()).guardar(any());
+        verify(registrarEvento, never()).registrar(any());
     }
 
     @Test
@@ -154,7 +154,7 @@ class EvaluarConsensoServiceTest {
 
         assertThat(resultado.alcanzado()).isFalse();
         verify(sectores, never()).guardar(any());
-        verify(eventos, never()).guardar(any());
+        verify(registrarEvento, never()).registrar(any());
     }
 
     @Test

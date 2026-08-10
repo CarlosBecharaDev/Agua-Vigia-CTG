@@ -24,9 +24,9 @@
 | Entidad | Campos clave | Nota |
 |---|---|---|
 | `Sector` | `id`, `nombre`, `poblacion: Integer?`, `estadoActual: EstadoServicio` | La geometría GeoJSON es dato de infraestructura (D3); el dominio solo necesita identidad, población y estado. `poblacion` es nulable: §3.1. |
-| `CorteAgua` | `id`, `sectoresAfectados: List<SectorId>`, `ventana: VentanaTiempo`, `causa`, `origen` (`OFICIAL_ACUACAR`\|`INGESTA_IA`\|`VEEDOR`), `estado` (`ANUNCIADO`\|`CONFIRMADO`\|`RESTABLECIDO`) | Se construye con **Builder** — impide `finPrometido < inicio` (recomendación explícita de `D2-backend-dominio.md` §4). |
+| `CorteAgua` | `id`, `sectoresAfectados: List<SectorId>`, `ventana: VentanaTiempo`, `causa`, `origen` (`OFICIAL_ACUACAR`\|`INGESTA_IA`\|`VEEDOR`), `estado` (`ANUNCIADO`\|`CONFIRMADO`\|`RESTABLECIDO`) | Se construye con **Builder** — impide `finPrometido < inicio` (recomendación explícita de `D2-backend-dominio.md` §4) y valida que `estado`/`ventana.finReal()` sean coherentes. Expone `cerrar(Instant finReal)` como única transición autorizada a `RESTABLECIDO` — cierra la ventana y marca el estado atómicamente, así ningún caller puede dejarlos inconsistentes. |
 | `ReporteCiudadano` | `id`, `sectorId`, `tipo` (`SIN_AGUA`\|`PRESION_BAJA`\|`SERVICIO_RESTABLECIDO`), `coordenada?`, `huella: HuellaDispositivo`, `timestamp` | RF005–RF007. |
-| `EventoBitacora` | `id`, `tipo`, `sectorId?`, `corteId?`, `timestamp`, `descripcion` | Inmutable, solo anexado. Se crea únicamente vía Factory Method, nunca por constructor público — RF026–028. |
+| `EventoBitacora` | `id`, `tipo`, `sectorId?`, `corteId?`, `timestamp`, `descripcion` | Inmutable, solo anexado. La creación de negocio pasa por `EventoBitacoraFactory`; el constructor del record sigue público solo para que `EventoBitacoraMongoAdapter` rehidrate eventos ya existentes — RF026–028. |
 
 ## 3. Patrones de diseño (evidencia SOLID/GoF para sustentación)
 
@@ -34,7 +34,7 @@
 |---|---|---|
 | **Strategy** | `EstrategiaConsenso`: `UmbralFijoEstrategia`, `UmbralProporcionalEstrategia` | RF010 · Sprint 2 |
 | **Builder** | `CorteAgua.Builder` | RF016 · Sprint 3 |
-| **Factory Method** | `EventoBitacoraFactory` | RF026 · Sprint 4 |
+| **Factory Method** | `EventoBitacoraFactory` — `corteAnunciado`, `corteRestablecido`, `consensoConfirmado` | RF026 · implementado |
 | **Specification** *(pendiente)* | Filtros de M7 (estadísticas) | Sprint 4, no urgente ahora |
 
 ### 3.1 Decisión — `Sector.poblacion` es nulable
