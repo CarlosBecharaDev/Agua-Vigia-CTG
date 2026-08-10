@@ -1,13 +1,17 @@
 package com.aguavigia.ctg.infrastructure.ingest;
 
 import com.aguavigia.ctg.domain.EstadoServicio;
+import com.aguavigia.ctg.domain.EventoBitacoraFactory;
 import com.aguavigia.ctg.domain.Sector;
+import com.aguavigia.ctg.domain.port.in.RegistrarEventoBitacoraUseCase;
+import com.aguavigia.ctg.domain.port.out.RelojPort;
 import com.aguavigia.ctg.domain.port.out.SectorRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -24,25 +28,31 @@ public class PipelineOrquestador {
     private final DeduplicadorReciente deduplicador;
     private final HeuristicaExtractor extractor;
     private final SectorRepository sectorRepository;
+    private final RegistrarEventoBitacoraUseCase registrarEvento;
+    private final RelojPort reloj;
 
     public PipelineOrquestador(AcuacarApiCollector acuacarApiCollector,
                                RssCollector rssCollector,
                                DeduplicadorReciente deduplicador,
                                HeuristicaExtractor extractor,
-                               SectorRepository sectorRepository) {
+                               SectorRepository sectorRepository,
+                               RegistrarEventoBitacoraUseCase registrarEvento,
+                               RelojPort reloj) {
         this.acuacarApiCollector = acuacarApiCollector;
         this.rssCollector = rssCollector;
         this.deduplicador = deduplicador;
         this.extractor = extractor;
         this.sectorRepository = sectorRepository;
+        this.registrarEvento = registrarEvento;
+        this.reloj = reloj;
     }
 
     /**
      * Ejecuta el pipeline periódicamente.
      */
-    @Scheduled(fixedDelayString = "${ingesta.intervalo.milisegundos:600000}")
+    @Scheduled(fixedDelayString = "${aguavigia.ingesta.intervalo-ms:600000}")
     public void ejecutarCiclo() {
-        java.time.Instant desde = java.time.Instant.now().minus(java.time.Duration.ofDays(1));
+        java.time.Instant desde = reloj.ahora().minus(Duration.ofDays(1));
         List<DocumentoCrudo> deAcuacar = acuacarApiCollector.obtenerDesde(desde);
         List<DocumentoCrudo> deRss = rssCollector.obtenerDesde(desde);
 
@@ -52,37 +62,48 @@ public class PipelineOrquestador {
                 .forEach(doc -> {
                     deduplicador.marcarComoVisto(doc.hash());
                     EventoExtraido evento = extractor.extraer(doc);
-                    enrutar(evento);
+                    enrutar(evento, doc.fuente());
                 });
     }
 
-    private void enrutar(EventoExtraido evento) {
-        if (evento.esInterrupcionDeAcueducto()) {
-            log.info("Reflejando evento en la base de datos: {} - Tipo: {}", evento.sectoresMencionados(), evento.tipo());
-            List<Sector> todosSectores = sectorRepository.listarTodos();
-            
-            EstadoServicio nuevoEstado = EstadoServicio.SIN_SERVICIO;
-            if ("PRESION_BAJA".equals(evento.tipo())) {
-                nuevoEstado = EstadoServicio.PRESION_BAJA;
-            } else if ("SERVICIO_NORMAL".equals(evento.tipo())) {
-                nuevoEstado = EstadoServicio.CON_SERVICIO;
-            }
-            
-            for (String sectorMencionado : evento.sectoresMencionados()) {
-                String mencionadoNorm = normalizarParaComparacion(sectorMencionado);
-                EstadoServicio estadoFinal = nuevoEstado;
-                todosSectores.stream()
-                        .filter(s -> normalizarParaComparacion(s.nombre()).contains(mencionadoNorm) || 
-                                     mencionadoNorm.contains(normalizarParaComparacion(s.nombre())))
-                        .forEach(s -> {
-                            Sector actualizado = s.conEstado(estadoFinal);
-                            sectorRepository.guardar(actualizado);
-                            log.info("Sector actualizado: {} a {}", s.nombre(), estadoFinal);
-                        });
-            }
+    private void enrutar(EventoExtraido evento, String fuente) {
+        if (!evento.esInterrupcionDeAcueducto()) {
+            return;
+        }
+        log.info("Reflejando evento en la base de datos: {} - Tipo: {}", evento.sectoresMencionados(), evento.tipo());
+        List<Sector> todosSectores = sectorRepository.listarTodos();
+
+        EstadoServicio nuevoEstado = switch (evento.tipo()) {
+            case "PRESION_BAJA" -> EstadoServicio.PRESION_BAJA;
+            case "SERVICIO_NORMAL" -> EstadoServicio.CON_SERVICIO;
+            default -> EstadoServicio.SIN_SERVICIO;
+        };
+
+        for (String sectorMencionado : evento.sectoresMencionados()) {
+            String mencionadoNorm = normalizarParaComparacion(sectorMencionado);
+            // Coincidencia exacta del nombre normalizado, no `contains`: una mención larga
+            // extraída de una nota de prensa contenía como substring el nombre de decenas de los
+            // 211 barrios sembrados, y un solo artículo podía pintar media Cartagena de rojo.
+            todosSectores.stream()
+                    .filter(s -> normalizarParaComparacion(s.nombre()).equals(mencionadoNorm))
+                    .forEach(s -> actualizarSector(s, nuevoEstado, fuente));
         }
     }
-    
+
+    private void actualizarSector(Sector sector, EstadoServicio nuevoEstado, String fuente) {
+        if (sector.estadoActual() == nuevoEstado) {
+            return;
+        }
+        Sector actualizado = sector.conEstado(nuevoEstado);
+        sectorRepository.guardar(actualizado);
+        log.info("Sector actualizado: {} a {}", sector.nombre(), nuevoEstado);
+
+        // RF026: la ingesta cambia estado igual que el consenso ciudadano, así que también anexa
+        // a la bitácora — antes lo hacía en silencio.
+        registrarEvento.registrar(EventoBitacoraFactory.detectadoPorIngesta(
+                sector.id(), nuevoEstado, fuente, reloj.ahora()));
+    }
+
     private String normalizarParaComparacion(String texto) {
         if (texto == null) return "";
         return texto.toLowerCase()
@@ -94,4 +115,3 @@ public class PipelineOrquestador {
                 .replaceAll("[^a-z0-9]", "");
     }
 }
-

@@ -45,4 +45,16 @@ public final class EventoBitacoraFactory {
                 "%d reportes ciudadanos independientes confirmaron %s en '%s'"
                         .formatted(cantidadReportes, nuevoEstado, sectorId.valor()));
     }
+
+    /** M9 — RF026: la ingesta automatizada cambia estado igual que el consenso ciudadano, así que también anexa. */
+    public static EventoBitacora detectadoPorIngesta(SectorId sectorId, EstadoServicio nuevoEstado,
+                                                       String fuente, Instant ahora) {
+        return new EventoBitacora(
+                new EventoId(UUID.randomUUID().toString()),
+                TipoEvento.CORTE_DETECTADO_POR_INGESTA,
+                sectorId,
+                null,
+                ahora,
+                "Ingesta automatizada (%s) detectó %s en '%s'".formatted(fuente, nuevoEstado, sectorId.valor()));
+    }
 }

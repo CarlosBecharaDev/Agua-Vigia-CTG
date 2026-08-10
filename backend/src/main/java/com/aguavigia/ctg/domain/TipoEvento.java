@@ -4,5 +4,6 @@ package com.aguavigia.ctg.domain;
 public enum TipoEvento {
     CORTE_ANUNCIADO,
     CORTE_CONFIRMADO_POR_CIUDADANOS,
-    CORTE_RESTABLECIDO
+    CORTE_RESTABLECIDO,
+    CORTE_DETECTADO_POR_INGESTA
 }
