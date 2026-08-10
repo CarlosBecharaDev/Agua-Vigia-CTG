@@ -2,18 +2,16 @@ package com.aguavigia.ctg.application;
 
 import com.aguavigia.ctg.domain.EstadoServicio;
 import com.aguavigia.ctg.domain.EstrategiaConsenso;
-import com.aguavigia.ctg.domain.EventoBitacora;
-import com.aguavigia.ctg.domain.EventoId;
+import com.aguavigia.ctg.domain.EventoBitacoraFactory;
 import com.aguavigia.ctg.domain.ReporteCiudadano;
 import com.aguavigia.ctg.domain.ReporteId;
 import com.aguavigia.ctg.domain.Sector;
 import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.ResultadoConsenso;
-import com.aguavigia.ctg.domain.TipoEvento;
 import com.aguavigia.ctg.domain.TipoReporte;
 import com.aguavigia.ctg.domain.port.in.EvaluarConsensoUseCase;
+import com.aguavigia.ctg.domain.port.in.RegistrarEventoBitacoraUseCase;
 import com.aguavigia.ctg.domain.port.out.ContadorReportesPort;
-import com.aguavigia.ctg.domain.port.out.EventoBitacoraRepository;
 import com.aguavigia.ctg.domain.port.out.RelojPort;
 import com.aguavigia.ctg.domain.port.out.ReporteCiudadanoRepository;
 import com.aguavigia.ctg.domain.port.out.SectorRepository;
@@ -23,7 +21,6 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -39,7 +36,7 @@ public class EvaluarConsensoService implements EvaluarConsensoUseCase {
     private final ReporteCiudadanoRepository reportes;
     private final ContadorReportesPort contadorReportes;
     private final EstrategiaConsenso estrategia;
-    private final EventoBitacoraRepository eventos;
+    private final RegistrarEventoBitacoraUseCase registrarEvento;
     private final RelojPort reloj;
     private final Duration ventanaConsenso;
 
@@ -47,14 +44,14 @@ public class EvaluarConsensoService implements EvaluarConsensoUseCase {
                                    ReporteCiudadanoRepository reportes,
                                    ContadorReportesPort contadorReportes,
                                    EstrategiaConsenso estrategia,
-                                   EventoBitacoraRepository eventos,
+                                   RegistrarEventoBitacoraUseCase registrarEvento,
                                    RelojPort reloj,
                                    @Value("${aguavigia.consenso.ventana-minutos:30}") long ventanaMinutos) {
         this.sectores = sectores;
         this.reportes = reportes;
         this.contadorReportes = contadorReportes;
         this.estrategia = estrategia;
-        this.eventos = eventos;
+        this.registrarEvento = registrarEvento;
         this.reloj = reloj;
         this.ventanaConsenso = Duration.ofMinutes(ventanaMinutos);
     }
@@ -81,14 +78,8 @@ public class EvaluarConsensoService implements EvaluarConsensoUseCase {
         sectores.guardar(sector.conEstado(nuevoEstado));
 
         List<ReporteId> ids = sustento.stream().map(ReporteCiudadano::id).toList();
-        eventos.guardar(new EventoBitacora(
-                new EventoId(UUID.randomUUID().toString()),
-                TipoEvento.CORTE_CONFIRMADO_POR_CIUDADANOS,
-                sectorId,
-                null,
-                reloj.ahora(),
-                "%d reportes ciudadanos independientes confirmaron %s en '%s'"
-                        .formatted(sustento.size(), nuevoEstado, sectorId.valor())));
+        registrarEvento.registrar(EventoBitacoraFactory.consensoConfirmado(
+                sectorId, nuevoEstado, sustento.size(), reloj.ahora()));
 
         return new ResultadoConsenso(sectorId, true, nuevoEstado, ids);
     }

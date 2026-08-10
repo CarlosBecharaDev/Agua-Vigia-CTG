@@ -55,6 +55,25 @@ public final class CorteAgua {
         return estado;
     }
 
+    /** RF017 — única vía autorizada para restablecer un corte: cierra la ventana y marca el
+     * estado atómicamente, así nunca puede existir un CorteAgua con estado/ventana incoherentes
+     * por esta vía. */
+    public CorteAgua cerrar(Instant finReal) {
+        if (ventana.estaCerrada()) {
+            throw new IllegalStateException("El corte '" + id.valor() + "' ya está cerrado");
+        }
+        return builder()
+                .id(id)
+                .sectoresAfectados(sectoresAfectados)
+                .inicio(ventana.inicio())
+                .finPrometido(ventana.finPrometido())
+                .finReal(finReal)
+                .causa(causa)
+                .origen(origen)
+                .estado(EstadoCorte.RESTABLECIDO)
+                .build();
+    }
+
     public static final class Builder {
         private CorteId id;
         private final List<SectorId> sectoresAfectados = new ArrayList<>();
@@ -118,6 +137,11 @@ public final class CorteAgua {
             Objects.requireNonNull(origen, "El corte debe tener origen");
             // VentanaTiempo valida finPrometido > inicio al construirse — no se puede rodear.
             VentanaTiempo ventana = new VentanaTiempo(inicio, finPrometido, finReal);
+            if (ventana.estaCerrada() != (estado == EstadoCorte.RESTABLECIDO)) {
+                throw new IllegalStateException(
+                        "El estado '" + estado + "' es incoherente con la ventana ("
+                                + (ventana.estaCerrada() ? "cerrada" : "abierta") + ")");
+            }
             return new CorteAgua(this, ventana);
         }
     }

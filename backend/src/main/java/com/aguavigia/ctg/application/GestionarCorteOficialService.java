@@ -2,11 +2,8 @@ package com.aguavigia.ctg.application;
 
 import com.aguavigia.ctg.domain.CorteAgua;
 import com.aguavigia.ctg.domain.CorteId;
-import com.aguavigia.ctg.domain.EstadoCorte;
-import com.aguavigia.ctg.domain.EventoBitacora;
-import com.aguavigia.ctg.domain.EventoId;
+import com.aguavigia.ctg.domain.EventoBitacoraFactory;
 import com.aguavigia.ctg.domain.SectorId;
-import com.aguavigia.ctg.domain.TipoEvento;
 import com.aguavigia.ctg.domain.port.in.GestionarCorteOficialUseCase;
 import com.aguavigia.ctg.domain.port.in.RegistrarEventoBitacoraUseCase;
 import com.aguavigia.ctg.domain.port.out.CorteAguaRepository;
@@ -15,7 +12,6 @@ import com.aguavigia.ctg.domain.port.out.SectorRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.UUID;
 
 /**
  * RF016-RF017 — el veedor registra un corte oficial y lo cierra con la hora real de
@@ -57,8 +53,7 @@ public class GestionarCorteOficialService implements GestionarCorteOficialUseCas
 
         CorteAgua guardado = cortes.guardar(corte);
         for (SectorId sectorId : guardado.sectoresAfectados()) {
-            anexarEvento(guardado, sectorId, TipoEvento.CORTE_ANUNCIADO,
-                    "Corte oficial anunciado en '%s': %s".formatted(sectorId.valor(), guardado.causa()));
+            registrarEvento.registrar(EventoBitacoraFactory.corteAnunciado(guardado, sectorId, reloj.ahora()));
         }
         return guardado;
     }
@@ -69,36 +64,12 @@ public class GestionarCorteOficialService implements GestionarCorteOficialUseCas
                 .orElseThrow(() -> new IllegalArgumentException(
                         "No existe el corte '" + corteId.valor() + "'"));
 
-        if (corte.ventana().estaCerrada()) {
-            throw new IllegalStateException("El corte '" + corteId.valor() + "' ya está cerrado");
-        }
-
-        CorteAgua cerrado = CorteAgua.builder()
-                .id(corte.id())
-                .sectoresAfectados(corte.sectoresAfectados())
-                .inicio(corte.ventana().inicio())
-                .finPrometido(corte.ventana().finPrometido())
-                .finReal(horaReal)
-                .causa(corte.causa())
-                .origen(corte.origen())
-                .estado(EstadoCorte.RESTABLECIDO)
-                .build();
+        CorteAgua cerrado = corte.cerrar(horaReal);
 
         CorteAgua guardado = cortes.guardar(cerrado);
         for (SectorId sectorId : guardado.sectoresAfectados()) {
-            anexarEvento(guardado, sectorId, TipoEvento.CORTE_RESTABLECIDO,
-                    "Corte restablecido en '%s'".formatted(sectorId.valor()));
+            registrarEvento.registrar(EventoBitacoraFactory.corteRestablecido(guardado, sectorId, reloj.ahora()));
         }
         return guardado;
-    }
-
-    private void anexarEvento(CorteAgua corte, SectorId sectorId, TipoEvento tipo, String descripcion) {
-        registrarEvento.registrar(new EventoBitacora(
-                new EventoId(UUID.randomUUID().toString()),
-                tipo,
-                sectorId,
-                corte.id(),
-                reloj.ahora(),
-                descripcion));
     }
 }
