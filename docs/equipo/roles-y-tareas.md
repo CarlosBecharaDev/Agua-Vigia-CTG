@@ -42,8 +42,8 @@ salida prevista desde que se escribió `ADR-011`. Detalle de ambos movimientos: 
 | **D1** | Full-Stack · Notificaciones y Bitácora | **M4** Alertas · **M8** Bitácora | `application/`, `infrastructure/mail/`, `api/`, `frontend/` | Informe metodológico (Cap. I–IV), Anexos 1–4 |
 | **D2** | Backend · Dominio y Aplicación | **M3** Consenso · **M6** Índice de Cumplimiento ⭐ | `domain/`, `application/` | Diagrama de clases, patrones y demostración SOLID |
 | **D3** | Backend · Infraestructura e Integraciones | **M2** Reporte · **M5** Veedor · **M9** Ingesta IA ⭐ | `infrastructure/`, `api/` | Anexo 6 (modelo de datos), diagramas de componentes, OpenAPI |
-| **D4** | Frontend | **M1** Mapa · **M2** UI · **M5** UI | `frontend/` (React 19 + TS) | Prototipos, manual de usuario, accesibilidad WCAG AA |
-| **D5** | DevOps · QA · Datos geoespaciales | **M7** Estadísticas + infraestructura global | Docker, CI/CD, E2E, GeoJSON | Anexo 5 (plan de pruebas), manual técnico |
+| **D4** | Frontend | **M1** Mapa · **M2** UI · **M5** UI · **M7** UI | `frontend/` (React 19 + TS) | Prototipos, manual de usuario, accesibilidad WCAG AA |
+| **D5** | DevOps · QA · Datos geoespaciales | **M7** Métricas + infraestructura global | Docker, CI/CD, E2E, GeoJSON | Anexo 5 (plan de pruebas), manual técnico |
 
 **Ficha detallada de cada rol** — especificación, tareas por sprint y definición de terminado:
 
@@ -165,7 +165,7 @@ Detalle y tareas por sprint: [`D3-backend-infraestructura.md`](D3-backend-infrae
 
 ## D4 — Frontend
 
-**Dueño de:** M1 (mapa en vivo), M2 (UI de reporte), M5 (UI del panel del veedor).
+**Dueño de:** M1 (mapa en vivo), M2 (UI de reporte), M5 (UI del panel del veedor), M7 (UI de estadísticas).
 **Capa:** `frontend/` (React 19 + Vite + TypeScript). Responde por el cumplimiento de `DESIGN.md`.
 
 Detalle y tareas por sprint: [`D4-frontend.md`](D4-frontend.md)
@@ -174,7 +174,7 @@ Detalle y tareas por sprint: [`D4-frontend.md`](D4-frontend.md)
 
 ## D5 — DevOps · QA · Datos geoespaciales
 
-**Dueño de:** M7 (estadísticas) e infraestructura global.
+**Dueño de:** M7 (Métricas y contrato de estadísticas) e infraestructura global.
 **Capas:** Docker, CI/CD, GeoJSON, Playwright. Es quien habilita a todos los demás en el Sprint 0.
 
 Detalle y tareas por sprint: [`D5-devops-qa.md`](D5-devops-qa.md)

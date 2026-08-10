@@ -13,4 +13,6 @@ public interface NotificacionPort {
      * contrato de dominio.
      */
     void enviarConfirmacionSuscripcion(Suscripcion suscripcion, List<Sector> sectoresSuscritos);
+
+    void avisarCambioDeEstado(Suscripcion suscripcion, Sector sector);
 }

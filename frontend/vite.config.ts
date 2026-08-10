@@ -84,10 +84,15 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    target: 'esnext',
+    cssCodeSplit: true,
+  },
   // @ts-ignore - Vitest types
   test: {
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/setupTests.ts',
+    exclude: ['node_modules', 'tests/e2e/**'],
   }
 })

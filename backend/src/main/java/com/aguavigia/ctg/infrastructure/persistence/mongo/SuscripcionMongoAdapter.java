@@ -8,6 +8,7 @@ import com.aguavigia.ctg.domain.SuscripcionId;
 import com.aguavigia.ctg.domain.port.out.SuscripcionRepository;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -36,6 +37,14 @@ public class SuscripcionMongoAdapter implements SuscripcionRepository {
     @Override
     public Optional<Suscripcion> buscarPorToken(String token) {
         return repositorio.findByTokenConfirmacion(token).map(SuscripcionMongoAdapter::aDominio);
+    }
+
+    @Override
+    public List<Suscripcion> buscarConfirmadasPorSector(SectorId sectorId) {
+        return repositorio.findBySectorIdsContainingAndEstado(sectorId.valor(), EstadoSuscripcion.CONFIRMADA.name())
+                .stream()
+                .map(SuscripcionMongoAdapter::aDominio)
+                .toList();
     }
 
     private static Suscripcion aDominio(SuscripcionDocumento documento) {

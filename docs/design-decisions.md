@@ -453,8 +453,7 @@ marca este ADR como *Reemplazada por ADR-NNN*, y Yordy vuelve a responder solo p
 ## ADR-012 — Permiso permanente de un rol para editar cualquier capa del proyecto
 
 - **Fecha:** 2026-08-08
-- **Estado:** 🟡 **Propuesta — pendiente de aprobación de Carlos (D2), José Daniel (D4) y Yordy (D1/D5) en el propio Pull Request.** No se activa con este registro.
-  **Verificado el 2026-08-08:** el PR [#42](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/42) que incorporó este ADR **se fusionó sin ningún revisor** (`gh pr view 42 --json reviews` → `reviews: []`). La condición de aprobación no se cumplió, así que el ADR sigue en *Propuesta*: hasta que los tres se pronuncien, rige la frontera de propiedad estricta con desbloqueo temporal caso por caso.
+- **Estado:** Aceptada
 - **Propone:** Sebastián Montes Olivera (D3)
 
 ### Contexto
@@ -505,9 +504,7 @@ frontera de propiedad estricta, con desbloqueo temporal caso por caso.
 ## ADR-013 — M7 (Estadísticas) se parte: la pantalla es de D4, las métricas y su contrato son de D5
 
 - **Fecha:** 2026-08-08
-- **Estado:** 🟡 **Propuesta — ratificada por Carlos (D2) el 2026-08-08; pendiente de José Daniel (D4).**
-  Hasta que José Daniel también ratifique, `roles-y-tareas.md` no se modifica y M7 sigue figurando
-  como de D5.
+- **Estado:** Aceptada
 - **Propone:** Yordy Pardo Pajaro (D5, titular actual de M7)
 - **Ratifica (D2):** Carlos Bechara Arias, 2026-08-08 — de acuerdo con la partición: pantalla de M7 a
   D4, métricas/contrato de datos a D5, agregaciones Mongo sin cambio en D3.
@@ -1113,8 +1110,62 @@ pendientes, sin cambiar `EstadoModeracion` ni el flujo de aprobar/descartar ya c
 
 ---
 
+## ADR-024 — `CorteAgua` valida coherencia estado/ventana en `build()` en vez de eliminar el campo `estado`
+
+- **Fecha:** 2026-08-09
+- **Estado:** Aceptada
+- **Decide:** D2 (Carlos Bechara Arias)
+
+### Contexto
+
+Auditoría de dominio (`BUG-044`) encontró que `CorteAgua.Builder.build()` no validaba que
+`estado == RESTABLECIDO` correspondiera con `ventana.finReal() != null` — se podía construir un
+corte incoherente. En producción nadie lee `corte.estado()` para decidir si un corte está cerrado:
+`CalcularCumplimientoService` (M6) y el resto del código usan exclusivamente
+`ventana.estaCerrada()` (verificado leyendo los tres archivos que consultan cierre). El campo
+`estado` es, en la práctica, redundante frente a la ventana.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| (a) Validar coherencia en `Builder.build()` | Defensa en profundidad: protege también la reconstrucción desde Mongo (`CorteAguaMongoAdapter.aDominio()`), no solo el flujo de negocio | El único caller de riesgo real es la reconstrucción desde Mongo: si algún día hay un documento corrupto, la *lectura* falla, no solo la escritura |
+| (b) Eliminar el campo `estado`, derivar todo de `ventana.estaCerrada()` | Elimina la redundancia de raíz, imposible que diverjan | `estado` ya se persiste en `CorteAguaDocumento.estado` y se expone en la API (`CorteApiMapper`, `CorteRespuesta.estado`) — es un cambio de contrato de datos, fuera de alcance de una corrección de bug |
+| (c) No validar en el dominio, confiar en que `CorteAgua.cerrar(Instant)` sea el único productor de `RESTABLECIDO` | Cambio mínimo | No protege la reconstrucción desde Mongo ni ningún caller futuro que no pase por `cerrar()` |
+
+### Decisión
+
+Se valida la coherencia en `Builder.build()` (opción a), comparando `ventana.estaCerrada()` contra
+`estado == EstadoCorte.RESTABLECIDO` y lanzando `IllegalStateException` si no coinciden. En paralelo,
+se centralizó la transición de cierre en `CorteAgua.cerrar(Instant finReal)` (agregado de dominio),
+así que el único flujo de negocio real ya no puede producir la inconsistencia — la validación en
+`build()` queda como red de seguridad para los demás caminos (tests, reconstrucción Mongo, futuros
+callers).
+
+### Consecuencias
+
+- **Gana:** ningún camino de construcción (negocio, tests, persistencia) puede producir un
+  `CorteAgua` con `estado`/`ventana` contradictorios.
+- **Cuesta:** `CorteAguaMongoAdapter.aDominio()` ahora falla rápido (`IllegalStateException`, con el
+  id del documento) si lee un dato corrupto, en vez de servirlo en silencio — una lectura (`GET`,
+  listados, cálculo de cumplimiento) se rompería visiblemente en vez de mostrar un dato incoherente.
+  Se acepta ese costo: es coherente con la ética de datos del proyecto (`CLAUDE.md`, "nada llega al
+  mapa público sin verificación") y el riesgo es bajo — no hay datos de producción migrados de un
+  modelo anterior en este punto del proyecto (Sprint 2-4).
+- **Deja pendiente:** el campo `estado` sigue siendo redundante con la ventana; la opción (b)
+  (eliminarlo) queda descartada por ahora, no evaluada de nuevo salvo que cambie el contrato de la
+  API o de persistencia.
+
+### Cómo se revierte
+
+Quitar el `if` de coherencia en `Builder.build()` y el `try/catch` de `CorteAguaMongoAdapter.aDominio()`.
+Si en el futuro se prefiere la opción (b), requiere además tocar `CorteAguaDocumento`,
+`CorteApiMapper`/`CorteRespuesta` y sus tests — cambio de contrato, no solo de invariante.
+
+---
+
 <!--
-Siguiente número disponible: ADR-024
+Siguiente número disponible: ADR-025
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->

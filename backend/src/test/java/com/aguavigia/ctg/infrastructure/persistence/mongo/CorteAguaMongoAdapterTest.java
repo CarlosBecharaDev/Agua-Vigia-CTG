@@ -21,6 +21,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Prueba de integracion del adaptador contra un MongoDB real (DoD de D3, punto 1), igual que
@@ -120,5 +121,23 @@ class CorteAguaMongoAdapterTest {
         assertThat(recuperado.estado()).isEqualTo(EstadoCorte.RESTABLECIDO);
         assertThat(recuperado.ventana().estaCerrada()).isTrue();
         assertThat(recuperado.ventana().finReal()).isEqualTo(finReal);
+    }
+
+    @Test
+    void debeFallarAlLeerUnDocumentoConEstadoIncoherenteConLaVentana() {
+        CorteAguaDocumento documento = new CorteAguaDocumento();
+        documento.setId("corte-corrupto");
+        documento.setSectoresAfectados(List.of("manga"));
+        documento.setInicio(INICIO);
+        documento.setFinPrometido(INICIO.plus(6, ChronoUnit.HOURS));
+        documento.setFinReal(null);
+        documento.setCausa("Mantenimiento planta El Bosque");
+        documento.setOrigen(OrigenCorte.OFICIAL_ACUACAR.name());
+        documento.setEstado(EstadoCorte.RESTABLECIDO.name());
+        mongoTemplate.save(documento);
+
+        assertThatThrownBy(() -> adaptador.buscarPorId(new CorteId("corte-corrupto")))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("corte-corrupto");
     }
 }

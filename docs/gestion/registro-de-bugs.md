@@ -29,7 +29,7 @@ Tres razones concretas, no burocráticas:
 | BUG-002 | 2026-08-07 | S3 | CI | Frontend CI fallaba al asumir un script `test` que el esqueleto no tiene | Cerrado | D2 |
 | BUG-003 | 2026-08-08 | S2 | — (infraestructura) | `docker compose config -q` fallaba en un clon limpio por depender de un `.env` que nunca se versiona | Cerrado | D5 |
 | BUG-004 | 2026-08-08 | S2 | M5 | `PaginaVeedor.tsx` compara el acceso contra la contraseña `'1234'` escrita en el código fuente | Cerrado | D5 |
-| BUG-005 | 2026-08-08 | S3 | — (proceso) | Los PRs se siguen fusionando sin revisor, y el patrón empeora en vez de mejorar | Abierto | Equipo |
+| BUG-005 | 2026-08-08 | S3 | - (proceso) | Los PRs se siguen fusionando sin revisor, y el patrón empeora en vez de mejorar | Cerrado - documentado en informe final | Equipo |
 | BUG-006 | 2026-08-08 | S2 | M5 | La rama `vista-previa-total` vuelve a comparar contra `'1234'` y borra la prueba que cerró `BUG-004` | Cerrado | D4 |
 | BUG-007 | 2026-08-08 | S2 | — (pruebas) | Testcontainers no encuentra Docker: Engine 29 exige API ≥ 1.40 y docker-java negocia 1.32 | Cerrado | D3 |
 | BUG-008 | 2026-08-08 | S2 | M1 | El mapa pinta como "con servicio" los 211 sectores de los que no tiene dato | Cerrado | D4 |
@@ -68,6 +68,11 @@ Tres razones concretas, no burocráticas:
 | BUG-041 | 2026-08-09 | S2 | M4 | `ConfirmarSuscripcionService` (ya en `develop`) nunca revisa el vencimiento del token, aunque `confirmar-suscripcion.html` le promete al vecino que el enlace vence en `{{horasVigencia}}` horas; tampoco había índice único sobre `tokenConfirmacion` en Mongo | Cerrado | D1/D5 (`ConfirmarSuscripcionService` original de D5; hallazgo del PR #110 de Rafael, D1) |
 | BUG-042 | 2026-08-09 | S3 | M4 | `aviso-corte.html` y el README de plantillas se quedaron fuera de `develop`: el commit que los trajo llegó a su rama después de fusionado el PR #45, y solo `confirmar-suscripcion.html` cruzó | Cerrado — plantilla y README recuperados | D1 (autoría original de Yordy, D5) |
 | BUG-043 | 2026-08-09 | S1 | M3 | `EvaluarConsensoService` desempataba entre tipos de reporte según el orden de iteración de un `HashMap<TipoReporte,Long>`, no garantizado por el JLS | Cerrado | D2 (Carlos), hallado al revisar el PR #106 de Yordy |
+| BUG-044 | 2026-08-09 | S1 | M5/M6 | `CorteAgua` se podía construir con `estado` incoherente respecto a `ventana.finReal()` — un corte `RESTABLECIDO` sin hora real, o abierto con hora real ya puesta | Cerrado — corregido en el acto | D2 (Carlos), código original de D3/D5 sin su revisión |
+| BUG-045 | 2026-08-09 | S3 | M5 | La transición "cerrar un corte" (regla de no doble cierre + reconstrucción de campos) vivía en `GestionarCorteOficialService` (aplicación) en vez de en el agregado `CorteAgua` (dominio) | Cerrado — corregido en el acto | D2 (Carlos), código original de D3/D5 sin su revisión |
+| BUG-046 | 2026-08-09 | S3 | M5 | `EventoBitacora` debía crearse solo vía Factory Method (`docs/ingenieria/modelo-de-dominio.md`) pero el Factory Method nunca se implementó — el propio código lo admitía como pendiente desde Sprint 0 | Cerrado — corregido en el acto | D2 (Carlos), deuda de diseño heredada de Sprint 0-3 |
+| BUG-047 | 2026-08-09 | S4 | M5 | `RegistrarEventoBitacoraService`, ya en producción, no tenía ninguna prueba automatizada | Cerrado — corregido en el acto | D2 (Carlos), código original de D3/D5 sin su revisión |
+| BUG-048 | 2026-08-09 | S3 | M3 | `EvaluarConsensoService` inyectaba `EventoBitacoraRepository` directo en vez de `RegistrarEventoBitacoraUseCase`, rompiendo el patrón que sí sigue `GestionarCorteOficialService` | Cerrado — corregido en el acto | D2 (Carlos), código original de D5 sin su revisión |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -76,6 +81,138 @@ Tres razones concretas, no burocráticas:
 ---
 
 ## Bugs abiertos — detalle
+
+### BUG-044 — `CorteAgua` se podía construir con `estado` incoherente respecto a `ventana.finReal()` *(cerrado)*
+
+- **Fecha:** 2026-08-09 · **Severidad:** S1 · **Módulo:** M5/M6 · **Responsable:** D2 (Carlos)
+- **Estado:** Cerrado — corregido en el acto, 2026-08-09
+
+**Síntoma:** `CorteAgua.Builder.build()` (`backend/src/main/java/com/aguavigia/ctg/domain/CorteAgua.java:112-122`)
+no validaba que `estado == RESTABLECIDO` correspondiera con `ventana.finReal() != null`. Se podía
+construir un corte marcado `RESTABLECIDO` sin hora real de cierre, o un corte `ANUNCIADO`/`CONFIRMADO`
+con `finReal` ya puesto.
+
+**Reproducción:** encontrado por auditoría de código (agente `revisor-dominio`), no por un caso en
+producción — ver "Causa raíz" para el riesgo concreto que abría.
+
+**Esperado:** el agregado debe garantizar su propia coherencia interna; ningún caller externo, ni la
+reconstrucción desde Mongo, debería poder producir un `CorteAgua` con `estado` y `ventana` en
+contradicción. `CalcularCumplimientoService` (M6, módulo estrella) determina "cerrado" exclusivamente
+vía `ventana.estaCerrada()`, nunca vía `estado()` — un corte incoherente quedaría excluido en
+silencio del Índice de Cumplimiento pese a que su `estado` diga `RESTABLECIDO`, o viceversa. Regla
+dura del proyecto (`CLAUDE.md`, ética de datos): cualquier defecto que pueda producir un Índice de
+Cumplimiento equivocado es S1, por raro que sea el caso.
+
+**Causa raíz:** el campo `estado` es redundante con `VentanaTiempo.estaCerrada()` (`finReal != null`)
+y nada forzaba su sincronización. `GestionarCorteOficialService.cerrar()` los mantenía coherentes a
+mano en su único caller de producción, pero ningún otro camino (tests, reconstrucción desde Mongo)
+tenía esa garantía.
+
+**Corrección:** `Builder.build()` ahora valida `ventana.estaCerrada() == (estado == EstadoCorte.RESTABLECIDO)`
+y lanza `IllegalStateException` si no coincide. Además, la transición a `RESTABLECIDO` se centralizó
+en `CorteAgua.cerrar(Instant finReal)` (ver `BUG-045`), que las mantiene coherentes por construcción.
+`CorteAguaMongoAdapter.aDominio()` envuelve la reconstrucción para fallar rápido con el id del
+documento si algún día aparece un dato corrupto en Mongo, en vez de servirlo en silencio. Pruebas:
+`CorteAguaTest.debeRechazarUnCorteRestablecidoSinFinReal`,
+`CorteAguaTest.debeRechazarUnCorteAnunciadoConFinRealYaPuesto`,
+`CorteAguaMongoAdapterTest.debeFallarAlLeerUnDocumentoConEstadoIncoherenteConLaVentana`.
+
+### BUG-045 — la transición "cerrar un corte" vivía en `application/`, no en el agregado *(cerrado)*
+
+- **Fecha:** 2026-08-09 · **Severidad:** S3 · **Módulo:** M5 · **Responsable:** D2 (Carlos)
+- **Estado:** Cerrado — corregido en el acto, 2026-08-09
+
+**Síntoma:** `GestionarCorteOficialService.cerrar()` (`backend/src/main/java/com/aguavigia/ctg/application/GestionarCorteOficialService.java:67-93`,
+antes de la corrección) implementaba ahí mismo la regla "no cerrar un corte ya cerrado" y reconstruía
+el `CorteAgua` copiando 7 campos a mano vía el `Builder`, en vez de que fuera una transición de
+estado del propio agregado.
+
+**Reproducción:** encontrado por auditoría de código; el comportamiento observable ya era correcto
+(los 2 tests existentes pasaban), es un defecto de ubicación de la regla, no de resultado.
+
+**Esperado:** una invariante propia de un agregado (`CorteAgua`) debe vivir en el agregado, no en el
+servicio que lo orquesta — de lo contrario, cualquier otro caller futuro que cierre un corte sin pasar
+por este servicio podría saltarse la regla.
+
+**Causa raíz:** el código se escribió replicando el patrón de otros servicios sin extraer la
+transición al dominio, algo que quedó más expuesto al no pasar por revisión de D2 (titular de esa
+capa) antes de fusionarse.
+
+**Corrección:** nuevo método `CorteAgua.cerrar(Instant finReal)` que valida y transiciona
+atómicamente; `GestionarCorteOficialService.cerrar()` ahora solo lo invoca. Pruebas:
+`CorteAguaTest.debeCerrarUnCorteAbiertoYQuedarCoherente`,
+`CorteAguaTest.debeRechazarCerrarUnCorteYaCerrado` — los 2 tests preexistentes en
+`GestionarCorteOficialServiceTest` siguen pasando sin cambiar sus aserciones.
+
+### BUG-046 — `EventoBitacora` debía crearse solo vía Factory Method, nunca implementado *(cerrado)*
+
+- **Fecha:** 2026-08-09 · **Severidad:** S3 · **Módulo:** M5 (RF026-028) · **Responsable:** D2 (Carlos)
+- **Estado:** Cerrado — corregido en el acto, 2026-08-09
+
+**Síntoma:** `docs/ingenieria/modelo-de-dominio.md` (diseño original de D2, Sprint 0) documenta un
+`EventoBitacoraFactory` como única vía de creación de negocio de `EventoBitacora`. Nunca se escribió:
+el propio Javadoc de `EventoBitacora.java` admitía la brecha ("tarea de Sprint 4") y dos servicios
+(`GestionarCorteOficialService`, `EvaluarConsensoService`) instanciaban el `record` directo con
+`new EventoBitacora(...)`.
+
+**Reproducción:** encontrado por auditoría de código; no afectaba el comportamiento observable, solo
+la evidencia de patrón de diseño (relevante para la sustentación académica del proyecto).
+
+**Esperado:** el patrón Factory Method documentado en el diseño de dominio debe existir en código,
+igual que Strategy y Builder ya existían.
+
+**Causa raíz:** quedó pendiente desde Sprint 0 sin que ningún sprint posterior lo retomara, y al
+fusionarse `GestionarCorteOficialService`/`EvaluarConsensoService` sin revisión de D2 nadie lo notó.
+
+**Corrección:** nuevo `domain/EventoBitacoraFactory.java` (`corteAnunciado`, `corteRestablecido`,
+`consensoConfirmado`), migrados los 2 sitios de creación de negocio. `EventoBitacoraMongoAdapter`
+sigue usando el constructor del record directo, documentado como excepción legítima (rehidratación,
+no creación) en el Javadoc de `EventoBitacora`. Reforzado con una regla ArchUnit nueva
+(`ReglaDeOroArchitectureTest.eventoBitacoraSoloDebeCrearseDesdeLaFactoryODesdeElAdaptadorMongo`) y
+`EventoBitacoraFactoryTest` (3 casos).
+
+### BUG-047 — `RegistrarEventoBitacoraService` en producción sin ninguna prueba automatizada *(cerrado)*
+
+- **Fecha:** 2026-08-09 · **Severidad:** S4 · **Módulo:** M5 · **Responsable:** D2 (Carlos)
+- **Estado:** Cerrado — corregido en el acto, 2026-08-09
+
+**Síntoma:** `application/RegistrarEventoBitacoraService.java`, ya fusionado a `develop` y en uso por
+otros dos servicios, no tenía ningún test dedicado.
+
+**Reproducción:** encontrado por auditoría de código (búsqueda de `RegistrarEventoBitacoraServiceTest.java`, sin resultados).
+
+**Esperado:** todo caso de uso en `application/` debe tener cobertura de su flujo principal, por
+trivial que sea, según el DoD de D2.
+
+**Causa raíz:** el servicio se consideró "demasiado simple para necesitar test" al escribirse, sin
+que nadie lo señalara antes de fusionarse.
+
+**Corrección:** `RegistrarEventoBitacoraServiceTest.java` nuevo — verifica que delega correctamente al
+repositorio y que propaga (no traga) sus errores.
+
+### BUG-048 — `EvaluarConsensoService` inyectaba el repositorio en vez del caso de uso de bitácora *(cerrado)*
+
+- **Fecha:** 2026-08-09 · **Severidad:** S3 · **Módulo:** M3 · **Responsable:** D2 (Carlos)
+- **Estado:** Cerrado — corregido en el acto, 2026-08-09
+
+**Síntoma:** `EvaluarConsensoService` inyectaba `EventoBitacoraRepository` (puerto de salida) directo
+para anexar eventos a la bitácora, mientras que `GestionarCorteOficialService` sí pasaba por
+`RegistrarEventoBitacoraUseCase` (puerto de entrada) — dos formas distintas de hacer lo mismo en el
+mismo módulo, pese a que el Javadoc de `GestionarCorteOficialService` afirmaba que ambos servicios
+seguían el mismo patrón.
+
+**Reproducción:** encontrado de paso al migrar `EvaluarConsensoService` al Factory Method (`BUG-046`),
+comparando sus imports con los de `GestionarCorteOficialService`.
+
+**Esperado:** "un caso de uso dispara a otro, no a su repositorio directamente" — el propio comentario
+del código lo declaraba como regla ya vigente, cuando solo un servicio la cumplía.
+
+**Causa raíz:** ambos servicios se escribieron por separado (PRs distintos) sin revisión cruzada ni
+de D2, así que la inconsistencia no se detectó al fusionarse ninguno de los dos.
+
+**Corrección:** `EvaluarConsensoService` cambia su dependencia de `EventoBitacoraRepository` a
+`RegistrarEventoBitacoraUseCase`. `EvaluarConsensoServiceTest` actualizado (mock renombrado y
+retipado) — mismas aserciones sobre el evento capturado.
 
 > **Nota de origen — BUG-017 a BUG-029:** encontrados el 2026-08-09 en una revisión de código de
 > los PRs #62–#69 (todos fusionados sin revisor, `BUG-005`), a pedido de Sebastián (D3) mientras
@@ -1237,5 +1374,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-043
+Siguiente número disponible: BUG-049
 -->

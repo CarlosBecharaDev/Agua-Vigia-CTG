@@ -52,4 +52,69 @@ class CorteAguaTest {
 
         assertThatThrownBy(builder::build).isInstanceOf(IllegalStateException.class);
     }
+
+    @Test
+    void debeRechazarUnCorteRestablecidoSinFinReal() {
+        var builder = CorteAgua.builder()
+                .id(new CorteId("corte-4"))
+                .sectoresAfectados(List.of(new SectorId("manga")))
+                .inicio(inicio)
+                .finPrometido(inicio.plus(6, ChronoUnit.HOURS))
+                .causa("Mantenimiento")
+                .origen(OrigenCorte.OFICIAL_ACUACAR)
+                .estado(EstadoCorte.RESTABLECIDO);
+
+        assertThatThrownBy(builder::build).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void debeRechazarUnCorteAnunciadoConFinRealYaPuesto() {
+        var builder = CorteAgua.builder()
+                .id(new CorteId("corte-5"))
+                .sectoresAfectados(List.of(new SectorId("manga")))
+                .inicio(inicio)
+                .finPrometido(inicio.plus(6, ChronoUnit.HOURS))
+                .finReal(inicio.plus(5, ChronoUnit.HOURS))
+                .causa("Mantenimiento")
+                .origen(OrigenCorte.OFICIAL_ACUACAR)
+                .estado(EstadoCorte.ANUNCIADO);
+
+        assertThatThrownBy(builder::build).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void debeCerrarUnCorteAbiertoYQuedarCoherente() {
+        CorteAgua corte = CorteAgua.builder()
+                .id(new CorteId("corte-6"))
+                .sectoresAfectados(List.of(new SectorId("manga")))
+                .inicio(inicio)
+                .finPrometido(inicio.plus(6, ChronoUnit.HOURS))
+                .causa("Mantenimiento")
+                .origen(OrigenCorte.OFICIAL_ACUACAR)
+                .build();
+
+        Instant finReal = inicio.plus(5, ChronoUnit.HOURS);
+        CorteAgua cerrado = corte.cerrar(finReal);
+
+        assertThat(cerrado.estado()).isEqualTo(EstadoCorte.RESTABLECIDO);
+        assertThat(cerrado.ventana().finReal()).isEqualTo(finReal);
+        assertThat(cerrado.ventana().estaCerrada()).isTrue();
+    }
+
+    @Test
+    void debeRechazarCerrarUnCorteYaCerrado() {
+        CorteAgua corte = CorteAgua.builder()
+                .id(new CorteId("corte-7"))
+                .sectoresAfectados(List.of(new SectorId("manga")))
+                .inicio(inicio)
+                .finPrometido(inicio.plus(6, ChronoUnit.HOURS))
+                .finReal(inicio.plus(5, ChronoUnit.HOURS))
+                .causa("Mantenimiento")
+                .origen(OrigenCorte.OFICIAL_ACUACAR)
+                .estado(EstadoCorte.RESTABLECIDO)
+                .build();
+
+        assertThatThrownBy(() -> corte.cerrar(inicio.plus(6, ChronoUnit.HOURS)))
+                .isInstanceOf(IllegalStateException.class);
+    }
 }

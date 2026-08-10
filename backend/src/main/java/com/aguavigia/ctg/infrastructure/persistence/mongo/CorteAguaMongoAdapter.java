@@ -62,15 +62,20 @@ public class CorteAguaMongoAdapter implements CorteAguaRepository {
     }
 
     private static CorteAgua aDominio(CorteAguaDocumento documento) {
-        return CorteAgua.builder()
-                .id(new CorteId(documento.getId()))
-                .sectoresAfectados(documento.getSectoresAfectados().stream().map(SectorId::new).toList())
-                .inicio(documento.getInicio())
-                .finPrometido(documento.getFinPrometido())
-                .finReal(documento.getFinReal())
-                .causa(documento.getCausa())
-                .origen(OrigenCorte.valueOf(documento.getOrigen()))
-                .estado(EstadoCorte.valueOf(documento.getEstado()))
-                .build();
+        try {
+            return CorteAgua.builder()
+                    .id(new CorteId(documento.getId()))
+                    .sectoresAfectados(documento.getSectoresAfectados().stream().map(SectorId::new).toList())
+                    .inicio(documento.getInicio())
+                    .finPrometido(documento.getFinPrometido())
+                    .finReal(documento.getFinReal())
+                    .causa(documento.getCausa())
+                    .origen(OrigenCorte.valueOf(documento.getOrigen()))
+                    .estado(EstadoCorte.valueOf(documento.getEstado()))
+                    .build();
+        } catch (IllegalStateException | IllegalArgumentException e) {
+            throw new IllegalStateException(
+                    "Corte '" + documento.getId() + "' persistido con datos inconsistentes", e);
+        }
     }
 }
