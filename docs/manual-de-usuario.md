@@ -25,7 +25,7 @@ Si en tu casa se fue el agua y el mapa aún dice que hay servicio, puedes avisar
 
 ### 🔔 Suscribirse a las Notificaciones
 Si no quieres estar abriendo la aplicación a cada rato, ¡deja que nosotros te avisemos!
-1. Toca el botón **"Suscribirse a Alertas"** en la barra superior.
+1. Toca el botón **"Avisos"** (o el ícono de la campanita) en la barra superior.
 2. Ingresa tu correo electrónico y escoge los sectores de los que quieres recibir avisos (por ejemplo, tu barrio, el de tus papás y donde trabajas).
 3. Te enviaremos un correo para confirmar que la dirección es tuya. Una vez confirmes, recibirás un correo cada vez que el agua se vaya o regrese en tus zonas elegidas.
 
