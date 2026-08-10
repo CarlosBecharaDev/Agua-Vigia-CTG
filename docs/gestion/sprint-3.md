@@ -15,10 +15,10 @@ Un veedor de la alcaldía (o Acuacar) puede iniciar sesión de forma segura para
 
 | Resp. | RF/RNF | Entregable | Depende de |
 |---|---|---|---|
-| D3 | RF019 / RNF011 | Autenticación del Veedor (JWT y SecurityConfig) y `VeedorAuthController`. | C1 |
-| D2 | RF018 | Lógica de negocio para moderar (aprobar/descartar) reportes y `ModeracionReporteController`. | C1 |
-| D5 | RF016-RF017 | Módulo de cortes oficiales (anunciados, en curso, restablecidos) y `CorteController`. | C1 |
-| D4 | RF016-RF019 | Panel del Veedor en el frontend conectado a los endpoints de moderación y cortes oficiales. | C2 |
+| D3 | RF019 / RNF011 | ✅ Autenticación del Veedor (JWT y SecurityConfig) y `VeedorAuthController`. | C1 |
+| D2 | RF018 | ✅ Lógica de negocio para moderar (aprobar/descartar) reportes y `ModeracionReporteController`. | C1 |
+| D5 | RF016-RF017 | ✅ Módulo de cortes oficiales (anunciados, en curso, restablecidos) y `CorteController`. | C1 |
+| D4 | RF016-RF019 | ✅ Panel del Veedor en el frontend conectado a los endpoints de moderación y cortes oficiales. | C2 |
 
 *Nota: La totalidad de estos compromisos fueron adelantados y fusionados a `develop` por el equipo antes de la ceremonia formal de apertura de este sprint.*
 
