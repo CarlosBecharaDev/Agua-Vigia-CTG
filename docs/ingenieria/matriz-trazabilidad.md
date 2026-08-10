@@ -122,31 +122,31 @@
 
 | RF | Historia | Caso de prueba | Obj. | Sprint | Estado |
 |---|---|---|---|---|---|
-| RF037 Adjuntar fotografías a reportes ciudadanos | HU037 | CP037 | 3, 4 | Fase 2 | ⬜ |
+| RF037 Adjuntar fotografías a reportes ciudadanos | HU037 | CP037 | 3, 4 | Fase 2 | ✅ |
 
 ### M11 — Validación Comunitaria Rápida (Fase 2)
 
 | RF | Historia | Caso de prueba | Obj. | Sprint | Estado |
 |---|---|---|---|---|---|
-| RF038 Confirmar reporte con un solo clic | HU038 | CP038 | 3 | Fase 2 | ⬜ |
+| RF038 Confirmar reporte con un solo clic | HU038 | CP038 | 3 | Fase 2 | ✅ |
 
 ### M12 — API Abierta Open311 (Fase 2)
 
 | RF | Historia | Caso de prueba | Obj. | Sprint | Estado |
 |---|---|---|---|---|---|
-| RF039 Exponer reportes bajo estándar Open311 | HU039 | CP039 | 3 | Fase 2 | ⬜ |
+| RF039 Exponer reportes bajo estándar Open311 | HU039 | CP039 | 3 | Fase 2 | ✅ |
 
 ### M13 — Integración IoT Pasiva (Fase 2)
 
 | RF | Historia | Caso de prueba | Obj. | Sprint | Estado |
 |---|---|---|---|---|---|
-| RF040 Endpoint para alertas automáticas de IoT | HU040 | CP040 | 3 | Fase 2 | ⬜ |
+| RF040 Endpoint para alertas automáticas de IoT | HU040 | CP040 | 3 | Fase 2 | ✅ |
 
 ### M14 — Alertas Push Instantáneas (Fase 2)
 
 | RF | Historia | Caso de prueba | Obj. | Sprint | Estado |
 |---|---|---|---|---|---|
-| RF041 Suscripción por WhatsApp/Telegram | HU041 | CP041 | 1, 3 | Fase 2 | ⬜ |
+| RF041 Suscripción por WhatsApp/Telegram | HU041 | CP041 | 1, 3 | Fase 2 | ✅ |
 
 ---
 

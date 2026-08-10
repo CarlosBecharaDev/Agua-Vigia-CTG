@@ -48,7 +48,10 @@ Registra la telemetría enviada por los vecinos. Por RNF008, no almacena datos p
     "coordinates": [-75.5, 10.4] // [lon, lat]
   },
   "fecha": "ISODate",
-  "estadoModeracion": "PENDIENTE | APROBADO | DESCARTADO"
+  "estadoModeracion": "PENDIENTE | APROBADO | DESCARTADO",
+  "fotoUrl": "String (Opcional - Evidencia M10)",
+  "confirmaciones": "Integer (Conteo de validaciones M11)",
+  "dispositivosQueConfirmaron": ["String (SHA-256)"]
 }
 ```
 
@@ -89,6 +92,8 @@ Maneja las alertas por correo electrónico con doble *opt-in*.
   "_id": "ObjectId",
   "sectorId": "ObjectId (Ref: sectores)",
   "correo": "String",
+  "telefonoWhatsApp": "String (Opcional - M14)",
+  "telegramChatId": "String (Opcional - M14)",
   "token": "String (UUID)",
   "activa": "Boolean"
 }

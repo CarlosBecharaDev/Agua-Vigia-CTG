@@ -159,3 +159,28 @@ A continuación se presentan los Casos de Prueba (CP) correspondientes a los Req
 | CP031 | Deduplicación | Un aviso que ingresa dos veces es descartado por el filtro SHA-256 en Redis. | ✅ |
 
 > **Nota:** CP032 a CP036 fueron descartados (Fuera de Alcance) por la eliminación de la integración con Anthropic SDK en el Módulo 9.
+
+### M10 — Evidencia Multimedia (Fase 2)
+| ID | Descripción | Resultado Esperado | Estado |
+|---|---|---|---|
+| CP037 | Adjuntar fotografía | Al enviar una imagen JPG/PNG al reporte, la API guarda la evidencia y responde con la URL generada. | ✅ |
+
+### M11 — Validación Comunitaria Rápida (Fase 2)
+| ID | Descripción | Resultado Esperado | Estado |
+|---|---|---|---|
+| CP038 | Confirmar con un clic | Al pulsar en validar, se incrementa el contador de confirmaciones para el reporte, sin necesidad de formularios. | ✅ |
+
+### M12 — API Abierta Open311 (Fase 2)
+| ID | Descripción | Resultado Esperado | Estado |
+|---|---|---|---|
+| CP039 | Exposición Open311 | La petición a `/api/v2/requests.json` retorna los reportes de agua formateados según el estándar cívico internacional. | ✅ |
+
+### M13 — Integración IoT Pasiva (Fase 2)
+| ID | Descripción | Resultado Esperado | Estado |
+|---|---|---|---|
+| CP040 | Alerta de presión IoT | Al recibir telemetría con `presionPsi < 15.0` y un API Key válido, se genera automáticamente un reporte de PRESION_BAJA. | ✅ |
+
+### M14 — Alertas Push Instantáneas (Fase 2)
+| ID | Descripción | Resultado Esperado | Estado |
+|---|---|---|---|
+| CP041 | Notificación Push | Al confirmarse un corte de agua, el sistema despacha una petición al webhook configurado para notificar a los suscriptores vía Telegram/WhatsApp. | ✅ |
