@@ -9,6 +9,7 @@ import com.aguavigia.ctg.domain.ReporteCiudadano;
 import com.aguavigia.ctg.domain.ReporteId;
 import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.TipoReporte;
+import com.aguavigia.ctg.domain.port.in.AgregarEvidenciaUseCase;
 import com.aguavigia.ctg.domain.port.in.RegistrarReporteUseCase;
 import com.aguavigia.ctg.infrastructure.config.SecurityConfig;
 import com.aguavigia.ctg.infrastructure.security.JwtProvider;
@@ -45,6 +46,9 @@ class ReporteControllerTest {
 
     @MockitoBean
     private RegistrarReporteUseCase registrarReporte;
+
+    @MockitoBean
+    private AgregarEvidenciaUseCase agregarEvidenciaUseCase;
 
     @MockitoBean
     private JwtProvider jwtProvider;

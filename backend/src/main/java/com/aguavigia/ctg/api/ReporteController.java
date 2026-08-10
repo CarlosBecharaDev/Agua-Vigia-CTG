@@ -7,6 +7,7 @@ import com.aguavigia.ctg.domain.Coordenada;
 import com.aguavigia.ctg.domain.HuellaDispositivo;
 import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.TipoReporte;
+import com.aguavigia.ctg.domain.port.in.AgregarEvidenciaUseCase;
 import com.aguavigia.ctg.domain.port.in.RegistrarReporteUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -22,6 +23,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestController;
 
 /** M2 — RF005-RF008: reportar sin registro, en máximo dos toques. */
@@ -31,10 +36,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class ReporteController {
 
     private final RegistrarReporteUseCase registrarReporte;
+    private final AgregarEvidenciaUseCase agregarEvidenciaUseCase;
     private final ReporteApiMapper mapper;
 
-    public ReporteController(RegistrarReporteUseCase registrarReporte, ReporteApiMapper mapper) {
+    public ReporteController(RegistrarReporteUseCase registrarReporte, AgregarEvidenciaUseCase agregarEvidenciaUseCase, ReporteApiMapper mapper) {
         this.registrarReporte = registrarReporte;
+        this.agregarEvidenciaUseCase = agregarEvidenciaUseCase;
         this.mapper = mapper;
     }
 
@@ -65,5 +72,20 @@ public class ReporteController {
                 new HuellaDispositivo(solicitud.huella()));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(mapper.aRespuesta(reporte));
+    }
+
+    @Operation(summary = "Agregar evidencia a un reporte",
+            description = "Permite subir una foto y asociarla a un reporte existente (M10).")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Evidencia agregada"),
+            @ApiResponse(responseCode = "400", description = "Error en la solicitud"),
+            @ApiResponse(responseCode = "404", description = "Reporte no encontrado")
+    })
+    @PostMapping(value = "/{id}/foto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ReporteRespuesta> agregarEvidencia(
+            @PathVariable("id") String id,
+            @RequestParam("foto") MultipartFile foto) throws java.io.IOException {
+        var reporte = agregarEvidenciaUseCase.agregarEvidencia(id, foto.getOriginalFilename(), foto.getBytes());
+        return ResponseEntity.ok(mapper.aRespuesta(reporte));
     }
 }

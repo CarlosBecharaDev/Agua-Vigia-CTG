@@ -118,6 +118,36 @@
 | RF035 Confianza intermedia a revisión humana | HU035 | CP035 | 3 | 4 | ❌ (Descartado) |
 | RF036 No acceder a fuentes que bloquean agentes de IA | HU036 | CP036 | 3 | 1 | ❌ (Descartado) |
 
+### M10 — Evidencia Multimedia (Fase 2)
+
+| RF | Historia | Caso de prueba | Obj. | Sprint | Estado |
+|---|---|---|---|---|---|
+| RF037 Adjuntar fotografías a reportes ciudadanos | HU037 | CP037 | 3, 4 | Fase 2 | ⬜ |
+
+### M11 — Validación Comunitaria Rápida (Fase 2)
+
+| RF | Historia | Caso de prueba | Obj. | Sprint | Estado |
+|---|---|---|---|---|---|
+| RF038 Confirmar reporte con un solo clic | HU038 | CP038 | 3 | Fase 2 | ⬜ |
+
+### M12 — API Abierta Open311 (Fase 2)
+
+| RF | Historia | Caso de prueba | Obj. | Sprint | Estado |
+|---|---|---|---|---|---|
+| RF039 Exponer reportes bajo estándar Open311 | HU039 | CP039 | 3 | Fase 2 | ⬜ |
+
+### M13 — Integración IoT Pasiva (Fase 2)
+
+| RF | Historia | Caso de prueba | Obj. | Sprint | Estado |
+|---|---|---|---|---|---|
+| RF040 Endpoint para alertas automáticas de IoT | HU040 | CP040 | 3 | Fase 2 | ⬜ |
+
+### M14 — Alertas Push Instantáneas (Fase 2)
+
+| RF | Historia | Caso de prueba | Obj. | Sprint | Estado |
+|---|---|---|---|---|---|
+| RF041 Suscripción por WhatsApp/Telegram | HU041 | CP041 | 1, 3 | Fase 2 | ⬜ |
+
 ---
 
 ## Nivel 3 — Requisitos no funcionales
@@ -146,6 +176,7 @@ Los RNF no llevan historia de usuario: se verifican con una medición, no con un
 | RNF018 | Build falla si se viola una capa | ArchUnit en CI | 1 | ✅ |
 | RNF019 | Precisión del clasificador ≥ 90% | Regresión sobre el conjunto dorado | 5 | ❌ (Descartado) |
 | RNF020 | Levanta con un solo comando | `docker compose up` en máquina limpia | 0 | ✅ |
+| RNF021 | Imágenes en bucket con compresión automática | Inspección de bucket y metadatos | Fase 2 | ⬜ |
 
 ---
 

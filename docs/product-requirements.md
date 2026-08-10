@@ -170,3 +170,35 @@ Todos medibles. Un RNF sin métrica y umbral no es verificable y no cuenta.
 
 > La matriz completa `objetivo → RF → historia de usuario → caso de prueba` se mantiene en
 > `docs/ingenieria/matriz-trazabilidad.md`.
+
+---
+
+## 5. Fase 2: Expansión Cívica y Estándares Abiertos (Propuestos)
+
+A partir de la estabilización del núcleo del sistema, se proponen las siguientes características inspiradas en plataformas globales de tecnología cívica (Civic Tech):
+
+### M10 — Evidencia Multimedia (Inspirado en Ushahidi)
+| ID | Requisito | Prioridad | Actor | Origen |
+|---|---|---|---|---|
+| RF037 | El sistema debe permitir a los ciudadanos adjuntar fotografías a sus reportes (ej. tubo roto). | Debería | Vecino | Propuesta Fase 2 |
+| RNF021 | Las imágenes deben almacenarse en un bucket seguro (ej. AWS S3) con compresión automática y limpieza de metadatos EXIF. | Debe | Sistema | Privacidad / Optimización |
+
+### M11 — Validación Comunitaria Rápida (Inspirado en Pol.is/Waze)
+| ID | Requisito | Prioridad | Actor | Origen |
+|---|---|---|---|---|
+| RF038 | El sistema debe permitir confirmar un reporte ciudadano temprano en el mapa mediante un solo clic ("¿Tú también estás sin agua?"). | Debe | Vecino | Propuesta Fase 2 |
+
+### M12 — API Abierta Open311
+| ID | Requisito | Prioridad | Actor | Origen |
+|---|---|---|---|---|
+| RF039 | El sistema debe exponer los reportes confirmados y cortes oficiales mediante una API que cumpla el estándar global Open311. | Debería | Sistema | Interoperabilidad cívica |
+
+### M13 — Integración IoT Pasiva
+| ID | Requisito | Prioridad | Actor | Origen |
+|---|---|---|---|---|
+| RF040 | El sistema debe exponer un endpoint seguro para recibir reportes automáticos de caída de presión desde sensores IoT residenciales (ej. ESP32). | Podría | Sensor IoT | Automatización comunitaria |
+
+### M14 — Alertas Push Instantáneas
+| ID | Requisito | Prioridad | Actor | Origen |
+|---|---|---|---|---|
+| RF041 | El sistema debe permitir la suscripción a alertas de sector mediante plataformas de mensajería instantánea (Telegram/WhatsApp) como alternativa al correo. | Debe | Vecino | Propuesta Fase 2 |

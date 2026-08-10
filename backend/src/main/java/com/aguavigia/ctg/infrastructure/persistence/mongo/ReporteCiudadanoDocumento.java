@@ -30,4 +30,6 @@ public class ReporteCiudadanoDocumento {
     /** RF018 (`ADR-023`) — PENDIENTE, APROBADO o DESCARTADO. Nulo en documentos sembrados antes de M5. */
     @Indexed
     private String estadoModeracion;
+
+    private String fotoUrl;
 }

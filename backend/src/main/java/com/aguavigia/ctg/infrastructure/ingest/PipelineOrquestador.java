@@ -3,6 +3,8 @@ package com.aguavigia.ctg.infrastructure.ingest;
 import com.aguavigia.ctg.domain.EstadoServicio;
 import com.aguavigia.ctg.domain.Sector;
 import com.aguavigia.ctg.domain.port.out.SectorRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,8 @@ import java.util.stream.Stream;
  */
 @Service
 public class PipelineOrquestador {
+
+    private static final Logger log = LoggerFactory.getLogger(PipelineOrquestador.class);
 
     private final AcuacarApiCollector acuacarApiCollector;
     private final RssCollector rssCollector;
@@ -54,7 +58,7 @@ public class PipelineOrquestador {
 
     private void enrutar(EventoExtraido evento) {
         if (evento.esInterrupcionDeAcueducto()) {
-            System.out.println("Reflejando evento en la base de datos: " + evento.sectoresMencionados() + " - Tipo: " + evento.tipo());
+            log.info("Reflejando evento en la base de datos: {} - Tipo: {}", evento.sectoresMencionados(), evento.tipo());
             List<Sector> todosSectores = sectorRepository.listarTodos();
             
             EstadoServicio nuevoEstado = EstadoServicio.SIN_SERVICIO;
@@ -73,7 +77,7 @@ public class PipelineOrquestador {
                         .forEach(s -> {
                             Sector actualizado = s.conEstado(estadoFinal);
                             sectorRepository.guardar(actualizado);
-                            System.out.println("Sector actualizado: " + s.nombre() + " a " + estadoFinal);
+                            log.info("Sector actualizado: {} a {}", s.nombre(), estadoFinal);
                         });
             }
         }

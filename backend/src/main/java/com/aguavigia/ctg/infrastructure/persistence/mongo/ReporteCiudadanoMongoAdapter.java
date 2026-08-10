@@ -39,6 +39,7 @@ public class ReporteCiudadanoMongoAdapter implements ReporteCiudadanoRepository 
         documento.setHuella(reporte.huella().hash());
         documento.setTimestamp(reporte.timestamp());
         documento.setEstadoModeracion(reporte.estadoModeracion().name());
+        documento.setFotoUrl(reporte.fotoUrl());
 
         repositorio.save(documento);
         return reporte;
@@ -80,6 +81,7 @@ public class ReporteCiudadanoMongoAdapter implements ReporteCiudadanoRepository 
                 coordenada,
                 new HuellaDispositivo(documento.getHuella()),
                 documento.getTimestamp(),
-                estado);
+                estado,
+                documento.getFotoUrl());
     }
 }

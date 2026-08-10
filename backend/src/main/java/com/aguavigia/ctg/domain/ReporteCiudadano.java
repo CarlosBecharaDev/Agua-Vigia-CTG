@@ -9,7 +9,8 @@ public record ReporteCiudadano(
         Coordenada coordenada,
         HuellaDispositivo huella,
         Instant timestamp,
-        EstadoModeracion estadoModeracion) {
+        EstadoModeracion estadoModeracion,
+        String fotoUrl) {
 
     public ReporteCiudadano {
         if (sectorId == null) {
@@ -32,16 +33,25 @@ public record ReporteCiudadano(
     /** RF005-RF008: un reporte recién creado siempre nace PENDIENTE de moderación (RF018, `ADR-023`). */
     public ReporteCiudadano(ReporteId id, SectorId sectorId, TipoReporte tipo, Coordenada coordenada,
                              HuellaDispositivo huella, Instant timestamp) {
-        this(id, sectorId, tipo, coordenada, huella, timestamp, EstadoModeracion.PENDIENTE);
+        this(id, sectorId, tipo, coordenada, huella, timestamp, EstadoModeracion.PENDIENTE, null);
+    }
+
+    public ReporteCiudadano(ReporteId id, SectorId sectorId, TipoReporte tipo, Coordenada coordenada,
+                             HuellaDispositivo huella, Instant timestamp, EstadoModeracion estadoModeracion) {
+        this(id, sectorId, tipo, coordenada, huella, timestamp, estadoModeracion, null);
     }
 
     /** RF018 — idempotente: aprobar un reporte ya aprobado, o cambiar de un descarte a aprobado, no falla. */
     public ReporteCiudadano aprobar() {
-        return new ReporteCiudadano(id, sectorId, tipo, coordenada, huella, timestamp, EstadoModeracion.APROBADO);
+        return new ReporteCiudadano(id, sectorId, tipo, coordenada, huella, timestamp, EstadoModeracion.APROBADO, fotoUrl);
     }
 
     /** RF018 — idempotente, igual que {@link #aprobar()}. */
     public ReporteCiudadano descartar() {
-        return new ReporteCiudadano(id, sectorId, tipo, coordenada, huella, timestamp, EstadoModeracion.DESCARTADO);
+        return new ReporteCiudadano(id, sectorId, tipo, coordenada, huella, timestamp, EstadoModeracion.DESCARTADO, fotoUrl);
+    }
+
+    public ReporteCiudadano conFoto(String fotoUrl) {
+        return new ReporteCiudadano(id, sectorId, tipo, coordenada, huella, timestamp, estadoModeracion, fotoUrl);
     }
 }
