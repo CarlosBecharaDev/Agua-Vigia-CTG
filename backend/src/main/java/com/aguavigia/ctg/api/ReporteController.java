@@ -37,11 +37,16 @@ public class ReporteController {
 
     private final RegistrarReporteUseCase registrarReporte;
     private final AgregarEvidenciaUseCase agregarEvidenciaUseCase;
+    private final com.aguavigia.ctg.domain.port.in.ConfirmarReporteUseCase confirmarReporte;
     private final ReporteApiMapper mapper;
 
-    public ReporteController(RegistrarReporteUseCase registrarReporte, AgregarEvidenciaUseCase agregarEvidenciaUseCase, ReporteApiMapper mapper) {
+    public ReporteController(RegistrarReporteUseCase registrarReporte, 
+                             AgregarEvidenciaUseCase agregarEvidenciaUseCase, 
+                             com.aguavigia.ctg.domain.port.in.ConfirmarReporteUseCase confirmarReporte,
+                             ReporteApiMapper mapper) {
         this.registrarReporte = registrarReporte;
         this.agregarEvidenciaUseCase = agregarEvidenciaUseCase;
+        this.confirmarReporte = confirmarReporte;
         this.mapper = mapper;
     }
 
@@ -86,6 +91,21 @@ public class ReporteController {
             @PathVariable("id") String id,
             @RequestParam("foto") MultipartFile foto) throws java.io.IOException {
         var reporte = agregarEvidenciaUseCase.agregarEvidencia(id, foto.getOriginalFilename(), foto.getBytes());
+        return ResponseEntity.ok(mapper.aRespuesta(reporte));
+    }
+
+    @Operation(summary = "Confirmar un reporte",
+            description = "Permite a otro vecino confirmar un reporte ciudadano (M11).")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Reporte confirmado"),
+            @ApiResponse(responseCode = "400", description = "Error en la solicitud"),
+            @ApiResponse(responseCode = "404", description = "Reporte no encontrado")
+    })
+    @PostMapping(value = "/{id}/confirmar")
+    public ResponseEntity<ReporteRespuesta> confirmar(
+            @PathVariable("id") String id,
+            @Valid @RequestBody com.aguavigia.ctg.api.dto.SolicitudConfirmar solicitud) {
+        var reporte = confirmarReporte.confirmar(new com.aguavigia.ctg.domain.ReporteId(id), new HuellaDispositivo(solicitud.huella()));
         return ResponseEntity.ok(mapper.aRespuesta(reporte));
     }
 }

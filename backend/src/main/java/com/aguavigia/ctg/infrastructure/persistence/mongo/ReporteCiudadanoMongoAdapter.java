@@ -40,6 +40,7 @@ public class ReporteCiudadanoMongoAdapter implements ReporteCiudadanoRepository 
         documento.setTimestamp(reporte.timestamp());
         documento.setEstadoModeracion(reporte.estadoModeracion().name());
         documento.setFotoUrl(reporte.fotoUrl());
+        documento.setHuellasConfirmacion(reporte.huellasConfirmacion());
 
         repositorio.save(documento);
         return reporte;
@@ -74,6 +75,9 @@ public class ReporteCiudadanoMongoAdapter implements ReporteCiudadanoRepository 
         EstadoModeracion estado = documento.getEstadoModeracion() != null
                 ? EstadoModeracion.valueOf(documento.getEstadoModeracion())
                 : EstadoModeracion.PENDIENTE;
+        java.util.Set<String> confirmaciones = documento.getHuellasConfirmacion() != null 
+                ? documento.getHuellasConfirmacion() 
+                : java.util.Collections.emptySet();
         return new ReporteCiudadano(
                 new ReporteId(documento.getId()),
                 new SectorId(documento.getSectorId()),
@@ -82,6 +86,7 @@ public class ReporteCiudadanoMongoAdapter implements ReporteCiudadanoRepository 
                 new HuellaDispositivo(documento.getHuella()),
                 documento.getTimestamp(),
                 estado,
-                documento.getFotoUrl());
+                documento.getFotoUrl(),
+                confirmaciones);
     }
 }

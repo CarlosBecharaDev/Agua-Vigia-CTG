@@ -32,4 +32,6 @@ public class ReporteCiudadanoDocumento {
     private String estadoModeracion;
 
     private String fotoUrl;
+
+    private java.util.Set<String> huellasConfirmacion = new java.util.HashSet<>();
 }
