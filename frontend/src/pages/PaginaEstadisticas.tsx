@@ -13,7 +13,6 @@ export default function PaginaEstadisticas() {
   if (isLoading) return <PageWrapper><div className="estadisticas-cargando">Cargando métricas...</div></PageWrapper>
   if (error || !data) return <PageWrapper><div className="mensaje-error">Error cargando estadísticas.</div></PageWrapper>
 
-  const totalSectores = data.sectoresMasAfectados.length
   const diasSemanales = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
   const cortesPorDia = diasSemanales.map(dia => ({
     dia,
