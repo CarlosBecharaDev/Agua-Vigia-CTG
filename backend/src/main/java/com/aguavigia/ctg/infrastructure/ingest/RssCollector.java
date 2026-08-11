@@ -1,5 +1,7 @@
 package com.aguavigia.ctg.infrastructure.ingest;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -47,6 +49,13 @@ public class RssCollector implements FuenteDatosPort {
         this.propiedades = propiedades;
     }
 
+    /**
+     * RNF005 — el cortacircuitos aquí protege contra el caso en que *todos* los feeds fallan a la
+     * vez (sin red, sin User-Agent configurado): un feed suelto caído ya lo absorbe el try/catch de
+     * `leerFeed` sin que este método llegue a lanzar, que es el aislamiento fino que M9 necesita.
+     */
+    @Retry(name = "colectores")
+    @CircuitBreaker(name = "rss")
     @Override
     public List<DocumentoCrudo> obtenerDesde(Instant desde) {
         if (propiedades.userAgent() == null || propiedades.userAgent().isBlank()) {

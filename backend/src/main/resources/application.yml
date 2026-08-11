@@ -96,6 +96,32 @@ aguavigia:
       - fuente: w-radio
         url: "https://www.wradio.com.co/arc/outboundfeeds/google-news-feed/?outputType=xml"
 
+resilience4j:
+  retry:
+    instances:
+      # RNF005 — "reintentar con retroceso exponencial". 3 intentos con 2s, 4s de espera: el
+      # objetivo es absorber un 502 pasajero del sitio de Acuacar, no insistirle a un servidor
+      # caido. Con intervalo-ms en 10 minutos, el ciclo siguiente reintenta de todas formas.
+      colectores:
+        max-attempts: 3
+        wait-duration: 2s
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+  circuitbreaker:
+    instances:
+      # RNF005 — "abrir un cortacircuitos tras 3 fallos consecutivos": ventana de 3 llamadas, mínimo
+      # 3 para evaluar y umbral de fallo del 100% es exactamente eso. Abierto 5 minutos; despues
+      # deja pasar una sola llamada de prueba antes de volver a cerrarse.
+      acuacar: &cortacircuitosDeColector
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 3
+        minimum-number-of-calls: 3
+        failure-rate-threshold: 100
+        wait-duration-in-open-state: 5m
+        permitted-number-of-calls-in-half-open-state: 1
+        automatic-transition-from-open-to-half-open-enabled: true
+      rss: *cortacircuitosDeColector
+
 springdoc:
   api-docs:
     path: /v3/api-docs

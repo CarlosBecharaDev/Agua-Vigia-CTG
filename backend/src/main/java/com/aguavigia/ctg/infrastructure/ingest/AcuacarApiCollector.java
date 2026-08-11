@@ -1,6 +1,8 @@
 package com.aguavigia.ctg.infrastructure.ingest;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +40,14 @@ public class AcuacarApiCollector implements FuenteDatosPort {
         this.propiedades = propiedades;
     }
 
+    /**
+     * RNF005 — reintento con retroceso exponencial y cortacircuitos tras 3 fallos consecutivos.
+     * Cuando el circuito está abierto, la llamada lanza `CallNotPermittedException` y
+     * `PipelineOrquestador` la trata como cualquier otro fallo del colector: ese ciclo sigue con las
+     * demás fuentes en vez de golpear un sitio que ya se sabe caído.
+     */
+    @Retry(name = "colectores")
+    @CircuitBreaker(name = "acuacar")
     @Override
     public List<DocumentoCrudo> obtenerDesde(Instant desde) {
         if (propiedades.userAgent() == null || propiedades.userAgent().isBlank()) {
