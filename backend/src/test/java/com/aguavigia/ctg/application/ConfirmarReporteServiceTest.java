@@ -5,7 +5,6 @@ import com.aguavigia.ctg.domain.ReporteCiudadano;
 import com.aguavigia.ctg.domain.ReporteId;
 import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.TipoReporte;
-import com.aguavigia.ctg.domain.port.in.EvaluarConsensoUseCase;
 import com.aguavigia.ctg.domain.port.out.ReporteCiudadanoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,14 +25,12 @@ class ConfirmarReporteServiceTest {
     private static final Instant AHORA = Instant.parse("2026-08-09T15:30:00Z");
 
     private ReporteCiudadanoRepository reportes;
-    private EvaluarConsensoUseCase evaluarConsenso;
     private ConfirmarReporteService servicio;
 
     @BeforeEach
     void montar() {
         reportes = mock(ReporteCiudadanoRepository.class);
-        evaluarConsenso = mock(EvaluarConsensoUseCase.class);
-        servicio = new ConfirmarReporteService(reportes, evaluarConsenso);
+        servicio = new ConfirmarReporteService(reportes);
 
         given(reportes.guardar(any(ReporteCiudadano.class))).willAnswer(invocacion -> invocacion.getArgument(0));
     }
@@ -44,14 +41,13 @@ class ConfirmarReporteServiceTest {
     }
 
     @Test
-    void debeAgregarLaHuellaDeQuienConfirmaYReevaluarElConsenso() {
+    void debeAgregarLaHuellaDeQuienConfirma() {
         given(reportes.buscarPorId(new ReporteId("r1"))).willReturn(Optional.of(reporteOriginal()));
 
         ReporteCiudadano confirmado = servicio.confirmar(new ReporteId("r1"), new HuellaDispositivo("hash-vecino"));
 
         assertThat(confirmado.numeroConfirmaciones()).isEqualTo(1);
         verify(reportes).guardar(confirmado);
-        verify(evaluarConsenso).evaluar(new SectorId("manga"));
     }
 
     @Test
@@ -62,6 +58,5 @@ class ConfirmarReporteServiceTest {
                 .isInstanceOf(IllegalArgumentException.class);
 
         verify(reportes, never()).guardar(any());
-        verify(evaluarConsenso, never()).evaluar(any());
     }
 }
