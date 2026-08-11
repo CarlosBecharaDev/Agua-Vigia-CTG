@@ -1,5 +1,6 @@
 package com.aguavigia.ctg.infrastructure.config;
 
+import com.aguavigia.ctg.infrastructure.logging.MdcTaskDecorator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -35,6 +36,9 @@ public class AsyncConfig {
         ejecutor.setQueueCapacity(500);
         ejecutor.setThreadNamePrefix("aguavigia-async-");
         ejecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        // Sin esto, el correlationId de CorrelationIdFilter no cruza al hilo del pool: el correo o
+        // el push de un sector quedarian sin poder relacionarse con la peticion HTTP que los originó.
+        ejecutor.setTaskDecorator(new MdcTaskDecorator());
         // Que un `docker compose down` no corte a la mitad los correos que ya estaban en vuelo.
         ejecutor.setWaitForTasksToCompleteOnShutdown(true);
         ejecutor.setAwaitTerminationSeconds(20);

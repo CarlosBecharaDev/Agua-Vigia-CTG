@@ -148,3 +148,11 @@ management:
   endpoint:
     health:
       show-details: never
+
+logging:
+  structured:
+    format:
+      # Diagnosticar en produccion era leer texto plano sin correlationId (estado-del-backend.md
+      # #6.1). ECS es soporte nativo de Spring Boot 3.4+, sin dependencia nueva; CorrelationIdFilter
+      # pone `correlationId` en MDC y este formato lo incluye en cada linea JSON.
+      console: ecs
