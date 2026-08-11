@@ -17,6 +17,7 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 
 /**
  * La versión original de esta agregación apuntaba a colecciones "corteAguaDocumento" /
@@ -44,9 +45,14 @@ class EstadisticasMongoAdapterTest {
         mongoTemplate.getDb().getCollection("sectores").drop();
     }
 
+    /**
+     * NO se fija el `_id`: scripts/sembrar-sectores.mjs inserta los 213 barrios sin el, asi que en
+     * produccion es un ObjectId y la identidad de dominio vive en `slug`. Este fixture lo ponia
+     * igual al slug y con eso el $lookup roto (que cruzaba `_id` contra `_id`) pasaba la prueba
+     * mientras en produccion devolvia "Desconocido" en los cinco sectores.
+     */
     private void sembrarSector(String slug, String nombre) {
         SectorDocumento documento = new SectorDocumento();
-        documento.setId(slug);
         documento.setSlug(slug);
         documento.setNombre(nombre);
         mongoTemplate.save(documento);
@@ -88,6 +94,20 @@ class EstadisticasMongoAdapterTest {
         EstadisticasGlobales resultado = adaptador.calcularGlobales();
 
         assertThat(resultado.duracionPromedioHoras()).isEqualTo(4.0);
+    }
+
+    @Test
+    void debeDevolverLosSieteDiasEnOrdenAunqueNoTenganCortes() {
+        sembrarSector("manga", "Manga");
+        // 2026-08-05 es miercoles en America/Bogota.
+        sembrarCorte("c1", List.of("manga"),
+                Instant.parse("2026-08-05T15:00:00Z"), Instant.parse("2026-08-05T19:00:00Z"));
+
+        EstadisticasGlobales resultado = adaptador.calcularGlobales();
+
+        assertThat(resultado.cortesPorDiaDeSemana()).containsExactly(
+                entry("Lunes", 0), entry("Martes", 0), entry("Miércoles", 1), entry("Jueves", 0),
+                entry("Viernes", 0), entry("Sábado", 0), entry("Domingo", 0));
     }
 
     @Test
