@@ -67,8 +67,10 @@ jobs:
       # `gitleaks` cubre secretos filtrados; nada cubría un CVE conocido en Spring Boot, jjwt o el
       # driver de Mongo. Falla solo con severidad alta o crítica: un aviso de severidad media no
       # debe bloquear a nadie un viernes.
+      # La etiqueta lleva prefijo `v`: sin el, la acción no resuelve y el job falla en "Set up job"
+      # sin llegar a escanear nada.
       - name: Escanear dependencias
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: backend
