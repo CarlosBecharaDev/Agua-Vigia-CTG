@@ -15,13 +15,13 @@ import java.util.List;
 public interface SectorApiMapper {
 
     /**
-     * `actualizadoEn` queda nulo en el Sprint 1: ningun sector tiene estado registrado todavia,
-     * y sin estado no hay fecha de estado. Deja de ser nulo cuando el consenso (M3, Sprint 2)
-     * empiece a escribir estados — el campo ya viaja en el documento de Mongo.
+     * RF003 — `actualizadoEn` es la antiguedad del dato que el mapa muestra junto a cada sector.
+     * Viaja nulo solo cuando el sector todavia no tiene estado registrado: sin estado no hay fecha
+     * de estado, y el cliente debe presentarlo como "sin datos" (ADR-014).
      */
     @Mapping(target = "id", source = "id.valor")
     @Mapping(target = "estado", source = "estadoActual")
-    @Mapping(target = "actualizadoEn", ignore = true)
+    @Mapping(target = "actualizadoEn", source = "estadoActualizadoEn")
     SectorRespuesta aRespuesta(Sector sector);
 
     List<SectorRespuesta> aRespuestas(List<Sector> sectores);

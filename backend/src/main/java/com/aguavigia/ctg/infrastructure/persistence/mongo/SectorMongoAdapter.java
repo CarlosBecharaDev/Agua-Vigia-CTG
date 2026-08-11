@@ -93,11 +93,17 @@ public class SectorMongoAdapter implements SectorRepository {
     }
 
     private static Sector aDominio(SectorDocumento documento) {
+        EstadoServicio estado = aEstadoServicio(documento.getEstadoActual());
         return new Sector(
                 new SectorId(documento.getSlug()),
                 documento.getNombre(),
                 documento.getPoblacion(),
-                aEstadoServicio(documento.getEstadoActual()));
+                estado,
+                // RF003: sin estado no hay fecha de estado. Un documento con
+                // estadoActualizadoEn pero con estadoActual fuera del enum (ver aEstadoServicio)
+                // caeria aqui con estado nulo, y una fecha suelta diria "actualizado hace 5 min"
+                // sobre un dato que no sabemos leer.
+                estado != null ? documento.getEstadoActualizadoEn() : null);
     }
 
     /**
