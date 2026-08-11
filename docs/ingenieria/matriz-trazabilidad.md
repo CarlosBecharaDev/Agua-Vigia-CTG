@@ -157,7 +157,7 @@ Los RNF no llevan historia de usuario: se verifican con una medición, no con un
 | RNF | Umbral | Cómo se verifica | Sprint | Estado |
 |---|---|---|---|---|
 | RNF001 | Mapa completo < 3 s en 3G | Lighthouse con throttling | 6 | 🟡 **Sin medir.** Es de frontend (D4); no hay ejecución de Lighthouse registrada |
-| RNF002 | Confirmación de reporte < 1 s | Prueba de carga | 5 | 🟡 **Sin medir.** El camino está optimizado (índice compuesto `sectorId+timestamp`, cupo por INCR de Redis, notificaciones y SSE fuera del hilo HTTP), pero no se ha corrido la prueba de carga que el requisito pide |
+| RNF002 | Confirmación de reporte < 1 s | Prueba de carga | 5 | ✅ **Medido 2026-08-11** — k6 (`scripts/carga/rnf002-registrar-reporte.js`), 20 solicitudes/min durante 2 min contra el stack de `docker compose`: p(95)=16.49 ms, 0% de errores |
 | RNF003 | Caché del mapa con TTL ≤ 60 s | Inspección de Redis | 2 | ✅ (TTL de 15 s en `application.yml` · `SectorMongoAdapterCacheTest`) |
 | RNF004 | Fuente caída no tumba el sistema | Prueba de caos | 4 | ✅ (`PipelineOrquestadorTest.unColectorCaidoNoDebeImpedirQueSeLeaElOtro`) |
 | RNF005 | Backoff + cortacircuitos tras 3 fallos | Test de integración | 4 | ✅ (`ResilienciaDeColectoresTest.debeAbrirElCortacircuitosAlTercerFalloConsecutivo`) |
@@ -197,7 +197,7 @@ Se revisa al cerrar cada sprint. Un hueco aquí es un hallazgo del docente esper
 | Ningún endpoint paginaba: `/api/bitacora` devolvía la bitácora entera, que por RF028 crece sin cota | 2026-08-11 | ✅ **Cerrado 2026-08-11** — paginación con metadatos en cabeceras en bitácora y las dos colas del veedor |
 | El cupo por dispositivo (RF006) contaba y luego guardaba: dos peticiones simultáneas del mismo dispositivo pasaban ambas | 2026-08-11 | ✅ **Cerrado 2026-08-11** — reserva atómica con INCR de Redis, con prueba de 50 hilos concurrentes |
 | RNF020 marcado ✅ sin verificación: el CI no construía las imágenes ni validaba los compose | 2026-08-11 | ✅ **Cerrado 2026-08-11** — `despliegue-ci.yml`, que además falla si producción publica un puerto de base de datos |
-| RNF001 y RNF002 marcados ✅ sin ninguna medición | 2026-08-11 | 🟡 **Reconocido, no cerrado** — pasan a 🟡 en el Nivel 3 hasta que exista la medición |
+| RNF001 y RNF002 marcados ✅ sin ninguna medición | 2026-08-11 | 🟡 **RNF001 sigue abierto** (es de frontend, D4) · ✅ **RNF002 cerrado 2026-08-11** — k6 midió p(95)=16.49 ms contra el umbral de 1 s |
 
 ### Pendientes reconocidos
 
