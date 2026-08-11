@@ -25,6 +25,14 @@
 
   <properties>
     <java.version>21</java.version>
+    <!--
+      Spring Boot 3.5.16 fija netty 4.1.135, y CVE-2026-59901 (bucle infinito en el decodificador
+      bzip2 de netty-codec-compression) se corrige en 4.1.136. Netty entra aqui como transitiva de
+      Lettuce, el cliente de Redis, y este backend no descomprime bzip2 en ninguna parte — pero
+      sobreescribir una version de parche cuesta una linea y deja el escaneo del CI en verde sin
+      excepciones que alguien tenga que recordar despues.
+    -->
+    <netty.version>4.1.136.Final</netty.version>
     <mapstruct.version>1.6.3</mapstruct.version>
     <testcontainers.version>1.21.3</testcontainers.version>
     <jjwt.version>0.12.6</jjwt.version>
