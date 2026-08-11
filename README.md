@@ -8,7 +8,7 @@ AguaVigía cruza los avisos oficiales con reportes ciudadanos georreferenciados 
 > Tecnología en Desarrollo de Software · Cartagena de Indias D.T. y C. · 2026
 
 **Estado actual:** Backend y Bases de Datos completos salvo RF041 (webhook real de
-WhatsApp/Telegram), que depende de credenciales de terceros. **406 pruebas** en verde, con **92.4%**
+WhatsApp/Telegram), que depende de credenciales de terceros. **419 pruebas** en verde, con **92.4%**
 de cobertura en `domain/` y **99.2%** en `application/`. El detalle requisito por requisito, con el
 nombre de la prueba que sostiene cada uno, está en la
 [matriz de trazabilidad](docs/ingenieria/matriz-trazabilidad.md).
@@ -19,12 +19,12 @@ nombre de la prueba que sostiene cada uno, está en la
 
 El proyecto está construido bajo una estricta **Arquitectura Limpia (Puertos y Adaptadores)**, garantizando que la lógica de dominio (Java puro) esté totalmente aislada de la infraestructura y el framework web. El cumplimiento de las capas arquitectónicas se evalúa automáticamente mediante **ArchUnit**.
 
-- **Backend:** Spring Boot 3.4 · Java 21 · Maven
+- **Backend:** Spring Boot 3.5 · Java 21 · Maven
 - **Base de Datos Principal:** MongoDB (Consultas Geoespaciales `2dsphere`)
 - **Caché y Seguridad:** Redis (Rate Limiting y Deduplicación)
 - **Frontend:** React 19 · Vite · TypeScript · Tailwind · Leaflet
 - **Pruebas de Integración:** Testcontainers (Bases de datos efímeras reales)
-- **CI/CD & DevOps:** Docker · GitHub Actions (Linter, Pruebas y Escaneo de Secretos)
+- **CI/CD & DevOps:** Docker · GitHub Actions (pruebas + ArchUnit, construcción de imágenes, escaneo de secretos y de vulnerabilidades)
 
 ---
 
@@ -82,7 +82,7 @@ el backend responda con cabeceras CORS — no las manda).
 
 ## 🧪 Pruebas y Aseguramiento de Calidad (QA)
 
-El backend de AguaVigía cuenta con **406 pruebas unitarias y de integración**, y la build falla si la
+El backend de AguaVigía cuenta con **419 pruebas unitarias y de integración**, y la build falla si la
 cobertura de `domain/` o `application/` baja del 85% (RNF017) o si se viola una capa de la
 arquitectura (RNF018, ArchUnit).
 

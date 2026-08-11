@@ -7,7 +7,13 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.4.1</version>
+    <!--
+      3.5.16 y no 4.1.0: el escaneo de dependencias del CI encontro 38 vulnerabilidades conocidas
+      (6 criticas, entre ellas CVE-2025-24813, una RCE en Tomcat) que entraban por las
+      dependencias transitivas de 3.4.1. La rama 3.5 las trae parcheadas sin cambios de version
+      mayor — Boot 4 arrastra Spring Framework 7 y no es un salto que hacer a la ligera.
+    -->
+    <version>3.5.16</version>
     <relativePath/>
   </parent>
 

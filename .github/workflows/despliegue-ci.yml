@@ -67,6 +67,12 @@ jobs:
       # `gitleaks` cubre secretos filtrados; nada cubría un CVE conocido en Spring Boot, jjwt o el
       # driver de Mongo. Falla solo con severidad alta o crítica: un aviso de severidad media no
       # debe bloquear a nadie un viernes.
+      # Trivy resuelve cada POM que no encuentre en el caché local, y Maven Central responde 429
+      # tras unas pocas decenas de peticiones. Resolviendo antes, el escaneo lee de ~/.m2.
+      - name: Poblar el caché de Maven
+        working-directory: backend
+        run: ./mvnw -B -q dependency:resolve dependency:resolve-plugins
+
       # La etiqueta lleva prefijo `v`: sin el, la acción no resuelve y el job falla en "Set up job"
       # sin llegar a escanear nada.
       - name: Escanear dependencias
