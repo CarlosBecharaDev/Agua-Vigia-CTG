@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.context.event.EventListener;
 import com.aguavigia.ctg.application.SectorActualizadoEvent;
@@ -70,6 +71,17 @@ public class SectorController {
         return emitter;
     }
 
+    /**
+     * @Async porque este listener corre en el hilo que guardó el sector — el POST /api/reportes de
+     * un vecino, o el ciclo de ingesta. Sin esto, ese vecino esperaba a que se recorrieran todos
+     * los emisores conectados, con una consulta del listado completo por medio, antes de recibir su
+     * 201. RNF002 exige confirmar un reporte en menos de un segundo.
+     *
+     * `emitters` es estado en memoria de esta instancia: con más de una réplica solo reciben el
+     * evento los clientes conectados a ella. El despliegue del proyecto es de instancia única
+     * (Anexo 5); repartirlo exigiría un backplane en Redis.
+     */
+    @Async
     @EventListener
     public void onSectorActualizado(SectorActualizadoEvent event) {
         // Enviar la lista actualizada a todos los clientes conectados
