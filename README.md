@@ -8,10 +8,14 @@ AguaVigía cruza los avisos oficiales con reportes ciudadanos georreferenciados 
 > Tecnología en Desarrollo de Software · Cartagena de Indias D.T. y C. · 2026
 
 **Estado actual:** Backend y Bases de Datos completos salvo RF041 (webhook real de
-WhatsApp/Telegram), que depende de credenciales de terceros. **419 pruebas** en verde, con **92.4%**
+WhatsApp/Telegram), que depende de credenciales de terceros. **419 pruebas** en verde, con **91.5%**
 de cobertura en `domain/` y **99.2%** en `application/`. El detalle requisito por requisito, con el
 nombre de la prueba que sostiene cada uno, está en la
 [matriz de trazabilidad](docs/ingenieria/matriz-trazabilidad.md).
+
+📄 **¿Retomas el backend o entras nuevo al proyecto?** Empieza por
+[estado-del-backend.md](docs/ingenieria/estado-del-backend.md): qué está hecho, qué falta, qué se
+dejó fuera de alcance y las trampas del entorno.
 
 ---
 
