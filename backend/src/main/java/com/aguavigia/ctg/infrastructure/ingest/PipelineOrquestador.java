@@ -41,6 +41,7 @@ public class PipelineOrquestador {
     private final HeuristicaExtractor extractor;
     private final SectorRepository sectorRepository;
     private final RegistrarPropuestaIngestaUseCase registrarPropuesta;
+    private final EstadoColectorRegistry estadoColectores;
     private final RelojPort reloj;
 
     public PipelineOrquestador(AcuacarApiCollector acuacarApiCollector,
@@ -49,6 +50,7 @@ public class PipelineOrquestador {
                                HeuristicaExtractor extractor,
                                SectorRepository sectorRepository,
                                RegistrarPropuestaIngestaUseCase registrarPropuesta,
+                               EstadoColectorRegistry estadoColectores,
                                RelojPort reloj) {
         this.acuacarApiCollector = acuacarApiCollector;
         this.rssCollector = rssCollector;
@@ -56,6 +58,7 @@ public class PipelineOrquestador {
         this.extractor = extractor;
         this.sectorRepository = sectorRepository;
         this.registrarPropuesta = registrarPropuesta;
+        this.estadoColectores = estadoColectores;
         this.reloj = reloj;
     }
 
@@ -90,12 +93,19 @@ public class PipelineOrquestador {
      * Un colector caído devuelve lista vacía en vez de tumbar el ciclo. Antes, un 5xx de
      * acuacar.com —o un COLLECTOR_USER_AGENT sin configurar— lanzaba antes de que el RSS se
      * llegara a leer.
+     *
+     * El resultado se registra en `EstadoColectorRegistry` pase lo que pase: RNF007 pide saber
+     * cuándo fue la última ejecución exitosa de cada colector, y eso no se puede reconstruir
+     * después si el fallo se tragó en silencio.
      */
-    private static List<DocumentoCrudo> recolectar(String nombre, Colector colector) {
+    private List<DocumentoCrudo> recolectar(String nombre, Colector colector) {
         try {
-            return colector.obtener();
+            List<DocumentoCrudo> documentos = colector.obtener();
+            estadoColectores.registrarExito(nombre, documentos.size());
+            return documentos;
         } catch (Exception fallo) {
             log.warn("El colector '{}' falló en este ciclo, se sigue con el resto: {}", nombre, fallo.toString());
+            estadoColectores.registrarFallo(nombre, fallo.toString());
             return List.of();
         }
     }
