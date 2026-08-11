@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{{estadoEtiqueta}} en {{nombreSector}}</title>
+<style>
+  :root { color-scheme: light dark; supported-color-schemes: light dark; }
+
+  @media only screen and (max-width: 620px) {
+    .marco   { width: 100% !important; }
+    .relleno { padding-left: 24px !important; padding-right: 24px !important; }
+    .titular { font-size: 26px !important; line-height: 32px !important; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .fondo      { background-color: #061418 !important; }
+    .superficie { background-color: #0C2027 !important; }
+    .linea      { border-color: #1B3B45 !important; }
+    .tinta      { color: #E4EFEF !important; }
+    .tinta-2    { color: #9DB8BE !important; }
+    .tinta-3    { color: #6B8C94 !important; }
+    .acento     { color: #45BFCB !important; }
+  }
+</style>
+</head>
+
+<body class="fondo" style="margin:0; padding:0; background-color:#EEF3F3; -webkit-font-smoothing:antialiased;">
+
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">
+    {{estadoDetalle}}
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="fondo" style="background-color:#EEF3F3;">
+    <tr>
+      <td align="center" style="padding:32px 12px;">
+
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" class="marco superficie linea" style="width:600px; max-width:600px; background-color:#FFFFFF; border:1px solid #C9D9D8; border-radius:4px;">
+
+          <!-- Encabezado -->
+          <tr>
+            <td class="relleno linea" style="padding:28px 40px 20px; border-bottom:1px solid #C9D9D8;">
+              <p class="acento" style="margin:0; font-family:ui-monospace,'Cascadia Mono',Consolas,monospace; font-size:12px; letter-spacing:1.2px; text-transform:uppercase; color:#0A6C78;">
+                AguaVigía Cartagena
+              </p>
+            </td>
+          </tr>
+
+          <!-- Estado + titular -->
+          <tr>
+            <td class="relleno" style="padding:32px 40px 0;">
+              <!-- DESIGN.md §2: el color del estado nunca va solo, siempre con su etiqueta en texto. -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 18px;">
+                <tr>
+                  <td style="background-color:{{estadoColorFondo}}; border:1px solid {{estadoColorBorde}}; border-radius:3px; padding:6px 12px;">
+                    <span style="font-family:ui-monospace,'Cascadia Mono',Consolas,monospace; font-size:12px; font-weight:600; letter-spacing:0.8px; text-transform:uppercase; color:{{estadoColorTexto}};">
+                      {{estadoEtiqueta}}
+                    </span>
+                  </td>
+                </tr>
+              </table>
+
+              <h1 class="titular tinta" style="margin:0 0 12px; font-family:ui-serif,'Iowan Old Style','Palatino Linotype',Georgia,serif; font-size:30px; line-height:38px; font-weight:600; color:#0B1F26;">
+                {{estadoTitular}}
+              </h1>
+
+              <p class="tinta-2" style="margin:0 0 28px; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:16px; line-height:26px; color:#3E585F;">
+                {{estadoDetalle}}
+              </p>
+            </td>
+          </tr>
+
+          <!-- Frescura del dato: DESIGN.md §6 exige que se vea cuándo se supo -->
+          <tr>
+            <td class="relleno" style="padding:0 40px 28px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="linea" style="border-top:1px solid #C9D9D8;">
+                <tr>
+                  <td style="padding:18px 0 0;">
+                    <p class="tinta-3" style="margin:0 0 5px; font-family:ui-monospace,'Cascadia Mono',Consolas,monospace; font-size:11px; letter-spacing:0.8px; text-transform:uppercase; color:#6E878D;">Se registró</p>
+                    <p class="tinta" style="margin:0; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:17px; line-height:24px; font-weight:600; font-variant-numeric:tabular-nums; color:#0B1F26;">{{actualizadoLegible}}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Llamado a la acción cívica -->
+          <tr>
+            <td class="relleno linea" style="padding:24px 40px; border-top:1px solid #C9D9D8;">
+              <p class="tinta-2" style="margin:0 0 14px; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:15px; line-height:24px; color:#3E585F;">
+                ¿Coincide con lo que pasa en tu casa? Cuéntanos. Con eso medimos si el corte duró lo que prometieron.
+              </p>
+              <a class="acento" href="{{urlReportar}}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:15px; font-weight:600; color:#0A6C78; text-decoration:underline;">
+                Reportar cómo está el agua en mi casa
+              </a>
+            </td>
+          </tr>
+
+          <!-- Pie: RF015 exige la baja en 1 clic en cada correo, no solo en el de confirmación -->
+          <tr>
+            <td class="relleno linea" style="padding:22px 40px 26px; border-top:1px solid #C9D9D8;">
+              <p class="tinta-3" style="margin:0 0 8px; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:12px; line-height:19px; color:#6E878D;">
+                Te llega este correo porque pediste los avisos de {{nombreSector}}.
+                <a class="tinta-3" href="{{urlBaja}}" style="color:#6E878D; text-decoration:underline;">Dejar de recibirlos</a>.
+              </p>
+              <p class="tinta-3" style="margin:0; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:12px; line-height:19px; color:#6E878D;">
+                AguaVigía CTG · Proyecto ciudadano de monitoreo del acueducto · Cartagena de Indias
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
