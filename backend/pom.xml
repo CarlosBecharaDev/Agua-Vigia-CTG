@@ -237,10 +237,13 @@
                     <limit>
                       <counter>INSTRUCTION</counter>
                       <value>COVEREDRATIO</value>
-                      <!-- RNF017: >= 70% en domain/ y application/. Real al momento de fijar
-                           este umbral: ~93.7% — el margen es intencional, no hay que perseguir
-                           el 100% para mantener el build en verde. -->
-                      <minimum>0.70</minimum>
+                      <!-- RNF017 exige >= 70% en domain/ y application/. El umbral se fija en
+                           85% y no en 70: real al momento de fijarlo, 92.4% en domain/ y 99.2%
+                           en application/. Un umbral 20 puntos por debajo del valor real no
+                           protege de nada — se podria borrar un tercio de las pruebas sin que
+                           el build se enterara. El margen que queda sigue siendo suficiente para
+                           no perseguir el 100%. -->
+                      <minimum>0.85</minimum>
                     </limit>
                   </limits>
                 </rule>
