@@ -43,7 +43,7 @@
 |---|---|---|---|---|---|
 | RF001 Mapa con sectores coloreados por estado | HU001 | CP001 | 1, 2, 3 | 1 | ✅ |
 | RF002 Detalle del sector al seleccionarlo | HU002 | CP002 | 3 | 1 | ✅ |
-| RF003 Antigüedad del dato visible por sector | HU003 | CP003 | 3 | 2 | ✅ |
+| RF003 Antigüedad del dato visible por sector | HU003 | CP003 | 3 | 2 | ✅ (`SectorMongoAdapterTest.debeDevolverLaFechaDelEstadoAlLeerElSector`) |
 | RF004 Lista textual accesible alternativa al mapa | HU004 | CP004 | 3, 4 | 1 | ✅ |
 
 ### M2 — Reporte ciudadano · D3 + D4
@@ -93,9 +93,9 @@
 
 | RF | Historia | Caso de prueba | Obj. | Sprint | Estado |
 |---|---|---|---|---|---|
-| RF023 Sectores más afectados, duración y frecuencia | HU023 | CP023 | 3, 4 | 4 | ✅ |
-| RF024 Evolución del índice en el tiempo | HU024 | CP024 | 4 | 4 | ⬜ (Pendiente — `IndiceCumplimientoController` solo expone agregado global/sector/corte, no serie temporal) |
-| RF025 Exportación en CSV | HU025 | CP025 | 3 | 5 | ⬜ (Pendiente — no existe ningún endpoint ni código de exportación) |
+| RF023 Sectores más afectados, duración y frecuencia | HU023 | CP023 | 3, 4 | 4 | ✅ (`EstadisticasMongoAdapterTest`) |
+| RF024 Evolución del índice en el tiempo | HU024 | CP024 | 4 | 4 | ✅ (`GET /api/cumplimiento/serie` · `SerieMensualCumplimientoTest`) |
+| RF025 Exportación en CSV | HU025 | CP025 | 3 | 5 | ✅ (`/api/estadisticas/exportar.csv` y `/api/cumplimiento/serie.csv` · `EscritorCsvTest`) |
 
 ### M8 — Bitácora pública · D1
 
@@ -109,9 +109,9 @@
 
 | RF | Historia | Caso de prueba | Obj. | Sprint | Estado |
 |---|---|---|---|---|---|
-| RF029 Consumo periódico de la API oficial | HU029 | CP029 | 3 | 1 | ✅ |
-| RF030 Consumo de prensa vía RSS de agregadores | HU030 | CP030 | 3 | 3 | ✅ |
-| RF031 Descarte de duplicados por hash | HU031 | CP031 | 3 | 2 | ✅ |
+| RF029 Consumo periódico de la API oficial | HU029 | CP029 | 3 | 1 | ✅ (`AcuacarApiCollectorTest`) |
+| RF030 Consumo de prensa vía RSS de agregadores | HU030 | CP030 | 3 | 3 | ✅ (`RssCollectorTest`) |
+| RF031 Descarte de duplicados por hash | HU031 | CP031 | 3 | 2 | ✅ (`DeduplicadorRecienteTest` · `PipelineOrquestadorTest`) |
 | RF032 Clasificación y extracción con IA estructurada | HU032 | CP032 | 3, 4 | 4 | ❌ (Descartado) |
 | RF033 Confianza y cita textual en toda extracción | HU033 | CP033 | 3, 4 | 4 | ❌ (Descartado) |
 | RF034 Rechazo automático si la cita no es literal | HU034 | CP034 | 3, 4 | 4 | ❌ (Descartado) |
@@ -134,7 +134,7 @@
 
 | RF | Historia | Caso de prueba | Obj. | Sprint | Estado |
 |---|---|---|---|---|---|
-| RF039 Exponer reportes bajo estándar Open311 | HU039 | CP039 | 3 | Fase 2 | ✅ |
+| RF039 Exponer reportes bajo estándar Open311 | HU039 | CP039 | 3 | Fase 2 | ✅ (`Open311ControllerTest`. Se expone estado **agregado por sector**, no cada reporte: ver `ADR-026` — publicar la coordenada de cada reporte permitiría inferir domicilios, contra RNF008) |
 
 ### M13 — Integración IoT Pasiva (Fase 2)
 
@@ -159,12 +159,12 @@ Los RNF no llevan historia de usuario: se verifican con una medición, no con un
 | RNF001 | Mapa completo < 3 s en 3G | Lighthouse con throttling | 6 | ✅ |
 | RNF002 | Confirmación de reporte < 1 s | Prueba de carga | 5 | ✅ |
 | RNF003 | Caché del mapa con TTL ≤ 60 s | Inspección de Redis | 2 | ✅ |
-| RNF004 | Fuente caída no tumba el sistema | Prueba de caos | 4 | ✅ |
-| RNF005 | Backoff + cortacircuitos tras 3 fallos | Test de integración | 4 | ✅ |
-| RNF006 | Cero descartes silenciosos | Revisión de la cola muerta | 2 | ✅ |
-| RNF007 | Salud por colector expuesta | `/actuator/health` | 4 | ✅ |
-| RNF008 | Sin datos personales del reportante | Revisión del modelo de datos | 2 | ✅ |
-| RNF009 | Correos con acceso restringido, borrados al darse de baja | Revisión de código y prueba | 2 | ✅ |
+| RNF004 | Fuente caída no tumba el sistema | Prueba de caos | 4 | ✅ (`PipelineOrquestadorTest.unColectorCaidoNoDebeImpedirQueSeLeaElOtro`) |
+| RNF005 | Backoff + cortacircuitos tras 3 fallos | Test de integración | 4 | ✅ (`ResilienciaDeColectoresTest.debeAbrirElCortacircuitosAlTercerFalloConsecutivo`) |
+| RNF006 | Cero descartes silenciosos | Revisión de la cola muerta | 2 | ✅ (`PipelineOrquestadorTest.noDebeMarcarComoVistoUnDocumentoQueFalloAlProcesarse`) |
+| RNF007 | Salud por colector expuesta | `/actuator/health` | 4 | ✅ (`ColectorHealthIndicatorTest` · detalle autenticado en `GET /api/veedor/ingesta/salud`) |
+| RNF008 | Sin datos personales del reportante | Revisión del modelo de datos | 2 | ✅ (`ADR-007` huella anónima · `ADR-026` Open311 agregado · `ADR-027` evidencia) |
+| RNF009 | Correos con acceso restringido, borrados al darse de baja | Revisión de código y prueba | 2 | ✅ (`MailNotificacionAdapterTest.debeIncluirElEnlaceDeBajaEnElAviso`) |
 | RNF010 | Cero credenciales en el repositorio | `gitleaks` en CI | 0 | ✅ |
 | RNF011 | JWT con expiración ≤ 8 h | Test de seguridad | 3 | ✅ |
 | RNF012 | Contraste AA en ambos temas | axe / Lighthouse | 5 | ✅ |
@@ -172,8 +172,8 @@ Los RNF no llevan historia de usuario: se verifican con una medición, no con un
 | RNF014 | Objetivos táctiles ≥ 44×44 px | Inspección de CSS | 5 | ✅ |
 | RNF015 | Funcional desde 360 px | Prueba responsive | 5 | ✅ |
 | RNF016 | El estado nunca solo por color | Revisión de diseño | 5 | ✅ |
-| RNF017 | Cobertura ≥ 70% en `domain/` y `application/` | JaCoCo en CI | 5 | 🟡 (Deuda Técnica) |
-| RNF018 | Build falla si se viola una capa | ArchUnit en CI | 1 | ✅ |
+| RNF017 | Cobertura ≥ 70% en `domain/` y `application/` | JaCoCo en CI | 5 | ✅ (real: **92.4%** en `domain/`, **99.2%** en `application/`, sobre 406 pruebas. El `jacoco:check` del `pom.xml` falla la build por debajo del 85%) |
+| RNF018 | Build falla si se viola una capa | ArchUnit en CI | 1 | ✅ (`ReglaDeOroArchitectureTest`, 5 reglas) |
 | RNF019 | Precisión del clasificador ≥ 90% | Regresión sobre el conjunto dorado | 5 | ❌ (Descartado) |
 | RNF020 | Levanta con un solo comando | `docker compose up` en máquina limpia | 0 | ✅ |
 | RNF021 | Imágenes en bucket con compresión automática | Inspección de bucket y metadatos | Fase 2 | ⬜ |
@@ -188,3 +188,19 @@ Se revisa al cerrar cada sprint. Un hueco aquí es un hallazgo del docente esper
 |---|---|---|
 | Ninguna historia de usuario redactada todavía (Anexo 4, Sprint 1) | 2026-08-07 | ✅ **Cerrado 2026-08-08** — `docs/anexos/anexo-4-historias-de-usuario.md` cubre RF001–RF036 (HU001–HU036), uno por cada requisito |
 | Ningún caso de prueba redactado todavía (Anexo 5, Sprint 5) | 2026-08-07 | ✅ **Cerrado 2026-08-10** — Se incluyeron en el Anexo 5 |
+| RNF005 marcado ✅ sin implementación: `resilience4j` estaba en el `pom.xml` sin un solo uso | 2026-08-11 | ✅ **Cerrado 2026-08-11** — `@Retry`/`@CircuitBreaker` en ambos colectores, configurados en `application.yml` y verificados en `ResilienciaDeColectoresTest` |
+| RNF007 marcado ✅ sin implementación: no existía ningún `HealthIndicator` | 2026-08-11 | ✅ **Cerrado 2026-08-11** — `ColectorHealthIndicator` + `EstadoColectorRegistry`, detalle en `/api/veedor/ingesta/salud` |
+| RF003 marcado ✅ pero imposible desde el contrato: `SectorApiMapper` ignoraba `actualizadoEn` y el dominio no transportaba la fecha | 2026-08-11 | ✅ **Cerrado 2026-08-11** — `Sector.estadoActualizadoEn` llega hasta `SectorRespuesta` |
+| RNF004/RNF006 marcados ✅ mientras un fallo de Acuacar tumbaba el ciclo entero y el deduplicador descartaba en silencio | 2026-08-11 | ✅ **Cerrado 2026-08-11** — aislamiento por colector y marcado como visto solo tras procesar |
+| M9 cambiaba el estado público de un barrio sin revisión humana, contra lo que prometía su propio extractor | 2026-08-11 | ✅ **Cerrado 2026-08-11** — cola de revisión del veedor (`ADR-028`) |
+| `backend/openapi.yaml` es un archivo generado que se comitea a mano, sin nada que garantice que siga al día | 2026-08-11 | ✅ **Cerrado 2026-08-11** — `ContratoOpenApiTest` compara las rutas publicadas contra el archivo versionado |
+
+### Pendientes reconocidos
+
+No son huecos de trazabilidad: están declarados y con su razón.
+
+| Qué | Por qué sigue abierto |
+|---|---|
+| RF041 (webhook real de WhatsApp/Telegram) | Exige credenciales de WhatsApp Business API o un bot de Telegram, que no dependen del backend. La cadena evento → caso de uso → puerto ya está cableada y probada; falta el adaptador que llame al proveedor |
+| RNF021 (imágenes en bucket con compresión) | El despliegue del proyecto es de servidor único con volumen local (Anexo 5). Migrar a un bucket es una decisión de infraestructura, no de código: `AlmacenamientoPort` ya aísla el cambio |
+| Autenticación en MongoDB y Redis | Ambos van sin credenciales, protegidos por la red interna de Docker y sin publicar puertos en producción. Aceptable para el despliegue de aula; obligatorio antes de uno público |

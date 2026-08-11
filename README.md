@@ -7,9 +7,11 @@ AguaVigía cruza los avisos oficiales con reportes ciudadanos georreferenciados 
 > Proyecto de aula · Fundación Universitaria Tecnológico Comfenalco
 > Tecnología en Desarrollo de Software · Cartagena de Indias D.T. y C. · 2026
 
-**Estado actual:** Backend y Bases de Datos en Fase 2. El núcleo (M1–M8) está terminado y probado;
-algunos módulos de Fase 2 (M9–M14) siguen teniendo piezas pendientes — ver la
-[matriz de trazabilidad](docs/ingenieria/matriz-trazabilidad.md) para el detalle módulo por módulo.
+**Estado actual:** Backend y Bases de Datos completos salvo RF041 (webhook real de
+WhatsApp/Telegram), que depende de credenciales de terceros. **406 pruebas** en verde, con **92.4%**
+de cobertura en `domain/` y **99.2%** en `application/`. El detalle requisito por requisito, con el
+nombre de la prueba que sostiene cada uno, está en la
+[matriz de trazabilidad](docs/ingenieria/matriz-trazabilidad.md).
 
 ---
 
@@ -36,14 +38,14 @@ El proyecto está construido bajo una estricta **Arquitectura Limpia (Puertos y 
 | **M4** | Alertas por correo | Notificaciones (Doble Opt-In) al cambiar el estado de un barrio. |
 | **M5** | Panel del veedor | Backoffice JWT para moderación y registro de cortes. |
 | **M6** | Índice de Cumplimiento | Diferencial de tiempo prometido vs real de reparación. |
-| **M7** | Estadísticas | Sectores más afectados, cortes por día y duración promedio. Exportación en CSV: pendiente. |
+| **M7** | Estadísticas | Sectores más afectados, cortes por día, duración promedio, evolución del índice mes a mes y exportación en CSV. |
 | **M8** | Bitácora pública | Registro cronológico inmutable de todo lo acontecido. |
-| **M9** | Ingesta automatizada | Colectores de la API oficial y RSS de prensa, con deduplicación por hash. La clasificación por IA (RF032-036) se descartó por bloqueo de dependencias; queda una heurística por expresiones regulares que fuerza revisión humana. |
+| **M9** | Ingesta automatizada | Colectores de la API oficial y RSS de prensa, con deduplicación por hash, reintentos y cortacircuitos. La clasificación por IA (RF032-036) se descartó por bloqueo de dependencias (`ADR-025`); queda una heurística por expresiones regulares que **propone** cambios de estado a una cola de revisión del veedor, sin publicar nada por su cuenta (`ADR-028`). |
 | **M10** | Evidencia Multimedia | Soporte de capturas fotográficas en reportes. |
 | **M11** | Validación Comunitaria | Confirmaciones de un toque para un reporte existente. |
 | **M12** | API Abierta Open311 | Estándar internacional para consumo de datos cívicos. |
 | **M13** | Integración IoT Pasiva | Telemetría en tiempo real desde sensores de presión locales. |
-| **M14** | Alertas Push | Webhooks de notificación vía WhatsApp y Telegram: pendiente, hoy solo registra en el log. |
+| **M14** | Alertas Push | La cadena evento → caso de uso → puerto está cableada y probada; el adaptador que llama al proveedor real (RF041) sigue pendiente porque exige credenciales de WhatsApp Business o Telegram. Hoy registra en el log. |
 
 ---
 
@@ -80,7 +82,9 @@ el backend responda con cabeceras CORS — no las manda).
 
 ## 🧪 Pruebas y Aseguramiento de Calidad (QA)
 
-El backend de AguaVigía cuenta con **más de 257 pruebas unitarias y de integración**. 
+El backend de AguaVigía cuenta con **406 pruebas unitarias y de integración**, y la build falla si la
+cobertura de `domain/` o `application/` baja del 85% (RNF017) o si se viola una capa de la
+arquitectura (RNF018, ArchUnit).
 
 Para correr la suite de pruebas localmente, asegúrate de tener Docker abierto y ejecuta:
 

@@ -8,8 +8,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 
 /**
- * Adaptador mínimo — solo lo que EvaluarConsensoService necesita para anexar (RF011). El backend
- * completo de M8 (GET /api/bitacora, inmutabilidad append-only formal) es Sprint 3, capa de D1.
+ * Documento de la bitácora pública (RF026-RF028).
+ *
+ * La inmutabilidad no la impone este documento sino la forma del puerto:
+ * {@code EventoBitacoraRepository} declara solo `guardar` y `listarTodos`, sin editar ni eliminar,
+ * así que no hay manera de romperla desde la aplicación aunque se quisiera.
  */
 @Getter
 @Setter
