@@ -5,7 +5,8 @@
 > proyecto, en qué estado está, qué se hizo, qué falta, qué se decidió dejar fuera y las trampas del
 > entorno que cuestan una hora si nadie las avisa.
 >
-> **Última actualización:** 2026-08-11 · **Commit:** `7d320c3` · **Rama:** `main`
+> **Última actualización:** 2026-08-11 · **Commit:** cambios de esta sesión sobre `7d320c3`, aún
+> sin commitear · **Rama:** `main`
 >
 > Si al leerlo algo no cuadra con el código, gana el código: este documento se actualiza a mano.
 > Lo que sí está garantizado por la build es la [matriz de trazabilidad](matriz-trazabilidad.md),
@@ -46,19 +47,20 @@ romperles el trabajo.
 
 | Métrica | Valor | Cómo se comprueba |
 |---|---|---|
-| Pruebas | **419**, todas en verde | `cd backend && ./mvnw verify` |
-| Cobertura `domain/` | **91.5%** | JaCoCo; la build falla por debajo del 85% |
-| Cobertura `application/` | **99.2%** | ídem |
-| Clases de producción | 200 | `find backend/src/main -name '*.java'` |
-| Clases de prueba | 84 | `find backend/src/test -name '*.java'` |
-| Rutas publicadas en el contrato | 30 | `grep -cE '^  /' backend/openapi.yaml` |
+| Pruebas | **447**, todas en verde | `cd backend && ./mvnw verify` |
+| Cobertura `domain/` | **91%** | JaCoCo; la build falla por debajo del 85% |
+| Cobertura `application/` | **99%** | ídem |
+| Cobertura `infrastructure.cache` | **100%** (era 69.6%) | JaCoCo, ver §4 de esta ronda |
+| Clases de producción | 207 | `find backend/src/main -name '*.java'` |
+| Clases de prueba | 90 | `find backend/src/test -name '*.java'` |
+| Rutas publicadas en el contrato | 30 (sin cambios — ningún endpoint nuevo) | `grep -cE '^  /' backend/openapi.yaml` |
 | Vulnerabilidades altas o críticas | **0** | Job "Despliegue y dependencias" del CI |
 | ADRs registrados | 28 | `docs/design-decisions.md` |
 | Workflows de CI | 3, los tres en verde | `gh run list` |
 
 **Requisitos:** todos implementados salvo **RF041** (webhook real de WhatsApp/Telegram), que depende
-de credenciales de terceros. **RNF001 y RNF002** están marcados 🟡 en la matriz: son medibles y no se
-han medido.
+de credenciales de terceros. **RNF002 ya se midió** (ver §4) y queda ✅ en la matriz. **RNF001** sigue
+🟡 — es de frontend (D4), fuera de este alcance.
 
 ---
 
@@ -184,13 +186,19 @@ producción y no en desarrollo.
 
 ### 6.1 Dentro del alcance del backend
 
-| Qué | Por qué sigue abierto | Esfuerzo |
-|---|---|---|
-| **RNF002** — confirmar reporte en < 1 s | Declarado sin medición. El camino sí está optimizado (índice compuesto, cupo por INCR, notificaciones y SSE fuera del hilo HTTP), pero *optimizado no es medido*. Falta una prueba de carga (k6 o similar) | Medio |
-| **Índice global sin paginar** | `cortes.listarTodos()` trae todos los cortes cerrados para calcular el índice y la serie. Paginarlo daría un índice **incorrecto**: el arreglo real es agregar en Mongo con un pipeline. Hoy está acotado por el volumen real de anuncios (cientos al año), pero es la próxima deuda si el histórico crece | Medio |
-| **SSE de una sola instancia** | `emitters` es estado en memoria: con más de una réplica solo reciben los clientes conectados a ella. Necesita un backplane en Redis. Irrelevante en el despliegue de servidor único | Medio |
-| **Logs sin estructura ni correlation ID** | Diagnosticar un fallo en producción es leer texto plano | Bajo |
-| **`infrastructure.cache` al 69.6%** | Es el paquete de menor cobertura tras la limpieza | Bajo |
+Los cinco puntos que esta tabla listaba se cerraron en una ronda de trabajo posterior a `7d320c3`
+(sin commitear todavía — ver la nota de cabecera). Quedan documentados aquí para que quede rastro de
+qué cambió y dónde mirar:
+
+| Qué estaba abierto | Cómo se cerró |
+|---|---|
+| **RNF002** — confirmar reporte en < 1 s, declarado sin medir | k6 contra `POST /api/reportes` (`scripts/carga/rnf002-registrar-reporte.js`): p(95)=16.49 ms, 0% de errores. Detalle en `matriz-trazabilidad.md` |
+| **Índice global sin paginar** — `cortes.listarTodos()` traía todos los cortes cerrados a memoria | `CorteAguaRepository.agregarCerrados`/`agregarCerradosPorMes`: pipeline Mongo (`$match`+`$group`) en `CorteAguaMongoAdapter`. `CalcularCumplimientoService.global()`/`serieMensual()` solo calculan el porcentaje sobre el agregado |
+| **SSE de una sola instancia** — `emitters` en memoria del controlador | `SseSectoresBroadcaster` (Redis pub/sub, canal `aguavigia:sse:sectores`, wireado en `SseConfig`): cualquier instancia que publique, todas las suscritas reenvían a sus propios clientes |
+| **Logs sin estructura ni correlation ID** | `logging.structured.format.console=ecs` (nativo de Boot 3.4+) + `CorrelationIdFilter`/`MdcTaskDecorator` en `infrastructure/logging/` |
+| **`infrastructure.cache` al 69.6%** | `CachePropertiesTest` — la validación del TTL no tenía prueba propia. Cobertura ahora 100% |
+
+No queda ningún pendiente reconocido dentro del alcance del backend, aparte de lo de §6.2.
 
 ### 6.2 Requiere decisión o credenciales de otros
 
