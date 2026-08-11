@@ -1,5 +1,6 @@
 package com.aguavigia.ctg.application;
 
+import com.aguavigia.ctg.domain.AgregadoDuraciones;
 import com.aguavigia.ctg.domain.CorteAgua;
 import com.aguavigia.ctg.domain.CorteId;
 import com.aguavigia.ctg.domain.EstadoCorte;
@@ -136,11 +137,15 @@ class CalcularCumplimientoServiceTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
+    /**
+     * La suma ahora la hace el pipeline Mongo (CorteAguaRepository.agregarCerrados) — este test
+     * verifica que el servicio calcule el porcentaje sobre el agregado, no que sepa sumar
+     * ventanas; el pipeline en sí se prueba contra Mongo real en CorteAguaMongoAdapterTest.
+     */
     @Test
-    void debeCalcularElIndiceGlobalSobreTodosLosCortesCerrados() {
-        given(cortes.listarTodos()).willReturn(List.of(
-                corteCerrado("corte-1", List.of("manga"), Duration.ofHours(2), Duration.ofHours(2)),
-                corteCerrado("corte-2", List.of("bocagrande"), Duration.ofHours(2), Duration.ofHours(6))));
+    void debeCalcularElIndiceGlobalSobreElAgregadoDeCortesCerrados() {
+        given(cortes.agregarCerrados(null))
+                .willReturn(new AgregadoDuraciones(Duration.ofHours(4), Duration.ofHours(8), 2));
 
         IndiceCumplimiento indice = servicio.global();
 
@@ -151,7 +156,7 @@ class CalcularCumplimientoServiceTest {
 
     @Test
     void debeRechazarElIndiceGlobalSinCortesCerrados() {
-        given(cortes.listarTodos()).willReturn(List.of());
+        given(cortes.agregarCerrados(null)).willReturn(AgregadoDuraciones.vacio());
 
         assertThatThrownBy(() -> servicio.global()).isInstanceOf(IllegalArgumentException.class);
     }
