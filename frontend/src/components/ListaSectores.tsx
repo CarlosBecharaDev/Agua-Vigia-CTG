@@ -9,10 +9,7 @@
  */
 import type { FC } from 'react'
 import type { Sector } from '../types/tipos-dominio'
-import { COLOR_POR_ESTADO } from '../types/tipos-dominio'
 import { InsigniaEstado } from './InsigniaEstado'
-import { EtiquetaFrescura } from './EtiquetaFrescura'
-import { MessageSquareWarning } from 'lucide-react'
 
 interface Props {
   sectores: Sector[]
@@ -23,15 +20,7 @@ interface Props {
 
 /** Skeleton de un ítem de la lista mientras carga */
 const SkeletonItem: FC = () => (
-  <li
-    aria-hidden="true"
-    style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      padding: '0.75rem 0',
-      borderBottom: '1px solid var(--color-linea)',
-    }}
-  >
+  <li aria-hidden="true" className="lista-sectores-skel">
     <div className="skeleton" style={{ width: '140px', height: '16px' }} />
     <div className="skeleton" style={{ width: '80px', height: '16px' }} />
   </li>
@@ -59,25 +48,9 @@ export const ListaSectores: FC<Props> = ({ sectores, cargando, error, onSectorSe
     )
   }
 
-  // Genera un número de reportes estático falso para diseño
-  const obtenerReportesMock = (sector: Sector) => {
-    if (sector.estado === 'CON_SERVICIO') return 0;
-    if (sector.estado === 'CORTE_PROGRAMADO') return Math.floor(parseInt(sector.id) * 2);
-    return parseInt(sector.id) * 4 + 7;
-  }
-
   return (
     <section aria-label="Lista de sectores y su estado de servicio">
-      <h2
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: '1rem',
-          marginBottom: '0.75rem',
-          color: 'var(--color-tinta)',
-        }}
-      >
-        Estado por sector
-      </h2>
+      <h2 className="lista-sectores-titulo">Estado por sector</h2>
 
       {cargando && (
         <ul style={{ listStyle: 'none', padding: 0 }} aria-label="Cargando sectores">
@@ -93,70 +66,21 @@ export const ListaSectores: FC<Props> = ({ sectores, cargando, error, onSectorSe
       )}
 
       {!cargando && grupos.map(({ sectores: grupo, estado }) => (
-        <div key={estado} style={{ marginBottom: '1.25rem' }}>
-          {/* Cabecera del grupo */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              marginBottom: '0.75rem',
-            }}
-          >
+        <div key={estado} className="lista-sectores-grupo">
+          <div className="lista-sectores-grupo-cab">
             <InsigniaEstado estado={estado} tamaño="sm" />
-            <span
-              className="uppercase-label"
-              style={{ color: 'var(--color-tinta-2)', fontWeight: 'bold' }}
-            >
-              {grupo.length}
-            </span>
+            <span className="uppercase-label cuenta">{grupo.length}</span>
           </div>
 
-          <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <ul className="lista-sectores-items">
             {grupo.map(sector => (
               <li key={sector.id}>
                 <button
                   onClick={() => onSectorSeleccionado?.(sector)}
                   aria-label={`Ver ${sector.nombre} en el mapa`}
-                  className="hover-glowing"
-                  style={{
-                    background: 'var(--color-superficie)',
-                    backdropFilter: 'blur(8px)',
-                    border: 'none',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    color: 'var(--color-tinta)',
-                    fontFamily: 'var(--font-cuerpo)',
-                    fontSize: '0.95rem',
-                    fontWeight: '600',
-                    padding: '0.75rem 1rem',
-                    minHeight: '44px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    width: '100%',
-                    borderRadius: '1rem',
-                    transition: 'all var(--transicion)'
-                  }}
+                  className="lista-sectores-btn"
                 >
                   <span>{sector.nombre}</span>
-                  {obtenerReportesMock(sector) > 0 && (
-                    <span style={{ 
-                      fontSize: '0.75rem', 
-                      color: 'var(--color-estado-sin)', 
-                      display: 'inline-flex', 
-                      alignItems: 'center', 
-                      gap: '0.25rem',
-                      fontFamily: 'var(--font-util)',
-                      backgroundColor: 'var(--color-superficie)',
-                      padding: '0.2rem 0.5rem',
-                      borderRadius: '1rem',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-                    }}>
-                      <MessageSquareWarning size={12} />
-                      {obtenerReportesMock(sector)}
-                    </span>
-                  )}
                 </button>
               </li>
             ))}

@@ -68,6 +68,13 @@ Tres razones concretas, no burocráticas:
 | BUG-041 | 2026-08-09 | S2 | M4 | `ConfirmarSuscripcionService` (ya en `develop`) nunca revisa el vencimiento del token, aunque `confirmar-suscripcion.html` le promete al vecino que el enlace vence en `{{horasVigencia}}` horas; tampoco había índice único sobre `tokenConfirmacion` en Mongo | Cerrado | D1/D5 (`ConfirmarSuscripcionService` original de D5; hallazgo del PR #110 de Rafael, D1) |
 | BUG-042 | 2026-08-09 | S3 | M4 | `aviso-corte.html` y el README de plantillas se quedaron fuera de `develop`: el commit que los trajo llegó a su rama después de fusionado el PR #45, y solo `confirmar-suscripcion.html` cruzó | Cerrado — plantilla y README recuperados | D1 (autoría original de Yordy, D5) |
 | BUG-043 | 2026-08-09 | S4 | Frontend | El tema claro cargaba el fondo morado del modo oscuro y ambos temas incumplían la paleta de `DESIGN.md` | Cerrado — corregido en el acto | D4 |
+| BUG-044 | 2026-08-11 | S2 | M1 | El mapa y el buscador solo reconocían ~30 de los 211 barrios reales del GeoJSON; el resto caía en un sector sintético inventado al hacer clic | Cerrado — corregido en el acto | D4 |
+| BUG-045 | 2026-08-11 | S2 | M1/M9 | Un barrio con nombre numeral en el GeoJSON ("SIETE DE AGOSTO") nunca calzaba si el boletín de Acuacar lo escribía en dígito ("7 de Agosto") | Cerrado — corregido en el acto | D4 |
+| BUG-046 | 2026-08-11 | S2 | M1/M9 | Los sub-sectores de "Olaya Herrera" en el GeoJSON llevan el prefijo "OLAYA ST. X"; los boletines de Acuacar los listan sin ese prefijo y nunca cruzan | Abierto | D4/D5 |
+| BUG-047 | 2026-08-11 | S2 | — (geoespacial) | Boletines reales de Acuacar nombran zonas ("María Auxiliadora", "Salim Bechara") sin ningún polígono equivalente en `barrios-cartagena.geojson` | Abierto | D5 |
+| BUG-048 | 2026-08-11 | S2 | — (infraestructura) | El proxy de Acuacar en `vite.config.ts` envía un `User-Agent` que se hace pasar por Chrome/Windows en vez de identificar el proyecto, violando la regla no negociable de `CLAUDE.md` | Abierto | Equipo (decisión: correo de contacto) |
+| BUG-049 | 2026-08-11 | S3 | M8 | Las imágenes de portada de los boletines de Acuacar no cargaban en las tarjetas de la Bitácora — bloqueadas por protección anti-hotlink basada en `Referer` | Cerrado — corregido en el acto | D4 |
+| BUG-050 | 2026-08-11 | S2 | M8 | El botón "Leer documento" de la Bitácora podía no navegar a ningún lado: el carrusel capturaba el puntero en cada clic, no solo al arrastrar | Cerrado — corregido en el acto | D4 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -76,6 +83,244 @@ Tres razones concretas, no burocráticas:
 ---
 
 ## Bugs abiertos — detalle
+
+> **Nota de origen — BUG-044 a BUG-048:** encontrados el 2026-08-11 investigando por qué el panel
+> de detalle de sector se veía "incompleto" para muchos barrios al hacer clic en el mapa, y
+> auditando en vivo (contra `/acuacar-api` real, no datos de ejemplo) cuánta cobertura real de
+> boletines logra la extracción de nombres de barrio.
+
+### BUG-049 — Las imágenes de los boletines no cargaban en las tarjetas de la Bitácora
+
+- **Fecha:** 2026-08-11 · **Severidad:** S3 · **Módulo:** M8 · **Responsable:** D4
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** al agregar la foto de portada de cada boletín (`_embed=wp:featuredmedia`, campo real
+de la API de WordPress, verificado que los últimos 20 boletines la traen todos) a las tarjetas de
+la Bitácora, ningún `<img>` cargaba — quedaban en negro, o mostraban el texto alternativo
+superpuesto encima de la imagen y del pie de la tarjeta (`naturalWidth: 0`, `complete: true`, es
+decir la imagen falló, no que estuviera cargando).
+
+**Reproducción:** consistente. La misma URL cargaba perfecto navegando directo
+(`https://www.acuacar.com/wp-content/uploads/.../archivo-300x200.jpg`), pero fallaba siempre al
+pedirse como recurso `<img>` desde `localhost:5175`. Aislado con un `Image()` de prueba variando
+`referrerPolicy`: sin política (por defecto) → falla; `'no-referrer'` o `'same-origin'` → carga
+bien (`naturalWidth: 300`).
+
+**Esperado:** cualquier imagen públicamente accesible que la propia API de Acuacar entrega como
+imagen destacada de un boletín debería poder mostrarse en la app.
+
+**Causa raíz:** protección anti-hotlinking del lado de Acuacar basada en el header `Referer` —
+bloquea si la petición trae un `Referer` de un origen distinto al suyo (comportamiento estándar de
+muchos hostings para no regalar ancho de banda a sitios ajenos), y el navegador por defecto sí
+envía `Referer: http://localhost:5175/` en una petición de imagen entre orígenes.
+
+**Corrección:** `SeccionBitacora.tsx` — el `<img>` de la tarjeta lleva `referrerPolicy="no-referrer"`
+(nunca revela el origen de la petición, no es un dato que la app necesite exponer) más un
+`onError` que oculta la imagen si algún boletín puntual llegara a fallar igual, para no dejar el
+texto alternativo superpuesto sobre el resto de la tarjeta. Verificado en navegador: las imágenes
+de los boletines #2848 a #2851 cargan y se ven correctamente en modo claro y oscuro.
+
+---
+
+### BUG-050 — El botón "Leer documento" podía no navegar a ningún lado
+
+- **Fecha:** 2026-08-11 · **Severidad:** S2 · **Módulo:** M8 · **Responsable:** D4
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** reportado por el usuario tras agregar el botón "Leer documento" (rediseño de las
+tarjetas de la Bitácora, `BUG-049`): al hacer clic, a veces no pasaba nada — ni se abría la pestaña
+nueva con el boletín en acuacar.com.
+
+**Reproducción:** no se pudo reproducir de forma 100% consistente en Chrome vía automatización (los
+clics de prueba sí navegaban), lo que encaja con la causa raíz: es una condición de carrera sensible
+al *timing* exacto de cada clic, no una ruta de código siempre rota.
+
+**Esperado:** cualquier clic sobre la tarjeta o su botón "Leer documento" debe abrir el boletín
+oficial, sin excepción.
+
+**Causa raíz:** `bitacora-carrusel` (el contenedor del carrusel) llamaba
+`el.setPointerCapture(e.pointerId)` en **cada** `pointerdown`, incluidos los que ocurren sobre un
+enlace o botón anidado (el evento burbujea desde la tarjeta hasta el contenedor) — no solo cuando el
+gesto se confirmaba como un arrastre real. Capturar el puntero desde el primer instante puede
+desviar el `pointerup` (y el `click` sintetizado a partir de él) hacia el contenedor que capturó en
+vez de hacia el enlace que el usuario tocó, dependiendo del navegador y del tiempo entre
+`pointerdown` y `pointerup` — de ahí que fallara "a veces" y no siempre.
+
+**Corrección:** `SeccionBitacora.tsx` — `setPointerCapture` se movió de `onPointerDown` a
+`onPointerMove`, y solo se llama la primera vez que el movimiento supera el umbral de 3px que ya
+distinguía un arrastre de un clic (`a.movio`). Un clic sin arrastre real nunca llega a capturar el
+puntero, así que el `click` del enlace se resuelve con el hit-testing normal del navegador. De paso,
+`.bitacora-tarjeta-imagen-velo` (el degradado decorativo sobre la foto) se marcó
+`pointer-events: none` como medida defensiva adicional. Verificado en navegador: clic directo sobre
+"Leer documento" y sobre la imagen de la tarjeta abren el boletín real en una pestaña nueva; el
+arrastre del carrusel (clic sostenido + mover) sigue desplazando las tarjetas con normalidad.
+
+---
+
+### BUG-044 — El mapa y el buscador solo reconocían ~30 de los 211 barrios reales
+
+- **Fecha:** 2026-08-11 · **Severidad:** S2 · **Módulo:** M1 · **Responsable:** D4
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** al hacer clic en un barrio del mapa que no fuera uno de los ~19 fijos en
+`BARRIOS_PRINCIPALES` (`useDatosEnVivo.ts`) ni estuviera afectado por un boletín reciente, el panel
+mostraba una ficha genérica ("Con servicio", "hace un momento") sin ningún dato real detrás. El
+mismo barrio tampoco aparecía nunca en `BuscadorBarrios`, porque busca solo dentro de `sectores`.
+
+**Reproducción:** consistente. `barrios-cartagena.geojson` (D5) tiene 211 nombres únicos de barrio;
+`useDatosEnVivo.ts` solo completaba `sectores` con 19 fijos más los que un boletín vigente
+mencionara. `MapaCartagena.tsx:262-269` generaba un sector sintético (`estado: 'CON_SERVICIO'`) al
+vuelo para cualquier polígono sin match — verificado clicando "LA MARIA" antes del arreglo.
+
+**Esperado:** cualquier barrio real del GeoJSON debe tener un `Sector` real (aunque sea
+`CON_SERVICIO` por defecto) y debe poder buscarse — el buscador y el mapa deben compartir el mismo
+universo de barrios que el mapa dibuja.
+
+**Causa raíz:** no existía una fuente única de "qué barrios existen" — `MapaCartagena.tsx` leía el
+GeoJSON directamente para dibujar, mientras `useDatosEnVivo.ts` y `acuacar.ts` usaban listas fijas
+copiadas a mano (19 y 55 nombres respectivamente) que nunca se sincronizaron con el GeoJSON real.
+
+**Corrección:** se creó `frontend/src/data/barriosCartagena.ts` — único punto de carga (memoizado)
+del GeoJSON, del que tanto `MapaCartagena.tsx` (dibuja) como `useDatosEnVivo.ts` (arma `sectores`)
+ahora leen los mismos 211 nombres. `convertirAEstadoSectores` completa con **todos** los barrios del
+GeoJSON no afectados por un boletín vigente, no solo los 19 fijos (que quedan como respaldo si el
+GeoJSON no carga). Verificado en navegador: las 4 tarjetas de resumen (Sin servicio / Presión baja /
+Corte programado / Con servicio) suman 211 tras el arreglo (antes ~30); "LA MARIA" y "SIETE DE
+AGOSTO" ahora aparecen en el buscador y muestran su boletín real al seleccionarlos.
+
+---
+
+### BUG-045 — Un barrio con nombre numeral no calzaba si el boletín lo escribía en dígito
+
+- **Fecha:** 2026-08-11 · **Severidad:** S2 · **Módulo:** M1/M9 · **Responsable:** D4
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** el boletín real **#2849** (9-ago-2026, verificado en vivo contra `/acuacar-api`) escribe
+"7 de Agosto" como zona afectada. El barrio en el GeoJSON es `"SIETE DE AGOSTO"`. `extraerBarriosDeTexto`
+compara por subcadena de texto normalizado — `"siete de agosto"` nunca es subcadena de `"...7 de
+agosto..."` — así que ese barrio no se detectaba en ningún boletín que usara el numeral.
+
+**Reproducción:** confirmado contra el boletín real, no un caso construido:
+```
+GET /acuacar-api/posts?per_page=20 → post "#2849 – AGUAS DE CARTAGENA ALCANZA UN AVANCE DEL 40%..."
+contenido incluye: "...San Francisco, 7 de Agosto, Lomas de San Francisco..."
+```
+Antes del arreglo, `extraerBarriosDeTexto(texto)` no incluía `'SIETE DE AGOSTO'` en el resultado
+para ese boletín.
+
+**Esperado:** un barrio mencionado en un boletín real debe detectarse sin importar si Acuacar lo
+escribe en dígito o en letras.
+
+**Causa raíz:** `extraerBarriosDeTexto` solo normalizaba acentos/mayúsculas, no la diferencia entre
+"7" y "siete" — un caso que no aparece en los datos de prueba/mock usados hasta ahora, solo visible
+auditando contra la API real.
+
+**Corrección:** `acuacar.ts` — nueva `normalizarParaExtraccion()` convierte 7/9/13/20 a
+"siete"/"nueve"/"trece"/"veinte" (los 4 nombres de barrio del GeoJSON que empiezan con numeral)
+antes de comparar; solo se usa para la extracción, nunca para el texto que se le muestra al usuario.
+Verificado en navegador: "SIETE DE AGOSTO" aparece en el buscador con "Boletín #2849" y "Sin
+servicio" tras el arreglo.
+
+---
+
+### BUG-046 — Los sub-sectores de "Olaya Herrera" nunca cruzan por un prefijo que el boletín no repite
+
+- **Fecha:** 2026-08-11 · **Severidad:** S2 · **Módulo:** M1/M9 · **Responsable:** D4/D5
+- **Estado:** Abierto — necesita decisión de diseño, no se corrigió a ciegas
+
+**Síntoma:** el boletín **#2849** lista sub-sectores de Olaya Herrera por su nombre corto:
+"...Rafael Núñez, Castillete, Costa Linda, La Villa Olímpica, República de Venezuela, Ricaurte,
+Central, Progreso, La Magdalena, Playa Blanca, Zarabanda...". El GeoJSON tiene esos mismos barrios
+como `"OLAYA ST. RAFAEL NUÑEZ"`, `"OLAYA ST. RICAURTE"`, `"OLAYA ST. CENTRAL"`, `"OLAYA VILLA
+OLIMPICA"`, etc. (~10 nombres con el prefijo `"OLAYA "` / `"OLAYA ST. "`). Por comparación de
+subcadena, ninguno cruza: el nombre completo del barrio nunca aparece literal en el texto.
+
+**Reproducción:** confirmado contra el boletín #2849 real — ninguno de los ~10 `"OLAYA ST. *"`
+aparece en el resultado de `extraerBarriosDeTexto`, aunque el texto sí menciona sus nombres cortos.
+
+**Esperado:** esos ~10 sub-sectores deberían poder detectarse cuando el boletín los menciona dentro
+del párrafo que empieza con "Olaya Herrera, sectores: ...".
+
+**Por qué no se corrigió en el acto:** la opción obvia — quitar el prefijo `"OLAYA ST. "` y buscar el
+resto como alias — es peligrosa: nombres como `"Central"`, `"Progreso"` o `"Playa Blanca"` son
+palabras genéricas que podrían aparecer en boletines sin relación con Olaya Herrera, y un alias así
+arriesga marcar un barrio equivocado como afectado — exactamente lo que la regla de ética de datos
+del proyecto prohíbe (nada al mapa sin poder citar la frase exacta que lo respalda; ver `ADR-006` y
+la "Regla especial" al pie de este archivo). La corrección real necesita un parser que reconozca el
+encabezado "Olaya Herrera, sectores:" como alcance antes de mapear los nombres cortos — no se
+construyó en esta sesión por quedar fuera de lo pedido y por el riesgo de falsos positivos.
+
+**Corrección:** pendiente — requiere que el equipo decida el criterio de scoping antes de implementar.
+
+---
+
+### BUG-047 — Boletines reales nombran zonas sin polígono equivalente en el GeoJSON de D5
+
+- **Fecha:** 2026-08-11 · **Severidad:** S2 · **Módulo:** — (geoespacial) · **Responsable:** D5
+- **Estado:** Abierto — necesita verificación de D5, no se corrigió con una suposición
+
+**Síntoma:** el boletín #2849 también menciona "María Auxiliadora" y "Salim Bechara" como zonas
+afectadas. Ninguno de los 211 nombres únicos de `barrios-cartagena.geojson` se parece a esos dos
+("El Líbano", que el mismo boletín también nombra, podría corresponder a `"REPUBLICA DEL LIBANO"`
+del GeoJSON, pero no hay forma de confirmarlo sin que D5 lo revise).
+
+**Reproducción:** confirmado — `barrios-cartagena.geojson` no tiene ningún `NOMBRE` que contenga
+"maria auxiliadora" ni "salim bechara" (verificado listando los 211 nombres y buscando substring).
+
+**Esperado:** toda zona que Acuacar reporta como afectada debería tener un polígono en el GeoJSON
+para poder mostrarse en el mapa.
+
+**Nota de efecto colateral (relacionado con BUG-044):** antes de este arreglo, "María Auxiliadora"
+sí aparecía en la app —como sector huérfano, sin polígono, porque `acuacar.ts` tenía una lista fija
+propia (`BARRIOS_CONOCIDOS`) que la incluía—. Ahora que la extracción usa solo los 211 nombres reales
+del GeoJSON (`BUG-044`), esa información deja de mostrarse en cualquier parte de la app: se ganó
+cobertura real (211 barrios clicables/buscables en vez de ~30) pero se perdió la visibilidad de estos
+2-3 nombres que Acuacar sí reporta y D5 no tiene mapeados. No se inventó una correspondencia para no
+arriesgar un cruce falso (misma razón que `BUG-046`).
+
+**Corrección:** pendiente — D5 necesita confirmar si "María Auxiliadora"/"Salim Bechara" tienen
+polígono con otro nombre en el GeoJSON, o si falta agregarlos.
+
+---
+
+### BUG-048 — El proxy de Acuacar envía un `User-Agent` que se hace pasar por Chrome/Windows
+
+- **Fecha:** 2026-08-11 · **Severidad:** S2 · **Módulo:** — (infraestructura) · **Responsable:** Equipo
+- **Estado:** Abierto — necesita que el equipo defina el correo de contacto antes de corregirse
+
+**Síntoma:** `frontend/vite.config.ts`, proxy `/acuacar-api` (línea ~103), envía
+`'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)
+Chrome/120.0.0.0 Safari/537.36'` — un `User-Agent` de navegador real, no uno que identifique al
+proyecto.
+
+**Reproducción:** consistente, visible leyendo el archivo — se activa en cada petición que el
+frontend hace a Acuacar durante desarrollo.
+
+**Esperado:** `CLAUDE.md` fija la regla como no negociable: *"El colector se identifica siempre:
+`User-Agent` con nombre del proyecto y correo de contacto"* y *"no se disfraza el `User-Agent`, no se
+discute"*. `docs/design-decisions.md` ya fija el principio del identificador (`AguaVigiaCTG/0.1`),
+pero sin correo de contacto no hay una cadena completa y verificada que usar.
+
+**Causa raíz:** el proxy de desarrollo se configuró copiando un `User-Agent` de navegador genérico
+(probablemente para evitar un bloqueo por API vacía) sin que nadie note que contradice la política de
+identificación del proyecto — la fuente en sí ya está verificada y permitida (ver
+`docs/ingenieria/auditoria-fuentes-de-datos.md`), así que camuflar el origen no era ni siquiera
+necesario para que la petición funcione.
+
+**Corrección:** pendiente — no se corrigió sin que el equipo decida el correo de contacto real a usar
+en el `User-Agent` final (p. ej. `AguaVigiaCTG/0.1 (+contacto@dominio)`).
+
+---
+
+> **Nota de seguimiento sobre BUG-020** (`El cruce de nombres Acuacar↔sector no normaliza texto`,
+> cerrado el 2026-08-09 con corrección "Implementada en PR #87"): su síntoma original describe
+> exactamente el caso `'NUEVO CHILE'`/`'CHILE'` que `acuacar.test.ts` prueba
+> ("no confunde CHILE dentro de NUEVO CHILE"). Al empezar esta sesión (2026-08-11) ese test seguía
+> **sin poder ejecutarse** — `npx tsc` fallaba con `TS2305: Module "./acuacar" has no exported member
+> 'determinarEstadoBoletin'` — así que la corrección de PR #87 nunca quedó verificada para este caso
+> específico. Se corrigió en el acto junto con `BUG-045`: `extraerBarriosDeTexto` ahora hace
+> longest-match-first (el nombre más largo gana sobre uno corto contenido en él) y se exportó
+> `determinarEstadoBoletin`. `npx vitest run src/api/acuacar.test.ts` → 2/2 pruebas pasan.
 
 > **Nota de origen — BUG-017 a BUG-029:** encontrados el 2026-08-09 en una revisión de código de
 > los PRs #62–#69 (todos fusionados sin revisor, `BUG-005`), a pedido de Sebastián (D3) mientras
@@ -1220,5 +1465,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-044
+Siguiente número disponible: BUG-051
 -->

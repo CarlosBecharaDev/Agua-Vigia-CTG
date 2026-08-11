@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'favicon.ico', 'barrios-cartagena.geojson', 'pwa-192x192.svg', 'pwa-512x512.svg'],
+      includeAssets: ['favicon-32.png', 'favicon-180.png', 'barrios-cartagena.geojson', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
         name: 'AguaVigía CTG — Monitoreo del Agua en Cartagena',
         short_name: 'AguaVigía',
@@ -23,20 +23,20 @@ export default defineConfig({
         categories: ['utilities', 'social'],
         icons: [
           {
-            src: 'pwa-192x192.svg',
+            src: 'pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/svg+xml'
+            type: 'image/png'
           },
           {
-            src: 'pwa-512x512.svg',
+            src: 'pwa-512x512.png',
             sizes: '512x512',
-            type: 'image/svg+xml',
+            type: 'image/png',
             purpose: 'any maskable'
           },
           {
-            src: 'favicon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml'
+            src: 'favicon-32.png',
+            sizes: '32x32',
+            type: 'image/png'
           }
         ]
       },

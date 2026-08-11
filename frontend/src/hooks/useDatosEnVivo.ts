@@ -18,6 +18,7 @@ import { obtenerClimaActual } from '../api/clima';
 import type { ClimaCartagena } from '../api/clima';
 import { obtenerNoticiasAgua } from '../api/noticias';
 import type { NoticiaAgua } from '../api/noticias';
+import { obtenerBarriosCartagena } from '../data/barriosCartagena';
 
 // ──────────────────────────────────────────────────────────────
 // DATOS MOCK de respaldo — idénticos a los que venían en PaginaMapa.tsx
@@ -38,6 +39,17 @@ const SECTORES_MOCK: Sector[] = [
 
 /** Intervalo de actualización automática (5 minutos) */
 const INTERVALO_ACTUALIZACION_MS = 5 * 60 * 1000;
+
+// Red de seguridad si el GeoJSON de barrios (D5) no llega a cargar: una lista corta en vez
+// del universo completo de ~211 barrios. Con el GeoJSON disponible, obtenerBarriosCartagena()
+// la reemplaza siempre por la lista real — ver cargarDatos más abajo.
+const BARRIOS_PRINCIPALES_RESPALDO = [
+  'BOCAGRANDE', 'CASTILLOGRANDE', 'EL LAGUITO', 'MANGA',
+  'PIE DE LA POPA', 'GETSEMANI', 'EL CENTRO', 'LA BOQUILLA',
+  'TORICES', 'CRESPO', 'SAN DIEGO', 'DANIEL LEMAITRE',
+  'OLAYA HERRERA', 'NELSON MANDELA', 'EL SOCORRO',
+  'ZARAGOCILLA', 'NUEVO BOSQUE', 'TERNERA', 'PASACABALLOS'
+];
 
 export interface DatosEnVivo {
   // Estado general
@@ -90,7 +102,7 @@ export function useDatosEnVivo(): DatosEnVivo {
    * Convierte los estados de barrios (de los boletines de Acuacar)
    * al formato Sector[] que el mapa y la lista entienden.
    */
-  const convertirAEstadoSectores = useCallback((estados: EstadoBarrioAcuacar[]): Sector[] => {
+  const convertirAEstadoSectores = useCallback((estados: EstadoBarrioAcuacar[], barriosCartagena: string[]): Sector[] => {
     // Crear un mapa de barrios afectados (el más reciente gana)
     const mapaEstados = new Map<string, EstadoBarrioAcuacar>();
     estados.forEach(e => {
@@ -117,17 +129,13 @@ export function useDatosEnVivo(): DatosEnVivo {
       });
     });
 
-    // Agregar sectores conocidos que NO aparecen en boletines (con servicio normal)
+    // Agregar TODOS los barrios reales de Cartagena que no aparecen en ningún boletín vigente
+    // (con servicio normal) — antes solo se completaba con 19 barrios fijos, así que el
+    // buscador y el mapa se quedaban sin datos reales para el resto de los ~211 del GeoJSON
+    // y el clic caía en el sector sintético de MapaCartagena (ver onEachFeature ahí).
     const nombresAfectados = new Set(sectoresReales.map(s => s.nombre));
-    const BARRIOS_PRINCIPALES = [
-      'BOCAGRANDE', 'CASTILLOGRANDE', 'EL LAGUITO', 'MANGA',
-      'PIE DE LA POPA', 'GETSEMANI', 'EL CENTRO', 'LA BOQUILLA',
-      'TORICES', 'CRESPO', 'SAN DIEGO', 'DANIEL LEMAITRE',
-      'OLAYA HERRERA', 'NELSON MANDELA', 'EL SOCORRO',
-      'ZARAGOCILLA', 'NUEVO BOSQUE', 'TERNERA', 'PASACABALLOS'
-    ];
 
-    BARRIOS_PRINCIPALES.forEach(nombre => {
+    barriosCartagena.forEach(nombre => {
       if (!nombresAfectados.has(nombre)) {
         sectoresReales.push({
           id: String(idCounter++),
@@ -149,9 +157,13 @@ export function useDatosEnVivo(): DatosEnVivo {
     setError(null);
 
     try {
-      // Lanzar las 3 peticiones en paralelo
+      // El universo de barrios se necesita antes de pedir los boletines (para que la
+      // extracción de nombres reconozca los ~211 reales, no solo los 55 de respaldo) — por
+      // eso va aparte y no dentro del Promise.allSettled de abajo.
+      const barriosCartagena = await obtenerBarriosCartagena().catch(() => BARRIOS_PRINCIPALES_RESPALDO);
+
       const [boletinesRes, climaRes, noticiasRes] = await Promise.allSettled([
-        obtenerBoletinesRecientes(20),
+        obtenerBoletinesRecientes(20, barriosCartagena),
         obtenerClimaActual(),
         obtenerNoticiasAgua(),
       ]);
@@ -164,7 +176,7 @@ export function useDatosEnVivo(): DatosEnVivo {
         const estados = determinarEstadoBarrios(bols);
         setEstadoBarrios(estados);
 
-        const sectoresReales = convertirAEstadoSectores(estados);
+        const sectoresReales = convertirAEstadoSectores(estados, barriosCartagena);
         if (sectoresReales.length > 0) {
           setSectores(sectoresReales);
           setUsandoDatosReales(true);

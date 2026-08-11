@@ -30,7 +30,7 @@ export interface RespuestaSectores {
 
 /** Mapa de colores por estado — derivado de DESIGN.md §2 */
 export const COLOR_POR_ESTADO: Record<EstadoServicio, { claro: string; oscuro: string; etiqueta: string }> = {
-  CON_SERVICIO:     { claro: '#1C7F55', oscuro: '#4FBF89', etiqueta: 'Con servicio' },
+  CON_SERVICIO:     { claro: '#34c759', oscuro: '#4FBF89', etiqueta: 'Con servicio' },
   SIN_SERVICIO:     { claro: '#AE3428', oscuro: '#E2695B', etiqueta: 'Sin servicio' },
   PRESION_BAJA:     { claro: '#A87310', oscuro: '#D9A63C', etiqueta: 'Presión baja' },
   CORTE_PROGRAMADO: { claro: '#2A628F', oscuro: '#6BA8DA', etiqueta: 'Corte programado' },

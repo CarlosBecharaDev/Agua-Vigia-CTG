@@ -1,5 +1,9 @@
 /**
- * PaginaEstadisticas — M7 (Estadísticas).
+ * SeccionEstadisticas — M7 (Estadísticas), integrada en la página principal.
+ *
+ * Vivía en su propia ruta (/estadisticas); ahora es una sección de "/" a la que se llega
+ * haciendo scroll (o navegando a "/#estadisticas" desde cualquier otra página — ver
+ * PaginaMapa, que escucha el hash y hace scroll hasta acá), igual que la Bitácora.
  *
  * Conectada a datos REALES de Acuacar (WordPress API) y clima (Open-Meteo).
  * Deriva todas las métricas a partir de los boletines oficiales:
@@ -29,6 +33,7 @@ import {
 import { Download, AlertTriangle, Clock, Sparkles, Activity, Newspaper } from 'lucide-react'
 import { obtenerBoletinesRecientes } from '../api/acuacar'
 import type { BoletinAcuacar } from '../api/acuacar'
+import { obtenerBarriosCartagena } from '../data/barriosCartagena'
 
 // ──────────────────────────────────────────────────────────────
 // Funciones de análisis de datos reales
@@ -237,7 +242,7 @@ function useCountUp(target: number, duracion = 1200, activo = true): number {
   return valor
 }
 
-const PaginaEstadisticas: FC = () => {
+export const SeccionEstadisticas: FC = () => {
   const [periodo, setPeriodo] = useState<'30dias' | '3meses'>('3meses')
   const [boletines, setBoletines] = useState<BoletinAcuacar[]>([])
   const [cargando, setCargando] = useState(true)
@@ -290,8 +295,12 @@ const PaginaEstadisticas: FC = () => {
   // ─── Cargar boletines reales de Acuacar ───
   useEffect(() => {
     setCargando(true)
-    // Pedimos los últimos 100 boletines para tener buen rango de datos
-    obtenerBoletinesRecientes(100)
+    // Pedimos los últimos 100 boletines para tener buen rango de datos. La lista de barrios
+    // se carga primero para que la extracción reconozca los 211 barrios reales del GeoJSON,
+    // no solo los ~55 de respaldo (ver BUG-044/045 en registro-de-bugs.md).
+    obtenerBarriosCartagena()
+      .catch(() => undefined)
+      .then((barriosCartagena) => obtenerBoletinesRecientes(100, barriosCartagena))
       .then(data => {
         if (data && data.length > 0) {
           setBoletines(data)
@@ -754,11 +763,14 @@ const PaginaEstadisticas: FC = () => {
   }
 
   return (
-    <main id="contenido-principal" role="main" aria-label="Estadísticas del servicio de agua en Cartagena">
-      <div style={{ padding: '2rem 1.25rem', maxWidth: '1000px', margin: '0 auto' }}>
-        
+    <section id="estadisticas" aria-label="Estadísticas del servicio de agua en Cartagena" style={{ background: 'var(--color-fondo)' }}>
+      {/* Mismo ancho que .bitacora-envoltorio (SeccionBitacora) — para que las dos
+          secciones se sientan de la misma medida al bajar por la página, no una más
+          angosta que la otra. */}
+      <div style={{ padding: '4rem 1.25rem', width: 'min(100% - 2.5rem, 1180px)', margin: '0 auto' }}>
+
         <div style={{ marginBottom: '1rem' }}>
-          <h1 style={{
+          <h2 style={{
             fontFamily: 'var(--font-display)',
             fontSize: 'clamp(1.75rem, 4vw, 2.25rem)',
             marginBottom: '0.5rem',
@@ -767,7 +779,7 @@ const PaginaEstadisticas: FC = () => {
             fontWeight: '800',
           }}>
             Estadísticas
-          </h1>
+          </h2>
           <p style={{ color: 'var(--color-tinta-2)', fontSize: '1rem' }}>
             Transparencia y seguimiento del servicio de acueducto en Cartagena.
           </p>
@@ -1107,8 +1119,6 @@ const PaginaEstadisticas: FC = () => {
         </div>
 
       </div>
-    </main>
+    </section>
   )
 }
-
-export default PaginaEstadisticas

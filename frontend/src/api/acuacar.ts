@@ -19,6 +19,8 @@ export interface BoletinAcuacar {
   contenidoTexto: string;
   barriosAfectados: string[];
   url?: string;
+  imagenUrl: string | null;
+  imagenAlt: string;
 }
 
 export interface EstadoBarrioAcuacar {
@@ -59,16 +61,48 @@ function normalizar(texto: string): string {
     .trim();
 }
 
+// Bolet\u00edn real #2849 (9-ago-2026) escribe "7 de Agosto"; el GeoJSON de D5 tiene el barrio
+// como "SIETE DE AGOSTO" \u2014 en d\u00edgito nunca calzaba contra el nombre en letras y ese barrio
+// quedaba fuera de cualquier bolet\u00edn que lo mencionara as\u00ed. Cubre los \u00fanicos 4 nombres de
+// barrio del GeoJSON que empiezan con un n\u00famero (siete/nueve/trece/veinte de algo); si D5
+// agrega uno nuevo con numeral, hay que sumarlo aqu\u00ed.
+const NUMEROS_EN_NOMBRES_DE_BARRIO: [RegExp, string][] = [
+  [/\b7\b/g, 'siete'],
+  [/\b9\b/g, 'nueve'],
+  [/\b13\b/g, 'trece'],
+  [/\b20\b/g, 'veinte'],
+];
+
+/** Como `normalizar`, pero adem\u00e1s pasa a letras los n\u00fameros que Acuacar suele escribir en
+ *  d\u00edgito cuando el nombre del barrio los tiene en letras. Solo se usa para la extracci\u00f3n de
+ *  barrios en texto libre \u2014 nunca para el texto que se muestra, para no alterar la cita textual. */
+function normalizarParaExtraccion(texto: string): string {
+  let normalizado = normalizar(texto);
+  for (const [patron, palabra] of NUMEROS_EN_NOMBRES_DE_BARRIO) {
+    normalizado = normalizado.replace(patron, palabra);
+  }
+  return normalizado;
+}
+
 // ── Funciones públicas ──────────────────────────────────────
 
 /**
- * Obtiene los boletines más recientes de Acuacar.
- * Usa el proxy de Vite en desarrollo.
+ * Obtiene los boletines más recientes de Acuacar. Usa el proxy de Vite en desarrollo.
+ *
+ * @param barriosConocidos Lista de barrios a reconocer en el texto. Por defecto la lista
+ *   corta de respaldo (`BARRIOS_CONOCIDOS`); en producción useDatosEnVivo pasa el universo
+ *   completo cargado desde el GeoJSON de D5 (ver `data/barriosCartagena.ts`), para que un
+ *   boletín pueda mencionar cualquiera de los ~211 barrios reales, no solo estos 55.
  */
-export async function obtenerBoletinesRecientes(cantidad: number = 15): Promise<BoletinAcuacar[]> {
+export async function obtenerBoletinesRecientes(
+  cantidad: number = 15,
+  barriosConocidos: string[] = BARRIOS_CONOCIDOS,
+): Promise<BoletinAcuacar[]> {
   try {
     const baseUrl = import.meta.env.VITE_ACUACAR_API_URL || '/acuacar-api';
-    const url = `${baseUrl}/posts?per_page=${cantidad}&_fields=id,date,title,content,link`;
+    // `_embed=wp:featuredmedia` trae la imagen destacada de cada boletín sin peticiones
+    // adicionales — verificado contra la API real: los últimos 20 boletines la traen todos.
+    const url = `${baseUrl}/posts?per_page=${cantidad}&_fields=id,date,title,content,link,_links,_embedded&_embed=wp:featuredmedia`;
 
     const res = await fetch(url);
     if (!res.ok) throw new Error(`Acuacar API respondió ${res.status}`);
@@ -80,6 +114,7 @@ export async function obtenerBoletinesRecientes(cantidad: number = 15): Promise<
       const contenidoHTML = post.content?.rendered || '';
       const contenidoTexto = limpiarHTML(contenidoHTML);
       const numeroMatch = titulo.match(/#(\d+)/);
+      const media = post._embedded?.['wp:featuredmedia']?.[0];
 
       return {
         id: post.id,
@@ -88,8 +123,10 @@ export async function obtenerBoletinesRecientes(cantidad: number = 15): Promise<
         titulo,
         contenidoHTML,
         contenidoTexto,
-        barriosAfectados: extraerBarriosDeTexto(contenidoTexto),
+        barriosAfectados: extraerBarriosDeTexto(contenidoTexto, barriosConocidos),
         url: post.link || `https://www.acuacar.com/?p=${post.id}`,
+        imagenUrl: media?.media_details?.sizes?.medium?.source_url ?? media?.source_url ?? null,
+        imagenAlt: media?.alt_text || titulo,
       };
     });
   } catch (error) {
@@ -100,20 +137,63 @@ export async function obtenerBoletinesRecientes(cantidad: number = 15): Promise<
 
 /**
  * Extrae nombres de barrios conocidos de un texto libre.
- * Busca coincidencias con la lista de barrios conocidos.
+ * Busca coincidencias con la lista de barrios conocidos: los nombres más largos ganan sobre
+ * los cortos que quedan contenidos dentro de ellos (p.ej. "CHILE" no debe colarse cuando el
+ * texto dice "NUEVO CHILE"), para no inflar la lista con falsos positivos.
  */
-export function extraerBarriosDeTexto(texto: string): string[] {
-  const textoNorm = normalizar(texto);
-  const encontrados: string[] = [];
+export function extraerBarriosDeTexto(texto: string, barrios: string[] = BARRIOS_CONOCIDOS): string[] {
+  const textoNorm = normalizarParaExtraccion(texto);
+  const candidatos = [...barrios].sort((a, b) => b.length - a.length);
+  const cubierto = new Array(textoNorm.length).fill(false);
+  const encontrados = new Set<string>();
 
-  for (const barrio of BARRIOS_CONOCIDOS) {
+  for (const barrio of candidatos) {
     const barrioNorm = normalizar(barrio);
-    if (textoNorm.includes(barrioNorm)) {
-      encontrados.push(barrio);
+    if (!barrioNorm) continue;
+
+    let desde = 0;
+    let idx: number;
+    while ((idx = textoNorm.indexOf(barrioNorm, desde)) !== -1) {
+      const fin = idx + barrioNorm.length;
+      if (!cubierto.slice(idx, fin).some(Boolean)) {
+        encontrados.add(barrio);
+        for (let i = idx; i < fin; i++) cubierto[i] = true;
+      }
+      desde = idx + 1;
     }
   }
 
-  return encontrados;
+  // Orden estable según `barrios`, no según dónde aparece cada uno en el texto.
+  return barrios.filter((barrio) => encontrados.has(barrio));
+}
+
+/**
+ * Clasifica el tipo de afectación a partir del título del boletín. Función pura y expuesta
+ * aparte para que la misma regla se aplique tanto a lotes (determinarEstadoBarrios) como a
+ * un boletín suelto en pantallas que lo necesiten (p.ej. la bitácora).
+ */
+export function determinarEstadoBoletin(titulo: string): 'SIN_SERVICIO' | 'CORTE_PROGRAMADO' | 'CON_SERVICIO' {
+  const tituloNorm = normalizar(titulo);
+
+  if (
+    tituloNorm.includes('interrupcion') ||
+    tituloNorm.includes('falla') ||
+    tituloNorm.includes('avance del') ||
+    tituloNorm.includes('suspension')
+  ) {
+    return 'SIN_SERVICIO';
+  }
+
+  if (
+    tituloNorm.includes('restablec') ||
+    tituloNorm.includes('normaliz') ||
+    tituloNorm.includes('recuperacion')
+  ) {
+    return 'CON_SERVICIO';
+  }
+
+  // Incluye mantenimiento/programado y cualquier boletín sin palabra clave reconocida.
+  return 'CORTE_PROGRAMADO';
 }
 
 /**
@@ -138,32 +218,7 @@ export function determinarEstadoBarrios(boletines: BoletinAcuacar[]): EstadoBarr
     const fechaBoletin = new Date(boletin.fecha).getTime();
     const horasTranscurridas = (ahora - fechaBoletin) / (1000 * 60 * 60);
     const esVigente = horasTranscurridas <= HORAS_VIGENCIA;
-
-    // Determinar tipo de afectación por el título
-    const tituloNorm = normalizar(boletin.titulo);
-    let estado: 'SIN_SERVICIO' | 'CORTE_PROGRAMADO' | 'CON_SERVICIO' = 'CORTE_PROGRAMADO';
-
-    if (
-      tituloNorm.includes('interrupcion') ||
-      tituloNorm.includes('falla') ||
-      tituloNorm.includes('avance del') ||
-      tituloNorm.includes('suspension')
-    ) {
-      estado = 'SIN_SERVICIO';
-    } else if (
-      tituloNorm.includes('restablec') ||
-      tituloNorm.includes('normaliz') ||
-      tituloNorm.includes('recuperacion')
-    ) {
-      estado = 'CON_SERVICIO';
-    } else if (
-      tituloNorm.includes('mantenimiento') ||
-      tituloNorm.includes('programad') ||
-      tituloNorm.includes('realizara') ||
-      tituloNorm.includes('intervendr')
-    ) {
-      estado = 'CORTE_PROGRAMADO';
-    }
+    const estado = determinarEstadoBoletin(boletin.titulo);
 
     for (const barrio of boletin.barriosAfectados) {
       // Solo agregar si no existe ya uno más reciente

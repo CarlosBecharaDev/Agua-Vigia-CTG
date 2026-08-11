@@ -1,18 +1,9 @@
 import { useEffect, useState } from 'react'
 import type { FC } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import {
-  BarChart3,
-  Clock3,
-  Droplet,
-  Mail,
-  Map,
-  Menu,
-  ShieldCheck,
-  Waves,
-  X,
-} from 'lucide-react'
+import { Droplet, Mail, Menu, Waves, X } from 'lucide-react'
 import { SelectorTema } from './SelectorTema'
+import { ENLACES } from '../config/navegacion'
 import type { useTheme } from '../hooks/useTheme'
 
 type ThemeProps = ReturnType<typeof useTheme>
@@ -22,18 +13,9 @@ interface Props {
   onAlternarTema: ThemeProps['alternarTema']
 }
 
-const ENLACES = [
-  { a: '/', etiqueta: 'Mapa en vivo', resumen: 'Estado por barrio', Icono: Map },
-  { a: '/estadisticas', etiqueta: 'Estadísticas', resumen: 'Tendencias y métricas', Icono: BarChart3 },
-  { a: '/bitacora', etiqueta: 'Bitácora', resumen: 'Historial público', Icono: Clock3 },
-  { a: '/veedor', etiqueta: 'Panel veedor', resumen: 'Validación ciudadana', Icono: ShieldCheck },
-]
-
 const TITULOS: Record<string, { seccion: string; titulo: string }> = {
   '/': { seccion: 'Monitoreo', titulo: 'Mapa en vivo' },
   '/reportar': { seccion: 'Participación', titulo: 'Reportar novedad' },
-  '/estadisticas': { seccion: 'Análisis', titulo: 'Estadísticas' },
-  '/bitacora': { seccion: 'Transparencia', titulo: 'Bitácora pública' },
   '/veedor': { seccion: 'Operación', titulo: 'Panel veedor' },
 }
 
