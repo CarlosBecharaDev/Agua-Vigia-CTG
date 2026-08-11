@@ -2,21 +2,19 @@ package com.aguavigia.ctg.application;
 
 import com.aguavigia.ctg.domain.CorteAgua;
 import com.aguavigia.ctg.domain.CorteId;
+import com.aguavigia.ctg.domain.EstadoServicio;
+import com.aguavigia.ctg.domain.EventoBitacora;
 import com.aguavigia.ctg.domain.EventoBitacoraFactory;
 import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.port.in.GestionarCorteOficialUseCase;
 import com.aguavigia.ctg.domain.port.in.RegistrarEventoBitacoraUseCase;
 import com.aguavigia.ctg.domain.port.out.CorteAguaRepository;
-import com.aguavigia.ctg.domain.port.out.NotificacionPort;
 import com.aguavigia.ctg.domain.port.out.RelojPort;
 import com.aguavigia.ctg.domain.port.out.SectorRepository;
-import com.aguavigia.ctg.domain.port.out.SuscripcionRepository;
-import com.aguavigia.ctg.domain.Sector;
-import com.aguavigia.ctg.domain.Suscripcion;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.List;
+import java.util.function.Function;
 
 /**
  * RF016-RF017 — el veedor registra un corte oficial y lo cierra con la hora real de
@@ -29,6 +27,10 @@ import java.util.List;
  * afectado, porque `EventoBitacora.sectorId` es singular y un corte puede tocar varios sectores a
  * la vez. Misma dependencia de `RegistrarEventoBitacoraUseCase` que `RegistrarReporteService` usa
  * para `EvaluarConsensoUseCase`: un caso de uso dispara a otro, no a su repositorio directamente.
+ *
+ * RF001: registrar o cerrar un corte también mueve el estado de los sectores afectados. Antes no
+ * lo hacía, y `EstadoServicio.CORTE_PROGRAMADO` no se asignaba en ninguna parte del sistema: el
+ * mapa no distinguía un corte anunciado de un barrio con servicio normal.
  */
 @Service
 public class GestionarCorteOficialService implements GestionarCorteOficialUseCase {
@@ -37,21 +39,15 @@ public class GestionarCorteOficialService implements GestionarCorteOficialUseCas
     private final SectorRepository sectores;
     private final RegistrarEventoBitacoraUseCase registrarEvento;
     private final RelojPort reloj;
-    private final SuscripcionRepository suscripciones;
-    private final NotificacionPort notificador;
 
     public GestionarCorteOficialService(CorteAguaRepository cortes,
                                          SectorRepository sectores,
                                          RegistrarEventoBitacoraUseCase registrarEvento,
-                                         RelojPort reloj,
-                                         SuscripcionRepository suscripciones,
-                                         NotificacionPort notificador) {
+                                         RelojPort reloj) {
         this.cortes = cortes;
         this.sectores = sectores;
         this.registrarEvento = registrarEvento;
         this.reloj = reloj;
-        this.suscripciones = suscripciones;
-        this.notificador = notificador;
     }
 
     @Override
@@ -63,15 +59,14 @@ public class GestionarCorteOficialService implements GestionarCorteOficialUseCas
         }
 
         CorteAgua guardado = cortes.guardar(corte);
-        for (SectorId sectorId : guardado.sectoresAfectados()) {
-            registrarEvento.registrar(EventoBitacoraFactory.corteAnunciado(guardado, sectorId, reloj.ahora()));
-            sectores.buscarPorId(sectorId).ifPresent(sector -> {
-                List<Suscripcion> afectadas = suscripciones.buscarConfirmadasPorSector(sectorId);
-                for (Suscripcion s : afectadas) {
-                    notificador.avisarCambioDeEstado(s, sector);
-                }
-            });
-        }
+        // Un corte anunciado para dentro de tres días no deja el barrio sin agua hoy: es
+        // CORTE_PROGRAMADO hasta que llega su hora. Si el veedor registra uno que ya empezó
+        // (pasa: primero se corta el agua, después alguien lo anuncia), nace SIN_SERVICIO.
+        EstadoServicio estado = guardado.ventana().inicio().isAfter(reloj.ahora())
+                ? EstadoServicio.CORTE_PROGRAMADO
+                : EstadoServicio.SIN_SERVICIO;
+        anexarYMoverEstado(guardado, estado,
+                sectorId -> EventoBitacoraFactory.corteAnunciado(guardado, sectorId, reloj.ahora()));
         return guardado;
     }
 
@@ -84,15 +79,28 @@ public class GestionarCorteOficialService implements GestionarCorteOficialUseCas
         CorteAgua cerrado = corte.cerrar(horaReal);
 
         CorteAgua guardado = cortes.guardar(cerrado);
-        for (SectorId sectorId : guardado.sectoresAfectados()) {
-            registrarEvento.registrar(EventoBitacoraFactory.corteRestablecido(guardado, sectorId, reloj.ahora()));
-            sectores.buscarPorId(sectorId).ifPresent(sector -> {
-                List<Suscripcion> afectadas = suscripciones.buscarConfirmadasPorSector(sectorId);
-                for (Suscripcion s : afectadas) {
-                    notificador.avisarCambioDeEstado(s, sector);
-                }
-            });
-        }
+        anexarYMoverEstado(guardado, EstadoServicio.CON_SERVICIO,
+                sectorId -> EventoBitacoraFactory.corteRestablecido(guardado, sectorId, reloj.ahora()));
         return guardado;
+    }
+
+    /**
+     * Anexa el evento a la bitácora y mueve el estado de cada sector afectado.
+     *
+     * No notifica suscriptores aquí: guardar el sector publica `SectorActualizadoEvent` y
+     * `NotificarSuscripcionesService` es su único suscriptor. Este servicio recorría además las
+     * suscripciones a mano, así que cada corte mandaba dos correos al mismo vecino — y con el
+     * estado viejo, porque nadie estaba cambiando el sector: el aviso decía "cambió su estado a:
+     * Desconocido" en cualquier barrio que todavía no tuviera estado registrado. Es la misma
+     * corrección que se le hizo a `EvaluarConsensoService`.
+     */
+    private void anexarYMoverEstado(CorteAgua corte, EstadoServicio nuevoEstado,
+                                     Function<SectorId, EventoBitacora> eventoDe) {
+        for (SectorId sectorId : corte.sectoresAfectados()) {
+            registrarEvento.registrar(eventoDe.apply(sectorId));
+            sectores.buscarPorId(sectorId)
+                    .filter(sector -> sector.estadoActual() != nuevoEstado)
+                    .ifPresent(sector -> sectores.guardar(sector.conEstado(nuevoEstado)));
+        }
     }
 }
