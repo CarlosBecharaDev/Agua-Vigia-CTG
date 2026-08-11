@@ -11,6 +11,17 @@ spring:
     host: ${MAIL_HOST}
     port: ${MAIL_PORT}
 
+aguavigia:
+  mantenimiento:
+    retencion-evidencia:
+      # ADR-027 — minimizacion de datos. El default global es `false` para no sorprender a quien
+      # levante el proyecto en local, pero un despliegue publico si tiene que decidir cuanto
+      # conserva la evidencia fotografica de los vecinos: aqui se decide, y son 365 dias.
+      # Solo se borra el binario; el reporte (sector, tipo, timestamp) se conserva porque sustenta
+      # RF024 y el Indice de Cumplimiento.
+      habilitada: true
+      dias-retencion: 365
+
 management:
   endpoint:
     health:

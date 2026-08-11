@@ -1183,8 +1183,147 @@ Se declaran **oficialmente fuera de alcance (Descartados)** los requisitos RF032
 
 ---
 
+## ADR-026 — Open311 expone el estado agregado por sector, no cada reporte ciudadano
+
+- **Fecha:** 2026-08-11
+- **Estado:** Aceptada
+- **Decide:** D3 (backend)
+
+### Contexto
+RF039 pide "exponer los reportes bajo el estándar Open311". La lectura literal es un
+`service_request` por reporte ciudadano, que es lo que hace la mayoría de implementaciones de
+GeoReport v2: cada uno con su `lat`/`long`, su `requested_datetime` y su descripción.
+
+El problema es que un reporte de AguaVigía trae la coordenada que el vecino autorizó a compartir
+(RF007), y esa coordenada es su casa. Publicar la serie completa en un endpoint abierto y sin
+autenticación permitiría a cualquiera reconstruir quién reportó desde dónde y a qué hora —
+exactamente el tipo de inferencia que RNF008 ("sin datos personales identificables del reportante")
+existe para impedir. Que cada dato suelto sea anónimo no hace anónimo al conjunto.
+
+### Alternativas consideradas
+1. **Un `service_request` por reporte, con coordenada.** Máxima fidelidad al estándar y máximo
+   riesgo: es publicar un mapa de domicilios de gente que reportó sin registrarse.
+2. **Un `service_request` por reporte, con la coordenada redondeada.** Mitiga, no resuelve: con
+   suficientes reportes en el tiempo, la casa se vuelve a distinguir.
+3. **Un `service_request` por sector afectado.** Menos granular, sin riesgo de reidentificación.
+
+### Decisión
+Se expone un `service_request` por **sector** cuyo estado no es `CON_SERVICIO`, con `address` = el
+nombre del barrio. Los campos `lat`/`long` viajan ausentes, cosa que el estándar admite cuando hay
+`address`: la unidad geográfica de esta API es el barrio, no un punto.
+
+Se completan los campos que sí se pueden llenar con honestidad y que un consumidor estándar
+necesita: `service_code`, `description`, `requested_datetime` y `updated_datetime`.
+
+### Consecuencias
+- **Gana:** RF039 queda cumplido y justificado en vez de incumplido, y RNF008 se sostiene también
+  para el dato publicado, no solo para el almacenado.
+- **Pierde:** Un consumidor que espere granularidad de reporte individual recibe granularidad de
+  barrio. Para la pregunta que la plataforma responde —"¿hay agua en este barrio?"— es la unidad
+  correcta de todas formas.
+
+### Cómo se revierte
+Cambiar la fuente del controlador de `SectorRepository` a `ReporteCiudadanoRepository`. Exigiría
+antes una decisión explícita sobre reidentificación y, muy probablemente, dejar de publicar la
+coordenada igual.
+
+---
+
+## ADR-027 — Modelo de privacidad y retención de la evidencia fotográfica (M10)
+
+- **Fecha:** 2026-08-11
+- **Estado:** Aceptada
+- **Decide:** D3 (backend)
+
+### Contexto
+M10 permite adjuntar una foto a un reporte. Esa foto se sirve en `/fotos/<uuid>.jpg` sin
+autenticación, y hasta ahora ni el modelo de acceso ni el periodo de retención estaban escritos en
+ninguna parte, mientras RNF008 y RNF009 figuraban cumplidos en la matriz.
+
+Una foto de un tanque vacío o de una tubería rota no es un dato personal, pero puede contener una
+fachada, una placa o una persona. Y a diferencia del reporte —tres campos y un timestamp—, el
+binario es el dato más pesado y el de mayor riesgo si el servidor se ve comprometido.
+
+### Alternativas consideradas
+1. **Autenticar la descarga.** No hay cuentas de ciudadano en el sistema (ADR-007): habría que
+   inventar una sesión solo para ver una foto que el propio autor subió para que se viera.
+2. **URLs firmadas con expiración.** Requiere que el frontend renueve la firma; el proyecto no
+   tiene la infraestructura de claves ni el despliegue lo justifica.
+3. **URL con identificador no adivinable + retención acotada.**
+
+### Decisión
+- El nombre del archivo es un **UUID v4** generado por el servidor, nunca el nombre que mandó el
+  cliente. No hay listado de directorio ni índice: sin la URL exacta no se llega a la foto.
+- Se sirve con `X-Content-Type-Options: nosniff` y solo se aceptan `image/jpeg`, `image/png` y
+  `image/webp` por lista blanca de `Content-Type`.
+- La retención es configurable (`aguavigia.mantenimiento.retencion-evidencia`) y viene
+  **deshabilitada por defecto**, para no borrar datos en la máquina de quien solo levanta el
+  proyecto. En el perfil `prod` se activa con **365 días**.
+- `PurgaEvidenciaAntiguaJob` borra únicamente el binario y limpia `fotoUrl`. El reporte (sector,
+  tipo, timestamp, moderación, confirmaciones) se conserva indefinidamente porque sustenta RF024 y
+  el Índice de Cumplimiento.
+
+### Consecuencias
+- **Gana:** RNF008/RNF009 tienen un modelo escrito y verificable en vez de un supuesto. El dato de
+  mayor riesgo vence solo; el de valor histórico no.
+- **Pierde:** Una URL filtrada sigue siendo pública mientras la foto exista. Es un riesgo aceptado
+  y acotado por la retención.
+
+### Cómo se revierte
+Subir `dias-retencion` o poner `habilitada: false` en `prod`. Volver a un modelo autenticado exigiría
+antes resolver la identidad del ciudadano, que ADR-007 dejó fuera a propósito.
+
+---
+
+## ADR-028 — La ingesta automatizada propone; publicar es decisión del veedor
+
+- **Fecha:** 2026-08-11
+- **Estado:** Aceptada
+- **Decide:** D3 (backend)
+
+### Contexto
+Tras ADR-025, M9 quedó con `HeuristicaExtractor`: expresiones regulares sobre boletines y notas de
+prensa. Su Javadoc decía que la confianza baja (0.6) "obliga a que los resultados pasen a moderación
+manual (M5)", pero eso no era cierto en el código: `PipelineOrquestador` ignoraba el número y
+llamaba a `SectorRepository.guardar()` directamente. Los campos `confianza`, `camposInferidos` y
+`citaTextual` de `EventoExtraido` no los leía nadie.
+
+En consecuencia, una expresión regular podía cambiar el estado público de un barrio y disparar
+correo a sus suscriptores, notificación push y actualización del mapa en vivo, sin que ninguna
+persona lo revisara. Una plataforma que existe para desmentir información poco confiable no puede
+publicar así.
+
+### Alternativas consideradas
+1. **Publicar automáticamente por encima de un umbral de confianza.** El extractor emite un valor
+   constante de 0.6: el umbral no distinguiría nada.
+2. **Apagar M9.** Cumple con no desinformar y deja RF029/RF030 sin valor real.
+3. **Cola de revisión, como la de reportes ciudadanos (RF018).**
+
+### Decisión
+La ingesta registra una `PropuestaIngesta` en estado `PENDIENTE`. El mapa no cambia hasta que un
+veedor la aprueba desde `/api/veedor/ingesta/propuestas`. Aprobar aplica el estado al sector y anexa
+el evento a la bitácora (RF026); descartar archiva la propuesta sin borrarla, para que la cola sea
+auditable.
+
+Cada propuesta guarda la `citaTextual` literal del documento y la `confianza`, que dejan de ser
+código muerto: son lo que el veedor lee para decidir. Es la misma exigencia de ADR-006 (cita
+verificable en toda extracción), que no se cayó con el descarte de la IA.
+
+### Consecuencias
+- **Gana:** Ningún dato entra al mapa sin que una persona lo sostenga. El patrón es el mismo que ya
+  existía para moderar reportes ciudadanos, así que no hay un concepto nuevo que aprender.
+- **Pierde:** M9 deja de ser tiempo real. Un corte detectado a las 3 a.m. espera a que alguien
+  revise. Para el caso de uso —comparar lo prometido con lo cumplido— la exactitud importa más que
+  los minutos.
+
+### Cómo se revierte
+Hacer que `RegistrarPropuestaIngestaService` cree la propuesta ya aprobada e invoque a
+`RevisarPropuestaIngestaService.aprobar`. Exigiría antes un extractor cuya confianza signifique algo.
+
+---
+
 <!--
-Siguiente número disponible: ADR-026
+Siguiente número disponible: ADR-029
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->

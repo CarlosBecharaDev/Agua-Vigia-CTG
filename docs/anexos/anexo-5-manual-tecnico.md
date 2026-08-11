@@ -11,9 +11,21 @@ Agua-Vigía está contenerizada utilizando **Docker** para asegurar paridad entr
 - **`redis`**: Almacén clave-valor en memoria utilizado para caché, deduplicación de ingesta y Rate Limiting. Puerto `6379`.
 
 ### 1.1 Estructura del Orquestador
-El orquestador principal es Docker Compose. Existen dos perfiles de despliegue principales:
-- `docker-compose.yml`: Para desarrollo local. Incluye mapeo de volúmenes en caliente y variables de entorno permisivas.
-- `docker-compose.prod.yml`: Para producción. Excluye volúmenes de código fuente, refuerza las políticas de reinicio (`restart: always`), y acopla NGINX con compresión GZIP y cabeceras de seguridad.
+
+El orquestador principal es Docker Compose. Hay **dos archivos completos e independientes**, no un
+archivo base con una superposición:
+
+- `docker-compose.yml` — desarrollo local. Publica en el host los puertos de Mongo (`27017`), Redis
+  (`6379`), Mailhog (`1025`/`8025`) y el backend (`8081`), para poder inspeccionarlos desde la
+  máquina de quien desarrolla. Levanta además Mailhog como SMTP de pruebas.
+- `docker-compose.prod.yml` — producción. `restart: always`, exige el `.env`, y **no publica ningún
+  puerto de base de datos ni el del backend**: solo el `80` del frontend. Todo el tráfico entra por
+  nginx, que es lo que hace fiable el `X-Forwarded-For` del que depende el rate limiting por IP.
+
+> ⚠️ **Los dos archivos no se combinan.** `docker compose -f docker-compose.yml -f
+> docker-compose.prod.yml` fusiona las secciones `ports:` de ambos y vuelve a publicar `27017`,
+> `6379` y `8081` en producción — con Mongo y Redis sin autenticación y con el backend accesible
+> saltándose nginx. Usar **solo** el archivo de producción (ver §3.3).
 
 ## 2. Requisitos Previos (Infraestructura)
 - Servidor Linux (Ubuntu 22.04 LTS o superior recomendado).
@@ -33,21 +45,48 @@ El orquestador principal es Docker Compose. Existen dos perfiles de despliegue p
    Copie el archivo de ejemplo y provea los valores productivos reales:
    ```bash
    cp .env.example .env
-   # Edite el archivo .env e ingrese JWT_SECRET, ANTHROPIC_API_KEY, correo SMTP, etc.
    nano .env
    ```
 
+   El perfil `prod` **aborta el arranque** si falta alguna de estas (ver
+   `ValidacionDeSecretosProd`), en vez de levantar un despliegue que se ve sano con el panel del
+   veedor respondiendo 503 en silencio:
+
+   | Variable | Para qué | Cómo se obtiene |
+   |---|---|---|
+   | `JWT_SECRET` | Firma del token del veedor (RNF011). Mínimo 32 bytes | `openssl rand -base64 32` |
+   | `VEEDOR_PASSWORD_HASH` | Clave del panel, en BCrypt. Nunca en texto plano | `GenerarHashVeedor` en `backend/src/test/.../infrastructure/security` |
+   | `MONGODB_URI`, `REDIS_HOST`, `REDIS_PORT` | Almacenes | Los del `docker-compose.prod.yml` |
+   | `MAIL_HOST`, `MAIL_PORT` | SMTP real (M4) | Del proveedor de correo |
+   | `COLLECTOR_USER_AGENT` | Identificación del colector (M9) | Correo de contacto real del equipo |
+
+   `IOT_KEY` es opcional: sin ella, `/api/iot/presion` responde 503 y M13 queda deshabilitado.
+
 3. **Construcción y arranque de los contenedores:**
-   Se utiliza el flag de orquestación combinado para usar el perfil productivo:
+   Solo el archivo de producción — combinarlo con el de desarrollo reexpone las bases de datos
+   (ver el aviso de §1.1):
    ```bash
-   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+   docker compose -f docker-compose.prod.yml up -d --build
    ```
 
 4. **Verificación de salud (Healthchecks):**
-   Asegúrese de que el backend superó su fase de inicialización:
+   El backend **no publica su puerto** en producción, así que la verificación se hace dentro de la
+   red de Docker:
    ```bash
-   curl -s http://localhost:8080/actuator/health | grep '"status":"UP"'
+   docker compose -f docker-compose.prod.yml exec backend curl -sf http://localhost:8080/actuator/health
    ```
+
+   Debe responder `{"status":"UP"}`. Si algún colector de la ingesta lleva 3 ciclos seguidos
+   fallando, el estado global pasa a `DOWN` (RNF007); el detalle por colector está en
+   `GET /api/veedor/ingesta/salud`, que exige el token del veedor.
+
+5. **Comprobación de que no quedó nada expuesto:**
+   ```bash
+   docker compose -f docker-compose.prod.yml ps --format 'table {{.Service}}\t{{.Ports}}'
+   ```
+
+   Solo `frontend` debe mostrar un puerto publicado (`0.0.0.0:80->80/tcp`). Si aparecen `27017`,
+   `6379` u `8081`, se arrancó con los dos archivos combinados: bajar y repetir el paso 3.
 
 ## 4. Pruebas y Aseguramiento de Calidad (QA)
 
