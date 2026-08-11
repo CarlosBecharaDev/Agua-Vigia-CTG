@@ -23,12 +23,18 @@ tags:
   description: "Bitácora pública de eventos, de solo anexado (RF026-RF028)"
 - name: Sectores
   description: Estado del servicio de agua por sector de Cartagena
+- name: Open311
+  description: API abierta bajo el estándar Open311 GeoReport v2 (RF039)
 - name: Veedor - Cortes
   description: Registro y cierre de cortes oficiales (RF016-RF017)
+- name: Veedor - Ingesta
+  description: Salud de los colectores del pipeline de ingesta (RNF007)
 - name: Cumplimiento
   description: Índice de Cumplimiento — prometido vs. real (RF020-RF022)
 - name: Reportes
   description: "Reportes ciudadanos de estado del servicio, sin registro"
+- name: Veedor - Ingesta
+  description: Revisión de las propuestas de la ingesta automatizada (M9)
 - name: Estadisticas
   description: M7 — Estadísticas Públicas (RF023)
 - name: Veedor
@@ -328,6 +334,67 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetail"
+  /api/veedor/ingesta/propuestas/{id}/descartar:
+    patch:
+      tags:
+      - Veedor - Ingesta
+      summary: Descartar una propuesta
+      description: "No toca el sector. La propuesta se archiva como descartada, no\
+        \ se borra."
+      operationId: descartar_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Propuesta descartada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PropuestaIngestaRespuesta"
+        "400":
+          description: La propuesta no existe
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+  /api/veedor/ingesta/propuestas/{id}/aprobar:
+    patch:
+      tags:
+      - Veedor - Ingesta
+      summary: Aprobar una propuesta
+      description: |-
+        Aplica el estado propuesto al sector y anexa el evento a la bitácora pública
+        (RF026). Es el único camino por el que la ingesta llega al mapa.
+      operationId: aprobar_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Propuesta aprobada y estado aplicado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PropuestaIngestaRespuesta"
+        "400":
+          description: La propuesta no existe
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+        "409":
+          description: El sector de la propuesta ya no existe
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
   /api/veedor/cortes/{id}/cierre:
     patch:
       tags:
@@ -380,6 +447,48 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ReporteModeracionRespuesta"
+  /api/veedor/ingesta/salud:
+    get:
+      tags:
+      - Veedor - Ingesta
+      summary: "Salud de cada colector: última ejecución exitosa, ítems y tasa de\
+        \ error"
+      description: |-
+        Lista vacía mientras el pipeline no haya corrido un ciclo. La telemetría vive en
+        memoria del proceso, así que un reinicio la reinicia.
+      operationId: salud
+      responses:
+        "200":
+          description: Estado generado
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SaludColectorRespuesta"
+        "401":
+          description: Falta el token del veedor
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SaludColectorRespuesta"
+  /api/veedor/ingesta/propuestas:
+    get:
+      tags:
+      - Veedor - Ingesta
+      summary: "Listar las propuestas pendientes de revisión, más recientes primero"
+      operationId: listarPendientes_1
+      responses:
+        "200":
+          description: Listado generado
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PropuestaIngestaRespuesta"
   /api/veedor/cortes/{id}:
     get:
       tags:
@@ -408,13 +517,18 @@ paths:
   /api/v2/requests.json:
     get:
       tags:
-      - open-311-controller
+      - Open311
+      summary: "Listar los sectores con el servicio afectado, en formato Open311"
+      description: |-
+        Un `service_request` por sector que no está en CON_SERVICIO. Los sectores sin
+        estado verificado no aparecen: publicar "sin novedad" sin haberlo comprobado es
+        el falso positivo que ADR-014 evita.
       operationId: getRequests
       responses:
         "200":
-          description: OK
+          description: Listado generado
           content:
-            '*/*':
+            application/json:
               schema:
                 type: array
                 items:
@@ -543,6 +657,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EstadisticasRespuesta"
+  /api/estadisticas/exportar.csv:
+    get:
+      tags:
+      - Estadisticas
+      summary: Exportar las estadísticas en CSV (RF025)
+      description: "Separador `;` y BOM UTF-8, para que Excel en español lo abra sin\
+        \ romper las tildes."
+      operationId: exportarCsv
+      responses:
+        "200":
+          description: CSV generado
+          content:
+            text/csv:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: string
   /api/cumplimiento:
     get:
       tags:
@@ -562,6 +694,80 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetail"
+  /api/cumplimiento/serie:
+    get:
+      tags:
+      - Cumplimiento
+      summary: Evolución del índice mes a mes (RF024)
+      description: |-
+        Un punto por mes con al menos un corte cerrado, en hora de Cartagena. Sin
+        `sectorId`, la ciudad completa. `desde` y `hasta` son opcionales y acotan por la
+        hora real de restablecimiento. Lista vacía si no hay cortes cerrados en el
+        rango — una serie sin datos es una respuesta válida.
+      operationId: serie
+      parameters:
+      - name: sectorId
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: desde
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: hasta
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      responses:
+        "200":
+          description: Serie generada
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PuntoSerieRespuesta"
+  /api/cumplimiento/serie.csv:
+    get:
+      tags:
+      - Cumplimiento
+      summary: La misma serie en CSV (RF025)
+      description: "Separador `;` y BOM UTF-8, para que Excel en español la abra sin\
+        \ romper las tildes."
+      operationId: serieCsv
+      parameters:
+      - name: sectorId
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: desde
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: hasta
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      responses:
+        "200":
+          description: CSV generado
+          content:
+            text/csv:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: string
   /api/cumplimiento/sectores/{sectorId}:
     get:
       tags:
@@ -864,6 +1070,42 @@ components:
           type: string
           description: "PENDIENTE, APROBADO o DESCARTADO"
       description: Reporte ciudadano en la cola de moderación del veedor (RF018)
+    PropuestaIngestaRespuesta:
+      type: object
+      properties:
+        id:
+          type: string
+        sectorId:
+          type: string
+        estadoPropuesto:
+          type: string
+          description: "SIN_SERVICIO, PRESION_BAJA, CORTE_PROGRAMADO o CON_SERVICIO"
+        fuente:
+          type: string
+          description: Colector que la detectó
+          example: acuacar
+        urlOriginal:
+          type: string
+          description: Enlace al boletín o nota de prensa original
+          nullable: true
+        citaTextual:
+          type: string
+          description: "Fragmento del que se dedujo el estado, para que el veedor\
+            \ pueda verificarlo"
+        confianza:
+          type: number
+          description: Entre 0 y 1. La heurística por expresiones regulares emite
+            0.6 (ADR-025)
+          format: double
+        detectadaEn:
+          type: string
+          format: date-time
+        estadoRevision:
+          type: string
+          description: "PENDIENTE, APROBADA o DESCARTADA"
+      description: |-
+        Propuesta de cambio de estado detectada por la ingesta automatizada (M9), esperando la
+        revisión de un veedor. No afecta el mapa público hasta que se apruebe.
     SolicitudCierreCorte:
       required:
       - horaReal
@@ -873,6 +1115,42 @@ components:
           type: string
           format: date-time
       description: Cierre de un corte con la hora real de restablecimiento (RF017)
+    SaludColectorRespuesta:
+      type: object
+      properties:
+        nombre:
+          type: string
+          example: acuacar
+        ultimaEjecucionExitosa:
+          type: string
+          description: Nulo si el colector todavía no ha completado un ciclo con éxito
+          format: date-time
+          nullable: true
+        ultimoFallo:
+          type: string
+          description: Nulo si nunca ha fallado
+          format: date-time
+          nullable: true
+        motivoDelUltimoFallo:
+          type: string
+          description: "Mensaje del último fallo, para diagnosticar sin entrar al\
+            \ servidor"
+          nullable: true
+        itemsProcesados:
+          type: integer
+          description: Documentos traídos desde que arrancó el proceso
+          format: int64
+        tasaDeError:
+          type: number
+          description: "Entre 0 y 1, sobre los ciclos corridos desde que arrancó el\
+            \ proceso"
+          format: double
+        fallosConsecutivos:
+          type: integer
+          description: "Ciclos seguidos fallando. Desde 3, el colector se reporta\
+            \ caído en /actuator/health"
+          format: int32
+      description: Estado de salud de un colector de la ingesta automatizada
     Open311Response:
       type: object
       properties:
@@ -880,10 +1158,32 @@ components:
           type: string
         status:
           type: string
+          description: open o closed
+          example: open
+        service_code:
+          type: string
+          description: Código del tipo de servicio
+          example: AGUA-001
         service_name:
+          type: string
+        description:
           type: string
         address:
           type: string
+          description: "Nombre del barrio. La unidad geográfica es el sector, no un\
+            \ punto (ADR-026)"
+        requested_datetime:
+          type: string
+          description: Cuándo se registró el estado actual del sector
+          format: date-time
+          nullable: true
+        updated_datetime:
+          type: string
+          description: "Igual a requested_datetime: el estado del sector es su propia\
+            \ actualización"
+          format: date-time
+          nullable: true
+      description: service_request de Open311 GeoReport v2
     RespuestaSectores:
       type: object
       properties:
@@ -982,6 +1282,35 @@ components:
       description: |-
         Índice de Cumplimiento (RF020-RF022): comparación explícita entre duración prometida y
         real, nunca un porcentaje aislado.
+    PuntoSerieRespuesta:
+      type: object
+      properties:
+        periodo:
+          type: string
+          description: "Mes en hora de Cartagena, ISO 8601"
+          example: 2026-08
+        duracionPrometidaSegundos:
+          type: integer
+          format: int64
+        duracionRealSegundos:
+          type: integer
+          format: int64
+        desviacionSegundos:
+          type: integer
+          description: duracionReal - duracionPrometida. Negativa si terminaron antes
+            de lo prometido
+          format: int64
+        porcentajeCumplimiento:
+          type: number
+          description: Capado en 100 cuando los cortes terminan antes o a tiempo
+          format: double
+        cantidadCortes:
+          type: integer
+          description: |-
+            Cortes cerrados sobre los que se calculó el mes. Un 40% sobre un solo corte y uno
+            sobre veinte no significan lo mismo.
+          format: int32
+      description: Un mes de la evolución del Índice de Cumplimiento (RF024)
     EventoBitacoraRespuesta:
       type: object
       properties:
