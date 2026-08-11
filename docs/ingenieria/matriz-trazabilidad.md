@@ -176,7 +176,7 @@ Los RNF no llevan historia de usuario: se verifican con una medición, no con un
 | RNF018 | Build falla si se viola una capa | ArchUnit en CI | 1 | ✅ (`ReglaDeOroArchitectureTest`, 5 reglas) |
 | RNF019 | Precisión del clasificador ≥ 90% | Regresión sobre el conjunto dorado | 5 | ❌ (Descartado) |
 | RNF020 | Levanta con un solo comando | `docker compose up` en máquina limpia | 0 | ✅ (verificado en CI: `.github/workflows/despliegue-ci.yml` construye la imagen y valida ambos compose en cada push) |
-| RNF021 | Imágenes en bucket con compresión automática | Inspección de bucket y metadatos | Fase 2 | ⬜ |
+| RNF021 | Imágenes en bucket con compresión automática | Inspección de bucket y metadatos | Fase 2 | 🟡 **Parcial.** Compresión y limpieza de EXIF ✅ (`CompresorDeImagenes`, recodifica jpg/png y descarta metadatos al reescribir — `CompresorDeImagenesTest`). El bucket sigue siendo disco local por decisión explícita (2026-08-11): ver §6.2 de `estado-del-backend.md`. `.webp` no se procesa — el JDK no trae lector nativo |
 
 ---
 
@@ -206,5 +206,5 @@ No son huecos de trazabilidad: están declarados y con su razón.
 | Qué | Por qué sigue abierto |
 |---|---|
 | RF041 (webhook real de WhatsApp/Telegram) | Exige credenciales de WhatsApp Business API o un bot de Telegram, que no dependen del backend. La cadena evento → caso de uso → puerto ya está cableada y probada; falta el adaptador que llame al proveedor |
-| RNF021 (imágenes en bucket con compresión) | El despliegue del proyecto es de servidor único con volumen local (Anexo 5). Migrar a un bucket es una decisión de infraestructura, no de código: `AlmacenamientoPort` ya aísla el cambio |
+| RNF021 (bucket, no disco local) | Decisión explícita del 2026-08-11: mantener disco local mientras el despliegue sea de servidor único (Anexo 5) — mismo criterio que TLS y autenticación de Mongo/Redis. `AlmacenamientoPort` ya aísla el cambio si se migra después |
 | Autenticación en MongoDB y Redis | Ambos van sin credenciales, protegidos por la red interna de Docker y sin publicar puertos en producción. Aceptable para el despliegue de aula; obligatorio antes de uno público |

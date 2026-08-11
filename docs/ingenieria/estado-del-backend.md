@@ -197,6 +197,7 @@ qué cambió y dónde mirar:
 | **SSE de una sola instancia** — `emitters` en memoria del controlador | `SseSectoresBroadcaster` (Redis pub/sub, canal `aguavigia:sse:sectores`, wireado en `SseConfig`): cualquier instancia que publique, todas las suscritas reenvían a sus propios clientes |
 | **Logs sin estructura ni correlation ID** | `logging.structured.format.console=ecs` (nativo de Boot 3.4+) + `CorrelationIdFilter`/`MdcTaskDecorator` en `infrastructure/logging/` |
 | **`infrastructure.cache` al 69.6%** | `CachePropertiesTest` — la validación del TTL no tenía prueba propia. Cobertura ahora 100% |
+| **RNF021 (mitad backend)** — fotos sin comprimir ni sin limpiar EXIF | `CompresorDeImagenes` (`infrastructure/storage/`): decodifica y recodifica jpg/png antes de guardar — comprime y descarta EXIF de paso (un GPS embebido en la foto no debe exponer más ubicación que la que el vecino autorizó en RF007). `.webp` no se toca, el JDK no trae lector nativo. La otra mitad de RNF021 (bucket) sigue en §6.2 |
 
 No queda ningún pendiente reconocido dentro del alcance del backend, aparte de lo de §6.2.
 
@@ -205,7 +206,7 @@ No queda ningún pendiente reconocido dentro del alcance del backend, aparte de 
 | Qué | Bloqueo real |
 |---|---|
 | **RF041** — webhook de WhatsApp/Telegram | Exige credenciales de WhatsApp Business API o un bot de Telegram. La cadena evento → caso de uso → puerto ya está cableada y probada: falta **solo** el adaptador que llame al proveedor. Telegram es la vía realista |
-| **RNF021** — imágenes en bucket con compresión | Decisión de infraestructura. `AlmacenamientoPort` ya aísla el cambio |
+| **RNF021** — bucket en vez de disco local | La compresión y la limpieza de EXIF ya están cerradas (§6.1). Solo falta el bucket, y se decidió **no migrar** mientras el despliegue sea de servidor único (2026-08-11) — mismo criterio que TLS. `AlmacenamientoPort` ya aísla el cambio si algún día se necesita |
 | **RNF001** — mapa < 3 s en 3G | Es de frontend (Lighthouse), no del backend |
 
 ---

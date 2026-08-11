@@ -36,13 +36,17 @@ public class AlmacenamientoLocalAdapter implements AlmacenamientoPort {
     /**
      * {@code extension} debe venir ya validada contra la lista blanca de tipos de imagen
      * (AgregarEvidenciaService) — este adaptador no decide qué se puede subir, solo dónde queda.
+     *
+     * RNF021: antes de escribir a disco, CompresorDeImagenes recodifica jpg/png (comprime y
+     * descarta EXIF de paso); `.webp` se guarda tal cual por la limitación documentada ahí.
      */
     @Override
     public String guardar(String extension, byte[] contenido) {
         try {
+            byte[] contenidoProcesado = CompresorDeImagenes.recomprimir(extension, contenido);
             String nuevoNombre = UUID.randomUUID() + extension;
             Path destino = directorioRaiz.resolve(nuevoNombre);
-            Files.write(destino, contenido);
+            Files.write(destino, contenidoProcesado);
             return "/fotos/" + nuevoNombre;
         } catch (IOException e) {
             throw new RuntimeException("Error al guardar archivo", e);
