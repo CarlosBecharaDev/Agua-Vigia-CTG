@@ -119,4 +119,79 @@ class RedisContadorReportesAdapterTest {
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> adaptador.contarRecientes(MANGA, Duration.ofHours(25)));
     }
+
+    // --- RF006: reserva atómica de cupo ---
+
+    @Test
+    void debeConcederCupoHastaElLimiteYNegarloDespues() {
+        Duration ventana = Duration.ofMinutes(30);
+
+        assertThat(adaptador.intentarReservarCupo(MANGA, HUELLA_A, 3, ventana)).isTrue();
+        assertThat(adaptador.intentarReservarCupo(MANGA, HUELLA_A, 3, ventana)).isTrue();
+        assertThat(adaptador.intentarReservarCupo(MANGA, HUELLA_A, 3, ventana)).isTrue();
+        assertThat(adaptador.intentarReservarCupo(MANGA, HUELLA_A, 3, ventana)).isFalse();
+    }
+
+    @Test
+    void elCupoDebeSerIndependientePorDispositivoYPorSector() {
+        Duration ventana = Duration.ofMinutes(30);
+        adaptador.intentarReservarCupo(MANGA, HUELLA_A, 1, ventana);
+
+        assertThat(adaptador.intentarReservarCupo(MANGA, HUELLA_A, 1, ventana)).isFalse();
+        // Otro vecino en el mismo barrio no hereda el cupo agotado del primero.
+        assertThat(adaptador.intentarReservarCupo(MANGA, HUELLA_B, 1, ventana)).isTrue();
+        // Ni el mismo vecino reportando en otro barrio.
+        assertThat(adaptador.intentarReservarCupo(new SectorId("bocagrande"), HUELLA_A, 1, ventana)).isTrue();
+    }
+
+    /**
+     * El punto de todo esto: 50 hilos concurrentes con el mismo dispositivo. Con el conteo previo
+     * en Mongo, todos leían el mismo valor y pasaban; con INCR, exactamente `limite` obtienen cupo.
+     */
+    @Test
+    void enConcurrenciaDebeConcederExactamenteElLimiteYNiUnoMas() throws Exception {
+        int hilos = 50;
+        int limite = 3;
+        var barrera = new java.util.concurrent.CountDownLatch(1);
+        var concedidos = new java.util.concurrent.atomic.AtomicInteger();
+        var terminados = new java.util.concurrent.CountDownLatch(hilos);
+
+        try (var pool = java.util.concurrent.Executors.newFixedThreadPool(hilos)) {
+            for (int i = 0; i < hilos; i++) {
+                pool.submit(() -> {
+                    try {
+                        barrera.await();
+                        if (adaptador.intentarReservarCupo(MANGA, HUELLA_A, limite, Duration.ofMinutes(30))) {
+                            concedidos.incrementAndGet();
+                        }
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    } finally {
+                        terminados.countDown();
+                    }
+                });
+            }
+            barrera.countDown();
+            assertThat(terminados.await(30, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+        }
+
+        assertThat(concedidos.get()).isEqualTo(limite);
+    }
+
+    /**
+     * La ventana se fija en el primer reporte y no se renueva con cada intento: si se renovara, un
+     * dispositivo que insiste sin parar nunca recuperaría su cupo.
+     */
+    @Test
+    void laVentanaDelCupoNoDebeRenovarseConCadaIntento() {
+        Duration ventana = Duration.ofMinutes(30);
+        adaptador.intentarReservarCupo(MANGA, HUELLA_A, 1, ventana);
+        Long ttlTrasElPrimero = plantillaRedis.getExpire("cupo:manga:" + HUELLA_A.hash());
+
+        adaptador.intentarReservarCupo(MANGA, HUELLA_A, 1, ventana);
+        Long ttlTrasElSegundo = plantillaRedis.getExpire("cupo:manga:" + HUELLA_A.hash());
+
+        assertThat(ttlTrasElPrimero).isNotNull().isPositive();
+        assertThat(ttlTrasElSegundo).isLessThanOrEqualTo(ttlTrasElPrimero);
+    }
 }

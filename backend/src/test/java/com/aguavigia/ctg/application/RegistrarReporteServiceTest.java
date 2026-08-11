@@ -26,6 +26,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -57,6 +58,7 @@ class RegistrarReporteServiceTest {
         given(reportes.guardar(any(ReporteCiudadano.class)))
                 .willAnswer(invocacion -> invocacion.getArgument(0));
         given(reportes.contarRecientesPorSectorYDispositivo(any(), any(), any())).willReturn(0L);
+        given(contadorReportes.intentarReservarCupo(any(), any(), anyInt(), any())).willReturn(true);
         given(evaluarConsenso.evaluar(any()))
                 .willReturn(new ResultadoConsenso(new SectorId("bocagrande"), false, null, List.of()));
     }
@@ -119,6 +121,51 @@ class RegistrarReporteServiceTest {
      * devolvía 429: RF006 existe para frenar a quien infla el conteo sin identificarse, no a la
      * telemetría.
      */
+    /**
+     * La carrera real: dos peticiones simultáneas del mismo dispositivo leen el mismo conteo en
+     * Mongo —todavía por debajo del límite— y las dos pasarían. Redis es quien la cierra.
+     */
+    @Test
+    void debeRechazarElReporteSiLaReservaAtomicaNoConcedeCupo() {
+        Sector bocagrande = new Sector(new SectorId("bocagrande"), "BOCAGRANDE", 12000, EstadoServicio.SIN_SERVICIO);
+        given(sectores.buscarPorId(new SectorId("bocagrande"))).willReturn(Optional.of(bocagrande));
+        given(reportes.contarRecientesPorSectorYDispositivo(any(), any(), any())).willReturn(0L);
+        given(contadorReportes.intentarReservarCupo(any(), any(), anyInt(), any())).willReturn(false);
+
+        assertThatThrownBy(() -> servicio.registrar(new SectorId("bocagrande"), TipoReporte.SIN_AGUA, null, HUELLA))
+                .isInstanceOf(LimiteReportesExcedidoException.class);
+
+        verify(reportes, never()).guardar(any());
+    }
+
+    /** Mongo es la verdad duradera: sobrevive a un reinicio de Redis, que borraría todos los cupos. */
+    @Test
+    void noDebeGastarUnCupoDeRedisSiMongoYaDiceQueSeExcedio() {
+        Sector bocagrande = new Sector(new SectorId("bocagrande"), "BOCAGRANDE", 12000, EstadoServicio.SIN_SERVICIO);
+        given(sectores.buscarPorId(new SectorId("bocagrande"))).willReturn(Optional.of(bocagrande));
+        given(reportes.contarRecientesPorSectorYDispositivo(any(), any(), any())).willReturn((long) LIMITE);
+
+        assertThatThrownBy(() -> servicio.registrar(new SectorId("bocagrande"), TipoReporte.SIN_AGUA, null, HUELLA))
+                .isInstanceOf(LimiteReportesExcedidoException.class);
+
+        verify(contadorReportes, never()).intentarReservarCupo(any(), any(), anyInt(), any());
+    }
+
+    @Test
+    void debeReservarElCupoConElLimiteQueCorrespondeACadaClaseDeDispositivo() {
+        Sector bocagrande = new Sector(new SectorId("bocagrande"), "BOCAGRANDE", 12000, EstadoServicio.SIN_SERVICIO);
+        given(sectores.buscarPorId(new SectorId("bocagrande"))).willReturn(Optional.of(bocagrande));
+
+        servicio.registrar(new SectorId("bocagrande"), TipoReporte.SIN_AGUA, null, HUELLA);
+        verify(contadorReportes).intentarReservarCupo(
+                new SectorId("bocagrande"), HUELLA, LIMITE, Duration.ofMinutes(30));
+
+        HuellaDispositivo sensor = HuellaDispositivo.deSensor("PRESION-07");
+        servicio.registrar(new SectorId("bocagrande"), TipoReporte.PRESION_BAJA, null, sensor);
+        verify(contadorReportes).intentarReservarCupo(
+                new SectorId("bocagrande"), sensor, LIMITE_SENSOR, Duration.ofMinutes(30));
+    }
+
     @Test
     void unSensorDebeTenerSuPropioCupoYNoElDelCiudadano() {
         Sector bocagrande = new Sector(new SectorId("bocagrande"), "BOCAGRANDE", 12000, EstadoServicio.SIN_SERVICIO);
