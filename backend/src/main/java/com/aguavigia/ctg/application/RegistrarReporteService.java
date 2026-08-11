@@ -43,6 +43,7 @@ public class RegistrarReporteService implements RegistrarReporteUseCase {
     private final EvaluarConsensoUseCase evaluarConsenso;
     private final RelojPort reloj;
     private final int limitePorDispositivo;
+    private final int limitePorSensor;
     private final Duration ventanaLimite;
 
     public RegistrarReporteService(SectorRepository sectores,
@@ -51,6 +52,7 @@ public class RegistrarReporteService implements RegistrarReporteUseCase {
                                     EvaluarConsensoUseCase evaluarConsenso,
                                     RelojPort reloj,
                                     @Value("${aguavigia.reportes.limite-por-dispositivo:3}") int limitePorDispositivo,
+                                    @Value("${aguavigia.reportes.limite-por-sensor:30}") int limitePorSensor,
                                     @Value("${aguavigia.reportes.ventana-limite-minutos:30}") long ventanaLimiteMinutos) {
         this.sectores = sectores;
         this.reportes = reportes;
@@ -58,6 +60,7 @@ public class RegistrarReporteService implements RegistrarReporteUseCase {
         this.evaluarConsenso = evaluarConsenso;
         this.reloj = reloj;
         this.limitePorDispositivo = limitePorDispositivo;
+        this.limitePorSensor = limitePorSensor;
         this.ventanaLimite = Duration.ofMinutes(ventanaLimiteMinutos);
     }
 
@@ -66,8 +69,14 @@ public class RegistrarReporteService implements RegistrarReporteUseCase {
         sectores.buscarPorId(sectorId)
                 .orElseThrow(() -> new IllegalArgumentException("No existe el sector '" + sectorId.valor() + "'"));
 
+        // Un sensor de M13 y un celular anónimo no son el mismo actor: el sensor se autentica con
+        // X-IoT-Key y reporta cada pocos minutos por diseño, así que con el cupo ciudadano se
+        // autobloqueaba al cuarto envío y el endpoint le devolvía 429. RF006 existe para frenar a
+        // quien infla el conteo sin identificarse, no a la telemetría.
+        int limite = huella.esDeSensor() ? limitePorSensor : limitePorDispositivo;
+
         long reportesDelDispositivo = reportes.contarRecientesPorSectorYDispositivo(sectorId, ventanaLimite, huella);
-        if (reportesDelDispositivo >= limitePorDispositivo) {
+        if (reportesDelDispositivo >= limite) {
             throw new LimiteReportesExcedidoException(
                     "Ya reportaste %d veces en '%s' en los últimos %d minutos. Espera antes de volver a reportar."
                             .formatted(reportesDelDispositivo, sectorId.valor(), ventanaLimite.toMinutes()));

@@ -36,6 +36,7 @@ class RegistrarReporteServiceTest {
     private static final Instant AHORA = Instant.parse("2026-08-08T15:30:00Z");
     private static final HuellaDispositivo HUELLA = new HuellaDispositivo("hash-1");
     private static final int LIMITE = 3;
+    private static final int LIMITE_SENSOR = 30;
 
     private SectorRepository sectores;
     private ReporteCiudadanoRepository reportes;
@@ -50,7 +51,8 @@ class RegistrarReporteServiceTest {
         contadorReportes = mock(ContadorReportesPort.class);
         evaluarConsenso = mock(EvaluarConsensoUseCase.class);
         RelojPort reloj = () -> AHORA;
-        servicio = new RegistrarReporteService(sectores, reportes, contadorReportes, evaluarConsenso, reloj, LIMITE, 30);
+        servicio = new RegistrarReporteService(sectores, reportes, contadorReportes, evaluarConsenso, reloj,
+                LIMITE, LIMITE_SENSOR, 30);
 
         given(reportes.guardar(any(ReporteCiudadano.class)))
                 .willAnswer(invocacion -> invocacion.getArgument(0));
@@ -109,6 +111,39 @@ class RegistrarReporteServiceTest {
         verify(reportes, never()).guardar(any());
         verify(contadorReportes, never()).registrar(any(), any());
         verify(evaluarConsenso, never()).evaluar(any());
+    }
+
+    /**
+     * M13 — un sensor de presión reporta cada pocos minutos por diseño y se autenticó con
+     * X-IoT-Key. Con el cupo ciudadano de 3 se autobloqueaba al cuarto envío y el endpoint le
+     * devolvía 429: RF006 existe para frenar a quien infla el conteo sin identificarse, no a la
+     * telemetría.
+     */
+    @Test
+    void unSensorDebeTenerSuPropioCupoYNoElDelCiudadano() {
+        Sector bocagrande = new Sector(new SectorId("bocagrande"), "BOCAGRANDE", 12000, EstadoServicio.SIN_SERVICIO);
+        given(sectores.buscarPorId(new SectorId("bocagrande"))).willReturn(Optional.of(bocagrande));
+        HuellaDispositivo sensor = HuellaDispositivo.deSensor("PRESION-07");
+        given(reportes.contarRecientesPorSectorYDispositivo(new SectorId("bocagrande"), Duration.ofMinutes(30), sensor))
+                .willReturn(10L);
+
+        ReporteCiudadano reporte = servicio.registrar(
+                new SectorId("bocagrande"), TipoReporte.PRESION_BAJA, null, sensor);
+
+        assertThat(reporte.huella()).isEqualTo(sensor);
+    }
+
+    @Test
+    void unSensorTambienDebeTenerUnTecho() {
+        Sector bocagrande = new Sector(new SectorId("bocagrande"), "BOCAGRANDE", 12000, EstadoServicio.SIN_SERVICIO);
+        given(sectores.buscarPorId(new SectorId("bocagrande"))).willReturn(Optional.of(bocagrande));
+        HuellaDispositivo sensor = HuellaDispositivo.deSensor("PRESION-07");
+        given(reportes.contarRecientesPorSectorYDispositivo(new SectorId("bocagrande"), Duration.ofMinutes(30), sensor))
+                .willReturn((long) LIMITE_SENSOR);
+
+        // Una clave filtrada o un sensor en bucle no deben poder inundar el consenso.
+        assertThatThrownBy(() -> servicio.registrar(new SectorId("bocagrande"), TipoReporte.PRESION_BAJA, null, sensor))
+                .isInstanceOf(LimiteReportesExcedidoException.class);
     }
 
     @Test

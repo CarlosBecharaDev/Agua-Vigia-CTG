@@ -19,6 +19,13 @@ server:
   forward-headers-strategy: framework
 
 aguavigia:
+  reportes:
+    # RF006 — cupo por dispositivo dentro de la ventana. Estrecho para el celular anonimo, que es
+    # a quien el requisito quiere frenar. Un sensor de M13 se autentica con X-IoT-Key y reporta
+    # cada pocos minutos por diseno: con el cupo ciudadano se autobloqueaba al cuarto envio.
+    limite-por-dispositivo: 3
+    limite-por-sensor: 30
+    ventana-limite-minutos: 30
   cache:
     ttl-segundos-por-cache:
       # 15s y no los 30 por defecto: el estado de un sector es el dato que el mapa muestra en vivo,

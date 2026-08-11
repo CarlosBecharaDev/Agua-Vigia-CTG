@@ -56,6 +56,11 @@ public class IotController {
         if (request.sectorId() == null || request.sectorId().isBlank()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
+        // Sin identificador de sensor no hay huella con la que aplicar el cupo: antes se construía
+        // la huella literal "IoT-null" y todos los sensores mal configurados compartían cupo.
+        if (request.sensorId() == null || request.sensorId().isBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
         SectorId sectorId = new SectorId(request.sectorId());
         if (sectores.buscarPorId(sectorId).isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -67,9 +72,8 @@ public class IotController {
                 coordenada = new Coordenada(request.coordenada().lat(), request.coordenada().lon());
             }
 
-            HuellaDispositivo huella = new HuellaDispositivo("IoT-" + request.sensorId());
-
-            registrarReporte.registrar(sectorId, TipoReporte.PRESION_BAJA, coordenada, huella);
+            registrarReporte.registrar(sectorId, TipoReporte.PRESION_BAJA, coordenada,
+                    HuellaDispositivo.deSensor(request.sensorId()));
         }
 
         return ResponseEntity.ok().build();
