@@ -436,8 +436,24 @@ paths:
     get:
       tags:
       - Veedor - Moderación
-      summary: Listar los reportes pendientes de moderación
+      summary: "Listar los reportes pendientes de moderación, más antiguos primero"
+      description: |-
+        Paginado, con el total y el enlace a la siguiente página en las cabeceras
+        `X-Total-Count` y `Link`. Por defecto 50; el máximo por página es 200.
       operationId: listarPendientes
+      parameters:
+      - name: pagina
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: tamano
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
       responses:
         "200":
           description: OK
@@ -479,7 +495,23 @@ paths:
       tags:
       - Veedor - Ingesta
       summary: "Listar las propuestas pendientes de revisión, más recientes primero"
+      description: |-
+        Paginado, con el total y el enlace a la siguiente página en las cabeceras
+        `X-Total-Count` y `Link`. Por defecto 50; el máximo por página es 200.
       operationId: listarPendientes_1
+      parameters:
+      - name: pagina
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: tamano
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
       responses:
         "200":
           description: Listado generado
@@ -829,7 +861,26 @@ paths:
       tags:
       - Bitácora
       summary: "Listar los eventos de la bitácora, más recientes primero"
+      description: |-
+        Paginado: la bitácora es de solo anexado (RF028), así que crece sin cota.
+        El total, la página y el enlace a la siguiente viajan en las cabeceras
+        `X-Total-Count`, `X-Total-Pages`, `X-Page`, `X-Page-Size` y `Link` — el cuerpo
+        sigue siendo un arreglo JSON, así que un cliente que las ignore no se rompe.
+        Por defecto 50 eventos; el máximo por página es 200.
       operationId: listar
+      parameters:
+      - name: pagina
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: tamano
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
       responses:
         "200":
           description: Listado generado

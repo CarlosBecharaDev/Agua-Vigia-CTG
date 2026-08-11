@@ -156,9 +156,9 @@ Los RNF no llevan historia de usuario: se verifican con una medición, no con un
 
 | RNF | Umbral | Cómo se verifica | Sprint | Estado |
 |---|---|---|---|---|
-| RNF001 | Mapa completo < 3 s en 3G | Lighthouse con throttling | 6 | ✅ |
-| RNF002 | Confirmación de reporte < 1 s | Prueba de carga | 5 | ✅ |
-| RNF003 | Caché del mapa con TTL ≤ 60 s | Inspección de Redis | 2 | ✅ |
+| RNF001 | Mapa completo < 3 s en 3G | Lighthouse con throttling | 6 | 🟡 **Sin medir.** Es de frontend (D4); no hay ejecución de Lighthouse registrada |
+| RNF002 | Confirmación de reporte < 1 s | Prueba de carga | 5 | 🟡 **Sin medir.** El camino está optimizado (índice compuesto `sectorId+timestamp`, cupo por INCR de Redis, notificaciones y SSE fuera del hilo HTTP), pero no se ha corrido la prueba de carga que el requisito pide |
+| RNF003 | Caché del mapa con TTL ≤ 60 s | Inspección de Redis | 2 | ✅ (TTL de 15 s en `application.yml` · `SectorMongoAdapterCacheTest`) |
 | RNF004 | Fuente caída no tumba el sistema | Prueba de caos | 4 | ✅ (`PipelineOrquestadorTest.unColectorCaidoNoDebeImpedirQueSeLeaElOtro`) |
 | RNF005 | Backoff + cortacircuitos tras 3 fallos | Test de integración | 4 | ✅ (`ResilienciaDeColectoresTest.debeAbrirElCortacircuitosAlTercerFalloConsecutivo`) |
 | RNF006 | Cero descartes silenciosos | Revisión de la cola muerta | 2 | ✅ (`PipelineOrquestadorTest.noDebeMarcarComoVistoUnDocumentoQueFalloAlProcesarse`) |
@@ -175,7 +175,7 @@ Los RNF no llevan historia de usuario: se verifican con una medición, no con un
 | RNF017 | Cobertura ≥ 70% en `domain/` y `application/` | JaCoCo en CI | 5 | ✅ (real: **92.4%** en `domain/`, **99.2%** en `application/`, sobre 406 pruebas. El `jacoco:check` del `pom.xml` falla la build por debajo del 85%) |
 | RNF018 | Build falla si se viola una capa | ArchUnit en CI | 1 | ✅ (`ReglaDeOroArchitectureTest`, 5 reglas) |
 | RNF019 | Precisión del clasificador ≥ 90% | Regresión sobre el conjunto dorado | 5 | ❌ (Descartado) |
-| RNF020 | Levanta con un solo comando | `docker compose up` en máquina limpia | 0 | ✅ |
+| RNF020 | Levanta con un solo comando | `docker compose up` en máquina limpia | 0 | ✅ (verificado en CI: `.github/workflows/despliegue-ci.yml` construye la imagen y valida ambos compose en cada push) |
 | RNF021 | Imágenes en bucket con compresión automática | Inspección de bucket y metadatos | Fase 2 | ⬜ |
 
 ---
@@ -194,6 +194,10 @@ Se revisa al cerrar cada sprint. Un hueco aquí es un hallazgo del docente esper
 | RNF004/RNF006 marcados ✅ mientras un fallo de Acuacar tumbaba el ciclo entero y el deduplicador descartaba en silencio | 2026-08-11 | ✅ **Cerrado 2026-08-11** — aislamiento por colector y marcado como visto solo tras procesar |
 | M9 cambiaba el estado público de un barrio sin revisión humana, contra lo que prometía su propio extractor | 2026-08-11 | ✅ **Cerrado 2026-08-11** — cola de revisión del veedor (`ADR-028`) |
 | `backend/openapi.yaml` es un archivo generado que se comitea a mano, sin nada que garantice que siga al día | 2026-08-11 | ✅ **Cerrado 2026-08-11** — `ContratoOpenApiTest` compara las rutas publicadas contra el archivo versionado |
+| Ningún endpoint paginaba: `/api/bitacora` devolvía la bitácora entera, que por RF028 crece sin cota | 2026-08-11 | ✅ **Cerrado 2026-08-11** — paginación con metadatos en cabeceras en bitácora y las dos colas del veedor |
+| El cupo por dispositivo (RF006) contaba y luego guardaba: dos peticiones simultáneas del mismo dispositivo pasaban ambas | 2026-08-11 | ✅ **Cerrado 2026-08-11** — reserva atómica con INCR de Redis, con prueba de 50 hilos concurrentes |
+| RNF020 marcado ✅ sin verificación: el CI no construía las imágenes ni validaba los compose | 2026-08-11 | ✅ **Cerrado 2026-08-11** — `despliegue-ci.yml`, que además falla si producción publica un puerto de base de datos |
+| RNF001 y RNF002 marcados ✅ sin ninguna medición | 2026-08-11 | 🟡 **Reconocido, no cerrado** — pasan a 🟡 en el Nivel 3 hasta que exista la medición |
 
 ### Pendientes reconocidos
 
