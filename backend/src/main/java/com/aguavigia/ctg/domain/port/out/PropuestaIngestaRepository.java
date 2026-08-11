@@ -1,11 +1,11 @@
 package com.aguavigia.ctg.domain.port.out;
 
 import com.aguavigia.ctg.domain.EstadoServicio;
+import com.aguavigia.ctg.domain.Pagina;
 import com.aguavigia.ctg.domain.PropuestaId;
 import com.aguavigia.ctg.domain.PropuestaIngesta;
 import com.aguavigia.ctg.domain.SectorId;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface PropuestaIngestaRepository {
@@ -14,8 +14,8 @@ public interface PropuestaIngestaRepository {
 
     Optional<PropuestaIngesta> buscarPorId(PropuestaId id);
 
-    /** La cola de revisión del veedor, más recientes primero. */
-    List<PropuestaIngesta> listarPendientes();
+    /** La cola de revisión del veedor, más recientes primero y paginada. */
+    Pagina<PropuestaIngesta> listarPendientes(int pagina, int tamano);
 
     /**
      * Los cuatro feeds configurados (Google News, Zona Cero, Caracol, W Radio) cubren las mismas

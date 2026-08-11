@@ -1,6 +1,7 @@
 package com.aguavigia.ctg.domain.port.out;
 
 import com.aguavigia.ctg.domain.HuellaDispositivo;
+import com.aguavigia.ctg.domain.Pagina;
 import com.aguavigia.ctg.domain.ReporteCiudadano;
 import com.aguavigia.ctg.domain.ReporteId;
 import com.aguavigia.ctg.domain.SectorId;
@@ -27,8 +28,12 @@ public interface ReporteCiudadanoRepository {
 
     Optional<ReporteCiudadano> buscarPorId(ReporteId id);
 
-    /** RF018 — la cola de moderación del veedor. */
-    List<ReporteCiudadano> listarPendientes();
+    /**
+     * RF018 — la cola de moderación del veedor, paginada: en una jornada sin veedor disponible la
+     * cola acumula todo lo que reportó la ciudad, y traerla entera la vuelve inmanejable justo
+     * cuando más grande es.
+     */
+    Pagina<ReporteCiudadano> listarPendientes(int pagina, int tamano);
 
     /**
      * Nombres de archivo (no URLs) de toda foto referenciada por algún reporte, sin importar su

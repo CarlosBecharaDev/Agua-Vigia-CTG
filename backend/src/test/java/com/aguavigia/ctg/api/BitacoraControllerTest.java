@@ -4,6 +4,7 @@ import com.aguavigia.ctg.api.mapper.EventoBitacoraApiMapperImpl;
 import com.aguavigia.ctg.domain.CorteId;
 import com.aguavigia.ctg.domain.EventoBitacora;
 import com.aguavigia.ctg.domain.EventoId;
+import com.aguavigia.ctg.domain.Pagina;
 import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.TipoEvento;
 import com.aguavigia.ctg.domain.port.out.EventoBitacoraRepository;
@@ -21,8 +22,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.Instant;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -52,12 +55,73 @@ class BitacoraControllerTest {
     @MockitoBean(name = "redisTemplate")
     private RedisTemplate<String, String> redisTemplateMock;
 
+    private static Pagina<EventoBitacora> pagina(List<EventoBitacora> contenido) {
+        return new Pagina<>(contenido, 0, 50, contenido.size());
+    }
+
+    @Test
+    void debePaginarYPublicarLosMetadatosEnCabeceras() throws Exception {
+        List<EventoBitacora> contenido = List.of(
+                new EventoBitacora(new EventoId("evento-1"), TipoEvento.CORTE_ANUNCIADO,
+                        new SectorId("manga"), new CorteId("corte-1"), TIMESTAMP, "Corte anunciado"));
+        given(eventos.listar(0, 2)).willReturn(new Pagina<>(contenido, 0, 2, 7));
+
+        mockMvc.perform(get("/api/bitacora").param("pagina", "0").param("tamano", "2"))
+                .andExpect(status().isOk())
+                // El cuerpo sigue siendo un arreglo: el contrato con D4 es aditivo.
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(header().string("X-Total-Count", "7"))
+                .andExpect(header().string("X-Total-Pages", "4"))
+                .andExpect(header().string("X-Page", "0"))
+                .andExpect(header().string("X-Page-Size", "2"))
+                .andExpect(header().string("Link", "</api/bitacora?pagina=1&tamano=2>; rel=\"next\""));
+    }
+
+    @Test
+    void noDebeAnunciarSiguientePaginaEnLaUltima() throws Exception {
+        given(eventos.listar(3, 2)).willReturn(new Pagina<>(List.of(), 3, 2, 7));
+
+        mockMvc.perform(get("/api/bitacora").param("pagina", "3").param("tamano", "2"))
+                .andExpect(status().isOk())
+                .andExpect(header().doesNotExist("Link"));
+    }
+
+    /** Un tamaño absurdo no es un 400: el cliente pidió una lista y se le da acotada. */
+    @Test
+    void debeAcotarUnTamanoDePaginaDesmedido() throws Exception {
+        given(eventos.listar(0, Pagina.TAMANO_MAXIMO)).willReturn(new Pagina<>(List.of(), 0, Pagina.TAMANO_MAXIMO, 0));
+
+        mockMvc.perform(get("/api/bitacora").param("tamano", "99999"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Page-Size", String.valueOf(Pagina.TAMANO_MAXIMO)));
+    }
+
+    @Test
+    void debeUsarValoresPorDefectoSinParametros() throws Exception {
+        given(eventos.listar(0, Pagina.TAMANO_POR_DEFECTO))
+                .willReturn(new Pagina<>(List.of(), 0, Pagina.TAMANO_POR_DEFECTO, 0));
+
+        mockMvc.perform(get("/api/bitacora"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Page-Size", String.valueOf(Pagina.TAMANO_POR_DEFECTO)));
+    }
+
+    @Test
+    void unaPaginaNegativaDebeTratarseComoLaPrimera() throws Exception {
+        given(eventos.listar(0, Pagina.TAMANO_POR_DEFECTO))
+                .willReturn(new Pagina<>(List.of(), 0, Pagina.TAMANO_POR_DEFECTO, 0));
+
+        mockMvc.perform(get("/api/bitacora").param("pagina", "-5"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Page", "0"));
+    }
+
     @Test
     void debeListarLosEventosSinAutenticacion() throws Exception {
-        given(eventos.listarTodos()).willReturn(List.of(
+        given(eventos.listar(anyInt(), anyInt())).willReturn(pagina(List.of(
                 new EventoBitacora(new EventoId("evento-1"), TipoEvento.CORTE_ANUNCIADO,
                         new SectorId("manga"), new CorteId("corte-1"), TIMESTAMP,
-                        "Corte oficial anunciado en 'manga': Mantenimiento")));
+                        "Corte oficial anunciado en 'manga': Mantenimiento"))));
 
         mockMvc.perform(get("/api/bitacora"))
                 .andExpect(status().isOk())
@@ -69,10 +133,10 @@ class BitacoraControllerTest {
 
     @Test
     void debeExponerSectorIdYCorteIdNulosCuandoElEventoNoLosTiene() throws Exception {
-        given(eventos.listarTodos()).willReturn(List.of(
+        given(eventos.listar(anyInt(), anyInt())).willReturn(pagina(List.of(
                 new EventoBitacora(new EventoId("evento-2"), TipoEvento.CORTE_CONFIRMADO_POR_CIUDADANOS,
                         new SectorId("bocagrande"), null, TIMESTAMP,
-                        "3 reportes ciudadanos confirmaron SIN_SERVICIO")));
+                        "3 reportes ciudadanos confirmaron SIN_SERVICIO"))));
 
         mockMvc.perform(get("/api/bitacora"))
                 .andExpect(status().isOk())
@@ -81,7 +145,7 @@ class BitacoraControllerTest {
 
     @Test
     void debeDevolverListaVaciaSinEventosAunTodavia() throws Exception {
-        given(eventos.listarTodos()).willReturn(List.of());
+        given(eventos.listar(anyInt(), anyInt())).willReturn(pagina(List.of()));
 
         mockMvc.perform(get("/api/bitacora"))
                 .andExpect(status().isOk())

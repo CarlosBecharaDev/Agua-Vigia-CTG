@@ -70,9 +70,32 @@ class PropuestaIngestaMongoAdapterTest {
         adaptador.guardar(propuesta("aprobada", "crespo", EstadoServicio.SIN_SERVICIO, AHORA).aprobar());
         adaptador.guardar(propuesta("descartada", "torices", EstadoServicio.SIN_SERVICIO, AHORA).descartar());
 
-        assertThat(adaptador.listarPendientes())
+        assertThat(adaptador.listarPendientes(0, 50).contenido())
                 .extracting(propuesta -> propuesta.id().valor())
                 .containsExactly("nueva", "vieja");
+    }
+
+    /** La cola crece mientras no haya un veedor revisando; el total tiene que reflejarla entera
+     * aunque la página traiga solo un tramo. */
+    @Test
+    void debePaginarLaColaYReportarElTotalCompleto() {
+        for (int i = 0; i < 7; i++) {
+            adaptador.guardar(propuesta("p-" + i, "manga", EstadoServicio.SIN_SERVICIO,
+                    AHORA.minusSeconds(i * 60L)));
+        }
+
+        var primera = adaptador.listarPendientes(0, 3);
+        var tercera = adaptador.listarPendientes(2, 3);
+
+        assertThat(primera.contenido()).hasSize(3);
+        assertThat(primera.totalElementos()).isEqualTo(7);
+        assertThat(primera.totalPaginas()).isEqualTo(3);
+        assertThat(primera.hayMas()).isTrue();
+        assertThat(tercera.contenido()).hasSize(1);
+        assertThat(tercera.hayMas()).isFalse();
+        // Más recientes primero, y sin repetir entre páginas.
+        assertThat(primera.contenido()).extracting(p -> p.id().valor()).containsExactly("p-0", "p-1", "p-2");
+        assertThat(tercera.contenido()).extracting(p -> p.id().valor()).containsExactly("p-6");
     }
 
     @Test

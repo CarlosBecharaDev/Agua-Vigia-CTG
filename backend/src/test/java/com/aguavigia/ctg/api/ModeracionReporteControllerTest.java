@@ -4,6 +4,7 @@ import com.aguavigia.ctg.api.error.ManejadorGlobalDeErrores;
 import com.aguavigia.ctg.api.mapper.ReporteModeracionApiMapperImpl;
 import com.aguavigia.ctg.domain.EstadoModeracion;
 import com.aguavigia.ctg.domain.HuellaDispositivo;
+import com.aguavigia.ctg.domain.Pagina;
 import com.aguavigia.ctg.domain.ReporteCiudadano;
 import com.aguavigia.ctg.domain.ReporteId;
 import com.aguavigia.ctg.domain.SectorId;
@@ -25,6 +26,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -74,7 +76,8 @@ class ModeracionReporteControllerTest {
     @Test
     void debeListarLosReportesPendientes() throws Exception {
         autenticarComoVeedor();
-        given(reportes.listarPendientes()).willReturn(List.of(reporte(EstadoModeracion.PENDIENTE)));
+        given(reportes.listarPendientes(anyInt(), anyInt()))
+                .willReturn(new Pagina<>(List.of(reporte(EstadoModeracion.PENDIENTE)), 0, 50, 1));
 
         mockMvc.perform(get("/api/veedor/reportes/pendientes").header("Authorization", TOKEN))
                 .andExpect(status().isOk())

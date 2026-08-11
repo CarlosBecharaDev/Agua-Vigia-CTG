@@ -3,13 +3,15 @@ package com.aguavigia.ctg.infrastructure.persistence.mongo;
 import com.aguavigia.ctg.domain.CorteId;
 import com.aguavigia.ctg.domain.EventoBitacora;
 import com.aguavigia.ctg.domain.EventoId;
+import com.aguavigia.ctg.domain.Pagina;
 import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.TipoEvento;
 import com.aguavigia.ctg.domain.port.out.EventoBitacoraRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -35,11 +37,17 @@ public class EventoBitacoraMongoAdapter implements EventoBitacoraRepository {
         return evento;
     }
 
+    /** Más recientes primero: el índice descendente sobre `timestamp` de IndicesMongo cubre el orden. */
     @Override
-    public List<EventoBitacora> listarTodos() {
-        return repositorio.findAll(Sort.by(Sort.Direction.DESC, "timestamp")).stream()
-                .map(EventoBitacoraMongoAdapter::aDominio)
-                .toList();
+    public Pagina<EventoBitacora> listar(int pagina, int tamano) {
+        Page<EventoBitacoraDocumento> resultado = repositorio.findAll(
+                PageRequest.of(pagina, tamano, Sort.by(Sort.Direction.DESC, "timestamp")));
+
+        return new Pagina<>(
+                resultado.getContent().stream().map(EventoBitacoraMongoAdapter::aDominio).toList(),
+                pagina,
+                tamano,
+                resultado.getTotalElements());
     }
 
     private static EventoBitacora aDominio(EventoBitacoraDocumento documento) {

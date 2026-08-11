@@ -3,6 +3,7 @@ package com.aguavigia.ctg.api;
 import com.aguavigia.ctg.api.error.ManejadorGlobalDeErrores;
 import com.aguavigia.ctg.api.mapper.PropuestaIngestaApiMapperImpl;
 import com.aguavigia.ctg.domain.EstadoServicio;
+import com.aguavigia.ctg.domain.Pagina;
 import com.aguavigia.ctg.domain.PropuestaId;
 import com.aguavigia.ctg.domain.PropuestaIngesta;
 import com.aguavigia.ctg.domain.SectorId;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -84,7 +86,8 @@ class IngestaRevisionControllerTest {
     @Test
     void debeListarLasPropuestasPendientesConSuCitaYConfianza() throws Exception {
         autenticarComoVeedor();
-        given(propuestas.listarPendientes()).willReturn(List.of(propuesta()));
+        given(propuestas.listarPendientes(anyInt(), anyInt()))
+                .willReturn(new Pagina<>(List.of(propuesta()), 0, 50, 1));
 
         mockMvc.perform(get("/api/veedor/ingesta/propuestas").header("Authorization", TOKEN))
                 .andExpect(status().isOk())

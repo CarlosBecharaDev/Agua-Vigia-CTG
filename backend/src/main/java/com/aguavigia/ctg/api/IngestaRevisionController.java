@@ -2,7 +2,9 @@ package com.aguavigia.ctg.api;
 
 import com.aguavigia.ctg.api.dto.PropuestaIngestaRespuesta;
 import com.aguavigia.ctg.api.mapper.PropuestaIngestaApiMapper;
+import com.aguavigia.ctg.domain.Pagina;
 import com.aguavigia.ctg.domain.PropuestaId;
+import com.aguavigia.ctg.domain.PropuestaIngesta;
 import com.aguavigia.ctg.domain.port.in.RevisarPropuestaIngestaUseCase;
 import com.aguavigia.ctg.domain.port.out.PropuestaIngestaRepository;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,10 +15,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -48,11 +52,21 @@ public class IngestaRevisionController {
         this.mapper = mapper;
     }
 
-    @Operation(summary = "Listar las propuestas pendientes de revisión, más recientes primero")
+    @Operation(summary = "Listar las propuestas pendientes de revisión, más recientes primero",
+            description = """
+                    Paginado, con el total y el enlace a la siguiente página en las cabeceras
+                    `X-Total-Count` y `Link`. Por defecto 50; el máximo por página es 200.""")
     @ApiResponse(responseCode = "200", description = "Listado generado")
     @GetMapping
-    public List<PropuestaIngestaRespuesta> listarPendientes() {
-        return mapper.aRespuestas(propuestas.listarPendientes());
+    public ResponseEntity<List<PropuestaIngestaRespuesta>> listarPendientes(
+            @RequestParam(required = false) Integer pagina,
+            @RequestParam(required = false) Integer tamano) {
+
+        Pagina<PropuestaIngesta> resultado = propuestas.listarPendientes(
+                Pagina.paginaValida(pagina), Pagina.tamanoValido(tamano));
+
+        return CabecerasDePaginacion.respuesta(
+                resultado, mapper.aRespuestas(resultado.contenido()), "/api/veedor/ingesta/propuestas");
     }
 
     @Operation(summary = "Aprobar una propuesta",

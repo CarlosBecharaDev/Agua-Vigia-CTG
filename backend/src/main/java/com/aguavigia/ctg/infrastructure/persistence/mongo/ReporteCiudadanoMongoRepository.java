@@ -1,5 +1,7 @@
 package com.aguavigia.ctg.infrastructure.persistence.mongo;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 
@@ -33,7 +35,7 @@ public interface ReporteCiudadanoMongoRepository extends MongoRepository<Reporte
      * No usar con APROBADO/DESCARTADO — ahí un nulo no debería contar como coincidencia.
      */
     @Query("{ '$or': [ { 'estadoModeracion': ?0 }, { 'estadoModeracion': null } ] }")
-    List<ReporteCiudadanoDocumento> findPendientesIncluyendoNulo(String pendiente);
+    Page<ReporteCiudadanoDocumento> findPendientesIncluyendoNulo(String pendiente, Pageable paginacion);
 
     /** Base de la reconciliación de LimpiezaFotosHuerfanasJob — toda foto legítimamente referenciada. */
     List<ReporteCiudadanoDocumento> findByFotoUrlIsNotNull();
