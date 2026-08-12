@@ -9,49 +9,51 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'favicon.ico', 'pwa-192x192.svg', 'pwa-512x512.svg'],
+      includeAssets: ['favicon-32.png', 'favicon-180.png', 'barrios-cartagena.geojson', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
         name: 'AguaVigía CTG — Monitoreo del Agua en Cartagena',
         short_name: 'AguaVigía',
         description: 'Monitoreo ciudadano del servicio de agua en Cartagena de Indias. Consulta el estado en tu barrio, reporta cortes y revisa estadísticas.',
-        theme_color: '#087f8c',
-        background_color: '#f3f8f7',
+        theme_color: '#0066cc',
+        background_color: '#f5f5f7',
         display: 'standalone',
         orientation: 'portrait-primary',
         scope: '/',
         start_url: '/',
-        categories: ['utilities'],
+        categories: ['utilities', 'social'],
         icons: [
           {
-            src: 'pwa-192x192.svg',
+            src: 'pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/svg+xml'
+            type: 'image/png'
           },
           {
-            src: 'pwa-512x512.svg',
+            src: 'pwa-512x512.png',
             sizes: '512x512',
-            type: 'image/svg+xml',
+            type: 'image/png',
             purpose: 'any maskable'
           },
           {
-            src: 'favicon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml'
+            src: 'favicon-32.png',
+            sizes: '32x32',
+            type: 'image/png'
           }
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Cachear assets estáticos incluyendo el GeoJSON de barrios
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,geojson,woff2}'],
+        // Caché en runtime para tiles de mapa y APIs externas
         runtimeCaching: [
           {
             // Tiles de OpenStreetMap — CacheFirst para funcionar offline
             urlPattern: /^https:\/\/[abc]\.tile\.openstreetmap\.org/,
-            handler: 'StaleWhileRevalidate',
+            handler: 'CacheFirst',
             options: {
               cacheName: 'osm-tiles',
               expiration: {
                 maxEntries: 500,
-                maxAgeSeconds: 60 * 60 * 24 * 7,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 días
               },
               cacheableResponse: {
                 statuses: [0, 200]
@@ -59,17 +61,17 @@ export default defineConfig({
             }
           },
           {
+            // GeoJSON local (por si se carga dinámicamente)
             urlPattern: /barrios-cartagena\.geojson$/,
-            handler: 'NetworkFirst',
+            handler: 'CacheFirst',
             options: {
               cacheName: 'geojson-barrios',
-              networkTimeoutSeconds: 3,
               expiration: {
-                maxEntries: 2,
-                maxAgeSeconds: 60 * 60 * 24,
+                maxEntries: 5,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 días
               }
             }
-          }
+          },
         ]
       }
     })
@@ -81,6 +83,16 @@ export default defineConfig({
         target: process.env.VITE_BACKEND_PROXY_TARGET || 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
+      },
+      '/acuacar-api': {
+        target: 'https://www.acuacar.com/wp-json/wp/v2',
+        changeOrigin: true,
+        secure: false,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'application/json'
+        },
+        rewrite: (path) => path.replace(/^\/acuacar-api/, ''),
       },
     },
   },

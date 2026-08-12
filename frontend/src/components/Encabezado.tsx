@@ -1,7 +1,9 @@
-import type { CSSProperties, FC } from 'react'
+import { useEffect, useState } from 'react'
+import type { FC } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { BarChart3, BellRing, BookOpenText, Droplets, Map, Megaphone, ShieldCheck } from 'lucide-react'
+import { Droplet, Mail, Megaphone, Menu, Waves, X } from 'lucide-react'
 import { SelectorTema } from './SelectorTema'
+import { ENLACES } from '../config/navegacion'
 import type { useTheme } from '../hooks/useTheme'
 
 type ThemeProps = ReturnType<typeof useTheme>
@@ -12,73 +14,118 @@ interface Props {
   onAbrirSuscripcion: () => void
 }
 
-const ENLACES = [
-  { a: '/', etiqueta: 'Mapa', Icono: Map },
-  { a: '/estadisticas', etiqueta: 'Datos', Icono: BarChart3 },
-  { a: '/bitacora', etiqueta: 'Bitácora', Icono: BookOpenText },
-  { a: '/veedor', etiqueta: 'Veedor', Icono: ShieldCheck },
-]
-
-const Navegacion: FC<{ movil?: boolean }> = ({ movil = false }) => {
-  const { pathname } = useLocation()
-  const indiceActivo = Math.max(0, ENLACES.findIndex(({ a }) => a === '/' ? pathname === '/' : pathname.startsWith(a)))
-  return <nav
-    className={movil ? 'nav-movil' : 'nav-principal'}
-    aria-label={movil ? 'Navegación móvil' : 'Navegación principal'}
-    style={movil ? undefined : { '--nav-index': indiceActivo } as CSSProperties}
-  >
-    {ENLACES.map(({ a, etiqueta, Icono }) => (
-      <NavLink
-        key={a}
-        to={a}
-        end={a === '/'}
-        className={({ isActive }) => `nav-enlace${isActive ? ' activo' : ''}`}
-      >
-        <Icono size={18} aria-hidden="true" />
-        <span>{etiqueta}</span>
-      </NavLink>
-    ))}
-    {movil && (
-      <NavLink
-        to="/reportar"
-        className={({ isActive }) => `nav-enlace nav-reportar${isActive ? ' activo' : ''}`}
-      >
-        <Megaphone size={18} aria-hidden="true" />
-        <span>Reportar</span>
-      </NavLink>
-    )}
-  </nav>
+const TITULOS: Record<string, { seccion: string; titulo: string }> = {
+  '/': { seccion: 'Monitoreo', titulo: 'Mapa en vivo' },
+  '/reportar': { seccion: 'Participación', titulo: 'Reportar novedad' },
+  '/veedor': { seccion: 'Operación', titulo: 'Panel veedor' },
 }
 
-export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema, onAbrirSuscripcion }) => (
-  <>
-    <header role="banner" className="app-header">
-      <div className="header-contenido">
-        <Link to="/" id="logo-aguavigia" className="marca" aria-label="AguaVigía CTG — inicio">
-          <span className="marca-icono" aria-hidden="true">
-            <Droplets size={23} strokeWidth={2.4} />
-          </span>
-          <span className="marca-texto">
-            <strong>AguaVigía</strong>
-            <small>Cartagena</small>
-          </span>
-        </Link>
+export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema, onAbrirSuscripcion }) => {
+  const { pathname } = useLocation()
+  const [menuAbierto, setMenuAbierto] = useState(false)
+  const contexto = TITULOS[pathname] ?? { seccion: 'AguaVigía', titulo: 'Página' }
 
-        <Navegacion />
+  useEffect(() => {
+    setMenuAbierto(false)
+  }, [pathname])
 
-        <div className="header-acciones">
-          <SelectorTema temaActivo={temaActivo} onAlternar={onAlternarTema} />
-          <button type="button" className="boton boton-avisos-header" onClick={onAbrirSuscripcion} aria-label="Suscribirse a avisos por correo">
-            <BellRing size={17} aria-hidden="true" />
-            <span>Avisos</span>
-          </button>
-          <Link to="/reportar" className="boton boton-reporte-header">
-            <Megaphone size={17} aria-hidden="true" />
-            Reportar estado
+  useEffect(() => {
+    const cerrarConEscape = (evento: KeyboardEvent) => {
+      if (evento.key === 'Escape') setMenuAbierto(false)
+    }
+    window.addEventListener('keydown', cerrarConEscape)
+    return () => window.removeEventListener('keydown', cerrarConEscape)
+  }, [])
+
+  return (
+    <>
+      <aside className={`app-sidebar${menuAbierto ? ' is-open' : ''}`} aria-label="Navegación principal">
+        <div className="sidebar-brand">
+          <Link to="/" id="logo-aguavigia" aria-label="AguaVigía CTG — inicio">
+            <span className="brand-mark" aria-hidden="true"><Droplet size={23} strokeWidth={2.4} /></span>
+            <span className="brand-copy">
+              <strong>AguaVigía</strong>
+              <small>Cartagena</small>
+            </span>
           </Link>
+          <button
+            type="button"
+            className="sidebar-close"
+            aria-label="Cerrar menú"
+            onClick={() => setMenuAbierto(false)}
+          >
+            <X size={20} />
+          </button>
         </div>
-      </div>
-    </header>
-    <Navegacion movil />
-  </>
-)
+
+        <div className="sidebar-context">
+          <span className="context-icon" aria-hidden="true"><Waves size={18} /></span>
+          <span><small>Espacio de trabajo</small><strong>Servicio de agua</strong></span>
+        </div>
+
+        <nav className="sidebar-nav" aria-label="Navegación principal">
+          <span className="sidebar-label">Navegación</span>
+          {ENLACES.map(({ a, etiqueta, resumen, Icono }) => (
+            <NavLink
+              key={a}
+              to={a}
+              end={a === '/'}
+              className={({ isActive }) => `sidebar-link${isActive ? ' is-active' : ''}`}
+            >
+              <span className="sidebar-link-icon" aria-hidden="true"><Icono size={19} /></span>
+              <span className="sidebar-link-copy"><strong>{etiqueta}</strong><small>{resumen}</small></span>
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="sidebar-footer">
+          <span className="sidebar-footer-mark" aria-hidden="true"><Droplet size={16} /></span>
+          <span><strong>Monitoreo ciudadano</strong><small>Cartagena de Indias</small></span>
+        </div>
+      </aside>
+
+      <button
+        type="button"
+        className={`sidebar-backdrop${menuAbierto ? ' is-visible' : ''}`}
+        aria-label="Cerrar menú"
+        tabIndex={menuAbierto ? 0 : -1}
+        onClick={() => setMenuAbierto(false)}
+      />
+
+      <header className="app-topbar" role="banner">
+        <div className="topbar-heading">
+          <button
+            type="button"
+            className="menu-trigger"
+            aria-label="Abrir menú"
+            aria-expanded={menuAbierto}
+            onClick={() => setMenuAbierto(true)}
+          >
+            <Menu size={21} />
+          </button>
+          <div className="topbar-title">
+            <span>{contexto.seccion}</span>
+            <strong>{contexto.titulo}</strong>
+          </div>
+        </div>
+
+        <div className="topbar-actions">
+          <Link to="/reportar" className="topbar-subscribe">
+            <Megaphone size={17} />
+            <span>Reportar</span>
+          </Link>
+          <button
+            type="button"
+            className="topbar-subscribe"
+            onClick={onAbrirSuscripcion}
+            aria-label="Suscribirse a avisos por correo"
+          >
+            <Mail size={17} />
+            <span>Suscribirme</span>
+          </button>
+          <SelectorTema temaActivo={temaActivo} onAlternar={onAlternarTema} />
+        </div>
+      </header>
+    </>
+  )
+}

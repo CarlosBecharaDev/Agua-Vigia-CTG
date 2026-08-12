@@ -1322,8 +1322,45 @@ Hacer que `RegistrarPropuestaIngestaService` cree la propuesta ya aprobada e inv
 
 ---
 
+## ADR-029 — Adoptar un shell operativo inspirado en Adminator sin convertir la experiencia en un dashboard genérico
+
+- **Fecha:** 2026-08-09
+- **Estado:** Aceptada por solicitud explícita del usuario
+- **Decide:** José Daniel Zambrano (D4)
+
+### Contexto
+
+La barra horizontal anterior desaprovechaba el ancho disponible, comprimía el mapa y no establecía
+una jerarquía clara entre navegación y contenido. El usuario pidió explorar como referencia el shell
+de Adminator, conservando intacta la funcionalidad y pudiendo volver al estado anterior.
+
+`DESIGN.md` §9 prohíbe que AguaVigía se convierta en un dashboard corporativo de KPIs decorativos.
+La referencia se toma solo para patrones de composición: sidebar, topbar contextual, tarjetas
+contenidas, sistema de tokens y drawer móvil; no se incorporan su código, dependencias ni módulos.
+
+### Decisión
+
+La SPA usa un shell común con sidebar fija en escritorio, drawer accesible en móvil, topbar por ruta
+y un área de contenido que prioriza el mapa. Los componentes, rutas, llamadas API, formularios,
+estados y manejadores existentes permanecen sin cambios de comportamiento.
+
+### Consecuencias
+
+- **Gana:** mejor uso del viewport, navegación consistente y jerarquía visual profesional.
+- **Mantiene:** identidad turquesa de AguaVigía y protagonismo de la pregunta ciudadana, sin KPIs
+  decorativos ni semántica cromática nueva.
+- **Cuesta:** el shell agrega CSS responsive y un estado local para abrir/cerrar el drawer móvil.
+
+### Cómo se revierte
+
+Restaurar el contenido de `frontend_checkpoint_2026-08-09_antes_adminator.zip`, creado antes de la
+primera modificación de este rediseño. El archivo conserva `src`, `public` y la configuración completa
+del frontend en ese punto.
+
+---
+
 <!--
-Siguiente número disponible: ADR-029
+Siguiente número disponible: ADR-030
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->

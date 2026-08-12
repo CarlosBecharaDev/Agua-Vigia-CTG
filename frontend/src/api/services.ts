@@ -17,6 +17,28 @@ export type ReporteModeracion = Required<Pick<ReporteModeracionApi, 'id' | 'sect
 type SolicitudCorteApi = components['schemas']['SolicitudCorte']
 export type SolicitudCorte = Required<Pick<SolicitudCorteApi, 'sectoresAfectados' | 'inicio' | 'finPrometido' | 'causa'>>
 export type CorteOficial = components['schemas']['CorteRespuesta']
+type EventoBitacoraApi = components['schemas']['EventoBitacoraRespuesta']
+export type TipoEventoBitacora = 'CORTE_ANUNCIADO' | 'CORTE_CONFIRMADO_POR_CIUDADANOS' | 'CORTE_RESTABLECIDO'
+export type EventoBitacora = Required<Pick<EventoBitacoraApi, 'id' | 'tipo' | 'timestamp' | 'descripcion'>> &
+  Pick<EventoBitacoraApi, 'sectorId' | 'corteId'>
+
+// --- Interfaces del Índice de Cumplimiento (M6, RF020-RF025) ---
+export interface IndiceCumplimiento {
+  sectorId: string | null
+  duracionPrometidaSegundos: number
+  duracionRealSegundos: number
+  desviacionSegundos: number
+  porcentajeCumplimiento: number
+}
+
+export interface PuntoSerieCumplimiento {
+  periodo: string
+  duracionPrometidaSegundos: number
+  duracionRealSegundos: number
+  desviacionSegundos: number
+  porcentajeCumplimiento: number
+  cantidadCortes: number
+}
 
 // --- Interfaces de Estadísticas (M7) ---
 export interface EstadisticaSector {
@@ -137,4 +159,79 @@ export async function iniciarSesionVeedor(clave: string): Promise<void> {
 
 export function cerrarSesionVeedor() {
   sesionVeedor.limpiar()
+}
+
+// --- Bitácora pública (M8) ---
+export async function listarBitacora(tamano = 20): Promise<EventoBitacora[]> {
+  const { data } = await apiClient.get<EventoBitacoraApi[]>('/bitacora', { params: { tamano } })
+  if (!Array.isArray(data)) throw new Error('El servidor devolvió una bitácora inválida.')
+  const eventos = data.filter((evento): evento is EventoBitacora =>
+    typeof evento.id === 'string' &&
+    typeof evento.tipo === 'string' &&
+    typeof evento.timestamp === 'string' &&
+    typeof evento.descripcion === 'string')
+  if (eventos.length !== data.length) throw new Error('Uno o más eventos de la bitácora no cumplen el contrato OpenAPI.')
+  return eventos
+}
+
+// --- Índice de Cumplimiento (M6, RF020-RF025) — prometido vs. real, público sin auth ---
+export async function obtenerIndiceCumplimientoGlobal(): Promise<IndiceCumplimiento> {
+  const { data } = await apiClient.get<IndiceCumplimiento>('/cumplimiento')
+  return data
+}
+
+export async function obtenerSerieCumplimiento(sectorId?: string): Promise<PuntoSerieCumplimiento[]> {
+  const { data } = await apiClient.get<PuntoSerieCumplimiento[]>('/cumplimiento/serie', { params: sectorId ? { sectorId } : undefined })
+  if (!Array.isArray(data)) throw new Error('El servidor devolvió una serie de cumplimiento inválida.')
+  return data
+}
+
+// --- Cola de revisión de la ingesta automatizada (M9, ADR-028) ---
+export interface PropuestaIngesta {
+  id: string
+  sectorId: string
+  /** SIN_SERVICIO, PRESION_BAJA, CORTE_PROGRAMADO o CON_SERVICIO */
+  estadoPropuesto: string
+  /** Colector que la detectó, p. ej. "acuacar" */
+  fuente: string
+  urlOriginal: string | null
+  /** Fragmento del que se dedujo el estado — lo que el veedor lee para decidir (ADR-028) */
+  citaTextual: string
+  /** Entre 0 y 1 */
+  confianza: number
+  detectadaEn: string
+  /** PENDIENTE, APROBADA o DESCARTADA */
+  estadoRevision: string
+}
+
+export async function listarPropuestasIngesta(): Promise<PropuestaIngesta[]> {
+  const { data } = await apiClient.get<PropuestaIngesta[]>('/veedor/ingesta/propuestas')
+  if (!Array.isArray(data)) throw new Error('El servidor devolvió una cola de ingesta inválida.')
+  return data
+}
+
+export async function aprobarPropuestaIngesta(id: string): Promise<PropuestaIngesta> {
+  const { data } = await apiClient.patch<PropuestaIngesta>(`/veedor/ingesta/propuestas/${encodeURIComponent(id)}/aprobar`)
+  return data
+}
+
+export async function descartarPropuestaIngesta(id: string): Promise<PropuestaIngesta> {
+  const { data } = await apiClient.patch<PropuestaIngesta>(`/veedor/ingesta/propuestas/${encodeURIComponent(id)}/descartar`)
+  return data
+}
+
+export interface SaludColector {
+  nombre: string
+  ultimaEjecucionExitosa: string | null
+  ultimoFallo: string | null
+  motivoDelUltimoFallo: string | null
+  itemsProcesados: number
+  tasaDeError: number
+  fallosConsecutivos: number
+}
+
+export async function obtenerSaludIngesta(): Promise<SaludColector[]> {
+  const { data } = await apiClient.get<SaludColector[]>('/veedor/ingesta/salud')
+  if (!Array.isArray(data)) throw new Error('El servidor devolvió un estado de salud inválido.')
+  return data
 }

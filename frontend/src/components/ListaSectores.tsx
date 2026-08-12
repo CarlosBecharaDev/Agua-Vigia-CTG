@@ -7,14 +7,11 @@
  * Esta lista es navegable por teclado y sirve como contenido principal cuando
  * el mapa no carga (red lenta, JS desactivado, lector de pantalla).
  */
-import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FC } from 'react'
 import type { Sector } from '../types/tipos-dominio'
-import { COLOR_POR_ESTADO, COLOR_SIN_DATOS } from '../types/tipos-dominio'
 import { InsigniaEstado } from './InsigniaEstado'
 import { EtiquetaFrescura } from './EtiquetaFrescura'
-import { Check, Search, X } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Check } from 'lucide-react'
 
 interface Props {
   sectores: Sector[]
@@ -26,15 +23,7 @@ interface Props {
 
 /** Skeleton de un ítem de la lista mientras carga */
 const SkeletonItem: FC = () => (
-  <li
-    aria-hidden="true"
-    style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      padding: '0.75rem 0',
-      borderBottom: '1px solid var(--color-linea)',
-    }}
-  >
+  <li aria-hidden="true" className="lista-sectores-skel">
     <div className="skeleton" style={{ width: '140px', height: '16px' }} />
     <div className="skeleton" style={{ width: '80px', height: '16px' }} />
   </li>
@@ -42,37 +31,14 @@ const SkeletonItem: FC = () => (
 
 export const ListaSectores: FC<Props> = ({ sectores, cargando, error, sectorActivo, onSectorSeleccionado }) => {
   const mostrarAdvertencia = Boolean(error && sectores.length > 0)
-  const [busqueda, setBusqueda] = useState('')
-  const [filtro, setFiltro] = useState<'todos' | 'novedades' | 'con-servicio'>('todos')
-  const buscadorRef = useRef<HTMLInputElement>(null)
-  const sectoresMonitoreados = useMemo(() => sectores.filter((sector) => sector.estado !== null), [sectores])
-  const sectoresFiltrados = useMemo(() => {
-    const termino = busqueda.trim().toLocaleLowerCase('es')
-    return sectoresMonitoreados.filter((sector) => {
-      const coincideNombre = !termino || sector.nombre.toLocaleLowerCase('es').includes(termino)
-      const coincideFiltro = filtro === 'todos'
-        || (filtro === 'con-servicio' && sector.estado === 'CON_SERVICIO')
-        || (filtro === 'novedades' && sector.estado !== 'CON_SERVICIO')
-      return coincideNombre && coincideFiltro
-    })
-  }, [busqueda, filtro, sectoresMonitoreados])
-
-  useEffect(() => {
-    const enfocarBusqueda = (event: KeyboardEvent) => {
-      if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) return
-      const objetivo = event.target as HTMLElement
-      if (objetivo.matches('input, textarea, select, [contenteditable="true"]')) return
-      event.preventDefault()
-      buscadorRef.current?.focus()
-    }
-    document.addEventListener('keydown', enfocarBusqueda)
-    return () => document.removeEventListener('keydown', enfocarBusqueda)
-  }, [])
+  // Un sector sin estado es uno que el backend creó desde el GeoJSON pero que nadie ha
+  // reportado o verificado todavía — no cuenta como "monitoreado" para la lista.
+  const sectoresMonitoreados = sectores.filter((sector) => sector.estado !== null)
   // Agrupar por estado para que sea más escaneable
-  const sinServicio   = sectoresFiltrados.filter(s => s.estado === 'SIN_SERVICIO')
-  const programados   = sectoresFiltrados.filter(s => s.estado === 'CORTE_PROGRAMADO')
-  const presionBaja   = sectoresFiltrados.filter(s => s.estado === 'PRESION_BAJA')
-  const conServicio   = sectoresFiltrados.filter(s => s.estado === 'CON_SERVICIO')
+  const sinServicio   = sectores.filter(s => s.estado === 'SIN_SERVICIO')
+  const programados   = sectores.filter(s => s.estado === 'CORTE_PROGRAMADO')
+  const presionBaja   = sectores.filter(s => s.estado === 'PRESION_BAJA')
+  const conServicio   = sectores.filter(s => s.estado === 'CON_SERVICIO')
 
   const grupos = [
     { sectores: sinServicio,   estado: 'SIN_SERVICIO'     as const },
@@ -83,37 +49,15 @@ export const ListaSectores: FC<Props> = ({ sectores, cargando, error, sectorActi
 
   if (error && sectores.length === 0) {
     return (
-      <p role="alert" className="mensaje-error">
+      <p role="alert" style={{ color: 'var(--color-estado-sin)', padding: '1rem 0', fontSize: '0.875rem' }}>
         No pudimos cargar los sectores. Revisa tu conexión e intenta de nuevo.
       </p>
     )
   }
 
   return (
-    <section className="lista-sectores" aria-label="Lista de sectores y su estado de servicio">
-      <label className="buscador-barrios">
-        <Search size={17} aria-hidden="true" />
-        <span className="sr-only">Buscar barrio</span>
-        <input
-          ref={buscadorRef}
-          type="search"
-          value={busqueda}
-          onChange={(event) => setBusqueda(event.target.value)}
-          placeholder="Buscar un barrio…"
-          autoComplete="off"
-          onKeyDown={(event) => { if (event.key === 'Escape') setBusqueda('') }}
-        />
-        {!busqueda && <kbd aria-label="Atajo de teclado: diagonal">/</kbd>}
-        {busqueda && <><small aria-live="polite">{sectoresFiltrados.length}</small><button type="button" aria-label="Limpiar búsqueda" onClick={() => setBusqueda('')}><X size={15} /></button></>}
-      </label>
-
-      <div className="filtros-barrios" aria-label="Filtrar barrios por estado">
-        <button type="button" className={filtro === 'todos' ? 'activo' : ''} aria-pressed={filtro === 'todos'} onClick={() => setFiltro('todos')}>Todos <span>{sectoresMonitoreados.length}</span></button>
-        <button type="button" className={filtro === 'novedades' ? 'activo' : ''} aria-pressed={filtro === 'novedades'} onClick={() => setFiltro('novedades')}>Novedades <span>{sectoresMonitoreados.filter((sector) => sector.estado !== 'CON_SERVICIO').length}</span></button>
-        <button type="button" className={filtro === 'con-servicio' ? 'activo' : ''} aria-pressed={filtro === 'con-servicio'} onClick={() => setFiltro('con-servicio')}>Con agua <span>{sectoresMonitoreados.filter((sector) => sector.estado === 'CON_SERVICIO').length}</span></button>
-      </div>
-
-      <p className="resultado-barrios" aria-live="polite">{sectoresFiltrados.length} {sectoresFiltrados.length === 1 ? 'barrio visible' : 'barrios visibles'}</p>
+    <section aria-label="Lista de sectores y su estado de servicio">
+      <h2 className="lista-sectores-titulo">Estado por sector</h2>
 
       {mostrarAdvertencia && (
         <div
@@ -141,59 +85,36 @@ export const ListaSectores: FC<Props> = ({ sectores, cargando, error, sectorActi
 
       {!cargando && sectoresMonitoreados.length === 0 && (
         <p style={{ color: 'var(--color-tinta-3)', fontSize: '0.875rem' }}>
-          Todavía no hay barrios con estado reportado o corte programado. Puedes{' '}
-          <Link to="/reportar">consultar cuándo estará disponible el reporte</Link>.
+          Todavía no hay barrios con estado reportado o corte programado. Sé el primero en{' '}
+          <a href="/reportar" style={{ color: 'var(--color-acento)' }}>reportar un problema</a>.
         </p>
       )}
 
-      {!cargando && sectoresMonitoreados.length > 0 && sectoresFiltrados.length === 0 && (
-        <div className="sin-resultados">
-          <Search size={24} />
-          <p>No encontramos “{busqueda}”. Prueba con otro nombre.</p>
-          <button type="button" onClick={() => setBusqueda('')}>Limpiar búsqueda</button>
-        </div>
-      )}
-
-      {!cargando && grupos.map(({ sectores: grupo, estado }) => {
-        const color = estado ? COLOR_POR_ESTADO[estado].claro : COLOR_SIN_DATOS.claro;
-        return (
-        <div key={estado || 'sin-datos'} className="grupo-estado">
-          {/* Cabecera del grupo */}
-          <div
-            className="grupo-estado-cabecera"
-            style={{ '--grupo-color': color } as React.CSSProperties}
-          >
+      {!cargando && grupos.map(({ sectores: grupo, estado }) => (
+        <div key={estado} className="lista-sectores-grupo">
+          <div className="lista-sectores-grupo-cab">
             <InsigniaEstado estado={estado} tamaño="sm" />
-            <span
-              className="uppercase-label"
-              style={{ color: 'var(--color-tinta-2)' }}
-            >
-              {grupo.length} {grupo.length === 1 ? 'sector' : 'sectores'}
-            </span>
+            <span className="uppercase-label cuenta">{grupo.length}</span>
           </div>
 
-          <ul className="sector-lista">
+          <ul className="lista-sectores-items">
             {grupo.map(sector => (
-              <li key={sector.id} className={`sector-item${sectorActivo?.id === sector.id ? ' seleccionado' : ''}`}>
+              <li key={sector.id}>
                 <button
                   onClick={() => onSectorSeleccionado?.(sector)}
                   aria-label={`Ver ${sector.nombre} en el mapa`}
                   aria-pressed={sectorActivo?.id === sector.id}
-                  className="sector-boton"
+                  className="lista-sectores-btn"
                 >
                   <span className="sector-seleccion"><i aria-hidden="true" />{sector.nombre}</span>
                   {sectorActivo?.id === sector.id && <Check size={16} aria-hidden="true" />}
-                </button>
-                <div className="sector-frescura">
-                  <InsigniaEstado estado={sector.estado} tamaño="sm" />
                   {sector.actualizadoEn && <EtiquetaFrescura timestampIso={sector.actualizadoEn} />}
-                </div>
+                </button>
               </li>
             ))}
           </ul>
         </div>
-        );
-      })}
+      ))}
     </section>
   )
 }

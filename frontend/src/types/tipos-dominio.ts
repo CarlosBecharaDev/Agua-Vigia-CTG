@@ -6,25 +6,33 @@
  * Sirven para tipar el estado local del mapa y los componentes estáticos.
  */
 
-import type { components } from '../api/generated/schema'
+/** Los 4 estados del servicio — fuente única: DESIGN.md §2 y modelo-de-dominio.md §1 */
+export type EstadoServicio =
+  | 'CON_SERVICIO'
+  | 'SIN_SERVICIO'
+  | 'PRESION_BAJA'
+  | 'CORTE_PROGRAMADO'
 
-type SectorContrato = components['schemas']['SectorRespuesta']
-
-/** Los valores salen del contrato OpenAPI; la presentación sale de DESIGN.md. */
-export type EstadoServicio = Exclude<SectorContrato['estado'], null | undefined>
-
-/** Un sector con su estado — forma mínima que necesita el mapa */
-export type Sector = Required<Pick<SectorContrato, 'id' | 'nombre'>> & {
+/** Un sector con su estado — forma mínima que necesita el mapa.
+ *  `estado`/`actualizadoEn` pueden ser null: el backend crea sectores desde el GeoJSON de
+ *  barrios sin que nadie los haya reportado o verificado todavía (ver COLOR_SIN_DATOS). */
+export interface Sector {
+  id: string
+  nombre: string
   estado: EstadoServicio | null
+  /** Timestamp ISO de la última actualización del estado */
   actualizadoEn: string | null
 }
 
 /** Resultado de GET /api/sectores — forma esperada cuando C2 abra */
-export type RespuestaSectores = { sectores: Sector[]; generadoEn: string }
+export interface RespuestaSectores {
+  sectores: Sector[]
+  generadoEn: string
+}
 
 /** Mapa de colores por estado — derivado de DESIGN.md §2 */
 export const COLOR_POR_ESTADO: Record<EstadoServicio, { claro: string; oscuro: string; etiqueta: string }> = {
-  CON_SERVICIO:     { claro: '#1C7F55', oscuro: '#4FBF89', etiqueta: 'Con servicio' },
+  CON_SERVICIO:     { claro: '#34c759', oscuro: '#4FBF89', etiqueta: 'Con servicio' },
   SIN_SERVICIO:     { claro: '#AE3428', oscuro: '#E2695B', etiqueta: 'Sin servicio' },
   PRESION_BAJA:     { claro: '#A87310', oscuro: '#D9A63C', etiqueta: 'Presión baja' },
   CORTE_PROGRAMADO: { claro: '#2A628F', oscuro: '#6BA8DA', etiqueta: 'Corte programado' },

@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* ─── Modo claro (por defecto) ─── */
 :root {
   color-scheme: light;
   --color-fondo: #f2f7f6;
@@ -39,6 +40,35 @@
   --foco-outline: 3px solid rgba(8, 127, 140, .72); --foco-offset: 3px;
 }
 
+/* ─── Modo oscuro — media query del SO ─── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-acento:       #54c6ca;
+    --color-acento-vivo:  #78d9db;
+    --color-acento-suave: #153f44;
+
+    --color-tinta:        #edf8f7;
+    --color-tinta-2:      #a7bdbd;
+    --color-tinta-3:      #71898c;
+    --color-marino:       #061b22;
+
+    --color-linea:        #234a4f;
+    --color-superficie:   #102f36;
+    --color-fondo:        #071f26;
+
+    --sombra-suave: 0 4px 20px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15);
+    --sombra-elevada: 0 12px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
+
+    --color-estado-con:   #30d158;
+    --color-estado-sin:   #ff453a;
+    --color-estado-baja:  #ff9f0a;
+    --color-estado-prog:  #98989d;
+
+    color-scheme: dark;
+  }
+}
+
+/* ─── Modo oscuro — interruptor manual ─── */
 :root[data-theme="dark"] {
   color-scheme: dark;
   --color-fondo: #061c23; --color-fondo-profundo: #04161c;
@@ -290,3 +320,3051 @@ p { max-width: 65ch; }
 }
 
 @keyframes panel-contextual-entrada { from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none} }
+
+/* ─── Modo claro forzado por interruptor ─── */
+:root[data-theme="light"] {
+  --color-acento:        #087f8c;
+  --color-acento-vivo:   #0a9cab;
+  --color-acento-suave:  #d9f1f0;
+
+  --color-tinta:         #12333d;
+  --color-tinta-2:       #5d7379;
+  --color-tinta-3:       #8da0a4;
+  --color-marino:        #061b22;
+
+  --color-linea:         #dce8e8;
+  --color-superficie:    #ffffff;
+  --color-fondo:         #f3f8f7;
+
+  --color-estado-con:    #34c759;
+  --color-estado-sin:    #ff3b30;
+  --color-estado-baja:   #ff9500;
+  --color-estado-prog:   #8e8e93;
+
+  color-scheme: light;
+}
+
+/* ─── Reset y base global ─── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-cuerpo);
+  font-size: 16px;
+  background-color: var(--color-fondo);
+  color: var(--color-tinta);
+  /* Sin scroll horizontal — DESIGN.md §8 */
+  overflow-x: hidden;
+}
+
+body {
+    min-height: 100dvh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    background-color: var(--color-fondo);
+    transition: background-color var(--transicion), color var(--transicion);
+  }
+
+/* ─── Foco — WCAG AA ─── */
+:focus-visible {
+  outline: var(--foco-outline);
+  outline-offset: var(--foco-offset);
+  border-radius: var(--radio-base);
+}
+
+/* ─── Tipografía base ─── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  line-height: 1.25;
+  text-wrap: balance;
+  color: var(--color-tinta);
+}
+
+code, kbd, samp, pre {
+  font-family: var(--font-util);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Columnas de cifras siempre tabular */
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* Máximo de 65 caracteres en texto corrido — DESIGN.md §4 */
+p { max-width: 65ch; }
+
+/* Mayúsculas con tracking — DESIGN.md §4 */
+.uppercase-label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  font-family: var(--font-util);
+}
+
+/* ─── Objetivos táctiles — mínimo 44×44px (DESIGN.md §7) ─── */
+button,
+[role="button"],
+a,
+input[type="checkbox"],
+input[type="radio"],
+select {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* ─── Reducción de movimiento — DESIGN.md §7 ─── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── Scrollbars Futuristas ─── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-linea);
+  border-radius: 10px;
+  transition: background var(--transicion);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-acento);
+}
+
+/* ─── Utilidades de color del sistema ─── */
+.text-acento    { color: var(--color-acento); }
+.text-tinta-2   { color: var(--color-tinta-2); }
+.text-tinta-3   { color: var(--color-tinta-3); }
+.bg-superficie  { background-color: var(--color-superficie); }
+.bg-fondo       { background-color: var(--color-fondo); }
+.border-linea   { border-color: var(--color-linea); }
+
+/* ─── Tarjetas y paneles ─── */
+/* ─── Liquid glass: material translúcido con blur+saturación y un filo con brillo ─── */
+.panel-glass {
+  background: linear-gradient(
+    155deg,
+    rgba(var(--glass-r), var(--glass-g), var(--glass-b), 0.88) 0%,
+    rgba(var(--glass-r), var(--glass-g), var(--glass-b), 0.68) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 1px 2px rgba(8, 42, 50, 0.05),
+    0 18px 40px rgba(8, 42, 50, 0.14);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .panel-glass {
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 1px 2px rgba(0, 0, 0, 0.2),
+      0 20px 44px rgba(0, 0, 0, 0.35);
+  }
+}
+
+:root[data-theme="dark"] .panel-glass {
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 20px 44px rgba(0, 0, 0, 0.35);
+}
+
+/* ─── Efectos Interactivos (Sutiles al estilo Apple) ─── */
+.hover-glowing {
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease, box-shadow 0.2s ease !important;
+  will-change: transform;
+}
+.hover-glowing:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+.hover-glowing:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* ─── Efecto Líquido / Agua (Para el menú) ─── */
+.ola-agua {
+  position: absolute;
+  background: radial-gradient(circle, rgba(41, 151, 255, 0.8) 0%, rgba(0, 212, 255, 0.4) 100%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  animation: ripple-agua 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  pointer-events: none;
+  z-index: 0;
+}
+@keyframes ripple-agua {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(30);
+    opacity: 0;
+  }
+}
+
+.efecto-agua-cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: -1;
+  border-radius: inherit;
+  transition: opacity 0.3s ease;
+}
+
+
+/* En modo claro puro, usamos el acento en lugar de blanco puro para que se note */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .hover-glowing:hover {
+    border-color: var(--color-acento) !important;
+    box-shadow: 0 0 12px rgba(2, 132, 199, 0.3) !important;
+  }
+}
+:root[data-theme="light"] .hover-glowing:hover {
+  border-color: var(--color-acento) !important;
+  box-shadow: 0 0 12px rgba(2, 132, 199, 0.3) !important;
+}
+
+/* ─── Splash Screen Animations ─── */
+@keyframes dropSplash {
+  0% { transform: translateY(-100vh) scale(0.5); opacity: 0; }
+  50% { transform: translateY(0) scale(1); opacity: 1; }
+  65% { transform: scaleY(0.7) scaleX(1.3) translateY(10px); }
+  80% { transform: scaleY(1.1) scaleX(0.9) translateY(-15px); }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes fadeOutSplash {
+  0% { opacity: 1; backdrop-filter: blur(20px); }
+  100% { opacity: 0; visibility: hidden; backdrop-filter: blur(0px); }
+}
+
+@keyframes textReveal {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Leaflet tweaks ─── */
+
+/* Sin capa de teselas (ver MapaCartagena): el fondo debe ser transparente para que se vea
+   el GradientWaves detrás — nada de relleno opaco aquí. */
+.leaflet-container {
+  background: transparent !important;
+}
+
+/* Quitar el outline rectangular punteado al hacer click en un polígono en Leaflet */
+.leaflet-interactive:focus {
+  outline: none !important;
+}
+
+/* Animación de pulso suave para el barrio seleccionado */
+@keyframes pulseSector {
+  0% { fill-opacity: 0.5; stroke-width: 2px; }
+  50% { fill-opacity: 0.85; stroke-width: 4px; }
+  100% { fill-opacity: 0.5; stroke-width: 2px; }
+}
+
+.barrio-seleccionado {
+  animation: pulseSector 2.5s infinite ease-in-out;
+  /* El borde brillante usará el color definido en JavaScript, la animación lo realza */
+}
+
+/* ─── Colores de estado (SOLO para estado del servicio) ─── */
+.estado-con   { color: var(--color-estado-con);  }
+.estado-sin   { color: var(--color-estado-sin);  }
+.estado-baja  { color: var(--color-estado-baja); }
+.estado-prog  { color: var(--color-estado-prog); }
+
+.bg-estado-con   { background-color: var(--color-estado-con);  }
+.bg-estado-sin   { background-color: var(--color-estado-sin);  }
+.bg-estado-baja  { background-color: var(--color-estado-baja); }
+.bg-estado-prog  { background-color: var(--color-estado-prog); }
+
+/* ─── Skeleton loader base (para Sprint 2) ─── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-linea) 25%,
+    var(--color-superficie) 50%,
+    var(--color-linea) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+  border-radius: var(--radio-base);
+}
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; background: var(--color-linea); }
+}
+
+/* ─── Tabla scroll horizontal propio — DESIGN.md §8 ─── */
+.tabla-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ─── Recharts Outline Fix ─── */
+.recharts-wrapper,
+.recharts-surface,
+.recharts-cartesian-grid,
+.recharts-bar-rectangle {
+  outline: none !important;
+}
+.recharts-wrapper *:focus {
+  outline: none !important;
+}
+
+/* ─── Glassmorphism support variables ─── */
+:root {
+  --glass-r: 255;
+  --glass-g: 255;
+  --glass-b: 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --glass-r: 28;
+    --glass-g: 28;
+    --glass-b: 30;
+  }
+}
+
+:root[data-theme="dark"] {
+  --glass-r: 28;
+  --glass-g: 28;
+  --glass-b: 30;
+}
+
+:root[data-theme="light"] {
+  --glass-r: 255;
+  --glass-g: 255;
+  --glass-b: 255;
+}
+
+/* ─── Animación pulso en vivo (indicador Live) ─── */
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.15); }
+}
+
+/* ─── Animación de aparición desde abajo (formularios) ─── */
+@keyframes aparecerAbajo {
+  0% { opacity: 0; transform: translateY(16px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Pulse Dot (indicador de conexión en vivo) ─── */
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50% { box-shadow: 0 0 0 6px transparent; }
+}
+
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MISIÓN MÓVIL — Auditoría de Pantallas Pequeñas
+   Media Queries para responsive perfecto en celulares
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Tablets y pantallas medianas (≤ 768px) ── */
+@media (max-width: 768px) {
+  /* Encabezado: ocultar etiquetas de nav, solo iconos */
+  header[role="banner"] nav {
+    gap: 0.1rem !important;
+  }
+
+  header[role="banner"] nav a {
+    padding: 0.4rem 0.5rem !important;
+    font-size: 0 !important; /* Oculta el texto */
+  }
+
+  header[role="banner"] nav a svg {
+    margin-right: 0 !important;
+  }
+
+  /* Logo: más compacto */
+  #logo-aguavigia span {
+    font-size: 1.1rem !important;
+  }
+
+  /* Mapa: más espacio vertical */
+  #panel-mapa, #panel-lista {
+    min-height: 300px !important;
+  }
+
+  /* Estadísticas: KPIs en 1 columna fluida */
+  .grid.md\:grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Gráficos: reducir altura */
+  .recharts-responsive-container {
+    min-height: 240px;
+  }
+}
+
+/* ── Celulares pequeños (≤ 480px) ── */
+@media (max-width: 480px) {
+  /* Encabezado compacto */
+  header[role="banner"] {
+    padding: 0 0.5rem !important;
+    min-height: 52px !important;
+    gap: 0.25rem !important;
+  }
+
+  /* Navegación: iconos centrados */
+  header[role="banner"] nav a {
+    min-width: 40px !important;
+    min-height: 40px !important;
+    padding: 0.35rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Logo: solo icono de gota */
+  #logo-aguavigia span {
+    display: none !important;
+  }
+
+  /* Contenido principal: padding reducido y forzado contra inline styles */
+  main > div {
+    padding: 1rem 0.75rem !important;
+  }
+
+  /* Títulos adaptados a pantalla pequeña */
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  h2 {
+    font-size: 1.1rem !important;
+  }
+
+  /* KPIs de estadísticas: más compactos */
+  .grid.md\:grid-cols-3 > div {
+    padding: 1rem !important;
+    border-radius: 1rem !important;
+  }
+
+  /* Panel de detalle del mapa: ancho completo */
+  [role="dialog"] {
+    left: 0.5rem !important;
+    right: 0.5rem !important;
+    transform: none !important;
+    min-width: auto !important;
+    max-width: none !important;
+  }
+
+  /* Barra superior del mapa: compacta */
+  #contenedor-mapa + div,
+  .panel-glass[style*="position: absolute"][style*="top"] {
+    padding: 0.35rem 0.75rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  /* Gráficos: más compactos */
+  section[style*="borderRadius: '2rem'"] {
+    padding: 1rem !important;
+    border-radius: 1.25rem !important;
+  }
+
+  /* Formulario: botón de envío a ancho completo */
+  form button[type="submit"] {
+    width: 100% !important;
+  }
+
+  /* Botón exportar: ancho completo */
+  button[style*="Exportar"] {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Filtro de periodo: stack vertical si no cabe */
+  div[style*="borderRadius: 'var(--radio-pill)'"][style*="padding: '0.25rem'"] {
+    flex-wrap: wrap;
+  }
+
+  /* Feed de comentarios y bitácora: menos padding */
+  article {
+    padding: 1rem !important;
+  }
+
+  /* Panel veedor: KPIs más compactos */
+  .grid.md\:grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Botón de moderación: texto más pequeño */
+  section button[style*="borderRadius: 'var(--radio-pill)'"] {
+    font-size: 0.8rem !important;
+    padding: 0.6rem 1rem !important;
+  }
+}
+
+/* ── Ajustes para landscape en móvil ── */
+@media (max-height: 500px) and (orientation: landscape) {
+  /* Reducir alturas fijas del mapa para landscape */
+  #panel-mapa {
+    min-height: 250px !important;
+  }
+
+  /* Header más delgado */
+  header[role="banner"] {
+    min-height: 44px !important;
+  }
+}
+
+/* ── Safe area para dispositivos con notch ── */
+@supports (padding-top: env(safe-area-inset-top)) {
+  header[role="banner"] {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  main {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+#saltar-al-contenido {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 99999;
+  padding: 0.7rem 1rem;
+  color: white;
+  background: var(--color-marino);
+  border-radius: var(--radio-base);
+  text-decoration: none;
+  transform: translateY(-160%);
+  transition: transform var(--transicion);
+}
+
+#saltar-al-contenido:focus { transform: translateY(0); }
+
+/* ─── Shell de aplicación inspirado en paneles operativos modernos ─── */
+.app-shell {
+  min-height: 100dvh;
+}
+
+.app-sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 2200;
+  width: 268px;
+  display: flex;
+  flex-direction: column;
+  padding: 1.1rem 0.9rem;
+  color: #eaf7f7;
+  background: #0b2a32;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 8px 0 30px rgba(5, 25, 31, 0.08);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 58px;
+  padding: 0 0.45rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+#logo-aguavigia {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.72rem;
+  min-width: 0;
+  min-height: 44px;
+  color: #f2fbfa;
+  text-decoration: none;
+}
+
+.brand-mark {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #0d5d68;
+  background: #7ce0df;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(84, 198, 202, 0.2);
+}
+
+.brand-copy,
+.sidebar-link-copy,
+.sidebar-footer > span:last-child,
+.sidebar-context > span:last-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.brand-copy strong {
+  font-size: 1rem;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.brand-copy small {
+  margin-top: 0.2rem;
+  color: #8fb1b5;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.sidebar-close,
+.menu-trigger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.sidebar-context {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 1rem 0.2rem 1.35rem;
+  padding: 0.8rem;
+  color: #d9eeee;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+
+.context-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #79d8d9;
+  background: rgba(84, 198, 202, 0.11);
+  border-radius: 9px;
+}
+
+.sidebar-context small {
+  color: #89aeb1;
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sidebar-context strong {
+  margin-top: 0.13rem;
+  font-size: 0.82rem;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.sidebar-label {
+  padding: 0 0.75rem 0.45rem;
+  color: #6f969b;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.sidebar-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 58px;
+  padding: 0.65rem 0.75rem;
+  color: #a9c2c5;
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  transition: color var(--transicion), background var(--transicion), border-color var(--transicion), transform var(--transicion);
+}
+
+.sidebar-link:hover {
+  color: #f2fbfa;
+  background: rgba(255, 255, 255, 0.055);
+  transform: translateX(2px);
+}
+
+.sidebar-link.is-active {
+  color: #f6ffff;
+  background: rgba(84, 198, 202, 0.13);
+  border-color: rgba(120, 217, 219, 0.15);
+}
+
+.sidebar-link.is-active::before {
+  position: absolute;
+  inset: 12px auto 12px -0.72rem;
+  width: 3px;
+  content: '';
+  background: #78d9db;
+  border-radius: 0 4px 4px 0;
+}
+
+.sidebar-link-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #82aaae;
+  border-radius: 9px;
+}
+
+.sidebar-link.is-active .sidebar-link-icon {
+  color: #7ee0e0;
+  background: rgba(84, 198, 202, 0.1);
+}
+
+.sidebar-link-copy strong {
+  overflow: hidden;
+  font-size: 0.83rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-link-copy small {
+  margin-top: 0.18rem;
+  overflow: hidden;
+  color: #789ca0;
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-link.is-active small {
+  color: #9ac4c7;
+}
+
+.sidebar-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 1rem 0.65rem 0.15rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.sidebar-footer-mark {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #79d8d9;
+  background: rgba(84, 198, 202, 0.1);
+  border-radius: 50%;
+}
+
+.sidebar-footer strong {
+  font-size: 0.72rem;
+}
+
+.sidebar-footer small {
+  margin-top: 0.12rem;
+  color: #789ca0;
+  font-size: 0.65rem;
+}
+
+.app-topbar {
+  position: fixed;
+  inset: 0 0 auto 268px;
+  z-index: 2100;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.5rem;
+  color: var(--color-tinta);
+  background: color-mix(in srgb, var(--color-superficie) 94%, transparent);
+  border-bottom: 1px solid var(--color-linea);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.topbar-heading,
+.topbar-actions {
+  display: flex;
+  align-items: center;
+}
+
+.topbar-heading {
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 0.8rem;
+}
+
+.topbar-title {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  gap: 0.55rem;
+}
+
+.topbar-title span {
+  color: var(--color-tinta-3);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.topbar-title span::after {
+  margin-left: 0.55rem;
+  color: var(--color-linea);
+  content: '/';
+}
+
+.topbar-title strong {
+  overflow: hidden;
+  font-size: 0.92rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar-actions {
+  flex: 0 0 auto;
+  gap: 0.65rem;
+  margin-left: auto;
+}
+
+.topbar-subscribe,
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  gap: 0.5rem;
+  padding: 0.45rem 0.8rem;
+  color: var(--color-tinta-2);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-linea);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(8, 42, 50, 0.04);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 700;
+  transition: border-color var(--transicion), color var(--transicion), background var(--transicion), transform var(--transicion);
+}
+
+.topbar-subscribe:hover,
+.theme-toggle:hover {
+  color: var(--color-acento);
+  background: var(--color-acento-suave);
+  border-color: color-mix(in srgb, var(--color-acento) 45%, var(--color-linea));
+}
+
+.theme-toggle > div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.45s ease, opacity 0.25s ease;
+}
+
+.theme-toggle > span {
+  min-width: 44px;
+  text-align: left;
+}
+
+.app-main {
+  min-width: 0;
+  min-height: 100dvh;
+  margin-left: 268px;
+  padding-top: 72px;
+}
+
+.app-main main {
+  min-height: calc(100dvh - 72px);
+}
+
+.app-main main[aria-label="Estadísticas del servicio de agua en Cartagena"] > div {
+  max-width: 1280px !important;
+}
+
+.app-main main[aria-label="Dashboard del veedor"] > div {
+  max-width: 1180px !important;
+}
+
+.app-main main[aria-label="Bitácora pública de interrupciones del servicio"] > div {
+  max-width: 1040px !important;
+}
+
+.map-workspace {
+  width: 100%;
+  max-width: 1800px;
+  min-height: 640px;
+  height: calc(100dvh - 72px);
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(330px, 0.72fr);
+  gap: 1.25rem;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+.map-card,
+.sector-panel {
+  min-width: 0;
+  overflow: hidden;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-linea);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(8, 42, 50, 0.04), 0 14px 34px rgba(8, 42, 50, 0.07);
+}
+
+.map-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.sector-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.sector-panel-heading {
+  padding: 1.35rem 1.35rem 1rem;
+  border-bottom: 1px solid var(--color-linea);
+}
+
+/* ─── Resumen del panel lateral del mapa (PaginaMapa) ─── */
+.mapa-resumen {
+  animation: aparecerAbajo 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.mapa-titulo {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.mapa-subtitulo {
+  margin-top: 0.35rem;
+  color: var(--color-tinta-2);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.mapa-subtitulo strong {
+  color: var(--color-acento);
+  font-weight: 700;
+}
+
+/* Pista fija sobre las pestañas — antes era el mensaje del estado "vacío" de
+   PanelDetalleSector; ahora es puro texto decorativo, sin ligar a si hay sector elegido o
+   no (esa lógica se fue con CarruselSector). */
+.hoja-sectores-pista {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+  color: var(--color-tinta-3);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.hoja-sectores-pista svg {
+  flex: 0 0 auto;
+  color: var(--color-acento);
+}
+
+/* Toggle "Por estado" / "Por sector": mismo GooeyNav del navbar, pero acá las dos píldoras
+   se reparten el ancho completo del panel en vez de encogerse a su texto — ese es el único
+   ajuste, el efecto líquido y el sombreado blanco de la píldora activa son los de siempre. */
+.filtro-panel-tabs {
+  margin-top: 0.9rem;
+}
+
+.filtro-panel-tabs .gooey-nav-container nav ul {
+  width: 100%;
+  gap: 0.4rem;
+}
+
+.filtro-panel-tabs .gooey-nav-container nav ul li {
+  flex: 1 1 0;
+  text-align: center;
+}
+
+.filtro-panel-tabs .gooey-nav-container nav ul li a {
+  justify-content: center;
+  width: 100%;
+  padding: 0.55em 0.4em;
+  font-size: 0.82rem;
+}
+
+.filtro-panel-tabs .gooey-nav-container .effect.text {
+  font-size: 0.82rem;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TARJETAS DE RESUMEN POR ESTADO — reemplazan la lista .mapa-conteos
+   y la barra flotante .mapa-overlay-top: la cuenta ahora vive en
+   una tarjeta con acento neón por estado que también controla el
+   foco del mapa ("Ver en el mapa" — ver MapaCartagena/dibujarDestacado).
+   ═══════════════════════════════════════════════════════════ */
+
+.tarjetas-estado-mapa {
+  display: grid;
+  /* minmax(0, 1fr), no "1fr" a secas: con "1fr" cada columna conserva su ancho mínimo de
+     contenido (p.ej. "22"/"29" son más anchos que "0"/"2") y esa diferencia se filtra al
+     tamaño final — las columnas quedan visiblemente desiguales aunque el fr sea el mismo. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.6rem;
+}
+
+.tarjeta-estado-mapa {
+  --color-neon: var(--color-acento);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 144px;
+  padding: 0.7rem 0.75rem 0.6rem;
+  text-align: center;
+  background: color-mix(in srgb, var(--color-neon) 9%, var(--color-fondo));
+  border: 1.5px solid color-mix(in srgb, var(--color-neon) 50%, transparent);
+  border-radius: 14px;
+  animation: tarjeta-neon-parpadeo 3.2s ease-in-out infinite;
+}
+
+.tarjeta-estado-mapa.is-activa {
+  border-color: var(--color-neon);
+  animation-duration: 1.5s;
+}
+
+@keyframes tarjeta-neon-parpadeo {
+  0%, 100% { box-shadow: 0 0 3px color-mix(in srgb, var(--color-neon) 40%, transparent); }
+  50%      { box-shadow: 0 0 13px 1px color-mix(in srgb, var(--color-neon) 70%, transparent); }
+}
+
+.tarjeta-estado-mapa-cab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  margin-bottom: 0.35rem;
+}
+
+.tarjeta-estado-mapa-punto {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--color-neon);
+  box-shadow: 0 0 6px var(--color-neon);
+}
+
+.tarjeta-estado-mapa-etiqueta {
+  overflow: hidden;
+  color: var(--color-tinta-2);
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tarjeta-estado-mapa-num {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-tinta);
+}
+
+.tarjeta-estado-mapa-sub {
+  margin: 0.1rem 0 0.6rem;
+  color: var(--color-tinta-3);
+  font-size: 0.68rem;
+}
+
+.tarjeta-estado-mapa-btn {
+  width: 100%;
+  margin-top: auto;
+  min-height: 44px;
+  padding: 0 0.5rem;
+  color: var(--color-neon);
+  background: color-mix(in srgb, var(--color-neon) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-neon) 40%, transparent);
+  border-radius: var(--radio-pill);
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--transicion), color var(--transicion), transform var(--transicion);
+}
+
+.tarjeta-estado-mapa-btn:hover:not(:disabled) {
+  background: var(--color-neon);
+  color: #04201e;
+  transform: translateY(-1px);
+}
+
+.tarjeta-estado-mapa-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta-estado-mapa { animation: none; }
+}
+
+/* ── Foco de "Ver en el mapa" — parpadeo lento por estado (dibujarDestacado en
+   MapaCartagena.tsx) y "pings" con el nombre de cada barrio destacado ── */
+@keyframes parpadeo-glow-con-servicio {
+  0%, 100% { filter: drop-shadow(0 0 2px #34c759); }
+  50%      { filter: drop-shadow(0 0 11px #34c759); }
+}
+@keyframes parpadeo-glow-sin-servicio {
+  0%, 100% { filter: drop-shadow(0 0 2px #ae3428); }
+  50%      { filter: drop-shadow(0 0 11px #ae3428); }
+}
+@keyframes parpadeo-glow-presion-baja {
+  0%, 100% { filter: drop-shadow(0 0 2px #a87310); }
+  50%      { filter: drop-shadow(0 0 11px #a87310); }
+}
+@keyframes parpadeo-glow-corte-programado {
+  0%, 100% { filter: drop-shadow(0 0 2px #2a628f); }
+  50%      { filter: drop-shadow(0 0 11px #2a628f); }
+}
+
+.barrio-destacado-CON_SERVICIO     { animation: parpadeo-glow-con-servicio 3s ease-in-out infinite; }
+.barrio-destacado-SIN_SERVICIO     { animation: parpadeo-glow-sin-servicio 3s ease-in-out infinite; }
+.barrio-destacado-PRESION_BAJA     { animation: parpadeo-glow-presion-baja 3s ease-in-out infinite; }
+.barrio-destacado-CORTE_PROGRAMADO { animation: parpadeo-glow-corte-programado 3s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .barrio-destacado-CON_SERVICIO,
+  .barrio-destacado-SIN_SERVICIO,
+  .barrio-destacado-PRESION_BAJA,
+  .barrio-destacado-CORTE_PROGRAMADO {
+    animation: none !important;
+  }
+}
+
+.ping-barrio-destacado {
+  background: transparent;
+  border: none;
+}
+
+.ping-barrio-etiqueta {
+  position: absolute;
+  transform: translate(-50%, -130%);
+  padding: 0.25rem 0.55rem;
+  color: #fff;
+  font-family: var(--font-util);
+  font-size: 0.68rem;
+  font-weight: 700;
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--color-ping) 24%, #0b1a1f 76%);
+  border: 1px solid var(--color-ping);
+  border-radius: var(--radio-pill);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-ping) 60%, transparent);
+  animation: ping-aparecer 300ms ease-out both;
+  pointer-events: none;
+}
+
+@keyframes ping-aparecer {
+  from { opacity: 0; transform: translate(-50%, -110%) scale(0.85); }
+  to   { opacity: 1; transform: translate(-50%, -130%) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ping-barrio-etiqueta { animation: none; }
+}
+
+/* Contorno rojo neón que se enciende y apaga suavemente — llamado de atención deliberado
+   sobre el CTA de "Reportar ahora" (ver .navbar-reportar). */
+@keyframes pulso-neon-rojo {
+  0%, 100% {
+    border-color: rgba(255, 23, 68, 0.12);
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--color-acento) 32%, transparent), 0 0 0 rgba(255, 23, 68, 0);
+  }
+  50% {
+    border-color: rgba(255, 23, 68, 0.95);
+    box-shadow: 0 6px 18px color-mix(in srgb, var(--color-acento) 32%, transparent), 0 0 16px 3px rgba(255, 23, 68, 0.75);
+  }
+}
+
+.mapa-buscador {
+  position: relative;
+  margin-top: 0.85rem;
+}
+
+.mapa-buscador svg {
+  position: absolute;
+  top: 50%;
+  left: 0.9rem;
+  transform: translateY(-50%);
+  color: var(--color-tinta-3);
+  pointer-events: none;
+}
+
+.mapa-buscador input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem 1rem 0.6rem 2.55rem;
+  color: var(--color-tinta);
+  background: var(--color-fondo);
+  border: 1px solid var(--color-linea);
+  border-radius: var(--radio-md);
+  font-size: 0.88rem;
+  font-family: var(--font-cuerpo);
+  transition: border-color var(--transicion), box-shadow var(--transicion);
+}
+
+.mapa-buscador input:focus-visible {
+  border-color: var(--color-acento);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-acento-suave);
+}
+
+/* ─── Panel flotante de detalle de sector, anclado como un pin sobre el barrio ───
+   left/top llegan por estilo inline (puntoPin, en píxeles del contenedor del mapa,
+   MapaCartagena.tsx) y seguimos con `transition` cada vez que ese punto se mueve — flyToBounds
+   y cualquier pan/zoom posterior — para que el panel "flote" sobre el barrio en vez de quedar
+   fijo en una esquina. El transform ancla la esquina inferior central del panel 14px arriba
+   del punto, dejando espacio para la colita que apunta al barrio (ver ::after). */
+.mapa-detalle {
+  position: absolute;
+  z-index: 1000;
+  min-width: 260px;
+  /* Acotado al ancho del propio contenedor del mapa (100% = ese contenedor, ver el div
+     position:relative que envuelve #contenedor-mapa y este panel), no al viewport completo:
+     el mapa es angosto dentro del recuadro unificado y un panel que use calc(100vw - 3rem)
+     se sale del recuadro por la izquierda cuando el pin queda cerca de ese borde. */
+  max-width: min(340px, calc(100% - 2rem));
+  max-height: calc(100% - 6rem);
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radio-lg);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+  transition: left 120ms linear, top 120ms linear;
+  animation: mapaDetalleIn 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.mapa-detalle::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(
+    155deg,
+    rgba(var(--glass-r), var(--glass-g), var(--glass-b), 0.88) 0%,
+    rgba(var(--glass-r), var(--glass-g), var(--glass-b), 0.68) 100%
+  );
+  border-right: 1px solid rgba(255, 255, 255, 0.18);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 0 0 2px 0;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .mapa-detalle::after {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+:root[data-theme="dark"] .mapa-detalle::after {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+@keyframes mapaDetalleIn {
+  0%   { opacity: 0; transform: translate(-50%, calc(10px - 100% - 14px)) scale(0.97); }
+  100% { opacity: 1; transform: translate(-50%, calc(-100% - 14px)) scale(1); }
+}
+
+/* Variante volteada: cuando el barrio queda cerca del borde superior del mapa (o el panel
+   es alto por traer boletín) no cabe encima del pin, así que se dibuja debajo — la colita
+   pasa de apuntar hacia abajo a apuntar hacia arriba (ver MapaCartagena.tsx, efecto pinArriba). */
+.mapa-detalle-abajo {
+  animation-name: mapaDetalleInAbajo;
+}
+
+@keyframes mapaDetalleInAbajo {
+  0%   { opacity: 0; transform: translate(-50%, 4px) scale(0.97); }
+  100% { opacity: 1; transform: translate(-50%, 14px) scale(1); }
+}
+
+.mapa-detalle-abajo::after {
+  bottom: auto;
+  top: -6px;
+  border-right: none;
+  border-bottom: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  border-left: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 2px 0 0 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .mapa-detalle-abajo::after {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+:root[data-theme="dark"] .mapa-detalle-abajo::after {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.mapa-detalle-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}
+
+.mapa-detalle-tag {
+  padding: 0.15rem 0.45rem;
+  color: var(--color-tinta-2);
+  background: var(--color-fondo);
+  border: 1px solid var(--color-linea);
+  border-radius: var(--radio-pill);
+  font-family: var(--font-util);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.mapa-detalle-boletin {
+  margin-top: 0.35rem;
+  padding: 0.35rem 0.55rem;
+  background: var(--color-fondo);
+  border: 1px solid var(--color-linea);
+  border-radius: var(--radio-md);
+}
+
+/* Los titulares de Acuacar vienen en mayúsculas y son largos: sin recorte ocupan cinco
+   líneas y empujan las tarjetas de resumen fuera del panel. Dos líneas bastan para
+   reconocer el aviso; el texto completo está a un clic en "Noticia oficial de Acuacar". */
+.mapa-detalle-boletin-titulo {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  color: var(--color-tinta);
+  font-size: 0.76rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.mapa-detalle-boletin-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 1rem;
+  margin-top: 0.25rem;
+}
+
+.mapa-detalle-boletin-acciones a,
+.mapa-detalle-boletin-acciones button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 22px;
+  padding: 0;
+  color: var(--color-acento);
+  background: none;
+  border: none;
+  font-family: var(--font-util);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.mapa-detalle-boletin-acciones a:hover,
+.mapa-detalle-boletin-acciones button:hover {
+  text-decoration: underline;
+}
+
+.mapa-detalle-reportar {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  margin-top: 0.3rem;
+  padding: 0;
+  color: var(--color-acento);
+  background: none;
+  border: none;
+  font-family: var(--font-util);
+  font-size: 0.78rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* En móvil el panel deja de competir por altura con el mapa: se devuelve el área táctil
+   completa a los enlaces de la ficha (WCAG 2.5.8), que en escritorio se recorta para que
+   ficha y tarjetas de resumen quepan sin scroll. */
+@media (max-width: 768px) {
+  .mapa-detalle-reportar {
+    min-height: 44px;
+  }
+
+  .mapa-detalle-boletin-acciones a,
+  .mapa-detalle-boletin-acciones button {
+    min-height: 36px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mapa-resumen,
+  .mapa-detalle,
+  .lista-sectores-grupo {
+    animation: none !important;
+  }
+  .mapa-detalle {
+    transition: none !important;
+  }
+}
+
+/* ─── Lista de sectores (alternativa textual del mapa) ─── */
+.lista-sectores-titulo {
+  margin-bottom: 0.85rem;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-tinta);
+}
+
+.lista-sectores-grupo {
+  margin-bottom: 1.25rem;
+  animation: aparecerAbajo 340ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.lista-sectores-grupo:nth-of-type(1) { animation-delay: 0ms; }
+.lista-sectores-grupo:nth-of-type(2) { animation-delay: 40ms; }
+.lista-sectores-grupo:nth-of-type(3) { animation-delay: 80ms; }
+.lista-sectores-grupo:nth-of-type(4) { animation-delay: 120ms; }
+
+.lista-sectores-grupo-cab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.lista-sectores-grupo-cab .cuenta {
+  color: var(--color-tinta-2);
+  font-weight: 700;
+}
+
+.lista-sectores-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  list-style: none;
+}
+
+.lista-sectores-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.7rem 0.9rem;
+  color: var(--color-tinta);
+  background: var(--color-fondo);
+  border: 1px solid transparent;
+  border-radius: 0.9rem;
+  font-family: var(--font-cuerpo);
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transicion), border-color var(--transicion), transform var(--transicion);
+}
+
+.lista-sectores-btn:hover {
+  background: var(--color-superficie);
+  border-color: var(--color-linea);
+  transform: translateX(2px);
+}
+
+.lista-sectores-skel {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-linea);
+}
+
+/* ─── Buscador de barrios (reemplaza a ListaSectores — RF004) ─── */
+.buscador-barrios {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 44px;
+  padding: 0 0.9rem;
+  margin-top: 0.9rem;
+  margin-bottom: 0.9rem;
+  color: var(--color-tinta-3);
+  background: var(--color-fondo);
+  border: 1px solid var(--color-linea);
+  border-radius: var(--radio-pill);
+  transition: border-color var(--transicion), box-shadow var(--transicion);
+}
+
+.buscador-barrios:focus-within {
+  border-color: var(--color-acento);
+  box-shadow: 0 0 0 3px var(--color-acento-suave);
+}
+
+.buscador-barrios svg { flex: 0 0 auto; }
+
+.buscador-barrios input {
+  flex: 1;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0;
+  color: var(--color-tinta);
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-cuerpo);
+  font-size: 0.88rem;
+}
+
+.buscador-barrios-mensaje {
+  color: var(--color-tinta-3);
+  font-size: 0.85rem;
+}
+
+/* Desplegable de resultados: solo existe mientras el campo está enfocado (no se listan los
+   ~50 barrios con la caja vacía) y muestra hasta 5 filas — el resto se alcanza con scroll
+   interno, no empujando el resto del panel hacia abajo. 262px = 5 × 44px (alto mínimo de
+   fila) + 4 × 0.4rem (gap entre filas) + 2 × 0.5rem (relleno del propio desplegable). */
+.buscador-barrios-dropdown {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  padding: 0.5rem;
+  border-radius: 0.9rem;
+}
+
+.lista-barrios {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 262px;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.lista-barrios-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.65rem 0.9rem;
+  color: var(--color-tinta);
+  background: var(--color-fondo);
+  border: 1px solid transparent;
+  border-radius: 0.9rem;
+  font-family: var(--font-cuerpo);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transicion), border-color var(--transicion), transform var(--transicion);
+}
+
+.lista-barrios-btn:hover,
+.lista-barrios-btn.is-seleccionado {
+  background: var(--color-superficie);
+  border-color: var(--color-linea);
+  transform: translateX(2px);
+}
+
+.lista-barrios-punto {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+}
+
+/* Degradados arriba/abajo del desplegable — inspirados en el mismo componente de
+   reactbits.dev (Components → Animated List): se atenúan según la posición del scroll
+   (ver BuscadorBarrios) e insinúan que hay más filas sin necesitar una barra de scroll
+   visible. Usan los mismos --glass-* que .panel-glass para fundirse con el propio
+   desplegable en vez de un color fijo — funcionan igual con el tema del panel invertido
+   dentro de la isla oscura del mapa (ver --glass-* en .panel-mapa-unificado). */
+.buscador-barrios-degradado-arriba,
+.buscador-barrios-degradado-abajo {
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  height: 28px;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.buscador-barrios-degradado-arriba {
+  top: 0.5rem;
+  background: linear-gradient(to bottom, rgba(var(--glass-r), var(--glass-g), var(--glass-b), 0.95), transparent);
+}
+
+.buscador-barrios-degradado-abajo {
+  bottom: 0.5rem;
+  background: linear-gradient(to top, rgba(var(--glass-r), var(--glass-g), var(--glass-b), 0.95), transparent);
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2150;
+  display: block;
+  visibility: hidden;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  opacity: 0;
+  background: rgba(4, 20, 25, 0.5);
+  border: 0;
+  transition: opacity var(--transicion), visibility var(--transicion);
+}
+
+@media (max-width: 1180px) {
+  .map-workspace {
+    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.8fr);
+  }
+}
+
+@media (max-width: 960px) {
+  .app-sidebar {
+    width: min(294px, calc(100vw - 2rem));
+    transform: translateX(-105%);
+    transition: transform 220ms ease-out;
+  }
+
+  .app-sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-close,
+  .menu-trigger {
+    display: inline-flex;
+  }
+
+  .sidebar-close {
+    color: #9ebdc0;
+  }
+
+  .sidebar-backdrop.is-visible {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .app-topbar {
+    left: 0;
+  }
+
+  .app-main {
+    margin-left: 0;
+  }
+
+  .map-workspace {
+    height: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .map-card {
+    height: min(58vh, 480px);
+    min-height: 380px;
+  }
+
+  .sector-panel {
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-topbar {
+    height: 64px;
+    padding: 0 0.75rem !important;
+  }
+
+  .app-main {
+    padding-top: 64px;
+  }
+
+  .app-main main {
+    min-height: calc(100dvh - 64px);
+  }
+
+  .topbar-title {
+    display: block;
+  }
+
+  .topbar-title span {
+    display: none;
+  }
+
+  .topbar-title strong {
+    display: block;
+    max-width: 30vw;
+    font-size: 0.84rem;
+  }
+
+  .topbar-actions {
+    position: absolute;
+    right: 0.75rem;
+  }
+
+  .topbar-subscribe {
+    width: 42px;
+    padding: 0;
+  }
+
+  .topbar-subscribe span,
+  .theme-toggle > span {
+    display: none;
+  }
+
+  .theme-toggle {
+    width: 42px;
+    min-width: 42px;
+    padding: 0;
+  }
+
+  .map-workspace,
+  main > .map-workspace {
+    gap: 0.8rem;
+    padding: 0.75rem !important;
+  }
+
+  .map-card {
+    height: min(46vh, 380px) !important;
+    min-height: 300px;
+    border-radius: 13px;
+  }
+
+  .sector-panel {
+    min-height: 400px !important;
+    border-radius: 13px;
+  }
+
+  .sector-panel-heading {
+    padding: 1rem 1.1rem 0.9rem;
+  }
+
+  .mapa-titulo {
+    font-size: 1.15rem;
+  }
+}
+
+.bloque-suscripcion { width: min(100%, 900px); margin: 2rem auto 0; }
+.formulario-suscripcion { display: grid; gap: .65rem; padding: clamp(1.25rem, 4vw, 2rem); background: var(--color-superficie); border: 1px solid var(--color-linea); border-radius: 20px; }
+.suscripcion-titulo { display: flex; gap: .8rem; align-items: start; margin-bottom: .4rem; }
+.suscripcion-titulo svg { flex: 0 0 auto; color: var(--color-acento); }
+.suscripcion-titulo h3 { font-size: 1.35rem; }
+.suscripcion-titulo p { color: var(--color-tinta-2); font-size: .82rem; }
+.formulario-suscripcion > input { width: 100%; padding: .7rem .85rem; color: var(--color-tinta); background: var(--color-fondo); border: 1px solid var(--color-linea); border-radius: 12px; }
+.formulario-suscripcion fieldset { min-width: 0; border: 0; }
+.formulario-suscripcion legend { margin-bottom: .4rem; }
+.selector-sectores-suscripcion { display: grid; grid-template-columns: repeat(3, 1fr); gap: .35rem; max-height: 180px; padding: .4rem; overflow-y: auto; background: var(--color-fondo); border: 1px solid var(--color-linea); border-radius: 12px; }
+.selector-sectores-suscripcion label { display: flex; align-items: center; gap: .45rem; min-width: 0; padding: .25rem; font-weight: 500; }
+.selector-sectores-suscripcion input { accent-color: var(--color-acento); }
+.selector-sectores-suscripcion span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.suscripcion-exito { display: flex; align-items: center; gap: 1rem; padding: 1.5rem; color: var(--color-tinta); background: var(--color-superficie); border: 1px solid var(--color-acento); border-radius: 18px; }
+.suscripcion-exito svg { color: var(--color-acento); }
+.suscripcion-exito p { color: var(--color-tinta-2); font-size: .84rem; }
+
+.pagina-reportar { width: min(100% - 2rem, 760px); margin: 0 auto; padding: clamp(2rem, 6vw, 4.5rem) 0; }
+.cabecera-reportar { margin-bottom: 1.5rem; }
+.cabecera-reportar h1 { margin: .35rem 0 .75rem; font-size: clamp(2rem, 6vw, 3.4rem); line-height: 1.05; }
+.cabecera-reportar > p:not(.eyebrow) { max-width: 62ch; color: var(--color-tinta-2); }
+.formulario-reporte { display: grid; gap: 1rem; padding: clamp(1.25rem, 4vw, 2rem); background: var(--color-superficie); border: 1px solid var(--color-linea); border-radius: 20px; box-shadow: var(--sombra-suave); }
+.formulario-reporte > label,
+.formulario-reporte legend { color: var(--color-tinta); font-size: .88rem; font-weight: 750; }
+.formulario-reporte select { width: 100%; min-height: 48px; padding: .7rem .85rem; color: var(--color-tinta); background: var(--color-fondo); border: 1px solid var(--color-linea); border-radius: 12px; font: inherit; }
+.formulario-reporte select:focus-visible { border-color: var(--color-acento); outline: 3px solid var(--color-acento-suave); }
+.formulario-reporte fieldset { min-width: 0; margin: .25rem 0 0; padding: 0; border: 0; }
+.formulario-reporte legend { margin-bottom: .7rem; }
+.opciones-reporte { display: grid; grid-template-columns: repeat(3, 1fr); gap: .65rem; }
+.opciones-reporte button { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: .65rem; min-height: 78px; padding: .8rem; color: var(--color-tinta); background: var(--color-fondo); border: 1px solid var(--color-linea); border-radius: 14px; text-align: left; cursor: pointer; transition: border-color var(--transicion), transform var(--transicion), background var(--transicion); }
+.opciones-reporte button:hover:not(:disabled) { color: var(--color-acento); background: var(--color-acento-suave); border-color: var(--color-acento); transform: translateY(-2px); }
+.opciones-reporte button:disabled { cursor: not-allowed; opacity: .45; }
+.opciones-reporte svg { width: 22px; color: var(--color-acento); }
+.opciones-reporte span { display: grid; gap: .2rem; }
+.opciones-reporte strong { font-size: .84rem; }
+.opciones-reporte small,
+.compartir-ubicacion small { color: var(--color-tinta-2); font-size: .72rem; font-weight: 500; line-height: 1.35; }
+.compartir-ubicacion { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: .55rem; padding: .75rem; background: var(--color-fondo); border: 1px solid var(--color-linea); border-radius: 12px; cursor: pointer; }
+.compartir-ubicacion input { accent-color: var(--color-acento); }
+.compartir-ubicacion svg { width: 19px; color: var(--color-acento); }
+.compartir-ubicacion span { display: grid; }
+.privacidad-reporte { padding-top: .8rem; color: var(--color-tinta-3); border-top: 1px solid var(--color-linea); font-size: .75rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar,
+  .sidebar-backdrop {
+    transition: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .opciones-reporte { grid-template-columns: 1fr; }
+  .opciones-reporte button { min-height: 68px; }
+}
+
+@media (max-width: 600px) {
+  .estado-compacto { display: block; }
+  .estado-compacto .eyebrow { font-size: .6rem; }
+  .estado-compacto h1 { margin-bottom: .45rem; font-size: 1.5rem; }
+  .resumen-compacto { min-width: 0; width: 100%; }
+  .resumen-compacto div { padding: .4rem .65rem; }
+  .resumen-compacto dd { font-size: 1.25rem; }
+  .barra-contexto .estado-conexion { display: none; }
+  .leyenda-mapa { grid-template-columns: 1fr 1fr; }
+  .marco-mapa { height: calc(100dvh - 355px); min-height: 390px; }
+  .selector-sectores-suscripcion { grid-template-columns: 1fr 1fr; }
+  .estado-recurso { grid-template-columns: auto 1fr; }
+  .estado-recurso .boton { grid-column: 1 / -1; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PÁGINA PRINCIPAL — "mapa completo"
+   Chrome flotante sobre el mapa a pantalla completa. Solo lo usa
+   PaginaMapa (ver App.tsx: "/" no pasa por Encabezado). El resto
+   de páginas conserva el sidebar/topbar de siempre, sin cambios.
+   ═══════════════════════════════════════════════════════════ */
+
+.pagina-principal {
+  position: relative;
+  min-height: 100dvh;
+}
+
+/* El hero (agua + mapa) llena la primera pantalla; debajo, con scroll normal, vive la
+   Bitácora (SeccionBitacora) — ya no es una ruta aparte. */
+/* Negro violáceo bajo el canvas de olas — el mismo de la página de reactbits. No es
+   decoración: el shader se desvanece a alpha 0 en la distancia, así que "el cielo" del
+   hero ES este color. Con el fondo claro del tema, la parte de arriba salía lavada en vez
+   de oscura. Por eso el valor es fijo y no un token de tema. */
+.mapa-vista-completa {
+  position: relative;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+  background: #060010;
+}
+
+/* ── Navbar superior — flotante, se queda visible al bajar hacia la Bitácora ── */
+/* Píldora oscura despegada del borde, no una barra pegada arriba: flota sobre el hero de
+   olas igual que en la referencia de reactbits. Es oscura en los dos temas a propósito —
+   su contexto principal es el hero, que ahora es negro en ambos. */
+.navbar-superior {
+  position: fixed;
+  top: 0.6rem;
+  left: 0.6rem;
+  right: 0.6rem;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  height: 4rem;
+  padding: 0 0.7rem 0 1.1rem;
+  /* Vidrio líquido oscuro: el degradado translúcido da el cuerpo, el backdrop-filter
+     recoge y desenfoca las olas de atrás, y el `saturate` evita que ese desenfoque salga
+     lavado. La línea interior clara arriba es el reflejo del borde superior. */
+  background: linear-gradient(
+    155deg,
+    rgba(26, 26, 34, 0.62) 0%,
+    rgba(12, 12, 17, 0.48) 100%
+  );
+  backdrop-filter: blur(20px) saturate(175%);
+  -webkit-backdrop-filter: blur(20px) saturate(175%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  box-shadow:
+    0 18px 40px -12px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  animation: navbar-deslizar 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes navbar-deslizar {
+  from { opacity: 0; transform: translateY(-140%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.navbar-marca {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  flex: 0 0 auto;
+  min-height: 44px;
+  color: #fff;
+  text-decoration: none;
+  transition: transform var(--transicion);
+}
+
+.navbar-marca:hover { transform: translateY(-1px); }
+
+.navbar-marca-copy {
+  font-family: var(--font-display);
+  font-size: .95rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ── Buscador de la bitácora — junto al logo, a la izquierda del navbar ── */
+.navbar-buscador-bitacora {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: .5rem;
+  width: min(220px, 30vw);
+  min-height: 40px;
+  padding: 0 .8rem;
+  color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radio-pill);
+  transition: border-color var(--transicion), box-shadow var(--transicion), transform var(--transicion);
+}
+
+.navbar-buscador-bitacora:focus-within {
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+  transform: scale(1.02);
+}
+
+.navbar-buscador-bitacora svg { flex: 0 0 auto; }
+
+.navbar-buscador-bitacora input {
+  flex: 1;
+  min-width: 0;
+  min-height: 36px;
+  padding: 0;
+  color: #fff;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-cuerpo);
+  font-size: .82rem;
+}
+
+.navbar-buscador-bitacora input::-webkit-search-cancel-button { cursor: pointer; }
+
+/* Contenedor del GooeyNav. Sin `overflow` de ningún tipo: el efecto gotea fuera de la
+   caja (su capa de desenfoque se extiende 75px por cada lado con mix-blend-mode) y
+   cualquier recorte lo cortaría en seco. */
+.navbar-enlaces {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.navbar-acciones {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  flex: 0 0 auto;
+}
+
+/* El selector de tema hereda de `.theme-toggle`, que usa --color-superficie: en tema claro
+   eso es blanco puro y dentro de la barra oscura se convertiría en un segundo botón blanco
+   compitiendo con "Reportar ahora". Acá va translúcido, secundario. */
+.navbar-superior .theme-toggle {
+  color: rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radio-pill);
+  box-shadow: none;
+}
+
+.navbar-superior .theme-toggle:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+/* ── CTA "Reportar ahora" — también disponible en el navbar, siempre visible ── */
+/* Píldora blanca sobre la barra oscura, como el "Sign up" de la referencia. Se le quitó el
+   `pulso-neon-rojo`: ese latido estaba pensado para un botón turquesa sobre fondo claro y
+   sobre blanco se lee como un parpadeo sucio. El contraste ya lo destaca de sobra. */
+.navbar-reportar {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: 44px;
+  padding: 0 1.15rem;
+  color: #08080c;
+  font-size: .84rem;
+  font-weight: 700;
+  white-space: nowrap;
+  background: #fff;
+  border: 1px solid transparent;
+  border-radius: var(--radio-pill);
+  cursor: pointer;
+  transition: transform var(--transicion), box-shadow var(--transicion);
+}
+
+.navbar-reportar:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px -6px rgba(255, 255, 255, 0.35);
+}
+
+/* Recuadro unificado: mapa + panel de sectores comparten un solo marco (un borde, una
+   sombra, unas esquinas) — no dos piezas flotando por separado con un hueco entre ellas.
+   Vive anclado bajo el navbar, con el GradientWaves visible alrededor y detrás. Esquinas
+   redondeadas a propósito, no el --radio-lg estándar de las tarjetas: aquí el marco es
+   parte del gesto visual del hero. */
+.panel-mapa-unificado {
+  position: absolute;
+  top: 7.25rem;
+  /* Mismo margen que el navbar (left/right: .6rem) para que el borde derecho del recuadro
+     quede a plomo con el de la barra. */
+  right: 0.6rem;
+  bottom: 2.5rem;
+  display: flex;
+  /* Sin "left": el ancho lo dan sus hijos (mapa + panel), no el viewport — el mapa
+     conserva la misma proporción que tenía antes de unir las dos piezas. Anclado a la
+     derecha, el GradientWaves queda abierto del lado izquierdo. */
+  width: fit-content;
+  /* Ancho de la columna, en una variable: la usan tanto .hoja-sectores (su flex-basis)
+     como .boton-colapsar-panel (para saber dónde flotar) — un solo número, no dos. */
+  --ancho-hoja-sectores: 300px;
+  border-radius: 28px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 24px 60px -20px rgba(2, 15, 26, 0.6);
+
+  /* Isla oscura: aquí adentro los tokens de tema se fijan a su variante oscura, pase lo
+     que pase afuera. Este recuadro vive sobre el hero (negro en ambos temas) y sus teselas
+     de mapa también son oscuras siempre, así que con el tema claro el texto salía en tinta
+     #12333d sobre vidrio oscuro — ilegible. Redefinirlos acá lo arregla de una vez para
+     todos los descendientes (título, buscador, ficha de sector, tarjetas de estado) sin
+     tener que pintar cada regla a mano. */
+  --color-tinta: #edf8f7;
+  --color-tinta-2: #a7bdbd;
+  --color-tinta-3: #71898c;
+  --color-acento: #54c6ca;
+  --color-acento-vivo: #78d9db;
+  --color-acento-suave: #153f44;
+  --color-linea: rgba(255, 255, 255, 0.12);
+  --color-superficie: rgba(255, 255, 255, 0.06);
+  --color-fondo: rgba(255, 255, 255, 0.04);
+  --glass-r: 28;
+  --glass-g: 28;
+  --glass-b: 30;
+  --color-estado-con: #30d158;
+  --color-estado-sin: #ff453a;
+  --color-estado-baja: #ff9f0a;
+  --color-estado-prog: #98989d;
+  color-scheme: dark;
+}
+
+.mapa-lienzo-completo {
+  position: relative;
+  flex: 0 0 auto;
+  width: min(56vw, 720px);
+  height: 100%;
+  /* Sin fondo sólido a propósito: fuera de la silueta de Cartagena (recortada por
+     clip-path en MapaCartagena) no hay ningún color pintado — se ve el GradientWaves. */
+  transition: width 460ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Colapsar la columna: .hoja-sectores encoge su flex-basis a 0 (más abajo) y el mapa
+   recupera exactamente ese ancho — el total mapa+columna no cambia, así que el marco
+   entero (anclado por la derecha) no se corre ni un píxel, solo se redistribuye lo que
+   hay adentro. Ninguno de los dos usa flex-grow: crecer/encoger por flex-basis es lo único
+   que anima con transición CSS sin saltos. */
+.panel-mapa-unificado--colapsado .mapa-lienzo-completo {
+  width: calc(min(56vw, 720px) + var(--ancho-hoja-sectores));
+}
+
+/* Esquina superior derecha del MARCO (no de la columna) — por eso no se mueve entre los dos
+   estados: el borde derecho de .panel-mapa-unificado está anclado siempre en el mismo sitio
+   (right:0.6rem), colapsado o no, así que "arriba a la derecha" del marco es una posición
+   fija de verdad, no algo que haya que animar. */
+.boton-colapsar-panel {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  /* No 60: con la columna colapsada, el mapa de Leaflet crece hasta cubrir esta esquina —
+     sus propias capas internas (tiles, atribución, controles) usan z-index de hasta ~1000,
+     y a 60 el botón quedaba tapado (invisible Y sin poder hacerle clic) apenas colapsaba.
+     Mismo valor que usa el navbar para la misma razón: quedar por encima de cualquier capa
+     de Leaflet sin tener que perseguir su escala interna número por número. */
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.55);
+  background: #131318;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: color var(--transicion), background var(--transicion);
+}
+
+.boton-colapsar-panel:hover {
+  color: #fff;
+  background: #1c1c22;
+}
+
+@media (max-width: 768px) {
+  .panel-mapa-unificado {
+    top: 5rem;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 1.25rem;
+    width: auto;
+    flex-direction: column;
+    border-radius: 20px;
+  }
+
+  .mapa-lienzo-completo {
+    flex: 0 0 42vh;
+    width: auto;
+    height: auto;
+  }
+
+  /* Colapsar la columna asume un layout en fila (columna a la derecha, botón a mitad
+     camino en el borde vertical) — en la pila móvil ese borde no existe, así que el botón
+     no tiene dónde vivir con sentido. Se oculta y la columna queda siempre visible. */
+  .boton-colapsar-panel {
+    display: none;
+  }
+}
+
+/* ── Controles abajo a la derecha, dentro del recuadro del mapa: botón "centrar" + frescura ── */
+.mapa-controles-inferior-derecha {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.mapa-boton-centrar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  color: var(--color-tinta-2);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color var(--transicion), transform var(--transicion);
+}
+
+.mapa-boton-centrar:hover {
+  color: var(--color-acento);
+  transform: scale(1.05);
+}
+
+.mapa-boton-centrar:active {
+  transform: scale(0.95);
+}
+
+/* ── Panel del proyecto — agua abierta a la izquierda del recuadro del mapa ── */
+.panel-proyecto {
+  position: absolute;
+  /* Mismo alto que el recuadro del mapa — el contenido se centra adentro con flex, así
+     las dos piezas quedan simétricas en la misma franja. */
+  top: 6rem;
+  bottom: 2.5rem;
+  /* Centrado en la franja que queda libre a la izquierda del recuadro del mapa, en vez de
+     pegado al borde con un `left` fijo. El `right` reproduce el ancho de ese recuadro
+     (mapa + panel de sectores + su margen), así que el centrado se mantiene solo cuando
+     cambia el ancho de la ventana. */
+  left: 0;
+  right: calc(0.6rem + min(56vw, 720px) + 300px);
+  margin-inline: auto;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: min(360px, calc(100% - 2rem));
+  padding: 1.8rem 1.6rem;
+  border-radius: 24px;
+  text-align: center;
+}
+
+/* ── Marca: logo + nombre, arriba ── */
+.panel-proyecto-marca {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  opacity: 0;
+  animation: proyecto-marca-entrada 900ms cubic-bezier(0.16, 1, 0.3, 1) 150ms both;
+}
+
+/* Sin halo turquesa detrás: el logo ya trae animación propia y el resplandor pulsante
+   competía con ella. La sombra que queda es neutra, solo para despegarlo de las olas. */
+.panel-proyecto-logo {
+  position: relative;
+  width: 150px;
+  height: auto;
+  margin-bottom: 0;
+  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.45));
+  animation: proyecto-logo-flotar 4.5s ease-in-out infinite;
+}
+
+@keyframes proyecto-marca-entrada {
+  from { opacity: 0; transform: scale(.82) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes proyecto-logo-flotar {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-8px) rotate(-1.5deg); }
+}
+
+/* ── Cuerpo: eyebrow, título, copy, suscripción — todo centrado ── */
+/* Colores fijos de la rampa clara, no tokens de tema. Al quitarle la tarjeta `panel-glass`
+   este texto quedó directamente sobre el hero, que es negro en los dos temas: con
+   --color-tinta (#12333d en claro) el título se volvía ilegible al cambiar de tema. Mismo
+   criterio que el navbar — lo que vive sobre el hero se pinta para fondo oscuro. */
+/* Titular de marca (StrokeText). El componente está hecho para ocupar el 100% del ancho de
+   su contenedor y escalar el texto dentro del viewBox, así que las dos palabras se reparten
+   la fila por `flex-basis` proporcional al número de letras (4 y 5) en vez de intentar que
+   cada SVG se autodimensione — con `width:auto` el viewBox no cuadra y las letras salen
+   recortadas. */
+.panel-proyecto-marca-texto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  width: 100%;
+  margin-bottom: .9rem;
+}
+
+.panel-proyecto-marca-texto > span {
+  display: block;
+  min-width: 0;
+  line-height: 0;
+}
+
+.panel-proyecto-marca-texto > span:nth-child(1) { flex: 4 1 0; }
+.panel-proyecto-marca-texto > span:nth-child(2) { flex: 5 1 0; }
+
+.panel-proyecto-titulo {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: #fff;
+  margin: 0 0 .8rem;
+  text-wrap: balance;
+}
+
+.panel-proyecto-copy {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: .92rem;
+  line-height: 1.6;
+  margin: 0 auto;
+  max-width: 34ch;
+}
+
+.panel-proyecto-suscripcion {
+  margin-top: 1.4rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.panel-proyecto-suscripcion p {
+  margin: 0 0 .8rem;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: .84rem;
+  line-height: 1.5;
+}
+
+.panel-proyecto-boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  min-height: 44px;
+  padding: 0 1.5rem;
+  color: #04201e;
+  background: #54c6ca;
+  border: none;
+  border-radius: var(--radio-pill);
+  font-size: .88rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(84, 198, 202, 0.4);
+}
+
+@media (max-width: 900px) {
+  .panel-proyecto { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-proyecto-marca { opacity: 1; animation: none; }
+  .panel-proyecto-logo { animation: none; }
+}
+
+/* ── Panel de sectores (resumen + lista accesible) — columna interna del recuadro único ── */
+/* Mismo vidrio líquido oscuro del navbar, no `.panel-glass`: esa clase invierte con el
+   tema (blanca en claro) y aquí vive sobre el hero, que es oscuro siempre. El marco y las
+   esquinas los pone .panel-mapa-unificado, así que este hijo va sin borde ni sombra. */
+.hoja-sectores {
+  flex: 0 0 var(--ancho-hoja-sectores, 300px);
+  /* Constante en los dos estados a propósito — ver por qué en el modificador --colapsado
+     de abajo, es la pieza clave del arreglo del salto brusco al reabrir. */
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: linear-gradient(
+    155deg,
+    rgba(26, 26, 34, 0.62) 0%,
+    rgba(12, 12, 17, 0.48) 100%
+  );
+  backdrop-filter: blur(20px) saturate(175%);
+  -webkit-backdrop-filter: blur(20px) saturate(175%);
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0;
+  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.06);
+  transition: flex-basis 460ms cubic-bezier(0.16, 1, 0.3, 1), opacity 260ms ease,
+    border-color 300ms ease;
+}
+
+/* min-width:0 deshace el mínimo automático de los flex items (por defecto se calcula del
+   contenido — un botón con texto sin partir, por ejemplo — y sin esto la columna se
+   atascaba a mitad de camino en vez de llegar a 0). overflow:hidden evita que ese
+   contenido se vea "chorrear" fuera del marco mientras encoge. */
+/* min-width:0 NO va aquí — va arriba, en la regla base, siempre igual en los dos estados.
+   Antes solo estaba acá: min-width pasaba de "0" (colapsado) a "auto" (expandido) de un
+   salto en el instante en que cambia la clase, porque min-width no está en la lista de
+   `transition`. Con flex-shrink:0 esa diferencia no debería importar en teoría, pero DURANTE
+   la animación el flex-basis pasa por valores intermedios pequeños (creciendo desde 0) y
+   min-width:auto —el contenido mínimo, unos ~150-200px por el texto sin partir— actuaba de
+   piso: frenaba el ancho ahí en vez de dejarlo seguir el flex-basis interpolado. Esos ~150-
+   200px de más, sumados al ancho del mapa que TODAVÍA no había encogido esa misma cantidad,
+   inflaban el fit-content del marco por un instante — como el marco está anclado por la
+   derecha, ensancharse de golpe lo corre a la izquierda, y al asentarse la animación vuelve
+   a su sitio. Eso era el salto. Con min-width:0 fijo, nunca hay piso que lo frene. */
+.panel-mapa-unificado--colapsado .hoja-sectores {
+  flex-basis: 0px;
+  overflow: hidden;
+  opacity: 0;
+  border-left-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mapa-lienzo-completo,
+  .hoja-sectores,
+  .boton-colapsar-panel {
+    transition: none;
+  }
+}
+
+.hoja-sectores-cab {
+  position: relative;
+  z-index: 5;
+  padding: 1rem 1.1rem .75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Cuerpo del panel lateral: un único carrusel (ver CarruselSector) que alterna entre el
+   resumen de la pestaña activa — tarjetas o buscador — y la ficha del sector elegido.
+   Centrado vertical en vez del viejo margin-top:auto: ese truco existía para empujar las
+   tarjetas al fondo cuando compartían espacio con el mensaje corto de PanelDetalleSector;
+   ahora resumen y detalle son mutuamente excluyentes y no hay nada que empujar. */
+.hoja-sectores-cuerpo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: 0.65rem;
+  overflow-y: auto;
+}
+
+/* .carrusel-sector es flex por su cuenta (no solo un div de ancho 100%) para que su propio
+   justify-content decida la posición vertical del contenido activo — el buscador y la
+   ficha de detalle quieren quedar arriba, las tarjetas quieren quedar centradas. Un solo
+   justify-content en .hoja-sectores-cuerpo no podía dar las dos cosas a la vez porque los
+   tres contenidos comparten el mismo nodo (CarruselSector), así que la pestaña decide con
+   el modificador --centrado en vez de intentarlo con márgenes automáticos. */
+.carrusel-sector {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.carrusel-sector.carrusel-sector--centrado {
+  justify-content: center;
+}
+
+/* ── Ficha del sector seleccionado — vive en .hoja-sectores-cuerpo, entre el buscador y las
+   tarjetas de resumen. Reemplaza al antiguo panel flotante anclado sobre el mapa: mismas
+   clases .mapa-detalle-tags/.mapa-detalle-boletin*/.mapa-detalle-reportar para el contenido,
+   solo cambia el contenedor (estático, no un pin con posición absoluta). ── */
+/* Sin animación de entrada propia: el intercambio con el resumen ya lo anima
+   CarruselSector (framer-motion) — una segunda animación CSS aquí encima se veía doble. */
+.panel-detalle-sector {
+  padding: 0.6rem 0.8rem;
+  background: var(--color-fondo);
+  border: 1px solid var(--color-linea);
+  border-radius: var(--radio-lg);
+}
+
+.panel-detalle-sector-cab {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.panel-detalle-sector-nombre {
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--color-tinta);
+}
+
+.panel-detalle-sector-cerrar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0.2rem;
+  color: var(--color-tinta-3);
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.panel-detalle-sector-cerrar:hover {
+  color: var(--color-acento);
+}
+
+@media (max-width: 768px) {
+  .hoja-sectores {
+    flex: 1 1 auto;
+    border-left: none;
+    border-top: 1px solid var(--color-linea);
+  }
+
+  .navbar-superior {
+    gap: .75rem;
+    padding: 0 .85rem;
+  }
+
+  .navbar-enlace span {
+    display: none;
+  }
+
+  .navbar-enlace {
+    padding: 0;
+    width: 40px;
+    justify-content: center;
+  }
+
+  .navbar-buscador-bitacora {
+    width: min(150px, 28vw);
+  }
+
+  .navbar-reportar span {
+    display: none;
+  }
+
+  .navbar-reportar {
+    padding: 0;
+    width: 40px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-marca-copy { display: none; }
+  .navbar-buscador-bitacora { display: none; }
+  .navbar-reportar { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar-superior { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BITÁCORA — sección de la página principal, carrusel horizontal
+   ═══════════════════════════════════════════════════════════ */
+
+.bitacora-seccion {
+  background: var(--color-fondo);
+  padding: 4rem 0 5rem;
+}
+
+.bitacora-envoltorio {
+  width: min(100% - 2.5rem, 1180px);
+  margin: 0 auto;
+}
+
+.bitacora-cab {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-bottom: 1.75rem;
+}
+
+.bitacora-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: .85rem;
+  color: var(--color-acento);
+  font-family: var(--font-util);
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.bitacora-eyebrow span {
+  display: inline-block;
+  width: 22px;
+  height: 2px;
+  background: var(--color-acento);
+}
+
+.bitacora-titulo {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-tinta);
+  margin: 0 0 .6rem;
+}
+
+.bitacora-subtitulo {
+  max-width: 46ch;
+  color: var(--color-tinta-2);
+  font-size: 1rem;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.bitacora-actualizar {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 1.15rem;
+  color: var(--color-tinta);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-linea);
+  border-radius: var(--radio-pill);
+  font-size: .84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bitacora-filtros {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.75rem;
+}
+
+.bitacora-filtro {
+  min-height: 40px;
+  padding: 0 1.05rem;
+  color: var(--color-tinta-2);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-linea);
+  border-radius: var(--radio-pill);
+  font-size: .84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--transicion), color var(--transicion), border-color var(--transicion);
+}
+
+.bitacora-filtro:hover {
+  border-color: var(--color-acento);
+}
+
+.bitacora-filtro.is-active {
+  color: #fff;
+  background: var(--color-acento);
+  border-color: var(--color-acento);
+}
+
+.bitacora-fuente {
+  margin-left: auto;
+  color: var(--color-tinta-3);
+  font-family: var(--font-util);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.bitacora-vacio {
+  color: var(--color-tinta-3);
+  font-size: .9rem;
+}
+
+/* ── Carrusel: scroll nativo (rueda/táctil) + arrastre con mouse + auto-scroll ── */
+.bitacora-carrusel {
+  display: flex;
+  gap: 1.1rem;
+  padding-bottom: .5rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  cursor: grab;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bitacora-carrusel::-webkit-scrollbar { display: none; }
+.bitacora-carrusel.is-arrastrando { cursor: grabbing; scroll-snap-type: none; }
+.bitacora-carrusel:focus-visible { outline: 2px solid var(--color-acento); outline-offset: 4px; }
+
+/* ── Borde con brillo direccional — adaptado de "Border Glow" (reactbits.dev) a las
+   variables de tema del proyecto. --proximidad-borde y --angulo-cursor los actualiza
+   SeccionBitacora.tsx (calcularBrilloBorde) en cada pointermove; el color lo fija cada
+   tarjeta vía --color-glow según su estado (mismo color que el ícono y la etiqueta), en vez
+   del degradado morado/rosa/celeste genérico del original — así el halo refuerza el
+   significado (rojo = sin servicio, verde = con servicio…) en vez de ser solo decorativo. */
+.bitacora-tarjeta {
+  --proximidad-borde: 0;
+  --angulo-cursor: 45deg;
+  --color-glow: var(--color-acento);
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  width: min(82vw, 336px);
+  overflow: hidden;
+  color: inherit;
+  text-decoration: none;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-linea);
+  border-radius: 20px;
+  box-shadow: 0 1px 2px rgba(8, 42, 50, 0.04), 0 14px 30px rgba(8, 42, 50, 0.07);
+  user-select: none;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
+}
+
+.bitacora-tarjeta:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(8, 42, 50, 0.08), 0 20px 40px rgba(8, 42, 50, 0.12);
+}
+
+.bitacora-tarjeta::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: var(--proximidad-borde);
+  transition: opacity 0.3s ease-out;
+  mask-image: conic-gradient(
+    from var(--angulo-cursor) at center,
+    black 4%, transparent 22%, transparent 78%, black 96%
+  );
+  box-shadow:
+    inset 0 0 0 1.5px var(--color-glow),
+    inset 0 0 10px 1px color-mix(in srgb, var(--color-glow) 55%, transparent),
+    inset 0 0 22px 2px color-mix(in srgb, var(--color-glow) 30%, transparent),
+    0 0 16px 2px color-mix(in srgb, var(--color-glow) 45%, transparent),
+    0 0 34px 4px color-mix(in srgb, var(--color-glow) 25%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bitacora-tarjeta { transition: none; }
+  .bitacora-tarjeta::after { transition: none; }
+  .bitacora-tarjeta:hover { transform: none; }
+}
+
+.bitacora-tarjeta-preview {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 168px;
+  flex: none;
+  background: var(--color-fondo);
+}
+
+.bitacora-tarjeta-imagen {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bitacora-tarjeta-imagen-velo {
+  position: absolute;
+  inset: 0;
+  /* Puramente decorativo (degradado para que las insignias se lean sobre la foto) — sin
+     necesidad de recibir el puntero; se lo deja pasar de largo hacia el <a> que lo contiene. */
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(3, 15, 20, 0.55) 0%, rgba(3, 15, 20, 0.05) 45%, transparent 70%);
+}
+
+.bitacora-tarjeta-insignia {
+  --color-insignia: var(--color-acento);
+  position: absolute;
+  top: .7rem;
+  left: .7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: var(--color-insignia);
+  background: color-mix(in srgb, var(--color-insignia) 22%, rgba(8, 20, 24, 0.65));
+  border: 1px solid color-mix(in srgb, var(--color-insignia) 55%, transparent);
+  border-radius: 50%;
+  backdrop-filter: blur(3px);
+}
+
+.bitacora-tarjeta-numero {
+  position: absolute;
+  top: .7rem;
+  right: .8rem;
+  color: var(--color-tinta-3);
+  font-family: var(--font-util);
+  font-size: .68rem;
+  font-weight: 700;
+}
+
+/* Solo cuando hay foto de fondo (el número queda sobre la imagen, no sobre el color-wash
+   plano del respaldo sin imagen) — la imagen siempre es el hermano anterior en el DOM. */
+.bitacora-tarjeta-imagen ~ .bitacora-tarjeta-numero {
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.bitacora-tarjeta-ola {
+  position: absolute;
+  inset: auto 0 0 0;
+  width: 100%;
+  height: 20px;
+  opacity: .8;
+}
+
+.bitacora-tarjeta-pie {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  padding: 1.1rem 1.2rem 1.25rem;
+}
+
+.bitacora-tarjeta-estado {
+  font-family: var(--font-util);
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.bitacora-tarjeta-pie time {
+  color: var(--color-tinta-3);
+  font-family: var(--font-util);
+  font-size: .7rem;
+}
+
+.bitacora-tarjeta-pie h3 {
+  font-family: var(--font-cuerpo);
+  font-size: .96rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--color-tinta);
+  margin: .2rem 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bitacora-tarjeta-boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  min-height: 38px;
+  margin-top: .7rem;
+  padding: 0 .95rem;
+  align-self: flex-start;
+  color: var(--color-glow);
+  background: color-mix(in srgb, var(--color-glow) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-glow) 45%, transparent);
+  border-radius: var(--radio-pill);
+  font-family: var(--font-util);
+  font-size: .78rem;
+  font-weight: 700;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.bitacora-tarjeta:hover .bitacora-tarjeta-boton {
+  background: color-mix(in srgb, var(--color-glow) 24%, transparent);
+  border-color: var(--color-glow);
+}
+
+.bitacora-tarjeta:active .bitacora-tarjeta-boton {
+  transform: scale(0.96);
+}
+
+@media (max-width: 640px) {
+  .bitacora-actualizar span { display: none; }
+  .bitacora-fuente { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PIE DE PÁGINA — transición de olas animadas + créditos
+   Fondo siempre oscuro (--color-marino) en ambos temas: es
+   "chrome" fijo, como .app-sidebar, no responde al claro/oscuro.
+   ═══════════════════════════════════════════════════════════ */
+
+.pie-olas {
+  position: relative;
+  height: 70px;
+  overflow: hidden;
+  background: var(--color-fondo);
+}
+
+.pie-ola-capa {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  width: 200%;
+  height: 100%;
+}
+
+.pie-ola-capa svg {
+  display: block;
+  flex: 0 0 50%;
+  width: 50%;
+  height: 100%;
+}
+
+.pie-ola-capa--fondo {
+  opacity: 0.35;
+  animation: pie-ola-desliza 22s linear infinite;
+}
+
+.pie-ola-capa--media {
+  opacity: 0.55;
+  animation: pie-ola-desliza 14s linear infinite reverse;
+}
+
+.pie-ola-capa--frente {
+  animation: pie-ola-desliza 9s linear infinite;
+}
+
+@keyframes pie-ola-desliza {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.pie-pagina {
+  position: relative;
+  margin-top: -1px; /* cierra cualquier línea de 1px que deje el redondeo del navegador bajo .pie-olas */
+  padding: 1.75rem 1.25rem 2rem;
+  background: var(--color-marino);
+  color: #cfe6e8;
+}
+
+.pie-contenido {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  width: min(100% - 2.5rem, 1180px);
+  margin: 0 auto;
+}
+
+.pie-marca {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex: 0 0 auto;
+  min-height: 44px;
+  color: #f2fbfa;
+  text-decoration: none;
+}
+
+.pie-marca-mark {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: #0d5d68;
+  background: #7ce0df;
+  border-radius: 50%;
+}
+
+.pie-marca-copy {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.pie-marca-copy small {
+  margin-top: 0.15rem;
+  color: #8fb1b5;
+  font-size: 0.7rem;
+}
+
+.pie-enlaces {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.pie-enlace {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 0.75rem;
+  color: #a9c2c5;
+  text-decoration: none;
+  border-radius: var(--radio-pill);
+  font-size: 0.84rem;
+  font-weight: 600;
+  transition: color var(--transicion), background var(--transicion);
+}
+
+.pie-enlace:hover,
+.pie-enlace.is-active {
+  color: #f2fbfa;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.pie-social {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 0 0 auto;
+}
+
+.pie-social a {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  color: #a9c2c5;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 50%;
+  transition: color var(--transicion), background var(--transicion), transform var(--transicion);
+}
+
+.pie-social a:hover {
+  color: #0d5d68;
+  background: #7ce0df;
+  transform: translateY(-2px);
+}
+
+.pie-creditos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  max-width: none;
+  margin: 1.5rem auto 0;
+  padding-top: 1.25rem;
+  color: #789ca0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.76rem;
+  text-align: center;
+}
+
+.pie-creditos svg { color: #ff6f61; }
+
+@media (max-width: 640px) {
+  .pie-contenido { justify-content: center; text-align: center; }
+  .pie-enlaces { justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pie-ola-capa { animation: none !important; }
+}

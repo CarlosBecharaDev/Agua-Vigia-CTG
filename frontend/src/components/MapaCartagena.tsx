@@ -4,64 +4,86 @@
  * Sprint 1: carga el GeoJSON de barrios desde /data/geoespacial/barrios-cartagena.geojson
  * (datos reales de D5) y colorea los polígonos según su estado.
  *
- * C2 ya está abierta: el estado de cada sector viene de GET /api/sectores
- * (vía useDatosEnVivo), no de datos locales. Los tipos y colores son definitivos.
+ * C2 ya está abierta: el estado de cada sector viene de GET /api/sectores (vía
+ * useDatosEnVivo), no de datos locales. Los tipos y colores son definitivos.
  *
  * Leaflet requiere que su CSS se importe antes de crear el mapa.
  */
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import type { FC } from 'react'
 // (No se requiere Link aquí)
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import type { Sector } from '../types/tipos-dominio'
-import { COLOR_POR_ESTADO, COLOR_SIN_DATOS } from '../types/tipos-dominio'
-import { nombresBarrioCoinciden, normalizarNombreBarrio } from '../utils/geografia'
-import { sectorDesdeGeojson } from '../utils/sectorGeojson'
+import { Locate } from 'lucide-react'
+import type { EstadoServicio, Sector } from '../types/tipos-dominio'
+import { COLOR_POR_ESTADO } from '../types/tipos-dominio'
 import { EtiquetaFrescura } from './EtiquetaFrescura'
-import { LocateFixed } from 'lucide-react'
+import { obtenerGeoJSONBarrios } from '../data/barriosCartagena'
 
 // Cartagena de Indias — centro, límites y zoom inicial
 const CENTRO: L.LatLngExpression = [10.3950, -75.4800]
 const ZOOM_INICIAL = 13
 const BOUNDS_CARTAGENA: L.LatLngBoundsExpression = [
-  [10.25, -75.68], // Suroeste (Expandido más al sur y al oeste para que no se corte Cartagena)
-  [10.48, -75.35]  // Noreste (Expandido un poco para dar más margen)
+  [10.19, -75.68], // Suroeste (Expandido más al sur y al oeste para que no se corte Cartagena)
+  [10.58, -75.35]  // Noreste (10.48 cortaba La Boquilla, que llega hasta ~10.4995: el mapa
+  // la mostraba bien durante el flyToBounds pero al terminar la animación maxBoundsViscosity
+  // lo empujaba de vuelta dentro del límite, dando el salto brusco. Margen extra sobre el
+  // límite real del barrio para que el padding del flyToBounds no vuelva a chocar con el borde)
 ]
 
 interface Props {
   sectores: Sector[]
   cargando: boolean
-  error: string | null
   ultimaActualizacion: string | null
   sectorActivo: Sector | null
+  /** Estado destacado desde las tarjetas de resumen (ver TarjetasEstadoMapa) — resalta,
+   *  atenúa el resto, encuadra el zoom y dibuja pings + línea entre esos barrios. */
+  estadoDestacado: EstadoServicio | null
   onSectorSeleccionado?: (sector: Sector | null) => void
 }
 
 /** Convierte el NOMBRE del GeoJSON al id del sector para hacer lookup */
 function normalizarNombre(nombre: string): string {
-  return normalizarNombreBarrio(nombre)
+  return nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
 }
 
-function buscarSector(indice: Map<string, Sector>, nombre: string): Sector | undefined {
-  const nombreNormalizado = normalizarNombre(nombre)
-  return indice.get(nombreNormalizado)
-    ?? [...indice.entries()].find(([clave]) => nombresBarrioCoinciden(clave, nombreNormalizado))?.[1]
+/** Estilo de un polígono — compartido entre la carga inicial y la actualización reactiva
+ *  para que ambos caminos nunca diverjan en cómo se ve un barrio. */
+function calcularEstiloFeature(
+  sector: Sector | undefined,
+  sectorActivo: Sector | null,
+  estadoDestacado: EstadoServicio | null
+): L.PathOptions {
+  const estado = sector?.estado
+  const color = estado ? COLOR_POR_ESTADO[estado].claro : '#ccc'
+  const esActivo = !!(sectorActivo && sector && sectorActivo.id === sector.id)
+  const enFoco = estadoDestacado !== null
+  const esDestacado = !!(estado && estado === estadoDestacado)
+  const atenuado = enFoco && !esDestacado
+
+  return {
+    fillColor: color,
+    fillOpacity: !sector ? 0.15 : atenuado ? 0.08 : esDestacado ? 0.8 : esActivo ? 0.85 : 0.55,
+    color: esDestacado ? color : '#ffffff',
+    weight: esDestacado ? 3 : esActivo ? 2 : 1,
+    opacity: atenuado ? 0.18 : esActivo || esDestacado ? 1 : 0.7,
+    className: esDestacado ? `barrio-destacado barrio-destacado-${estado}` : esActivo ? 'barrio-seleccionado' : '',
+  }
 }
 
 export const MapaCartagena: FC<Props> = ({
   sectores,
   cargando,
-  error,
   ultimaActualizacion,
   sectorActivo,
+  estadoDestacado,
   onSectorSeleccionado,
 }) => {
   const contenedorRef = useRef<HTMLDivElement>(null)
   const mapaRef = useRef<L.Map | null>(null)
   const capaRef = useRef<L.GeoJSON | null>(null)
   const capaBaseRef = useRef<L.TileLayer | null>(null)
-  const [mapaListo, setMapaListo] = useState(false)
+  const destacadoLayerRef = useRef<L.LayerGroup | null>(null)
 
   // Índice de sectores por nombre normalizado para lookup O(1)
   const indiceSectores = useRef<Map<string, Sector>>(new Map())
@@ -77,42 +99,122 @@ export const MapaCartagena: FC<Props> = ({
     sectorActivoRef.current = sectorActivo
   }, [sectorActivo])
 
-  // Actualizar estilos dinámicamente cuando el usuario selecciona un barrio
+  // Distinto del ref de arriba: este existe solo para distinguir "recién cerré el detalle
+  // de un sector" (había sectorActivo, ahora no) de "todavía no elegí ninguno" (nunca lo
+  // hubo) — el efecto de abajo solo debe volar a la vista por defecto en el primer caso, no
+  // en cada montaje de la página.
+  const sectorActivoAnteriorRef = useRef<Sector | null>(null)
+
+  const estadoDestacadoRef = useRef(estadoDestacado)
+  useEffect(() => {
+    estadoDestacadoRef.current = estadoDestacado
+  }, [estadoDestacado])
+
+  // Actualizar estilos dinámicamente cuando el usuario selecciona un barrio o destaca un estado
   useEffect(() => {
     if (!capaRef.current) return
 
     capaRef.current.setStyle((feature) => {
       const nombre = feature?.properties?.NOMBRE ?? ''
-      const sector = buscarSector(indiceSectores.current, nombre)
-      
-      let color = COLOR_SIN_DATOS.claro;
-      if (sector) {
-        color = sector.estado ? COLOR_POR_ESTADO[sector.estado].claro : COLOR_SIN_DATOS.claro;
-      }
-      
-      const esActivo = sectorActivo && sector && sectorActivo.id === sector.id
-
-      return {
-        fillColor: color,
-        fillOpacity: sector ? (esActivo ? 0.85 : (sector.estado ? 0.55 : 0.3)) : 0.15,
-        color: '#ffffff',
-        weight: esActivo ? 2 : 1,
-        opacity: esActivo ? 1 : 0.7,
-        className: esActivo ? 'barrio-seleccionado' : ''
-      }
+      const sector = indiceSectores.current.get(normalizarNombre(nombre))
+      return calcularEstiloFeature(sector, sectorActivo, estadoDestacado)
     })
 
-    // Centrar automáticamente el mapa en el polígono del barrio seleccionado
+    // Centrar automáticamente el mapa en el polígono del barrio seleccionado. Se compara por
+    // NOMBRE normalizado, no por sector.id: muchos barrios del GeoJSON no tienen sector en la
+    // BD (ver el "sectorClick" sintético que arma onEachFeature) y por id nunca calzarían — el
+    // mapa se quedaba sin hacer zoom en esos barrios.
     if (sectorActivo) {
+      const nombreActivoNorm = normalizarNombre(sectorActivo.nombre)
       capaRef.current.eachLayer((layer: any) => {
         const nombre = layer.feature?.properties?.NOMBRE ?? ''
-        const sector = buscarSector(indiceSectores.current, nombre)
-        if (sector && sector.id === sectorActivo.id && mapaRef.current) {
-          mapaRef.current.flyToBounds(layer.getBounds(), { padding: [20, 20], duration: 1.5 })
-        }
+        if (normalizarNombre(nombre) !== nombreActivoNorm || !mapaRef.current) return
+        mapaRef.current.flyToBounds(layer.getBounds(), { padding: [20, 20], duration: 1.5 })
       })
+    } else if (sectorActivoAnteriorRef.current) {
+      // Se acaba de CERRAR la ficha de un sector (había uno activo, ahora no) — vuelve a la
+      // vista por defecto, igual que el botón "centrar mapa". Sin este `else if` disparado
+      // solo en la transición, cualquier otro cambio de sectores/estadoDestacado con el mapa
+      // ya en la vista general lo volvería a sobrevolar hasta ahí sin que nadie lo pidiera.
+      mapaRef.current?.flyTo(CENTRO, ZOOM_INICIAL, { duration: 1.2 })
     }
-  }, [sectorActivo, sectores])
+    sectorActivoAnteriorRef.current = sectorActivo
+  }, [sectorActivo, estadoDestacado, sectores])
+
+  // Dibuja (o limpia) el foco de "Ver en el mapa": atenúa el resto vía calcularEstiloFeature
+  // (efecto de arriba) y acá arma el encuadre + la línea + los "pings" con el nombre de cada
+  // barrio del estado destacado. Vive en un ref porque se llama desde dos sitios — el efecto
+  // que reacciona a estadoDestacado, y el .then() de la carga del GeoJSON (si el usuario ya
+  // había elegido una tarjeta antes de que el mapa terminara de cargar) — y ambos deben ver
+  // siempre el valor más reciente sin quedar atados a las dependencias de un useEffect.
+  const dibujarDestacado = useCallback(() => {
+    const mapa = mapaRef.current
+    const capa = capaRef.current
+    const estado = estadoDestacadoRef.current
+
+    if (destacadoLayerRef.current) {
+      destacadoLayerRef.current.remove()
+      destacadoLayerRef.current = null
+    }
+
+    if (!mapa) return
+
+    if (!estado || !capa) {
+      mapa.flyToBounds(BOUNDS_CARTAGENA, { padding: [20, 20], duration: 1.2 })
+      return
+    }
+
+    const centros: { nombre: string; centro: L.LatLng }[] = []
+    const limites = L.latLngBounds([])
+
+    capa.eachLayer((layer: any) => {
+      const nombre = layer.feature?.properties?.NOMBRE ?? ''
+      const sector = indiceSectores.current.get(normalizarNombre(nombre))
+      if (sector?.estado !== estado) return
+      const centro = typeof layer.getCenter === 'function' ? layer.getCenter() : layer.getBounds().getCenter()
+      centros.push({ nombre: sector.nombre, centro })
+      limites.extend(layer.getBounds())
+    })
+
+    if (centros.length === 0) return
+
+    const grupo = L.layerGroup()
+    const color = COLOR_POR_ESTADO[estado].claro
+
+    // Línea que conecta solo los barrios del estado destacado, en el orden en que aparecen
+    // en el GeoJSON — no es la ruta más corta, es simplemente "estos son los que están en
+    // este grupo ahora mismo".
+    if (centros.length > 1) {
+      L.polyline(centros.map((c) => c.centro), {
+        color,
+        weight: 2,
+        opacity: 0.8,
+        dashArray: '6 6',
+        interactive: false,
+      }).addTo(grupo)
+    }
+
+    // "Ping" con el nombre de cada barrio — por ahora solo el nombre; el ancla vive en el
+    // span vía CSS (translate -50%,-100%) para que centre bien sin importar el largo del texto.
+    centros.forEach(({ nombre, centro }) => {
+      const icono = L.divIcon({
+        className: 'ping-barrio-destacado',
+        html: `<span class="ping-barrio-etiqueta" style="--color-ping:${color}">${nombre}</span>`,
+      })
+      L.marker(centro, { icon: icono, interactive: false, keyboard: false, zIndexOffset: 500 }).addTo(grupo)
+    })
+
+    grupo.addTo(mapa)
+    destacadoLayerRef.current = grupo
+
+    // El zoom lo decide fitBounds/flyToBounds solo, según cuánto abarquen los barrios
+    // destacados — un solo barrio se acerca, varios dispersos se alejan.
+    mapa.flyToBounds(limites, { padding: [70, 70], duration: 1.2, maxZoom: 16 })
+  }, [])
+
+  useEffect(() => {
+    dibujarDestacado()
+  }, [estadoDestacado, dibujarDestacado])
 
   // Inicializar el mapa una sola vez
   useEffect(() => {
@@ -124,10 +226,14 @@ export const MapaCartagena: FC<Props> = ({
       minZoom: 12,
       maxBounds: BOUNDS_CARTAGENA,
       maxBoundsViscosity: 1.0,
-      zoomControl: true,
-      attributionControl: true,
+      zoomControl: false,
+      attributionControl: false,
     })
 
+    L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(mapa)
+
+    // La capa base cambia entre claro/oscuro según el tema activo, para que el mapa nunca
+    // desentone con el resto de la interfaz (ver SelectorTema / useTheme).
     const mediaOscura = window.matchMedia('(prefers-color-scheme: dark)')
     const usarMapaOscuro = () => document.documentElement.dataset.theme === 'dark'
       || (!document.documentElement.dataset.theme && mediaOscura.matches)
@@ -162,12 +268,27 @@ export const MapaCartagena: FC<Props> = ({
     }
   }, [])
 
-  // Cargar GeoJSON y colorear polígonos
-  const onSectorSeleccionadoRef = useRef(onSectorSeleccionado)
+  // Leaflet mide su contenedor una sola vez al crearse y después cachea ese tamaño —
+  // cualquier resize que no pase por su propia API (como el ancho de .mapa-lienzo-completo
+  // animando al colapsar la columna, ver PaginaMapa) lo deja creyendo que el contenedor
+  // sigue midiendo lo de antes. El síntoma es un mapa que centra y hace zoom al lugar
+  // correcto pero se ve recortado o desplazado, porque calcula la posición en pantalla con
+  // el tamaño viejo. invalidateSize() le hace recalcular sus medidas reales; el
+  // ResizeObserver lo dispara automáticamente cada vez que el contenedor cambia, sin que
+  // este componente necesite saber POR QUÉ cambió (colapsar la columna, redimensionar la
+  // ventana, cualquier causa futura).
   useEffect(() => {
-    onSectorSeleccionadoRef.current = onSectorSeleccionado
-  }, [onSectorSeleccionado])
+    const contenedor = contenedorRef.current
+    if (!contenedor) return
 
+    const ro = new ResizeObserver(() => {
+      mapaRef.current?.invalidateSize()
+    })
+    ro.observe(contenedor)
+    return () => ro.disconnect()
+  }, [])
+
+  // Cargar GeoJSON y colorear polígonos
   useEffect(() => {
     const mapa = mapaRef.current
     if (!mapa) return
@@ -176,35 +297,36 @@ export const MapaCartagena: FC<Props> = ({
 
     if (capaRef.current) { capaRef.current.remove(); capaRef.current = null }
 
-    fetch('https://services7.arcgis.com/t784NacZjQPpWVsA/arcgis/rest/services/Barrios_de_Cartagena/FeatureServer/0/query?where=1=1&outFields=*&outSR=4326&f=geojson')
-      .then(r => r.json())
+    obtenerGeoJSONBarrios()
       .then((geojson) => {
         if (!montado) return;
         const capa = L.geoJSON(geojson, {
           style: (feature) => {
             const nombre = feature?.properties?.NOMBRE ?? ''
-            const sector = buscarSector(indiceSectores.current, nombre)
-            const color = sector?.estado
-              ? COLOR_POR_ESTADO[sector.estado].claro
-              : COLOR_SIN_DATOS.claro
-            const esActivo = sectorActivoRef.current && sector && sectorActivoRef.current.id === sector.id
-
-            return {
-              fillColor: color,
-              fillOpacity: sector ? (esActivo ? 0.85 : 0.55) : 0.15,
-              color: '#ffffff',
-              weight: esActivo ? 2 : 1,
-              opacity: esActivo ? 1 : 0.7,
-              className: esActivo ? 'barrio-seleccionado' : ''
-            }
+            const sector = indiceSectores.current.get(normalizarNombre(nombre))
+            return calcularEstiloFeature(sector, sectorActivoRef.current, estadoDestacadoRef.current)
           },
           onEachFeature: (feature, layer) => {
             const nombre = feature?.properties?.NOMBRE ?? 'Sector desconocido'
+            const sector = indiceSectores.current.get(normalizarNombre(nombre))
+
+            // Sin tooltip de hover a propósito: con el mapa animando (flyToBounds de
+            // dibujarDestacado) el cursor queda "sobrevolando" muchos polígonos que se
+            // mueven debajo sin un mouseout real entre ellos, y Leaflet se quedaba con
+            // varios tooltips pegados a la vez ("spam"). El detalle ahora es solo por click
+            // — el sector seleccionado se muestra en PanelDetalleSector, en el panel lateral.
             layer.on('click', () => {
-              const sector = buscarSector(indiceSectores.current, nombre)
-              const sectorClick = sectorDesdeGeojson(nombre, sector)
-              
-              onSectorSeleccionadoRef.current?.(sectorClick)
+              // Si el barrio no está en la BD, lo generamos al vuelo como CON_SERVICIO
+              const sectorClick = sector || {
+                id: `geo-${normalizarNombre(nombre)}`,
+                nombre: nombre,
+                estado: 'CON_SERVICIO',
+                reportesActivos: 0,
+                actualizadoHace: 'En este momento',
+                actualizadoEn: new Date().toISOString()
+              };
+
+              onSectorSeleccionado?.(sectorClick as Sector)
             })
 
             layer.on('mouseover', (e) => {
@@ -218,43 +340,56 @@ export const MapaCartagena: FC<Props> = ({
         }).addTo(mapa)
 
         capaRef.current = capa
-        setMapaListo(true)
+        dibujarDestacado()
       })
-      .catch(() => setMapaListo(true))
+      .catch(console.error)
 
     return () => { montado = false; }
-  }, [])
+  }, [onSectorSeleccionado, dibujarDestacado])
 
   return (
-    <div className="mapa-shell">
-      <div className="mapa-status" role="status" aria-live="polite">
-        <span className={`mapa-status-punto${cargando ? ' actualizando' : ''}`} />
-        {cargando && (
-          <span>Cargando sectores…</span>
-        )}
-        {error && sectores.length === 0 && (
-          <span>No pudimos cargar los sectores</span>
-        )}
-        {!cargando && !error && (
-          <span>
-            {sectores.length > 0
-              ? `${sectores.filter(s => s.estado === 'SIN_SERVICIO').length} sectores sin servicio`
-              : 'Toca tu barrio en el mapa'}
-          </span>
-        )}
-      </div>
-
+    <div style={{ position: 'relative', height: '100%', width: '100%' }}>
+      {/* Contenedor del mapa */}
       <div
         ref={contenedorRef}
         id="contenedor-mapa"
-        role="region"
+        role="img"
         aria-label="Mapa interactivo de sectores de Cartagena con estado del servicio de agua"
-        className="mapa-lienzo"
+        style={{ height: '100%', width: '100%' }}
       />
-      <div className="mapa-pie"><span><LocateFixed size={14} /> Cartagena de Indias</span><EtiquetaFrescura timestampIso={ultimaActualizacion} /></div>
+
+      {/* Frescura de los datos + botón "centrar mapa" — apilados, abajo a la derecha del recuadro */}
+      <div className="mapa-controles-inferior-derecha">
+        <button
+          type="button"
+          className="panel-glass mapa-boton-centrar"
+          aria-label="Centrar mapa en la vista por defecto"
+          title="Centrar mapa"
+          onClick={() => mapaRef.current?.flyTo(CENTRO, ZOOM_INICIAL, { duration: 1 })}
+        >
+          <Locate size={18} aria-hidden="true" />
+        </button>
+        <EtiquetaFrescura timestampIso={ultimaActualizacion} />
+      </div>
 
       {/* Overlay de carga con skeleton */}
-      {(cargando || !mapaListo) && <div className="mapa-cargando" aria-hidden="true"><div className="skeleton mapa-skeleton" /></div>}
+      {cargando && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: 'var(--color-fondo)',
+            opacity: 0.7,
+            zIndex: 999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <div className="skeleton" style={{ width: '180px', height: '24px', borderRadius: 'var(--radio-lg)' }} />
+        </div>
+      )}
     </div>
   )
 }

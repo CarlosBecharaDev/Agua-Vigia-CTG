@@ -21,11 +21,11 @@ describe('Encabezado', () => {
     expect(abrirSuscripcion).toHaveBeenCalledOnce()
   })
 
-  it('ofrece una navegación móvil equivalente', () => {
+  it('abre la navegación en un panel lateral desde el botón de menú (equivalente móvil)', () => {
     render(<MemoryRouter><Encabezado temaActivo="oscuro" onAlternarTema={vi.fn()} onAbrirSuscripcion={vi.fn()} /></MemoryRouter>)
-    const navegacionMovil = screen.getByRole('navigation', { name: /navegación móvil/i })
-    expect(navegacionMovil).toBeInTheDocument()
-    expect(navegacionMovil).toHaveTextContent('Mapa')
-    expect(navegacionMovil).toHaveTextContent('Reportar')
+    fireEvent.click(screen.getByRole('button', { name: /abrir menú/i }))
+    const navegacion = screen.getByRole('navigation', { name: /navegación principal/i })
+    expect(navegacion).toBeInTheDocument()
+    expect(navegacion).toHaveTextContent('Mapa en vivo')
   })
 })

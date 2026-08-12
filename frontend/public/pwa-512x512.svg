@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
   <!-- AguaVigía CTG — PWA 512x512 icon (maskable) -->
-  <rect width="512" height="512" rx="96" fill="#087f8c"/>
+  <rect width="512" height="512" rx="96" fill="#0066cc"/>
   <!-- Gota de agua blanca centrada con safe zone para maskable -->
   <path
     d="M256 96 C256 96 140 208 140 288 C140 352 192 400 256 400 C320 400 372 352 372 288 C372 208 256 96 256 96Z"

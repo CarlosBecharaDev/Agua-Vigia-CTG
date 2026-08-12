@@ -24,12 +24,18 @@ export const SelectorTema: FC<Props> = ({ temaActivo, onAlternar }) => (
     type="button"
     aria-label={LABEL_SR[temaActivo]}
     onClick={onAlternar}
-    className="selector-tema"
+    className="theme-toggle"
   >
-    <span className="selector-tema-icono" aria-hidden="true">
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      transition: 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease',
+      transform: temaActivo === 'claro' ? 'rotate(0deg)' : 'rotate(180deg) scale(0.8)',
+    }}>
       {temaActivo === 'claro' ? <Sun size={18} color="var(--color-acento)" /> : <Moon size={18} color="var(--color-acento)" />}
-    </span>
-    <span aria-hidden="true" className="selector-tema-texto">
+    </div>
+    <span aria-hidden="true">
       {temaActivo === 'claro' ? 'Claro' : 'Oscuro'}
     </span>
   </button>

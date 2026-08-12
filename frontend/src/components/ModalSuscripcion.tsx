@@ -50,14 +50,64 @@ export function ModalSuscripcion({ abierto, onCerrar }: Props) {
   if (!abierto) return null
 
   return createPortal(
-    <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onCerrar() }}>
-      <div ref={dialogoRef} className="modal-suscripcion" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-suscripcion">
-        <header className="modal-cabecera">
+    <div
+      role="presentation"
+      onMouseDown={(event) => { if (event.target === event.currentTarget) onCerrar() }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(0,0,0,0.4)',
+        backdropFilter: 'blur(8px)',
+        padding: '1rem',
+      }}
+    >
+      <div
+        ref={dialogoRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-modal-suscripcion"
+        style={{
+          position: 'relative',
+          width: '100%',
+          maxWidth: '460px',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          borderRadius: 'var(--radio-lg)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+          border: '1px solid var(--color-linea)',
+          backgroundColor: 'var(--color-superficie)',
+          padding: '2rem 1.5rem',
+        }}
+      >
+        <button
+          ref={botonCerrarRef}
+          type="button"
+          onClick={onCerrar}
+          aria-label="Cerrar ventana de suscripción"
+          className="hover-glowing"
+          style={{
+            position: 'absolute', top: '1rem', right: '1rem',
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'var(--color-tinta-2)', display: 'flex',
+            alignItems: 'center', justifyContent: 'center',
+            width: '32px', height: '32px', borderRadius: '50%',
+          }}
+        >
+          <X size={20} />
+        </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
           <span aria-hidden="true"><BellRing size={19} /></span>
-          <div><p className="eyebrow">Alertas ciudadanas</p><h2 id="titulo-modal-suscripcion">Configura tus avisos</h2></div>
-          <button ref={botonCerrarRef} type="button" onClick={onCerrar} aria-label="Cerrar suscripción"><X size={20} /></button>
-        </header>
-        <div className="modal-contenido"><FormularioSuscripcion sectores={sectores} /></div>
+          <h2 id="titulo-modal-suscripcion" style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--color-tinta)' }}>
+            Avisos de tu barrio
+          </h2>
+        </div>
+
+        <FormularioSuscripcion sectores={sectores} />
       </div>
     </div>,
     document.body,

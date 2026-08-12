@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import PaginaVeedor from './PaginaVeedor'
 
 const api = vi.hoisted(() => ({
@@ -12,6 +12,10 @@ const api = vi.hoisted(() => ({
   moderarReporte: vi.fn(),
   crearCorteOficial: vi.fn(),
   cerrarCorteOficial: vi.fn(),
+  listarPropuestasIngesta: vi.fn(),
+  aprobarPropuestaIngesta: vi.fn(),
+  descartarPropuestaIngesta: vi.fn(),
+  obtenerSaludIngesta: vi.fn(),
 }))
 
 vi.mock('../api/services', () => ({
@@ -23,6 +27,13 @@ function renderizar() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
   return render(<QueryClientProvider client={client}><MemoryRouter><PaginaVeedor /></MemoryRouter></QueryClientProvider>)
 }
+
+beforeEach(() => {
+  // Ninguno de los tests existentes cubre la cola de ingesta — que resuelva vacío por
+  // defecto evita que su useQuery quede pendiente para siempre y bloquee el render.
+  api.listarPropuestasIngesta.mockResolvedValue([])
+  api.obtenerSaludIngesta.mockResolvedValue([])
+})
 
 afterEach(() => {
   Object.values(api).forEach((mock) => mock.mockReset())

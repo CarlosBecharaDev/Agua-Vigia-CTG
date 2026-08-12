@@ -1,13 +1,17 @@
 import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check, ClipboardCheck, Droplets, LogOut, Plus, RefreshCw, X } from 'lucide-react'
+import { Activity, Check, ClipboardCheck, Droplets, LogOut, Plus, Radar, RefreshCw, X } from 'lucide-react'
 import {
+  aprobarPropuestaIngesta,
   cerrarCorteOficial,
   crearCorteOficial,
+  descartarPropuestaIngesta,
   listarCortesPorSector,
+  listarPropuestasIngesta,
   listarReportesPendientes,
   moderarReporte,
+  obtenerSaludIngesta,
   obtenerSectores,
 } from '../api/services'
 import { normalizarErrorApi } from '../api/client'
@@ -28,6 +32,8 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
   const [causa, setCausa] = useState('')
 
   const reportes = useQuery({ queryKey: ['veedor', 'reportes', 'pendientes'], queryFn: listarReportesPendientes })
+  const propuestas = useQuery({ queryKey: ['veedor', 'ingesta', 'propuestas'], queryFn: listarPropuestasIngesta })
+  const saludIngesta = useQuery({ queryKey: ['veedor', 'ingesta', 'salud'], queryFn: obtenerSaludIngesta })
   const sectores = useQuery({ queryKey: ['sectores'], queryFn: obtenerSectores })
   const cortes = useQuery({
     queryKey: ['veedor', 'cortes', sectorFiltro],
@@ -38,6 +44,11 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
   const moderar = useMutation({
     mutationFn: ({ id, decision }: { id: string; decision: 'aprobar' | 'descartar' }) => moderarReporte(id, decision),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['veedor', 'reportes', 'pendientes'] }),
+  })
+  const revisarPropuesta = useMutation({
+    mutationFn: ({ id, decision }: { id: string; decision: 'aprobar' | 'descartar' }) =>
+      decision === 'aprobar' ? aprobarPropuestaIngesta(id) : descartarPropuestaIngesta(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['veedor', 'ingesta', 'propuestas'] }),
   })
   const registrarCorte = useMutation({
     mutationFn: crearCorteOficial,
@@ -59,6 +70,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
     [sectores.data],
   )
   const error = reportes.error || sectores.error || cortes.error || moderar.error || registrarCorte.error || cerrarCorte.error
+    || propuestas.error || revisarPropuesta.error
 
   const crearCorte = (event: FormEvent) => {
     event.preventDefault()
@@ -133,6 +145,53 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
           <label className="campo-causa">Causa<input required value={causa} onChange={(event) => setCausa(event.target.value)} placeholder="Mantenimiento o daño reportado" /></label>
           <button className="boton boton-primario" type="submit" disabled={registrarCorte.isPending}>{registrarCorte.isPending ? 'Registrando…' : 'Registrar corte oficial'}</button>
         </form>
+      </section>
+
+      <section className="panel-operativo" aria-labelledby="titulo-ingesta">
+        <header>
+          <span className="panel-icono"><Radar /></span>
+          <div><p className="eyebrow">M9 — ADR-028</p><h2 id="titulo-ingesta">Propuestas de la ingesta automatizada</h2></div>
+          <button type="button" className="boton-icono" aria-label="Actualizar propuestas" onClick={() => void propuestas.refetch()}><RefreshCw size={17} /></button>
+        </header>
+        <p>
+          La ingesta (Acuacar, IoT, prensa) solo propone — el mapa no cambia hasta que un veedor
+          aprueba, comparando el estado propuesto contra la cita textual del documento original.
+        </p>
+
+        {saludIngesta.data && saludIngesta.data.length > 0 && (
+          <div className="lista-salud-ingesta" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', margin: '0.5rem 0 1rem' }}>
+            {saludIngesta.data.map((colector) => (
+              <span
+                key={colector.nombre}
+                className="bitacora-fuente"
+                title={colector.motivoDelUltimoFallo ?? undefined}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+              >
+                <Activity size={13} color={colector.fallosConsecutivos >= 3 ? 'var(--color-estado-sin)' : 'var(--color-estado-con)'} aria-hidden="true" />
+                {colector.nombre}: {colector.fallosConsecutivos >= 3 ? 'caído' : 'operativo'}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {propuestas.isPending && <p role="status">Cargando propuestas…</p>}
+        {!propuestas.isPending && propuestas.data?.length === 0 && <div className="panel-vacio"><Check /><strong>Cola al día</strong><p>No hay propuestas pendientes de revisión.</p></div>}
+        <div className="lista-moderacion">
+          {propuestas.data?.map((propuesta) => (
+            <article key={propuesta.id} className="reporte-pendiente">
+              <div>
+                <strong>{propuesta.estadoPropuesto.replaceAll('_', ' ')}</strong>
+                <span>{propuesta.sectorId} — vía {propuesta.fuente} ({Math.round(propuesta.confianza * 100)}% confianza)</span>
+                <small style={{ display: 'block', fontStyle: 'italic', margin: '0.3rem 0' }}>"{propuesta.citaTextual}"</small>
+                <small>{new Date(propuesta.detectadaEn).toLocaleString('es-CO')}</small>
+              </div>
+              <div className="acciones-moderacion">
+                <button type="button" className="boton aprobar" disabled={revisarPropuesta.isPending} onClick={() => revisarPropuesta.mutate({ id: propuesta.id, decision: 'aprobar' })}><Check size={16} /> Aprobar</button>
+                <button type="button" className="boton descartar" disabled={revisarPropuesta.isPending} onClick={() => revisarPropuesta.mutate({ id: propuesta.id, decision: 'descartar' })}><X size={16} /> Descartar</button>
+              </div>
+            </article>
+          ))}
+        </div>
       </section>
     </main>
   )
