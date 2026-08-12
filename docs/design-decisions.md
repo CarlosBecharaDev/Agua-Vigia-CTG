@@ -1407,8 +1407,52 @@ antes de este ADR.
 
 ---
 
+## ADR-031 — Allowlist de gitleaks acotado a `docs/ingenieria/entorno-local.md`, no borrar la clave del documento
+
+- **Fecha:** 2026-08-12
+- **Estado:** Aceptada
+- **Decide:** sesión de auditoría y optimización del proyecto
+
+### Contexto
+El job "Escaneo de secretos" (`gitleaks`) empezó a fallar en `ad7d660` — el mismo commit que creó
+`docs/ingenieria/entorno-local.md` con la clave de equipo `JWT_SECRET=jHZczr...` en texto plano,
+descrita ahí mismo como "clave de equipo lista para copiar" para no repetir la fricción que "quedó
+sin resolver durante varias sesiones seguidas". Verificado con `gh run view --log-failed`: gitleaks
+detecta exactamente esa línea (`generic-api-key`, línea 42) y no hay `.gitleaks.toml` en el repo, así
+que corre con la regla por defecto sin ninguna excepción.
+
+No es un secreto de producción: `ValidacionDeSecretosProd` aborta el arranque del perfil `prod` si
+`JWT_SECRET`/`VEEDOR_PASSWORD_HASH` faltan, y exige que sean propias de ese entorno — la clave del
+documento solo sirve para `docker compose up` local (`docker-compose.yml`, no `.prod.yml`).
+
+### Alternativas consideradas
+| Opción | A favor | En contra |
+|---|---|---|
+| Dejar el CI en rojo | Cero cambios | Entrena a ignorar el gate; un hallazgo real futuro pasaría desapercibido en medio del ruido |
+| Borrar la clave del documento, cada quien genera la suya | El scanner no tiene nada que marcar | Revive el problema que el propio `entorno-local.md` fue escrito para cerrar |
+| `.gitleaks.toml` con allowlist acotado por ruta a ese único archivo | CI vuelve a verde de forma honesta (hallazgo evaluado, no ignorado); cualquier otro archivo del repo se sigue escaneando igual | Si algún día se pega un secreto real distinto en ese mismo archivo, no se detectaría |
+
+### Decisión
+Crear `.gitleaks.toml` en la raíz con `extend.useDefault = true` y un `[allowlist]` cuyo `paths`
+excluye solo `docs/ingenieria/entorno-local.md`, con una descripción que explica por qué. La clave del
+documento no se toca.
+
+### Consecuencias
+- **Gana:** el job "Escaneo de secretos" vuelve a estar en verde sin ocultar el motivo — el propio
+  archivo de configuración documenta la excepción.
+- **Pierde:** ese archivo específico queda fuera del radar de gitleaks por completo. Riesgo aceptado
+  porque tiene un propósito único y declarado (credenciales de *desarrollo local*, nunca de
+  producción) y quien lo edite es responsable de no meter ahí algo que sí importe.
+
+### Cómo se revierte
+Borrar `.gitleaks.toml` (o solo la entrada de `allowlist`) y rotar la clave de equipo del documento —
+ambos pasos juntos, porque borrar solo el allowlist sin rotar la clave deja el mismo secreto expuesto
+sin la excepción que lo explica.
+
+---
+
 <!--
-Siguiente número disponible: ADR-031
+Siguiente número disponible: ADR-032
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->

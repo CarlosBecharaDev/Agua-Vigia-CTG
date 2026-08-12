@@ -33,7 +33,7 @@ export default function PaginaSector() {
 
   return (
     <PageWrapper>
-      <main id="contenido-principal" className="pagina-estado">
+      <main id="contenido-principal" tabIndex={-1} className="pagina-estado">
         <section className="estado-pagina">
           <span className="estado-pagina-icono icono-coral" aria-hidden="true"><Droplets /></span>
           {cargando ? (

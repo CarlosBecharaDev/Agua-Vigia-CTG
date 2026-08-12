@@ -18,6 +18,33 @@
 > vigente de esa integración. El único cambio de backend de esa sesión fue que
 > `/api/suscripciones/confirmar` y `/cancelar` ahora responden HTML de cortesía a un navegador
 > (`ADR-030`); no agregó, quitó ni cambió ninguna otra ruta.
+>
+> **Nota de la sesión 2026-08-12 (auditoría y verificación local), después de la anterior:** se
+> levantó el stack completo (`docker compose up -d --build --wait`) y se probó de punta a punta en
+> navegador — mapa, reportes, bitácora, estadísticas, login del veedor, cola de moderación (39
+> pendientes reales) y registro de cortes. Todo conectado y funcionando. Tres hallazgos reales,
+> los tres corregidos, ninguno cambia el contrato de la API:
+>
+> 1. **`backend/openapi.yaml` estaba desincronizado con el contrato real.** `ADR-030` (arriba) cambió
+>    `SuscripcionController.confirmar`/`cancelar` (header `Accept`, respuesta dual JSON/HTML) pero
+>    nadie corrió `curl .../v3/api-docs.yaml -o backend/openapi.yaml` después. Regenerado desde el
+>    backend vivo (§9) y sincronizado `frontend/src/api/generated/schema.ts` con `npm run api:sync`.
+>    Sin impacto en producción: el frontend nunca llamó esas dos rutas directamente (son el enlace
+>    del correo), así que no había ningún tipo roto en uso — pero el archivo "fuente de verdad,
+>    generada, no escrita a mano" mentía, y `ContratoOpenApiTest` no lo agarró porque ese commit no
+>    tocó `backend/` y el CI de backend no corrió con `paths` filtrado a esa carpeta.
+> 2. **El job "Escaneo de secretos" quedaba en rojo desde `ad7d660`** por la clave de equipo de
+>    `entorno-local.md` (intencional, de desarrollo local — ver el propio archivo). Sin
+>    `.gitleaks.toml`, gitleaks no tenía forma de distinguir "secreto real filtrado" de "secreto de
+>    desarrollo documentado a propósito". Resuelto con un allowlist acotado por ruta a ese único
+>    archivo — `ADR-031`, con el razonamiento completo de por qué es seguro y cómo revertirlo.
+> 3. **Dos gaps reales de frontend, sin tocar el contrato:** el enlace "Ir al contenido principal"
+>    apuntaba a un `<main id="contenido-principal">` que existía pero no era focalizable (sin
+>    `tabIndex`), así que un usuario de teclado o lector de pantalla lo activaba sin que el foco se
+>    moviera de verdad — corregido en los 8 sitios que declaran ese id. Y `dibujarDestacado()` en
+>    `MapaCartagena.tsx` construía marcadores/polilíneas desde `layer.getCenter()` sin el mismo
+>    chequeo de finitud que ya tenía `bounds` (el commit anterior, `ad7d660`, blindó `flyToBounds`
+>    pero no el centroide) — mismo patrón defensivo, aplicado ahí también.
 
 ---
 

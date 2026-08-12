@@ -39,7 +39,7 @@ export default function PaginaVeedor() {
 
   return (
     <PageWrapper>
-      <main id="contenido-principal" className="pagina-estado">
+      <main id="contenido-principal" tabIndex={-1} className="pagina-estado">
         <section className="acceso-veedor" aria-labelledby="titulo-veedor">
           <div className="veedor-contexto">
             <span className="estado-pagina-icono" aria-hidden="true"><ShieldCheck /></span>

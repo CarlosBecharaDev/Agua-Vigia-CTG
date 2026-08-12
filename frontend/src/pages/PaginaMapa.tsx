@@ -120,7 +120,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
   }, [])
 
   return (
-    <main id="contenido-principal" role="main" aria-label="Mapa en vivo del servicio de agua en Cartagena" className="pagina-principal">
+    <main id="contenido-principal" tabIndex={-1} role="main" aria-label="Mapa en vivo del servicio de agua en Cartagena" className="pagina-principal">
       <NavegacionFlotante
         temaActivo={temaActivo}
         onAlternarTema={onAlternarTema}

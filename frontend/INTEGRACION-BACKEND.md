@@ -47,3 +47,19 @@ del veedor (`PaginaVeedor` — login, moderación, cortes oficiales) el backend 
 
 Antes de cambiar un contrato, regenerar los tipos con `npm run api:sync` (lee
 `backend/openapi.yaml`) y correr `npm run api:check` en CI para detectar el desfase.
+
+## Verificación de punta a punta (2026-08-12)
+
+`backend/openapi.yaml` estaba desincronizado del contrato real del backend vivo (el cambio de
+`ADR-030` — respuesta HTML/JSON en `/confirmar` y `/cancelar` según `Accept` — nunca se
+regeneró). Regenerado desde `GET /v3/api-docs.yaml` y sincronizado `src/api/generated/schema.ts`
+con `npm run api:sync`; detalle completo en
+[`../docs/ingenieria/estado-del-backend.md`](../docs/ingenieria/estado-del-backend.md) (nota de
+sesión). `npm run api:check` no lo detectó porque solo compara `openapi.yaml` ↔ `schema.ts` entre
+sí, no contra un backend corriendo — ambos estaban desactualizados de forma consistente.
+
+Con el stack completo levantado (`docker compose up -d --build --wait`), se probó en navegador
+cada ruta de esta lista: mapa en vivo con SSE, reporte ciudadano, bitácora, estadísticas e índice
+de cumplimiento, y el panel del veedor completo (login, cola de moderación con datos reales, cola
+de propuestas de ingesta, registro y cierre de cortes). Todo responde con datos reales del backend,
+sin ningún endpoint huérfano en ninguna dirección.

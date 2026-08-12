@@ -1,0 +1,15 @@
+title = "AguaVigía CTG — configuración de gitleaks"
+
+[extend]
+useDefault = true
+
+# Ver ADR-031 (docs/design-decisions.md): docs/ingenieria/entorno-local.md documenta a propósito
+# una clave de equipo (JWT_SECRET) para levantar el entorno LOCAL con docker compose. No es un
+# secreto de producción — el perfil `prod` exige las suyas propias y aborta el arranque si faltan
+# (ValidacionDeSecretosProd). Sin este allowlist, el job "Escaneo de secretos" queda en rojo de
+# forma permanente por un hallazgo ya evaluado y aceptado, no por uno real sin revisar.
+[allowlist]
+description = "Clave de desarrollo local compartida por el equipo, documentada a propósito (ADR-031)"
+paths = [
+  '''docs/ingenieria/entorno-local\.md''',
+]

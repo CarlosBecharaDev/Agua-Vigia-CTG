@@ -27,6 +27,7 @@ export const SplashScreen: FC = () => {
 
   return (
     <div
+      aria-hidden="true"
       style={{
         position: 'fixed',
         inset: 0,

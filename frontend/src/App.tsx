@@ -46,7 +46,7 @@ class RouteErrorBoundary extends Component<RouteErrorBoundaryProps, RouteErrorBo
   render() {
     if (this.state.hasError) {
       return (
-        <main id="contenido-principal" role="alert" className="cargando-pagina">
+        <main id="contenido-principal" tabIndex={-1} role="alert" className="cargando-pagina">
           <div style={{ maxWidth: '30rem', textAlign: 'center' }}>
             <h1 style={{ fontSize: '1.35rem', marginBottom: '0.75rem' }}>No pudimos cargar esta vista</h1>
             <p style={{ marginBottom: '1rem' }}>Comprueba tu conexión e inténtalo nuevamente.</p>

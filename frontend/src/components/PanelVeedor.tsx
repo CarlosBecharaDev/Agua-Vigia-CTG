@@ -93,7 +93,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
   }
 
   return (
-    <main id="contenido-principal" className="panel-veedor" aria-labelledby="titulo-panel-veedor">
+    <main id="contenido-principal" tabIndex={-1} className="panel-veedor" aria-labelledby="titulo-panel-veedor">
       <header className="panel-veedor-cabecera">
         <div><p className="eyebrow">Operación protegida</p><h1 id="titulo-panel-veedor">Centro operativo del veedor</h1><p>Modera reportes ciudadanos y administra cortes oficiales con trazabilidad.</p></div>
         <button type="button" className="boton boton-secundario" onClick={onCerrarSesion}><LogOut size={17} /> Cerrar sesión</button>

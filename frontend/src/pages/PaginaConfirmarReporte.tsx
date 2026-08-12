@@ -25,7 +25,7 @@ export default function PaginaConfirmarReporte() {
 
   return (
     <PageWrapper>
-      <main id="contenido-principal" className="pagina-estado pagina-reporte-real">
+      <main id="contenido-principal" tabIndex={-1} className="pagina-estado pagina-reporte-real">
         <section className="reporte-real" aria-labelledby="titulo-confirmar">
           <div className="reporte-real-intro">
             <span className="estado-pagina-icono icono-coral" aria-hidden="true"><ShieldCheck /></span>

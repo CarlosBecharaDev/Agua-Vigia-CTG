@@ -570,13 +570,21 @@ paths:
       tags:
       - Suscripciones
       summary: Confirmar la suscripción (doble opt-in)
-      description: "Enlace del correo de confirmación. El token es de un solo enlace,\
-        \ no de un solo uso: confirmarla dos veces no falla (RF013)."
+      description: |-
+        Enlace del correo de confirmación. El token es de un solo enlace, no de un solo uso:
+        confirmarla dos veces no falla (RF013). Responde JSON o una página HTML de cortesía
+        según el `Accept` de quien pide — el mismo enlace del correo abre bien tanto en un
+        navegador como desde un cliente de API.
       operationId: confirmar_1
       parameters:
       - name: token
         in: query
         required: true
+        schema:
+          type: string
+      - name: Accept
+        in: header
+        required: false
         schema:
           type: string
       responses:
@@ -585,7 +593,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuscripcionRespuesta"
+                type: object
+            text/html:
+              schema:
+                type: object
         "400":
           description: "Token inválido, inexistente o de una suscripción ya cancelada"
           content:
@@ -597,12 +608,20 @@ paths:
       tags:
       - Suscripciones
       summary: Darse de baja en un clic (RF015)
-      description: Sin pedir credenciales — el token que llega en cada correo es suficiente.
+      description: |-
+        Sin pedir credenciales — el token que llega en cada correo es suficiente. Responde
+        JSON o una página HTML de cortesía según el `Accept` de quien pide (mismo motivo
+        que en {@code /confirmar}).
       operationId: cancelar
       parameters:
       - name: token
         in: query
         required: true
+        schema:
+          type: string
+      - name: Accept
+        in: header
+        required: false
         schema:
           type: string
       responses:
@@ -611,7 +630,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuscripcionRespuesta"
+                type: object
+            text/html:
+              schema:
+                type: object
         "400":
           description: Token inválido o inexistente
           content:

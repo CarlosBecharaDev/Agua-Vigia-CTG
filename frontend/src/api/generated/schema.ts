@@ -347,7 +347,10 @@ export interface paths {
         };
         /**
          * Confirmar la suscripción (doble opt-in)
-         * @description Enlace del correo de confirmación. El token es de un solo enlace, no de un solo uso: confirmarla dos veces no falla (RF013).
+         * @description Enlace del correo de confirmación. El token es de un solo enlace, no de un solo uso:
+         *     confirmarla dos veces no falla (RF013). Responde JSON o una página HTML de cortesía
+         *     según el `Accept` de quien pide — el mismo enlace del correo abre bien tanto en un
+         *     navegador como desde un cliente de API.
          */
         get: operations["confirmar_1"];
         put?: never;
@@ -367,7 +370,9 @@ export interface paths {
         };
         /**
          * Darse de baja en un clic (RF015)
-         * @description Sin pedir credenciales — el token que llega en cada correo es suficiente.
+         * @description Sin pedir credenciales — el token que llega en cada correo es suficiente. Responde
+         *     JSON o una página HTML de cortesía según el `Accept` de quien pide (mismo motivo
+         *     que en {@code /confirmar}).
          */
         get: operations["cancelar"];
         put?: never;
@@ -1550,7 +1555,9 @@ export interface operations {
             query: {
                 token: string;
             };
-            header?: never;
+            header?: {
+                Accept?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1562,7 +1569,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuscripcionRespuesta"];
+                    "application/json": Record<string, never>;
+                    "text/html": Record<string, never>;
                 };
             };
             /** @description Token inválido, inexistente o de una suscripción ya cancelada */
@@ -1581,7 +1589,9 @@ export interface operations {
             query: {
                 token: string;
             };
-            header?: never;
+            header?: {
+                Accept?: string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1593,7 +1603,8 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuscripcionRespuesta"];
+                    "application/json": Record<string, never>;
+                    "text/html": Record<string, never>;
                 };
             };
             /** @description Token inválido o inexistente */

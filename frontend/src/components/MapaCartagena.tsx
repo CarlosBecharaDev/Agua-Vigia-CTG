@@ -191,7 +191,12 @@ export const MapaCartagena: FC<Props> = ({
       if (sector?.estado !== estado) return
       const bounds = layer.getBounds ? layer.getBounds() : null
       if (!bounds || !bounds.isValid()) return
+      // `getBounds().isValid()` solo confirma que hay esquinas SO/NE definidas, no que sean
+      // finitas: `getCenter()` calcula un centroide (área con signo como divisor) y un anillo
+      // degenerado puede devolver NaN aunque bounds.isValid() haya dado true. Mismo espíritu
+      // que `volarABounds` — nunca construir un LatLng con NaN.
       const centro = typeof layer.getCenter === 'function' ? layer.getCenter() : bounds.getCenter()
+      if (!Number.isFinite(centro.lat) || !Number.isFinite(centro.lng)) return
       centros.push({ nombre: sector.nombre, centro })
       limites.extend(bounds)
     })

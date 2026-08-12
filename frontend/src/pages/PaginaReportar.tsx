@@ -27,7 +27,7 @@ export default function PaginaReportar() {
   })
   const error = mutacion.error ? normalizarErrorApi(mutacion.error) : null
 
-  return <PageWrapper><main id="contenido-principal" className="pagina-estado pagina-reporte-real"><section className="reporte-real" aria-labelledby="titulo-reportar">
+  return <PageWrapper><main id="contenido-principal" tabIndex={-1} className="pagina-estado pagina-reporte-real"><section className="reporte-real" aria-labelledby="titulo-reportar">
     <div className="reporte-real-intro"><span className="estado-pagina-icono icono-coral" aria-hidden="true"><Megaphone /></span><p className="eyebrow">Participación ciudadana</p><h1 id="titulo-reportar">Reporta el estado de tu barrio</h1><p>Sin registro y en dos pasos. Tu reporte ayuda a confirmar cambios junto con los de otros vecinos.</p></div>
     {mutacion.isSuccess ? <div className="reporte-real-exito" role="status"><CheckCircle2 /><h2>Reporte recibido</h2><p>Gracias por ayudar a mantener informada a Cartagena.</p>{mutacion.data?.id && <EnlaceConfirmarReporte reporteId={mutacion.data.id} />}<button className="boton boton-secundario" type="button" onClick={() => { mutacion.reset(); setSectorId('') }}>Enviar otro reporte</button></div> : <div className="reporte-real-formulario">
       <label htmlFor="sector-reporte"><span className="paso-numero">Paso 1</span>Selecciona tu barrio</label>
