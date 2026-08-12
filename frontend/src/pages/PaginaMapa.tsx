@@ -14,13 +14,12 @@
  *
  * DESIGN.md §1: responde "¿tengo agua?" en menos de 5 segundos.
  */
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
 import type { FC } from 'react'
 import { useLocation } from 'react-router-dom'
 import { MapPin, Menu } from 'lucide-react'
 import { MapaCartagena } from '../components/MapaCartagena'
 import { BuscadorBarrios } from '../components/BuscadorBarrios'
-import { PanelDetalleSector } from '../components/PanelDetalleSector'
 import { CarruselSector } from '../components/CarruselSector/CarruselSector'
 import { ModalReporte } from '../components/ModalReporte'
 import { ModalSuscripcion } from '../components/ModalSuscripcion'
@@ -28,13 +27,18 @@ import { NavegacionFlotante } from '../components/NavegacionFlotante'
 import { GooeyNav } from '../components/GooeyNav/GooeyNav'
 import { PanelProyecto } from '../components/PanelProyecto'
 import { GradientWaves } from '../components/GradientWaves/GradientWaves'
-import { SeccionBitacora } from '../components/SeccionBitacora'
-import { SeccionEstadisticas } from '../components/SeccionEstadisticas'
 import { PieDePagina } from '../components/PieDePagina'
 import { TarjetasEstadoMapa } from '../components/TarjetasEstadoMapa'
 import type { EstadoServicio, Sector } from '../types/tipos-dominio'
 import { useDatosEnVivo } from '../hooks/useDatosEnVivo'
 import type { useTheme } from '../hooks/useTheme'
+
+// Cargados aparte del bundle de esta página, no antes de que haga falta: los tres arrastran
+// `recharts` (SeccionEstadisticas y PanelDetalleSector, por su mini-gráfica de cumplimiento) o
+// van bajo el pliegue (SeccionBitacora). RNF001 medía 715 KB en un solo chunk sin dividir.
+const PanelDetalleSector = lazy(() => import('../components/PanelDetalleSector').then((m) => ({ default: m.PanelDetalleSector })))
+const SeccionBitacora = lazy(() => import('../components/SeccionBitacora').then((m) => ({ default: m.SeccionBitacora })))
+const SeccionEstadisticas = lazy(() => import('../components/SeccionEstadisticas').then((m) => ({ default: m.SeccionEstadisticas })))
 
 type ThemeProps = ReturnType<typeof useTheme>
 
@@ -217,15 +221,17 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
                 vista={sectorActivo ? 'detalle' : filtroPanel}
               >
                 {sectorActivo ? (
-                  <PanelDetalleSector
-                    sector={sectorActivo}
-                    boletines={boletines}
-                    onCerrar={() => alSeleccionarSector(null)}
-                    onAbrirReporte={(id) => {
-                      setSectorReporte(id)
-                      setModalAbierto(true)
-                    }}
-                  />
+                  <Suspense fallback={null}>
+                    <PanelDetalleSector
+                      sector={sectorActivo}
+                      boletines={boletines}
+                      onCerrar={() => alSeleccionarSector(null)}
+                      onAbrirReporte={(id) => {
+                        setSectorReporte(id)
+                        setModalAbierto(true)
+                      }}
+                    />
+                  </Suspense>
                 ) : filtroPanel === 'estado' ? (
                   <TarjetasEstadoMapa
                     resumen={conteos}
@@ -249,9 +255,13 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
       </GradientWaves>
       </section>
 
-      <SeccionBitacora busqueda={busquedaBitacora} />
+      <Suspense fallback={<div className="seccion-cargando" role="status">Cargando bitácora…</div>}>
+        <SeccionBitacora busqueda={busquedaBitacora} />
+      </Suspense>
 
-      <SeccionEstadisticas />
+      <Suspense fallback={<div className="seccion-cargando" role="status">Cargando estadísticas…</div>}>
+        <SeccionEstadisticas />
+      </Suspense>
 
       <PieDePagina />
 

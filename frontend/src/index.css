@@ -3379,3 +3379,13 @@ select {
 @media (prefers-reduced-motion: reduce) {
   .pie-ola-capa { animation: none !important; }
 }
+
+/* Fallback de Suspense para las secciones con carga diferida de PaginaMapa (Bitácora,
+   Estadísticas) — su chunk llega en paralelo al del mapa, así que esto rara vez se ve más
+   que un instante en conexiones lentas. */
+.seccion-cargando {
+  padding: 4rem 1.25rem;
+  text-align: center;
+  color: var(--color-tinta-3);
+  font-size: 0.9rem;
+}

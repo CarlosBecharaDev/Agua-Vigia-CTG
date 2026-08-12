@@ -33,7 +33,7 @@ function renderizar() {
 beforeEach(() => {
   // Ninguno de los tests existentes cubre la cola de ingesta — que resuelva vacío por
   // defecto evita que su useQuery quede pendiente para siempre y bloquee el render.
-  api.listarPropuestasIngesta.mockResolvedValue([])
+  api.listarPropuestasIngesta.mockResolvedValue({ items: [], totalCount: 0 })
   api.obtenerSaludIngesta.mockResolvedValue([])
 })
 
@@ -45,7 +45,7 @@ afterEach(() => {
 describe('PaginaVeedor', () => {
   it('inicia sesión y carga la cola real de moderación', async () => {
     api.iniciarSesionVeedor.mockImplementation(async () => sessionStorage.setItem('aguavigia_veedor_token', 'token-prueba'))
-    api.listarReportesPendientes.mockResolvedValue([{ id: 'r1', sectorId: 'manga', tipo: 'SIN_AGUA', timestamp: '2026-08-09T10:00:00Z', estadoModeracion: 'PENDIENTE' }])
+    api.listarReportesPendientes.mockResolvedValue({ items: [{ id: 'r1', sectorId: 'manga', tipo: 'SIN_AGUA', timestamp: '2026-08-09T10:00:00Z', estadoModeracion: 'PENDIENTE' }], totalCount: 1 })
     api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [{ id: 'manga', nombre: 'MANGA', estado: null, actualizadoEn: null }] })
     renderizar()
 
@@ -59,7 +59,7 @@ describe('PaginaVeedor', () => {
 
   it('aprueba un reporte usando la API protegida', async () => {
     sessionStorage.setItem('aguavigia_veedor_token', 'token-prueba')
-    api.listarReportesPendientes.mockResolvedValue([{ id: 'r1', sectorId: 'manga', tipo: 'SIN_AGUA', timestamp: '2026-08-09T10:00:00Z', estadoModeracion: 'PENDIENTE' }])
+    api.listarReportesPendientes.mockResolvedValue({ items: [{ id: 'r1', sectorId: 'manga', tipo: 'SIN_AGUA', timestamp: '2026-08-09T10:00:00Z', estadoModeracion: 'PENDIENTE' }], totalCount: 1 })
     api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [] })
     api.moderarReporte.mockResolvedValue({ id: 'r1', estadoModeracion: 'APROBADO' })
     renderizar()
@@ -68,9 +68,21 @@ describe('PaginaVeedor', () => {
     await waitFor(() => expect(api.moderarReporte).toHaveBeenCalledWith('r1', 'aprobar'))
   })
 
+  it('avisa cuando la cola de moderación tiene más pendientes de los que caben en una página', async () => {
+    sessionStorage.setItem('aguavigia_veedor_token', 'token-prueba')
+    api.listarReportesPendientes.mockResolvedValue({
+      items: [{ id: 'r1', sectorId: 'manga', tipo: 'SIN_AGUA', timestamp: '2026-08-09T10:00:00Z', estadoModeracion: 'PENDIENTE' }],
+      totalCount: 250,
+    })
+    api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [] })
+    renderizar()
+
+    expect(await screen.findByText(/mostrando 1 de 250 reportes pendientes/i)).toBeInTheDocument()
+  })
+
   it('registra un corte oficial para los barrios seleccionados', async () => {
     sessionStorage.setItem('aguavigia_veedor_token', 'token-prueba')
-    api.listarReportesPendientes.mockResolvedValue([])
+    api.listarReportesPendientes.mockResolvedValue({ items: [], totalCount: 0 })
     api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [{ id: 'manga', nombre: 'MANGA', estado: null, actualizadoEn: null }] })
     api.crearCorteOficial.mockResolvedValue({ id: 'c1', estado: 'ABIERTO' })
     renderizar()
@@ -89,13 +101,13 @@ describe('PaginaVeedor', () => {
     }))
   })
 
-  it('muestra el detalle y el índice de cumplimiento de un corte cerrado', async () => {
+  it('muestra el detalle y el índice de cumplimiento de un corte restablecido', async () => {
     sessionStorage.setItem('aguavigia_veedor_token', 'token-prueba')
-    api.listarReportesPendientes.mockResolvedValue([])
+    api.listarReportesPendientes.mockResolvedValue({ items: [], totalCount: 0 })
     api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [{ id: 'manga', nombre: 'MANGA', estado: null, actualizadoEn: null }] })
-    api.listarCortesPorSector.mockResolvedValue([{ id: 'c1', causa: 'Mantenimiento', estado: 'CERRADO', finPrometido: '2026-08-09T12:00:00Z' }])
+    api.listarCortesPorSector.mockResolvedValue([{ id: 'c1', causa: 'Mantenimiento', estado: 'RESTABLECIDO', finPrometido: '2026-08-09T12:00:00Z' }])
     api.obtenerCorte.mockResolvedValue({
-      id: 'c1', causa: 'Mantenimiento', estado: 'CERRADO', origen: 'VEEDOR',
+      id: 'c1', causa: 'Mantenimiento', estado: 'RESTABLECIDO', origen: 'VEEDOR',
       inicio: '2026-08-09T10:00:00Z', finPrometido: '2026-08-09T12:00:00Z', finReal: '2026-08-09T13:00:00Z',
     })
     api.obtenerIndiceCumplimientoPorCorte.mockResolvedValue({
@@ -110,6 +122,20 @@ describe('PaginaVeedor', () => {
     await waitFor(() => expect(api.obtenerCorte).toHaveBeenCalledWith('c1'))
     await waitFor(() => expect(api.obtenerIndiceCumplimientoPorCorte).toHaveBeenCalledWith('c1'))
     expect(await screen.findByText(/67%/)).toBeInTheDocument()
+  })
+
+  it('no ofrece "marcar restablecido" para un corte que ya está restablecido', async () => {
+    sessionStorage.setItem('aguavigia_veedor_token', 'token-prueba')
+    api.listarReportesPendientes.mockResolvedValue({ items: [], totalCount: 0 })
+    api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [{ id: 'manga', nombre: 'MANGA', estado: null, actualizadoEn: null }] })
+    api.listarCortesPorSector.mockResolvedValue([{ id: 'c1', causa: 'Mantenimiento', estado: 'RESTABLECIDO', finPrometido: '2026-08-09T12:00:00Z' }])
+    renderizar()
+
+    await screen.findByRole('option', { name: 'MANGA' })
+    fireEvent.change(screen.getByLabelText(/consultar barrio/i), { target: { value: 'manga' } })
+
+    await screen.findByText('Mantenimiento')
+    expect(screen.queryByRole('button', { name: /marcar restablecido/i })).not.toBeInTheDocument()
   })
 
   it('explica un 503 sin simular el ingreso', async () => {

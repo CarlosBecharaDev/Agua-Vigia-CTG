@@ -144,8 +144,29 @@ export async function obtenerEstadisticas(): Promise<EstadisticasGlobales> {
   return data
 }
 
-export async function listarReportesPendientes(): Promise<ReporteModeracion[]> {
-  const { data } = await apiClient.get<ReporteModeracionApi[]>('/veedor/reportes/pendientes')
+/** `/api/bitacora` y las dos colas del veedor paginan (50 por defecto, 200 máximo) desde el
+ *  backend y devuelven el total real en `X-Total-Count` — ver `CabecerasDePaginacion`. */
+export interface ListaConTotal<T> {
+  items: T[]
+  /** Total real en el servidor, no `items.length`: si supera `items.length`, hay más de lo que se pidió. */
+  totalCount: number
+}
+
+const TAMANO_MAXIMO_COLA = 200
+
+function totalDesdeCabecera(headers: unknown, porDefecto: number): number {
+  const valor = (headers as Record<string, string> | undefined)?.['x-total-count']
+  const numero = valor ? Number(valor) : NaN
+  return Number.isFinite(numero) ? numero : porDefecto
+}
+
+/** Cola completa de moderación (RF018): pide el máximo de una vez porque el veedor necesita verla
+ *  entera, no navegarla por páginas — un reporte que quede fuera de la primera página no se
+ *  moderaría nunca. `totalCount` deja ver si aun así sobran más de 200. */
+export async function listarReportesPendientes(): Promise<ListaConTotal<ReporteModeracion>> {
+  const { data, headers } = await apiClient.get<ReporteModeracionApi[]>('/veedor/reportes/pendientes', {
+    params: { tamano: TAMANO_MAXIMO_COLA },
+  })
   if (!Array.isArray(data)) throw new Error('El servidor devolvió una cola de moderación inválida.')
   const reportes = data.filter((reporte): reporte is ReporteModeracion =>
     typeof reporte.id === 'string' &&
@@ -154,7 +175,7 @@ export async function listarReportesPendientes(): Promise<ReporteModeracion[]> {
     typeof reporte.timestamp === 'string' &&
     typeof reporte.estadoModeracion === 'string')
   if (reportes.length !== data.length) throw new Error('Uno o más reportes no cumplen el contrato OpenAPI.')
-  return reportes
+  return { items: reportes, totalCount: totalDesdeCabecera(headers, reportes.length) }
 }
 
 export async function moderarReporte(id: string, decision: 'aprobar' | 'descartar'): Promise<ReporteModeracionApi> {
@@ -261,10 +282,13 @@ export interface PropuestaIngesta {
   estadoRevision: string
 }
 
-export async function listarPropuestasIngesta(): Promise<PropuestaIngesta[]> {
-  const { data } = await apiClient.get<PropuestaIngesta[]>('/veedor/ingesta/propuestas')
+/** Misma lógica que {@link listarReportesPendientes}: la cola completa de una vez, con el total real. */
+export async function listarPropuestasIngesta(): Promise<ListaConTotal<PropuestaIngesta>> {
+  const { data, headers } = await apiClient.get<PropuestaIngesta[]>('/veedor/ingesta/propuestas', {
+    params: { tamano: TAMANO_MAXIMO_COLA },
+  })
   if (!Array.isArray(data)) throw new Error('El servidor devolvió una cola de ingesta inválida.')
-  return data
+  return { items: data, totalCount: totalDesdeCabecera(headers, data.length) }
 }
 
 export async function aprobarPropuestaIngesta(id: string): Promise<PropuestaIngesta> {

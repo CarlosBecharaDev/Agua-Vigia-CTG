@@ -5,12 +5,19 @@
 > proyecto, en qué estado está, qué se hizo, qué falta, qué se decidió dejar fuera y las trampas del
 > entorno que cuestan una hora si nadie las avisa.
 >
-> **Última actualización:** 2026-08-11 · **Commit:** cambios de esta sesión sobre `7d320c3`, aún
-> sin commitear · **Rama:** `main`
+> **Última actualización:** 2026-08-12 · **Rama:** `main`
 >
 > Si al leerlo algo no cuadra con el código, gana el código: este documento se actualiza a mano.
 > Lo que sí está garantizado por la build es la [matriz de trazabilidad](matriz-trazabilidad.md),
 > donde cada ✅ lleva el nombre de la prueba que lo sostiene.
+>
+> **Nota de la sesión 2026-08-12:** este documento sigue narrando la ronda de trabajo que termina en
+> §4 (backend en solitario, antes del merge con el rediseño de frontend). Desde entonces `frontend/`
+> se conectó a este backend real de punta a punta — ver
+> [`../../frontend/INTEGRACION-BACKEND.md`](../../frontend/INTEGRACION-BACKEND.md) para el estado
+> vigente de esa integración. El único cambio de backend de esa sesión fue que
+> `/api/suscripciones/confirmar` y `/cancelar` ahora responden HTML de cortesía a un navegador
+> (`ADR-030`); no agregó, quitó ni cambió ninguna otra ruta.
 
 ---
 
@@ -47,7 +54,7 @@ romperles el trabajo.
 
 | Métrica | Valor | Cómo se comprueba |
 |---|---|---|
-| Pruebas | **447**, todas en verde | `cd backend && ./mvnw verify` |
+| Pruebas | **457**, todas en verde (447 era el conteo de la ronda que narra este documento; subió con commits posteriores, ver nota de cabecera) | `cd backend && ./mvnw verify` |
 | Cobertura `domain/` | **91%** | JaCoCo; la build falla por debajo del 85% |
 | Cobertura `application/` | **99%** | ídem |
 | Cobertura `infrastructure.cache` | **100%** (era 69.6%) | JaCoCo, ver §4 de esta ronda |
@@ -55,7 +62,7 @@ romperles el trabajo.
 | Clases de prueba | 90 | `find backend/src/test -name '*.java'` |
 | Rutas publicadas en el contrato | 30 (sin cambios — ningún endpoint nuevo) | `grep -cE '^  /' backend/openapi.yaml` |
 | Vulnerabilidades altas o críticas | **0** | Job "Despliegue y dependencias" del CI |
-| ADRs registrados | 28 | `docs/design-decisions.md` |
+| ADRs registrados | 30 | `docs/design-decisions.md` |
 | Workflows de CI | 3, los tres en verde | `gh run list` |
 
 **Requisitos:** todos implementados salvo **RF041** (webhook real de WhatsApp/Telegram), que depende
@@ -285,9 +292,9 @@ Mailhog (correos de prueba): `http://localhost:8025` · Swagger: `/swagger-ui.ht
 
 ---
 
-## 10. Un cambio pendiente de comunicar al equipo de frontend
+## 10. Un cambio que se le pasó al frontend, y ya se cerró
 
-**Tres rutas ahora paginan.** Sin parámetros devuelven **50 elementos en vez de todos**:
+**Tres rutas paginan.** Sin parámetros devuelven **50 elementos en vez de todos**:
 
 - `GET /api/bitacora`
 - `GET /api/veedor/reportes/pendientes`
@@ -296,6 +303,17 @@ Mailhog (correos de prueba): `http://localhost:8025` · Swagger: `/swagger-ui.ht
 El cuerpo **sigue siendo un arreglo JSON** —no rompe nada— y los metadatos van en cabeceras:
 `X-Total-Count`, `X-Total-Pages`, `X-Page`, `X-Page-Size` y `Link` con `rel="next"` (RFC 8288).
 Parámetros: `?pagina=0&tamano=50`, máximo 200.
+
+**2026-08-12 — encontrado sin cerrar y corregido.** El frontend nunca leyó este aviso: las dos
+colas del veedor (`listarReportesPendientes`, `listarPropuestasIngesta`) pedían la página por
+defecto sin mirar `X-Total-Count`, así que un reporte o una propuesta más allá del elemento 50
+era invisible para el veedor, sin ningún aviso. `GET /api/bitacora` no tenía el mismo problema:
+su sección en el mapa muestra a propósito solo los últimos 20 eventos como feed reciente, no una
+cola que haya que vaciar entera.
+
+Corregido en `frontend/src/api/services.ts`: ambas colas piden `tamano=200` (el máximo) de una
+vez y devuelven `{ items, totalCount }`; si `totalCount` supera lo que trajo esa página, el panel
+del veedor muestra un aviso ("Mostrando N de M…") en vez de ocultar el resto en silencio.
 
 Si la pantalla de bitácora asumía recibirlo todo, ahí hay que paginar.
 

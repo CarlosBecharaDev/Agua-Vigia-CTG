@@ -3,8 +3,10 @@
 > Cadena completa: **objetivo específico → requisito → historia de usuario → caso de prueba →
 > implementación**. Es la evidencia de que nada se construyó de más y nada quedó sin verificar.
 >
-> **Se actualiza al cerrar cada sprint**, desde `docs/gestion/registro-de-implementaciones.md`.
-> Reconstruirla en el Sprint 6 es imposible: por eso se registra desde el primer día.
+> **Se actualiza a mano al cerrar cada unidad de trabajo relevante**, contrastando el requisito
+> contra el código y su prueba. `docs/gestion/` (el registro de implementaciones por sprint que
+> alimentaba esta tabla) se retiró del proyecto al fusionar el rediseño de frontend en `main`
+> (2026-08-12) — la trazabilidad vive solo aquí desde entonces.
 
 ---
 
@@ -156,7 +158,7 @@ Los RNF no llevan historia de usuario: se verifican con una medición, no con un
 
 | RNF | Umbral | Cómo se verifica | Sprint | Estado |
 |---|---|---|---|---|
-| RNF001 | Mapa completo < 3 s en 3G | Lighthouse con throttling | 6 | 🟡 **Sin medir.** Es de frontend (D4); no hay ejecución de Lighthouse registrada |
+| RNF001 | Mapa completo < 3 s en 3G | Lighthouse con throttling | 6 | 🟡 **Medido y corregido en parte, 2026-08-12.** Primera medición (Regular 3G dura: 300 ms RTT, 400 Kbps, CPU 4×): puntaje 27/100, FCP 21.3 s, LCP 46.4 s, 6.04 MB de página — culpa principal, `logo-aguavigia-animado.gif` de **4.5 MB** (75% del peso) más el chunk `PaginaMapa` sin dividir (715 KB). Corrección aplicada: el logo pasó a WebP animado a 200 px (mismos 120 frames y transparencia, **404 KB**, −91%) y `PaginaMapa` se dividió con `lazy()`+`Suspense` (`PanelDetalleSector`, `SeccionBitacora`, `SeccionEstadisticas`), sacando `recharts` del bundle inicial — el chunk bajó de 715 KB a **355 KB**. Con el mismo throttling duro: peso total 2.03 MB (−66%), FCP 17.4 s. Con el throttling estándar de Lighthouse (1.6 Mbps/150 ms, más representativo de un "3G" real): **puntaje 42/100, FCP 3.9 s, LCP 9.7 s** — mejora real, pero sigue sin cumplir el umbral de 3 s. **Lo que queda:** con el throttling duro, el elemento del LCP ya no es el logo ni el JS — es un tile de mapa de CartoDB (`img.leaflet-tile`), en cola detrás de todo lo demás en una conexión de 400 Kbps compartida. Es un cuello de botella distinto (carga de tiles externos), fuera del alcance de esta corrección |
 | RNF002 | Confirmación de reporte < 1 s | Prueba de carga | 5 | ✅ **Medido 2026-08-11** — k6 (`scripts/carga/rnf002-registrar-reporte.js`), 20 solicitudes/min durante 2 min contra el stack de `docker compose`: p(95)=16.49 ms, 0% de errores |
 | RNF003 | Caché del mapa con TTL ≤ 60 s | Inspección de Redis | 2 | ✅ (TTL de 15 s en `application.yml` · `SectorMongoAdapterCacheTest`) |
 | RNF004 | Fuente caída no tumba el sistema | Prueba de caos | 4 | ✅ (`PipelineOrquestadorTest.unColectorCaidoNoDebeImpedirQueSeLeaElOtro`) |
@@ -198,6 +200,7 @@ Se revisa al cerrar cada sprint. Un hueco aquí es un hallazgo del docente esper
 | El cupo por dispositivo (RF006) contaba y luego guardaba: dos peticiones simultáneas del mismo dispositivo pasaban ambas | 2026-08-11 | ✅ **Cerrado 2026-08-11** — reserva atómica con INCR de Redis, con prueba de 50 hilos concurrentes |
 | RNF020 marcado ✅ sin verificación: el CI no construía las imágenes ni validaba los compose | 2026-08-11 | ✅ **Cerrado 2026-08-11** — `despliegue-ci.yml`, que además falla si producción publica un puerto de base de datos |
 | RNF001 y RNF002 marcados ✅ sin ninguna medición | 2026-08-11 | 🟡 **RNF001 sigue abierto** (es de frontend, D4) · ✅ **RNF002 cerrado 2026-08-11** — k6 midió p(95)=16.49 ms contra el umbral de 1 s |
+| El backend paginó `/api/veedor/reportes/pendientes` y `/api/veedor/ingesta/propuestas` (fila anterior), pero el frontend nunca leyó `X-Total-Count`: un reporte o propuesta más allá del elemento 50 era invisible para el veedor, sin aviso | 2026-08-12 | ✅ **Cerrado 2026-08-12** — ambas colas piden el máximo (`tamano=200`) y el panel avisa si aun así sobra más de lo mostrado (`PanelVeedor.tsx`) |
 
 ### Pendientes reconocidos
 

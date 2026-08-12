@@ -1359,8 +1359,56 @@ del frontend en ese punto.
 
 ---
 
+## ADR-030 — Los enlaces de `/api/suscripciones/confirmar` y `/cancelar` responden HTML o JSON según el `Accept`, no dos rutas separadas
+
+- **Fecha:** 2026-08-12
+- **Estado:** Aceptada
+- **Decide:** sesión de integración frontend/backend
+
+### Contexto
+`MailNotificacionAdapter` manda el enlace de confirmación y el de baja apuntando directo al backend
+(`{urlBasePublica}/api/suscripciones/confirmar?token=...`), no al frontend. Un vecino que hacía clic
+desde su cliente de correo veía JSON crudo en pantalla en vez de una confirmación legible — el
+endpoint solo sabía responder `application/json`.
+
+### Alternativas consideradas
+1. **El backend redirige (302) a una URL del frontend**, que muestra la página. Exige coordinar dos
+   despliegues (backend y frontend) para una sola respuesta y agrega una ruta nueva al frontend solo
+   para esto.
+2. **Dejarlo así, sin resolver**, documentado como pendiente.
+3. **El mismo endpoint decide el formato según el `Accept` de quien pide.** El enlace del correo no
+   cambia.
+
+### Decisión
+`SuscripcionController.confirmar`/`cancelar` inspeccionan el header `Accept`: si contiene
+`text/html` (como manda cualquier navegador al abrir un enlace), responden una página HTML mínima de
+éxito o error, con el mismo texto tanto en modo claro como oscuro. Si no —ausente, `application/json`,
+o cualquier cliente de API que no pida HTML explícitamente— responden el JSON de siempre, sin cambios
+de contrato para nadie que ya lo consumiera así.
+
+Se descartó registrar dos `@GetMapping` distintos sobre la misma ruta diferenciados solo por
+`produces`: sin un `Accept` explícito (el caso de `MockMvc` por defecto, o de `curl` a pelo), Spring
+no puede desempatar entre ambos y lanza `IllegalStateException: Ambiguous handler methods` — se
+verificó rompiendo los tests existentes de `SuscripcionControllerTest` antes de corregirlo. Un único
+método con la decisión hecha a mano evita la ambigüedad por completo.
+
+### Consecuencias
+- **Gana:** el enlace del correo funciona igual de bien abierto desde un navegador que desde un
+  cliente de API, sin tocar `MailNotificacionAdapter` ni el contrato JSON existente.
+- **Pierde:** la página HTML vive como una plantilla `String.formatted()` dentro del controlador, no
+  como un archivo de plantilla reusable (`PlantillaCorreo` es de paquete privado en
+  `infrastructure.mail` y no se expone a `api`). Aceptable por ahora: son dos variantes (éxito/error)
+  para dos endpoints, no una plantilla que vaya a crecer.
+
+### Cómo se revierte
+Quitar la rama `prefiereHtml(accept)` de ambos métodos y volver a devolver siempre
+`ResponseEntity<SuscripcionRespuesta>`. El enlace del correo seguiría funcionando igual de mal que
+antes de este ADR.
+
+---
+
 <!--
-Siguiente número disponible: ADR-030
+Siguiente número disponible: ADR-031
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->

@@ -11,7 +11,10 @@
 import type { FC } from 'react'
 import { BellRing } from 'lucide-react'
 import StrokeText from './StrokeText/StrokeText'
-import logoAguaVigia from '../assets/logo-aguavigia-animado.gif'
+// WebP animado y no GIF: la versión GIF pesaba 4.5 MB (RNF001 medía 21 s de First Contentful
+// Paint en 3G por su culpa) mostrada a 150px de ancho. Este WebP, a 200px de ancho, pesa ~400 KB
+// — mismos 120 frames, misma transparencia — y sigue siendo un <img> normal.
+import logoAguaVigia from '../assets/logo-aguavigia-animado.webp'
 
 interface Props {
   onSuscribirse: () => void

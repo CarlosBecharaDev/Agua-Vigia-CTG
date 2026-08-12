@@ -1,10 +1,14 @@
 # AguaVigía CTG — Frontend
 
 Aplicación web de una sola página (SPA) para la plataforma de monitoreo del acueducto en Cartagena de Indias.
+Consume el backend real de punta a punta — sin datos simulados (ver
+[`INTEGRACION-BACKEND.md`](INTEGRACION-BACKEND.md) para el detalle de cada endpoint).
 
 **Stack:** React 19 · Vite · TypeScript · Tailwind CSS v4  
-**Rol responsable:** D4 — José Daniel Zambrano  
-**Módulos:** M1 (Mapa en vivo) · M2 (Reporte ciudadano - UI) · M5 (Panel del veedor - UI)
+**Módulos con UI propia:** M1 (Mapa en vivo) · M2 (Reporte ciudadano) · M3/M4 (Suscripciones) ·
+M5 (Panel del veedor) · M6 (Índice de Cumplimiento) · M7 (Estadísticas) · M8 (Bitácora pública) ·
+M9 (Cola de revisión de la ingesta, en el panel del veedor) · M10 (Evidencia fotográfica) ·
+M11 (Confirmar reporte con un clic)
 
 ---
 
@@ -31,8 +35,8 @@ npm run dev       # http://localhost:5173
 Los tokens de color, tipografía y espaciado viven en [`src/index.css`](src/index.css)  
 como custom properties CSS. La fuente de verdad es [`../DESIGN.md`](../DESIGN.md).
 
-## Compuertas
+## Integración con el backend
 
-- **Depende de C2** (contrato OpenAPI publicado por D3/D1) para integrar datos reales.  
-- Sin C2, se avanza en maquetación, tokens y accesibilidad estática.  
-- Ver [`../docs/equipo/secuencia-de-trabajo.md`](../docs/equipo/secuencia-de-trabajo.md).
+El frontend consume siempre la API real bajo `/api` — no hay modo simulación ni datos de ejemplo.
+Detalle de qué endpoint usa cada pantalla, cómo levantar contra un backend local y cómo
+resincronizar los tipos cuando cambia el contrato: [`INTEGRACION-BACKEND.md`](INTEGRACION-BACKEND.md).

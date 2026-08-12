@@ -52,7 +52,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
   const indiceCorte = useQuery({
     queryKey: ['cumplimiento', 'corte', corteExpandidoId],
     queryFn: () => obtenerIndiceCumplimientoPorCorte(corteExpandidoId!),
-    enabled: Boolean(corteExpandidoId) && corteExpandidoEnLista?.estado === 'CERRADO',
+    enabled: Boolean(corteExpandidoId) && corteExpandidoEnLista?.estado === 'RESTABLECIDO',
   })
 
   const moderar = useMutation({
@@ -105,9 +105,14 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
         <article className="panel-operativo" aria-labelledby="titulo-moderacion">
           <header><span className="panel-icono"><ClipboardCheck /></span><div><p className="eyebrow">RF018</p><h2 id="titulo-moderacion">Reportes pendientes</h2></div><button type="button" className="boton-icono" aria-label="Actualizar reportes" onClick={() => void reportes.refetch()}><RefreshCw size={17} /></button></header>
           {reportes.isPending && <p role="status">Cargando reportes…</p>}
-          {!reportes.isPending && reportes.data?.length === 0 && <div className="panel-vacio"><Check /><strong>Cola al día</strong><p>No hay reportes pendientes de moderación.</p></div>}
+          {!reportes.isPending && reportes.data?.items.length === 0 && <div className="panel-vacio"><Check /><strong>Cola al día</strong><p>No hay reportes pendientes de moderación.</p></div>}
+          {reportes.data && reportes.data.totalCount > reportes.data.items.length && (
+            <p className="mensaje-error" role="alert">
+              Mostrando {reportes.data.items.length} de {reportes.data.totalCount} reportes pendientes — hay más de los que caben aquí.
+            </p>
+          )}
           <div className="lista-moderacion">
-            {reportes.data?.map((reporte) => (
+            {reportes.data?.items.map((reporte) => (
               <article key={reporte.id} className="reporte-pendiente">
                 <div><strong>{reporte.tipo.replaceAll('_', ' ')}</strong><span>{reporte.sectorId}</span><small>{new Date(reporte.timestamp).toLocaleString('es-CO')}</small></div>
                 <div className="acciones-moderacion">
@@ -133,7 +138,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
                   <small>Prometido: {corte.finPrometido ? new Date(corte.finPrometido).toLocaleString('es-CO') : 'Sin fecha'}</small>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {corte.estado !== 'CERRADO' && corte.id && <button type="button" className="boton boton-secundario" disabled={cerrarCorte.isPending} onClick={() => cerrarCorte.mutate(corte.id!)}>Marcar restablecido</button>}
+                  {corte.estado !== 'RESTABLECIDO' && corte.id && <button type="button" className="boton boton-secundario" disabled={cerrarCorte.isPending} onClick={() => cerrarCorte.mutate(corte.id!)}>Marcar restablecido</button>}
                   {corte.id && (
                     <button
                       type="button"
@@ -157,7 +162,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
                         <dt>Origen</dt><dd>{detalleCorte.data.origen ?? '—'}</dd>
                       </dl>
                     )}
-                    {corte.estado === 'CERRADO' && (
+                    {corte.estado === 'RESTABLECIDO' && (
                       <div className="corte-oficial-indice">
                         <Scale size={14} aria-hidden="true" />
                         {indiceCorte.isPending && <span>Calculando índice de cumplimiento…</span>}
@@ -232,9 +237,14 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
         )}
 
         {propuestas.isPending && <p role="status">Cargando propuestas…</p>}
-        {!propuestas.isPending && propuestas.data?.length === 0 && <div className="panel-vacio"><Check /><strong>Cola al día</strong><p>No hay propuestas pendientes de revisión.</p></div>}
+        {!propuestas.isPending && propuestas.data?.items.length === 0 && <div className="panel-vacio"><Check /><strong>Cola al día</strong><p>No hay propuestas pendientes de revisión.</p></div>}
+        {propuestas.data && propuestas.data.totalCount > propuestas.data.items.length && (
+          <p className="mensaje-error" role="alert">
+            Mostrando {propuestas.data.items.length} de {propuestas.data.totalCount} propuestas — hay más de las que caben aquí.
+          </p>
+        )}
         <div className="lista-moderacion">
-          {propuestas.data?.map((propuesta) => (
+          {propuestas.data?.items.map((propuesta) => (
             <article key={propuesta.id} className="reporte-pendiente">
               <div>
                 <strong>{propuesta.estadoPropuesto.replaceAll('_', ' ')}</strong>

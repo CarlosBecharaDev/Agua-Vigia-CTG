@@ -7,6 +7,7 @@ import {
   crearCorteOficial,
   crearReporte,
   listarCortesPorSector,
+  listarPropuestasIngesta,
   listarReportesPendientes,
   moderarReporte,
   obtenerCorte,
@@ -117,9 +118,9 @@ describe('detalle de sector y de corte (enlaces de correo y panel del veedor)', 
   })
 
   it('consulta el detalle de un corte por su id', async () => {
-    const get = vi.spyOn(apiClient, 'get').mockResolvedValue({ data: { id: 'c1', estado: 'CERRADO' } })
+    const get = vi.spyOn(apiClient, 'get').mockResolvedValue({ data: { id: 'c1', estado: 'RESTABLECIDO' } })
 
-    await expect(obtenerCorte('c1')).resolves.toEqual({ id: 'c1', estado: 'CERRADO' })
+    await expect(obtenerCorte('c1')).resolves.toEqual({ id: 'c1', estado: 'RESTABLECIDO' })
     expect(get).toHaveBeenCalledWith('/veedor/cortes/c1')
   })
 
@@ -137,6 +138,24 @@ describe('operación del veedor', () => {
     await expect(listarReportesPendientes()).rejects.toThrow(/no cumplen el contrato/i)
   })
 
+  it('pide la cola de moderación completa y expone el total real del servidor', async () => {
+    const get = vi.spyOn(apiClient, 'get').mockResolvedValue({
+      data: [{ id: 'r1', sectorId: 'manga', tipo: 'SIN_AGUA', timestamp: '2026-08-09T10:00:00Z', estadoModeracion: 'PENDIENTE' }],
+      headers: { 'x-total-count': '3' },
+    })
+
+    await expect(listarReportesPendientes()).resolves.toEqual({
+      items: [{ id: 'r1', sectorId: 'manga', tipo: 'SIN_AGUA', timestamp: '2026-08-09T10:00:00Z', estadoModeracion: 'PENDIENTE' }],
+      totalCount: 3,
+    })
+    expect(get).toHaveBeenCalledWith('/veedor/reportes/pendientes', { params: { tamano: 200 } })
+  })
+
+  it('usa items.length como total si el servidor no manda X-Total-Count', async () => {
+    vi.spyOn(apiClient, 'get').mockResolvedValue({ data: [], headers: {} })
+    await expect(listarReportesPendientes()).resolves.toEqual({ items: [], totalCount: 0 })
+  })
+
   it('usa las rutas exactas de moderación', async () => {
     const patch = vi.spyOn(apiClient, 'patch').mockResolvedValue({ data: { id: 'r1' } })
     await moderarReporte('r1/con-espacio', 'aprobar')
@@ -146,7 +165,7 @@ describe('operación del veedor', () => {
   it('consulta, registra y cierra cortes oficiales', async () => {
     const get = vi.spyOn(apiClient, 'get').mockResolvedValue({ data: [] })
     const post = vi.spyOn(apiClient, 'post').mockResolvedValue({ data: { id: 'c1' } })
-    const patch = vi.spyOn(apiClient, 'patch').mockResolvedValue({ data: { id: 'c1', estado: 'CERRADO' } })
+    const patch = vi.spyOn(apiClient, 'patch').mockResolvedValue({ data: { id: 'c1', estado: 'RESTABLECIDO' } })
     const solicitud = { sectoresAfectados: ['manga'], inicio: '2026-08-09T10:00:00Z', finPrometido: '2026-08-09T12:00:00Z', causa: 'Mantenimiento' }
 
     await listarCortesPorSector('manga')
@@ -156,5 +175,18 @@ describe('operación del veedor', () => {
     expect(get).toHaveBeenCalledWith('/veedor/cortes', { params: { sectorId: 'manga' } })
     expect(post).toHaveBeenCalledWith('/veedor/cortes', solicitud)
     expect(patch).toHaveBeenCalledWith('/veedor/cortes/c1/cierre', { horaReal: '2026-08-09T11:30:00Z' })
+  })
+
+  it('pide la cola de ingesta completa y expone el total real del servidor', async () => {
+    const get = vi.spyOn(apiClient, 'get').mockResolvedValue({
+      data: [{ id: 'p1', sectorId: 'manga', estadoPropuesto: 'SIN_SERVICIO', fuente: 'acuacar' }],
+      headers: { 'x-total-count': '5' },
+    })
+
+    await expect(listarPropuestasIngesta()).resolves.toEqual({
+      items: [{ id: 'p1', sectorId: 'manga', estadoPropuesto: 'SIN_SERVICIO', fuente: 'acuacar' }],
+      totalCount: 5,
+    })
+    expect(get).toHaveBeenCalledWith('/veedor/ingesta/propuestas', { params: { tamano: 200 } })
   })
 })
