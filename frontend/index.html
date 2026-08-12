@@ -33,6 +33,22 @@
     <link rel="manifest" href="/manifest.webmanifest" />
 
     <!-- No CDN de fuentes — DESIGN.md §4 -->
+
+    <!-- Tiles del mapa (M1): el elemento más pesado en cargar en 3G real (RNF001) es un
+         `img.leaflet-tile` de estos dominios de terceros — Leaflet no empieza a pedirlos hasta
+         que su JS corre e inicializa el mapa, así que no hay forma de descubrir la URL exacta
+         desde el HTML. Adelantar la resolución DNS/TLS mientras el bundle todavía descarga
+         recorta ese tiempo de espera. Los dos proveedores (`useTheme` decide cuál según
+         prefers-color-scheme, no se sabe de antemano) y sus 3 subdominios (a/b/c, el reparto
+         por defecto de Leaflet). -->
+    <link rel="preconnect" href="https://a.basemaps.cartocdn.com" crossorigin />
+    <link rel="preconnect" href="https://a.tile.openstreetmap.org" crossorigin />
+    <link rel="dns-prefetch" href="https://a.basemaps.cartocdn.com" />
+    <link rel="dns-prefetch" href="https://b.basemaps.cartocdn.com" />
+    <link rel="dns-prefetch" href="https://c.basemaps.cartocdn.com" />
+    <link rel="dns-prefetch" href="https://a.tile.openstreetmap.org" />
+    <link rel="dns-prefetch" href="https://b.tile.openstreetmap.org" />
+    <link rel="dns-prefetch" href="https://c.tile.openstreetmap.org" />
   </head>
   <body>
     <div id="root"></div>

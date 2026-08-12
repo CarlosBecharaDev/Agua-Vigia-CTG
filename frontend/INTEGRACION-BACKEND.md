@@ -11,6 +11,11 @@ producción, Nginx lo hace bajo el mismo origen (ver `nginx.conf`).
    (`VITE_BACKEND_PROXY_TARGET`, por defecto `http://localhost:8080`).
 3. `npm run dev` — las llamadas a `/api/*` se redirigen automáticamente al backend.
 
+Todo lo anterior es suficiente para el mapa y el resto de pantallas públicas. Para el panel
+del veedor (`PaginaVeedor` — login, moderación, cortes oficiales) el backend necesita
+`JWT_SECRET` y `VEEDOR_PASSWORD_HASH` en su `.env`, vacías por defecto — ver
+[`../docs/ingenieria/entorno-local.md`](../docs/ingenieria/entorno-local.md).
+
 ## Endpoints que consume el frontend
 
 - `GET /api/sectores` + `GET /api/sectores/stream` (SSE) — mapa en vivo (M1).

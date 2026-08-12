@@ -329,6 +329,7 @@ Si la pantalla de bitácora asumía recibirlo todo, ahí hay que paginar.
 | [`../../DESIGN.md`](../../DESIGN.md) | Sistema de diseño. **Aplica al backend también:** los cuatro estados del servicio, cómo se le escribe al usuario, cifras con contexto |
 | [`../anexos/anexo-5-manual-tecnico.md`](../anexos/anexo-5-manual-tecnico.md) | Despliegue y QA manual. Corregido en esta ronda |
 | [`respaldo-y-restauracion.md`](respaldo-y-restauracion.md) | Respaldo de Mongo y de las fotos |
+| [`entorno-local.md`](entorno-local.md) | `JWT_SECRET`/`VEEDOR_PASSWORD_HASH` vacías en `.env` — cómo dejar el panel del veedor funcionando en un clon nuevo, con la clave de equipo lista para copiar |
 | `backend/openapi.yaml` | Contrato que consume el frontend. **Generado, no escrito a mano** |
 
 ---

@@ -62,6 +62,11 @@ El proyecto está completamente contenerizado. Solo necesitas tener un motor de 
    cp .env.example .env
    # Si deseas habilitar Webhooks (M14) y envío de correos, configura el .env.
    ```
+   El mapa, los reportes y las estadísticas funcionan así, sin nada más. El **panel del
+   veedor** (`/veedor`) necesita dos variables que `.env.example` deja vacías a propósito
+   (`JWT_SECRET`, `VEEDOR_PASSWORD_HASH`) — ver
+   [`docs/ingenieria/entorno-local.md`](docs/ingenieria/entorno-local.md) para la clave de
+   equipo lista para copiar.
 
 2. **Levantar los servicios:**
    ```bash

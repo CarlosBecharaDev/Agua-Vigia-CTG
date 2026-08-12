@@ -47,6 +47,24 @@ function normalizarNombre(nombre: string): string {
   return nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
 }
 
+/**
+ * `L.Map.flyToBounds` no valida su argumento: si `bounds` viene con alg\u00fan NaN, Leaflet lanza
+ * "Invalid LatLng object: (NaN, NaN)" desde dentro de la animaci\u00f3n, fuera de cualquier
+ * try/catch nuestro \u2014 React lo capta como error de render y tumba toda la vista (bug real,
+ * visto seleccionando un barrio desde el buscador; no se logr\u00f3 aislar una causa
+ * determin\u00edstica, probablemente una carrera puntual con el layout). `isValid()` es la propia
+ * comprobaci\u00f3n que Leaflet usa internamente antes de operar con un `LatLngBounds`; hacerla
+ * antes de llamar a `flyToBounds` convierte un crash de toda la p\u00e1gina en, como mucho, un
+ * "no se movi\u00f3 el mapa esta vez".
+ */
+export function volarABounds(mapa: L.Map, bounds: L.LatLngBounds, opciones: L.FitBoundsOptions): void {
+  if (!bounds.isValid()) {
+    console.warn('Se descart\u00f3 un flyToBounds con l\u00edmites inv\u00e1lidos', bounds)
+    return
+  }
+  mapa.flyToBounds(bounds, opciones)
+}
+
 /** Estilo de un polígono — compartido entre la carga inicial y la actualización reactiva
  *  para que ambos caminos nunca diverjan en cómo se ve un barrio. */
 function calcularEstiloFeature(
@@ -129,7 +147,7 @@ export const MapaCartagena: FC<Props> = ({
       capaRef.current.eachLayer((layer: any) => {
         const nombre = layer.feature?.properties?.NOMBRE ?? ''
         if (normalizarNombre(nombre) !== nombreActivoNorm || !mapaRef.current) return
-        mapaRef.current.flyToBounds(layer.getBounds(), { padding: [20, 20], duration: 1.5 })
+        volarABounds(mapaRef.current, layer.getBounds(), { padding: [20, 20], duration: 1.5 })
       })
     } else if (sectorActivoAnteriorRef.current) {
       // Se acaba de CERRAR la ficha de un sector (había uno activo, ahora no) — vuelve a la
@@ -160,7 +178,7 @@ export const MapaCartagena: FC<Props> = ({
     if (!mapa) return
 
     if (!estado || !capa) {
-      mapa.flyToBounds(BOUNDS_CARTAGENA, { padding: [20, 20], duration: 1.2 })
+      volarABounds(mapa, L.latLngBounds(BOUNDS_CARTAGENA), { padding: [20, 20], duration: 1.2 })
       return
     }
 
@@ -171,9 +189,11 @@ export const MapaCartagena: FC<Props> = ({
       const nombre = layer.feature?.properties?.NOMBRE ?? ''
       const sector = indiceSectores.current.get(normalizarNombre(nombre))
       if (sector?.estado !== estado) return
-      const centro = typeof layer.getCenter === 'function' ? layer.getCenter() : layer.getBounds().getCenter()
+      const bounds = layer.getBounds ? layer.getBounds() : null
+      if (!bounds || !bounds.isValid()) return
+      const centro = typeof layer.getCenter === 'function' ? layer.getCenter() : bounds.getCenter()
       centros.push({ nombre: sector.nombre, centro })
-      limites.extend(layer.getBounds())
+      limites.extend(bounds)
     })
 
     if (centros.length === 0) return
@@ -209,7 +229,7 @@ export const MapaCartagena: FC<Props> = ({
 
     // El zoom lo decide fitBounds/flyToBounds solo, según cuánto abarquen los barrios
     // destacados — un solo barrio se acerca, varios dispersos se alejan.
-    mapa.flyToBounds(limites, { padding: [70, 70], duration: 1.2, maxZoom: 16 })
+    volarABounds(mapa, limites, { padding: [70, 70], duration: 1.2, maxZoom: 16 })
   }, [])
 
   useEffect(() => {
