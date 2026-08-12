@@ -4,9 +4,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { FormularioReporte } from './FormularioReporte'
 
 const crearReporte = vi.fn()
+const agregarEvidenciaReporte = vi.fn()
 const obtenerHuellaDispositivo = vi.fn()
 
-vi.mock('../api/services', () => ({ crearReporte: (...args: unknown[]) => crearReporte(...args) }))
+vi.mock('../api/services', () => ({
+  crearReporte: (...args: unknown[]) => crearReporte(...args),
+  agregarEvidenciaReporte: (...args: unknown[]) => agregarEvidenciaReporte(...args),
+}))
 vi.mock('../utils/huellaDispositivo', () => ({
   obtenerHuellaDispositivo: () => obtenerHuellaDispositivo(),
 }))
@@ -29,6 +33,7 @@ function renderizar(onReporteEnviado = vi.fn()) {
 
 afterEach(() => {
   crearReporte.mockReset()
+  agregarEvidenciaReporte.mockReset()
   obtenerHuellaDispositivo.mockReset()
 })
 
@@ -47,6 +52,33 @@ describe('FormularioReporte', () => {
       huella: 'huella-sha256',
     }))
     await waitFor(() => expect(onReporteEnviado).toHaveBeenCalledOnce())
+  })
+
+  it('sube la foto adjunta después de crear el reporte', async () => {
+    crearReporte.mockResolvedValue({ id: 'reporte-1' })
+    agregarEvidenciaReporte.mockResolvedValue({ id: 'reporte-1', fotoUrl: '/fotos/evidencia.jpg' })
+    obtenerHuellaDispositivo.mockResolvedValue('huella-sha256')
+    const onReporteEnviado = renderizar()
+
+    const foto = new File(['contenido'], 'evidencia.jpg', { type: 'image/jpeg' })
+    fireEvent.change(screen.getByLabelText(/adjuntar una foto/i), { target: { files: [foto] } })
+    fireEvent.change(screen.getByLabelText(/selecciona tu barrio/i), { target: { value: 'manga' } })
+    fireEvent.click(screen.getByRole('button', { name: /no tengo agua/i }))
+
+    await waitFor(() => expect(agregarEvidenciaReporte).toHaveBeenCalledWith('reporte-1', foto))
+    await waitFor(() => expect(onReporteEnviado).toHaveBeenCalledOnce())
+    expect(onReporteEnviado.mock.calls[0][0]).toEqual(
+      expect.objectContaining({ id: 'reporte-1', fotoUrl: '/fotos/evidencia.jpg' }),
+    )
+  })
+
+  it('rechaza una foto que no sea JPG, PNG o WebP', () => {
+    renderizar()
+    const foto = new File(['contenido'], 'evidencia.gif', { type: 'image/gif' })
+
+    fireEvent.change(screen.getByLabelText(/adjuntar una foto/i), { target: { files: [foto] } })
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/jpg, png o webp/i)
   })
 
   it('no muestra éxito cuando el backend rechaza el reporte', async () => {

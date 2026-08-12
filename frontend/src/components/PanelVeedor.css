@@ -24,6 +24,13 @@
 .corte-oficial span { color: var(--color-acento); font-size: .72rem; font-weight: 750; text-transform: uppercase; }
 .reporte-pendiente small,
 .corte-oficial small { color: var(--color-tinta-2); font-size: .7rem; }
+.corte-oficial { flex-wrap: wrap; }
+.corte-oficial-detalle { flex-basis: 100%; margin-top: .65rem; padding-top: .65rem; border-top: 1px solid var(--color-linea); display: grid; gap: .5rem; }
+.corte-oficial-detalle dl { display: grid; grid-template-columns: auto 1fr; gap: .25rem .75rem; margin: 0; font-size: .78rem; }
+.corte-oficial-detalle dt { color: var(--color-tinta-2); font-weight: 600; }
+.corte-oficial-detalle dd { margin: 0; color: var(--color-tinta); }
+.corte-oficial-indice { display: flex; align-items: center; gap: .4rem; font-size: .78rem; color: var(--color-tinta); }
+.corte-oficial-indice svg { color: var(--color-acento); flex-shrink: 0; }
 .acciones-moderacion { display: flex; gap: .4rem; }
 .acciones-moderacion .boton { min-height: 38px; padding: .45rem .65rem; font-size: .72rem; }
 .acciones-moderacion .aprobar { color: var(--color-acento); background: var(--color-acento-suave); border: 1px solid color-mix(in srgb, var(--color-acento) 28%, transparent); }

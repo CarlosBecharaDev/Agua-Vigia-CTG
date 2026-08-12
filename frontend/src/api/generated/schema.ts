@@ -88,6 +88,62 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/reportes/{id}/foto": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Agregar evidencia a un reporte
+         * @description Permite subir una foto y asociarla a un reporte existente (M10).
+         */
+        post: operations["agregarEvidencia"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reportes/{id}/confirmar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirmar un reporte
+         * @description Permite a otro vecino confirmar un reporte ciudadano (M11).
+         */
+        post: operations["confirmar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/iot/presion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["reportarPresion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/veedor/reportes/{id}/descartar": {
         parameters: {
             query?: never;
@@ -122,6 +178,47 @@ export interface paths {
         patch: operations["aprobar"];
         trace?: never;
     };
+    "/api/veedor/ingesta/propuestas/{id}/descartar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Descartar una propuesta
+         * @description No toca el sector. La propuesta se archiva como descartada, no se borra.
+         */
+        patch: operations["descartar_1"];
+        trace?: never;
+    };
+    "/api/veedor/ingesta/propuestas/{id}/aprobar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Aprobar una propuesta
+         * @description Aplica el estado propuesto al sector y anexa el evento a la bitácora pública
+         *     (RF026). Es el único camino por el que la ingesta llega al mapa.
+         */
+        patch: operations["aprobar_1"];
+        trace?: never;
+    };
     "/api/veedor/cortes/{id}/cierre": {
         parameters: {
             query?: never;
@@ -146,8 +243,54 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Listar los reportes pendientes de moderación */
+        /**
+         * Listar los reportes pendientes de moderación, más antiguos primero
+         * @description Paginado, con el total y el enlace a la siguiente página en las cabeceras
+         *     `X-Total-Count` y `Link`. Por defecto 50; el máximo por página es 200.
+         */
         get: operations["listarPendientes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/veedor/ingesta/salud": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Salud de cada colector: última ejecución exitosa, ítems y tasa de error
+         * @description Lista vacía mientras el pipeline no haya corrido un ciclo. La telemetría vive en
+         *     memoria del proceso, así que un reinicio la reinicia.
+         */
+        get: operations["salud"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/veedor/ingesta/propuestas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar las propuestas pendientes de revisión, más recientes primero
+         * @description Paginado, con el total y el enlace a la siguiente página en las cabeceras
+         *     `X-Total-Count` y `Link`. Por defecto 50; el máximo por página es 200.
+         */
+        get: operations["listarPendientes_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -173,6 +316,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v2/requests.json": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar los sectores con el servicio afectado, en formato Open311
+         * @description Un `service_request` por sector que no está en CON_SERVICIO. Los sectores sin
+         *     estado verificado no aparecen: publicar "sin novedad" sin haberlo comprobado es
+         *     el falso positivo que ADR-014 evita.
+         */
+        get: operations["getRequests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/suscripciones/confirmar": {
         parameters: {
             query?: never;
@@ -184,7 +349,7 @@ export interface paths {
          * Confirmar la suscripción (doble opt-in)
          * @description Enlace del correo de confirmación. El token es de un solo enlace, no de un solo uso: confirmarla dos veces no falla (RF013).
          */
-        get: operations["confirmar"];
+        get: operations["confirmar_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -252,6 +417,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/sectores/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Suscribirse a cambios en vivo mediante SSE */
+        get: operations["streamSectores"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/estadisticas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtener estadísticas globales de la ciudad */
+        get: operations["globales"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/estadisticas/exportar.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Exportar las estadísticas en CSV (RF025)
+         * @description Separador `;` y BOM UTF-8, para que Excel en español lo abra sin romper las tildes.
+         */
+        get: operations["exportarCsv"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/cumplimiento": {
         parameters: {
             query?: never;
@@ -261,6 +480,49 @@ export interface paths {
         };
         /** Índice global de la ciudad, sobre todos los cortes cerrados */
         get: operations["global"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cumplimiento/serie": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Evolución del índice mes a mes (RF024)
+         * @description Un punto por mes con al menos un corte cerrado, en hora de Cartagena. Sin
+         *     `sectorId`, la ciudad completa. `desde` y `hasta` son opcionales y acotan por la
+         *     hora real de restablecimiento. Lista vacía si no hay cortes cerrados en el
+         *     rango — una serie sin datos es una respuesta válida.
+         */
+        get: operations["serie"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cumplimiento/serie.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * La misma serie en CSV (RF025)
+         * @description Separador `;` y BOM UTF-8, para que Excel en español la abra sin romper las tildes.
+         */
+        get: operations["serieCsv"];
         put?: never;
         post?: never;
         delete?: never;
@@ -310,7 +572,14 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Listar los eventos de la bitácora, más recientes primero */
+        /**
+         * Listar los eventos de la bitácora, más recientes primero
+         * @description Paginado: la bitácora es de solo anexado (RF028), así que crece sin cota.
+         *     El total, la página y el enlace a la siguiente viajan en las cabeceras
+         *     `X-Total-Count`, `X-Total-Pages`, `X-Page`, `X-Page-Size` y `Link` — el cuerpo
+         *     sigue siendo un arreglo JSON, así que un cliente que las ignore no se rompe.
+         *     Por defecto 50 eventos; el máximo por página es 200.
+         */
         get: operations["listar"];
         put?: never;
         post?: never;
@@ -431,6 +700,30 @@ export interface components {
             tipo?: string;
             /** Format: date-time */
             timestamp?: string;
+            fotoUrl?: string;
+            /** Format: int32 */
+            confirmaciones?: number;
+        };
+        /** @description Solicitud para confirmar un reporte ciudadano por otro vecino */
+        SolicitudConfirmar: {
+            /**
+             * @description Huella hash del dispositivo del usuario que confirma (ADR-007)
+             * @example 3a7b9c...
+             */
+            huella?: string;
+        };
+        IotCoordenada: {
+            /** Format: double */
+            lat?: number;
+            /** Format: double */
+            lon?: number;
+        };
+        IotPresionRequest: {
+            sensorId?: string;
+            sectorId?: string;
+            /** Format: double */
+            presionPsi?: number;
+            coordenada?: components["schemas"]["IotCoordenada"];
         };
         /** @description Reporte ciudadano en la cola de moderación del veedor (RF018) */
         ReporteModeracionRespuesta: {
@@ -443,10 +736,98 @@ export interface components {
             /** @description PENDIENTE, APROBADO o DESCARTADO */
             estadoModeracion?: string;
         };
+        /**
+         * @description Propuesta de cambio de estado detectada por la ingesta automatizada (M9), esperando la
+         *     revisión de un veedor. No afecta el mapa público hasta que se apruebe.
+         */
+        PropuestaIngestaRespuesta: {
+            id?: string;
+            sectorId?: string;
+            /** @description SIN_SERVICIO, PRESION_BAJA, CORTE_PROGRAMADO o CON_SERVICIO */
+            estadoPropuesto?: string;
+            /**
+             * @description Colector que la detectó
+             * @example acuacar
+             */
+            fuente?: string;
+            /** @description Enlace al boletín o nota de prensa original */
+            urlOriginal?: string | null;
+            /** @description Fragmento del que se dedujo el estado, para que el veedor pueda verificarlo */
+            citaTextual?: string;
+            /**
+             * Format: double
+             * @description Entre 0 y 1. La heurística por expresiones regulares emite 0.6 (ADR-025)
+             */
+            confianza?: number;
+            /** Format: date-time */
+            detectadaEn?: string;
+            /** @description PENDIENTE, APROBADA o DESCARTADA */
+            estadoRevision?: string;
+        };
         /** @description Cierre de un corte con la hora real de restablecimiento (RF017) */
         SolicitudCierreCorte: {
             /** Format: date-time */
             horaReal: string;
+        };
+        /** @description Estado de salud de un colector de la ingesta automatizada */
+        SaludColectorRespuesta: {
+            /** @example acuacar */
+            nombre?: string;
+            /**
+             * Format: date-time
+             * @description Nulo si el colector todavía no ha completado un ciclo con éxito
+             */
+            ultimaEjecucionExitosa?: string | null;
+            /**
+             * Format: date-time
+             * @description Nulo si nunca ha fallado
+             */
+            ultimoFallo?: string | null;
+            /** @description Mensaje del último fallo, para diagnosticar sin entrar al servidor */
+            motivoDelUltimoFallo?: string | null;
+            /**
+             * Format: int64
+             * @description Documentos traídos desde que arrancó el proceso
+             */
+            itemsProcesados?: number;
+            /**
+             * Format: double
+             * @description Entre 0 y 1, sobre los ciclos corridos desde que arrancó el proceso
+             */
+            tasaDeError?: number;
+            /**
+             * Format: int32
+             * @description Ciclos seguidos fallando. Desde 3, el colector se reporta caído en /actuator/health
+             */
+            fallosConsecutivos?: number;
+        };
+        /** @description service_request de Open311 GeoReport v2 */
+        Open311Response: {
+            service_request_id?: string;
+            /**
+             * @description open o closed
+             * @example open
+             */
+            status?: string;
+            /**
+             * @description Código del tipo de servicio
+             * @example AGUA-001
+             */
+            service_code?: string;
+            service_name?: string;
+            description?: string;
+            /** @description Nombre del barrio. La unidad geográfica es el sector, no un punto (ADR-026) */
+            address?: string;
+            /**
+             * Format: date-time
+             * @description Cuándo se registró el estado actual del sector
+             */
+            requested_datetime?: string | null;
+            /**
+             * Format: date-time
+             * @description Igual a requested_datetime: el estado del sector es su propia actualización
+             */
+            updated_datetime?: string | null;
         };
         /** @description Listado de sectores con la hora en que el servidor genero la respuesta */
         RespuestaSectores: {
@@ -482,6 +863,26 @@ export interface components {
              */
             actualizadoEn?: string | null;
         };
+        SseEmitter: {
+            /** Format: int64 */
+            timeout?: number;
+        };
+        /** @description Sector con su cantidad de cortes registrados */
+        EstadisticaSectorRespuesta: {
+            sectorId?: string;
+            nombre?: string;
+            /** Format: int32 */
+            cantidadCortes?: number;
+        };
+        /** @description Estadísticas públicas globales (M7, RF023) */
+        EstadisticasRespuesta: {
+            sectoresMasAfectados?: components["schemas"]["EstadisticaSectorRespuesta"][];
+            cortesPorDiaDeSemana?: {
+                [key: string]: number;
+            };
+            /** Format: double */
+            duracionPromedioHoras?: number;
+        };
         /**
          * @description Índice de Cumplimiento (RF020-RF022): comparación explícita entre duración prometida y
          *     real, nunca un porcentaje aislado.
@@ -503,6 +904,34 @@ export interface components {
              * @description Capado en 100 cuando el corte termina antes o a tiempo
              */
             porcentajeCumplimiento?: number;
+        };
+        /** @description Un mes de la evolución del Índice de Cumplimiento (RF024) */
+        PuntoSerieRespuesta: {
+            /**
+             * @description Mes en hora de Cartagena, ISO 8601
+             * @example 2026-08
+             */
+            periodo?: string;
+            /** Format: int64 */
+            duracionPrometidaSegundos?: number;
+            /** Format: int64 */
+            duracionRealSegundos?: number;
+            /**
+             * Format: int64
+             * @description duracionReal - duracionPrometida. Negativa si terminaron antes de lo prometido
+             */
+            desviacionSegundos?: number;
+            /**
+             * Format: double
+             * @description Capado en 100 cuando los cortes terminan antes o a tiempo
+             */
+            porcentajeCumplimiento?: number;
+            /**
+             * Format: int32
+             * @description Cortes cerrados sobre los que se calculó el mes. Un 40% sobre un solo corte y uno
+             *     sobre veinte no significan lo mismo.
+             */
+            cantidadCortes?: number;
         };
         /** @description Evento de la bitácora pública, de solo anexado (RF026-RF028) */
         EventoBitacoraRespuesta: {
@@ -698,6 +1127,121 @@ export interface operations {
             };
         };
     };
+    agregarEvidencia: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    foto: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Evidencia agregada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReporteRespuesta"];
+                };
+            };
+            /** @description Error en la solicitud */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReporteRespuesta"];
+                };
+            };
+            /** @description Reporte no encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReporteRespuesta"];
+                };
+            };
+        };
+    };
+    confirmar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitudConfirmar"];
+            };
+        };
+        responses: {
+            /** @description Reporte confirmado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReporteRespuesta"];
+                };
+            };
+            /** @description Error en la solicitud */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReporteRespuesta"];
+                };
+            };
+            /** @description Reporte no encontrado */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReporteRespuesta"];
+                };
+            };
+        };
+    };
+    reportarPresion: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-IoT-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IotPresionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     descartar: {
         parameters: {
             query?: never;
@@ -760,6 +1304,77 @@ export interface operations {
             };
         };
     };
+    descartar_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Propuesta descartada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PropuestaIngestaRespuesta"];
+                };
+            };
+            /** @description La propuesta no existe */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    aprobar_1: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Propuesta aprobada y estado aplicado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PropuestaIngestaRespuesta"];
+                };
+            };
+            /** @description La propuesta no existe */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+            /** @description El sector de la propuesta ya no existe */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
     cerrar: {
         parameters: {
             query?: never;
@@ -806,7 +1421,10 @@ export interface operations {
     };
     listarPendientes: {
         parameters: {
-            query?: never;
+            query?: {
+                pagina?: number;
+                tamano?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -820,6 +1438,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReporteModeracionRespuesta"][];
+                };
+            };
+        };
+    };
+    salud: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Estado generado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaludColectorRespuesta"][];
+                };
+            };
+            /** @description Falta el token del veedor */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SaludColectorRespuesta"][];
+                };
+            };
+        };
+    };
+    listarPendientes_1: {
+        parameters: {
+            query?: {
+                pagina?: number;
+                tamano?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Listado generado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PropuestaIngestaRespuesta"][];
                 };
             };
         };
@@ -855,7 +1525,27 @@ export interface operations {
             };
         };
     };
-    confirmar: {
+    getRequests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Listado generado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Open311Response"][];
+                };
+            };
+        };
+    };
+    confirmar_1: {
         parameters: {
             query: {
                 token: string;
@@ -968,6 +1658,68 @@ export interface operations {
             };
         };
     };
+    streamSectores: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": components["schemas"]["SseEmitter"];
+                    "application/json": components["schemas"]["SseEmitter"];
+                };
+            };
+        };
+    };
+    globales: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EstadisticasRespuesta"];
+                };
+            };
+        };
+    };
+    exportarCsv: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description CSV generado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                    "application/json": string;
+                };
+            };
+        };
+    };
     global: {
         parameters: {
             query?: never;
@@ -993,6 +1745,55 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    serie: {
+        parameters: {
+            query?: {
+                sectorId?: string;
+                desde?: string;
+                hasta?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Serie generada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PuntoSerieRespuesta"][];
+                };
+            };
+        };
+    };
+    serieCsv: {
+        parameters: {
+            query?: {
+                sectorId?: string;
+                desde?: string;
+                hasta?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description CSV generado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                    "application/json": string;
                 };
             };
         };
@@ -1070,7 +1871,10 @@ export interface operations {
     };
     listar: {
         parameters: {
-            query?: never;
+            query?: {
+                pagina?: number;
+                tamano?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;

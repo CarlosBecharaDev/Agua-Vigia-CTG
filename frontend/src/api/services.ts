@@ -11,6 +11,8 @@ export type SolicitudReporte = Required<Pick<SolicitudReporteApi, 'sectorId' | '
   Pick<SolicitudReporteApi, 'coordenada'>
 export type ReporteRespuesta = components['schemas']['ReporteRespuesta']
 export type TipoReporte = 'SIN_AGUA' | 'PRESION_BAJA' | 'SERVICIO_RESTABLECIDO'
+type SolicitudConfirmarApi = components['schemas']['SolicitudConfirmar']
+export type SolicitudConfirmar = Required<SolicitudConfirmarApi>
 type ReporteModeracionApi = components['schemas']['ReporteModeracionRespuesta']
 export type ReporteModeracion = Required<Pick<ReporteModeracionApi, 'id' | 'sectorId' | 'tipo' | 'timestamp' | 'estadoModeracion'>> &
   Pick<ReporteModeracionApi, 'coordenada'>
@@ -91,6 +93,14 @@ export async function obtenerSectores(): Promise<RespuestaSectoresSegura> {
   return validarRespuestaSectores(data)
 }
 
+/** Detalle de un sector — el enlace "ver mi sector" de los correos de aviso apunta aquí. */
+export async function obtenerSector(id: string): Promise<SectorSeguro> {
+  const { data } = await apiClient.get<SectorApi>(`/sectores/${encodeURIComponent(id)}`)
+  const sector = validarSector(data)
+  if (!sector) throw new Error('El servidor devolvió un sector inválido.')
+  return sector
+}
+
 export async function crearSuscripcion(datos: SolicitudSuscripcion): Promise<SuscripcionRespuesta> {
   const { data } = await apiClient.post<SuscripcionRespuesta>('/suscripciones', datos)
   return data
@@ -108,6 +118,24 @@ export async function registrarReporteCiudadano(sectorId: string, tipo: TipoRepo
     tipo,
     huella: await obtenerHuellaDispositivo(),
   })
+}
+
+/** Adjunta una foto de evidencia a un reporte ya creado (M10). */
+export async function agregarEvidenciaReporte(id: string, foto: File): Promise<ReporteRespuesta> {
+  const cuerpo = new FormData()
+  cuerpo.append('foto', foto)
+  const { data } = await apiClient.post<ReporteRespuesta>(`/reportes/${encodeURIComponent(id)}/foto`, cuerpo, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return data
+}
+
+/** Confirmación ciudadana de un reporte ajeno, con la propia huella anónima (M11, RF038). */
+export async function confirmarReporte(id: string): Promise<ReporteRespuesta> {
+  const { data } = await apiClient.post<ReporteRespuesta>(`/reportes/${encodeURIComponent(id)}/confirmar`, {
+    huella: await obtenerHuellaDispositivo(),
+  } satisfies SolicitudConfirmar)
+  return data
 }
 
 // --- Estadísticas (M7) ---
@@ -136,6 +164,13 @@ export async function moderarReporte(id: string, decision: 'aprobar' | 'descarta
 
 export async function listarCortesPorSector(sectorId: string): Promise<CorteOficial[]> {
   const { data } = await apiClient.get<CorteOficial[]>('/veedor/cortes', { params: { sectorId } })
+  return data
+}
+
+/** Detalle de un corte, con datos frescos del servidor (el listado ya trae casi todo, pero
+ *  esto garantiza la versión más reciente si otro veedor lo modificó mientras tanto). */
+export async function obtenerCorte(id: string): Promise<CorteOficial> {
+  const { data } = await apiClient.get<CorteOficial>(`/veedor/cortes/${encodeURIComponent(id)}`)
   return data
 }
 
@@ -180,10 +215,32 @@ export async function obtenerIndiceCumplimientoGlobal(): Promise<IndiceCumplimie
   return data
 }
 
+/** Índice de un corte puntual — solo tiene sentido una vez cerrado (409 si sigue abierto). */
+export async function obtenerIndiceCumplimientoPorCorte(corteId: string): Promise<IndiceCumplimiento> {
+  const { data } = await apiClient.get<IndiceCumplimiento>(`/cumplimiento/cortes/${encodeURIComponent(corteId)}`)
+  return data
+}
+
 export async function obtenerSerieCumplimiento(sectorId?: string): Promise<PuntoSerieCumplimiento[]> {
   const { data } = await apiClient.get<PuntoSerieCumplimiento[]>('/cumplimiento/serie', { params: sectorId ? { sectorId } : undefined })
   if (!Array.isArray(data)) throw new Error('El servidor devolvió una serie de cumplimiento inválida.')
   return data
+}
+
+/** Índice agregado de un sector sobre sus cortes cerrados. 400 si todavía no tiene ninguno (RF022). */
+export async function obtenerIndiceCumplimientoPorSector(sectorId: string): Promise<IndiceCumplimiento> {
+  const { data } = await apiClient.get<IndiceCumplimiento>(`/cumplimiento/sectores/${encodeURIComponent(sectorId)}`)
+  return data
+}
+
+/** URL absoluta de descarga — se usan en un <a href download>, no por axios (RF025). */
+export function urlExportarEstadisticasCsv(): string {
+  return `${apiClient.defaults.baseURL}/estadisticas/exportar.csv`
+}
+
+export function urlExportarCumplimientoCsv(sectorId?: string): string {
+  const base = `${apiClient.defaults.baseURL}/cumplimiento/serie.csv`
+  return sectorId ? `${base}?sectorId=${encodeURIComponent(sectorId)}` : base
 }
 
 // --- Cola de revisión de la ingesta automatizada (M9, ADR-028) ---

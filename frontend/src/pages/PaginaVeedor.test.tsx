@@ -9,6 +9,7 @@ const api = vi.hoisted(() => ({
   listarReportesPendientes: vi.fn(),
   obtenerSectores: vi.fn(),
   listarCortesPorSector: vi.fn(),
+  obtenerCorte: vi.fn(),
   moderarReporte: vi.fn(),
   crearCorteOficial: vi.fn(),
   cerrarCorteOficial: vi.fn(),
@@ -16,6 +17,7 @@ const api = vi.hoisted(() => ({
   aprobarPropuestaIngesta: vi.fn(),
   descartarPropuestaIngesta: vi.fn(),
   obtenerSaludIngesta: vi.fn(),
+  obtenerIndiceCumplimientoPorCorte: vi.fn(),
 }))
 
 vi.mock('../api/services', () => ({
@@ -85,6 +87,29 @@ describe('PaginaVeedor', () => {
       finPrometido: expect.any(String),
       causa: 'Mantenimiento preventivo',
     }))
+  })
+
+  it('muestra el detalle y el índice de cumplimiento de un corte cerrado', async () => {
+    sessionStorage.setItem('aguavigia_veedor_token', 'token-prueba')
+    api.listarReportesPendientes.mockResolvedValue([])
+    api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [{ id: 'manga', nombre: 'MANGA', estado: null, actualizadoEn: null }] })
+    api.listarCortesPorSector.mockResolvedValue([{ id: 'c1', causa: 'Mantenimiento', estado: 'CERRADO', finPrometido: '2026-08-09T12:00:00Z' }])
+    api.obtenerCorte.mockResolvedValue({
+      id: 'c1', causa: 'Mantenimiento', estado: 'CERRADO', origen: 'VEEDOR',
+      inicio: '2026-08-09T10:00:00Z', finPrometido: '2026-08-09T12:00:00Z', finReal: '2026-08-09T13:00:00Z',
+    })
+    api.obtenerIndiceCumplimientoPorCorte.mockResolvedValue({
+      sectorId: null, duracionPrometidaSegundos: 7200, duracionRealSegundos: 10800, desviacionSegundos: 3600, porcentajeCumplimiento: 66.7,
+    })
+    renderizar()
+
+    await screen.findByRole('option', { name: 'MANGA' })
+    fireEvent.change(screen.getByLabelText(/consultar barrio/i), { target: { value: 'manga' } })
+    fireEvent.click(await screen.findByRole('button', { name: /ver detalle del corte/i }))
+
+    await waitFor(() => expect(api.obtenerCorte).toHaveBeenCalledWith('c1'))
+    await waitFor(() => expect(api.obtenerIndiceCumplimientoPorCorte).toHaveBeenCalledWith('c1'))
+    expect(await screen.findByText(/67%/)).toBeInTheDocument()
   })
 
   it('explica un 503 sin simular el ingreso', async () => {

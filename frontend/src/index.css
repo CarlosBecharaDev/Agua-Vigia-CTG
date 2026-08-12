@@ -2159,7 +2159,18 @@ select {
 .compartir-ubicacion input { accent-color: var(--color-acento); }
 .compartir-ubicacion svg { width: 19px; color: var(--color-acento); }
 .compartir-ubicacion span { display: grid; }
+.adjuntar-foto { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: .55rem; padding: .75rem; background: var(--color-fondo); border: 1px solid var(--color-linea); border-radius: 12px; cursor: pointer; }
+.adjuntar-foto input { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.adjuntar-foto svg { width: 19px; color: var(--color-acento); }
+.adjuntar-foto span { display: grid; }
+.adjuntar-foto small { color: var(--color-tinta-2); font-size: .72rem; font-weight: 500; line-height: 1.35; word-break: break-all; }
 .privacidad-reporte { padding-top: .8rem; color: var(--color-tinta-3); border-top: 1px solid var(--color-linea); font-size: .75rem; }
+
+.enlace-confirmar-reporte { text-align: left; background: var(--color-fondo); border: 1px solid var(--color-linea); border-radius: var(--radio-base); padding: 1rem; margin: 1.5rem 0; }
+.enlace-confirmar-reporte p { color: var(--color-tinta); font-size: .85rem; font-weight: 600; margin: 0 0 .4rem; }
+.enlace-confirmar-reporte-fila { display: flex; gap: .5rem; align-items: center; }
+.enlace-confirmar-reporte-fila small { color: var(--color-tinta-2); font-size: .75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.enlace-confirmar-reporte-fila button { background: var(--color-superficie); border: 1px solid var(--color-linea); border-radius: 8px; padding: .4rem; cursor: pointer; display: flex; color: var(--color-tinta); }
 
 @media (prefers-reduced-motion: reduce) {
   .app-sidebar,

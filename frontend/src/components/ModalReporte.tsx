@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import type { FC } from 'react'
 import { FormularioReporte } from './FormularioReporte'
+import { EnlaceConfirmarReporte } from './EnlaceConfirmarReporte'
 import { X, CheckCircle } from 'lucide-react'
 import type { Sector } from '../types/tipos-dominio'
+import type { ReporteRespuesta } from '../api/services'
 
 interface Props {
   abierto: boolean
@@ -12,12 +14,10 @@ interface Props {
 }
 
 export const ModalReporte: FC<Props> = ({ abierto, alCerrar, sectores, sectorPreseleccionado }) => {
-  const [reporteExitoso, setReporteExitoso] = useState(false)
+  const [reporteExitoso, setReporteExitoso] = useState<ReporteRespuesta | null>(null)
 
   useEffect(() => {
-    if (abierto) {
-      setReporteExitoso(false)
-    }
+    if (abierto) setReporteExitoso(null)
   }, [abierto])
 
   if (!abierto) return null
@@ -90,9 +90,12 @@ export const ModalReporte: FC<Props> = ({ abierto, alCerrar, sectores, sectorPre
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', color: 'var(--color-tinta)', marginBottom: '1rem', fontWeight: '800' }}>
               ¡Reporte Recibido!
             </h2>
-            <p style={{ color: 'var(--color-tinta-2)', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '2rem' }}>
+            <p style={{ color: 'var(--color-tinta-2)', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '1.5rem' }}>
               Gracias por ser un AguaVigía. Tu reporte ha sido registrado y ya forma parte del consenso de la ciudad para ayudar a tus vecinos.
             </p>
+
+            {reporteExitoso?.id && <EnlaceConfirmarReporte reporteId={reporteExitoso.id} />}
+
             <button
               onClick={alCerrar}
               className="hover-glowing"
@@ -123,7 +126,7 @@ export const ModalReporte: FC<Props> = ({ abierto, alCerrar, sectores, sectorPre
             <FormularioReporte
               sectores={sectores}
               sectorPreseleccionado={sectorPreseleccionado}
-              onReporteEnviado={() => setReporteExitoso(true)}
+              onReporteEnviado={(reporte) => setReporteExitoso(reporte)}
             />
 
             <p style={{ color: 'var(--color-tinta-3)', fontSize: '0.75rem', marginTop: '2.5rem', textAlign: 'center' }}>

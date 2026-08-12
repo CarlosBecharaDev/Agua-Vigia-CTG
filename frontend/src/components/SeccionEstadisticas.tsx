@@ -27,8 +27,8 @@ import {
   Cell,
 } from 'recharts'
 
-import { AlertTriangle, CalendarDays, Clock, Scale } from 'lucide-react'
-import { obtenerEstadisticas, obtenerIndiceCumplimientoGlobal } from '../api/services'
+import { AlertTriangle, CalendarDays, Clock, Download, Scale } from 'lucide-react'
+import { obtenerEstadisticas, obtenerIndiceCumplimientoGlobal, urlExportarCumplimientoCsv, urlExportarEstadisticasCsv } from '../api/services'
 import type { EstadisticasGlobales, IndiceCumplimiento } from '../api/services'
 import { normalizarErrorApi } from '../api/client'
 
@@ -176,27 +176,40 @@ export const SeccionEstadisticas: FC = () => {
           </p>
         </div>
 
-        {/* Indicador de fuente de datos */}
-        <div
-          role="note"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            backgroundColor: 'var(--color-superficie)',
-            padding: '0.3rem 0.85rem',
-            borderRadius: 'var(--radio-pill)',
-            border: '1px solid var(--color-linea)',
-            fontSize: '0.75rem',
-            marginBottom: '2rem',
-          }}
-        >
-          <span style={{
-            width: '8px', height: '8px', borderRadius: '50%',
-            backgroundColor: error ? 'var(--color-estado-baja)' : 'var(--color-estado-con)',
-            display: 'inline-block'
-          }}></span>
-          {cargando ? 'Cargando estadísticas…' : error ? `Sin conexión — ${error}` : 'Datos en vivo desde el backend'}
+        {/* Indicador de fuente de datos + exportación (RF025) */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
+          <div
+            role="note"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              backgroundColor: 'var(--color-superficie)',
+              padding: '0.3rem 0.85rem',
+              borderRadius: 'var(--radio-pill)',
+              border: '1px solid var(--color-linea)',
+              fontSize: '0.75rem',
+            }}
+          >
+            <span style={{
+              width: '8px', height: '8px', borderRadius: '50%',
+              backgroundColor: error ? 'var(--color-estado-baja)' : 'var(--color-estado-con)',
+              display: 'inline-block'
+            }}></span>
+            {cargando ? 'Cargando estadísticas…' : error ? `Sin conexión — ${error}` : 'Datos en vivo desde el backend'}
+          </div>
+          <a
+            href={urlExportarEstadisticasCsv()}
+            download
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+              padding: '0.3rem 0.85rem', borderRadius: 'var(--radio-pill)',
+              border: '1px solid var(--color-linea)', color: 'var(--color-tinta-2)',
+              fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none',
+            }}
+          >
+            <Download size={13} /> Exportar CSV
+          </a>
         </div>
 
         {/* ════════════════════════════════════════════════════════════
@@ -282,14 +295,28 @@ export const SeccionEstadisticas: FC = () => {
             borderRadius: '2rem',
             marginBottom: '3rem',
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '1.5rem' }}>
-              <Scale size={20} color="var(--color-acento)" aria-hidden="true" />
-              <div>
-                <h2 style={{ fontSize: '1.25rem', marginBottom: '0.2rem', color: 'var(--color-tinta)', fontWeight: '700', letterSpacing: '-0.3px' }}>Índice de Cumplimiento</h2>
-                <p style={{ color: 'var(--color-tinta-2)', fontSize: '0.85rem' }}>
-                  Duración prometida contra duración real, sobre todos los cortes oficiales cerrados de la ciudad.
-                </p>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.65rem', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <Scale size={20} color="var(--color-acento)" aria-hidden="true" />
+                <div>
+                  <h2 style={{ fontSize: '1.25rem', marginBottom: '0.2rem', color: 'var(--color-tinta)', fontWeight: '700', letterSpacing: '-0.3px' }}>Índice de Cumplimiento</h2>
+                  <p style={{ color: 'var(--color-tinta-2)', fontSize: '0.85rem' }}>
+                    Duración prometida contra duración real, sobre todos los cortes oficiales cerrados de la ciudad.
+                  </p>
+                </div>
               </div>
+              <a
+                href={urlExportarCumplimientoCsv()}
+                download
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.35rem', flexShrink: 0,
+                  padding: '0.3rem 0.7rem', borderRadius: 'var(--radio-pill)',
+                  border: '1px solid var(--color-linea)', color: 'var(--color-tinta-2)',
+                  fontSize: '0.72rem', fontWeight: 600, textDecoration: 'none',
+                }}
+              >
+                <Download size={12} /> CSV
+              </a>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1.5rem', alignItems: 'end' }}>

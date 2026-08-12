@@ -16,6 +16,8 @@ import { SplashScreen } from './components/SplashScreen'
 // Cada vista carga solo cuando se visita, especialmente útil en conexiones móviles.
 const PaginaMapa = lazy(() => import('./pages/PaginaMapa'))
 const PaginaReportar = lazy(() => import('./pages/PaginaReportar'))
+const PaginaConfirmarReporte = lazy(() => import('./pages/PaginaConfirmarReporte'))
+const PaginaSector = lazy(() => import('./pages/PaginaSector'))
 const PaginaVeedor = lazy(() => import('./pages/PaginaVeedor'))
 const PaginaNoEncontrada = lazy(() => import('./pages/PaginaNoEncontrada'))
 
@@ -86,6 +88,8 @@ function ContenidoApp() {
             <div className="app-main">
               <Routes>
                 <Route path="/reportar" element={<PaginaReportar />} />
+                <Route path="/confirmar/:id" element={<PaginaConfirmarReporte />} />
+                <Route path="/sectores/:id" element={<PaginaSector />} />
                 <Route path="/veedor" element={<PaginaVeedor />} />
                 <Route path="*" element={<PaginaNoEncontrada />} />
               </Routes>

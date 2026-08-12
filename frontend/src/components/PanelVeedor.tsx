@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Activity, Check, ClipboardCheck, Droplets, LogOut, Plus, Radar, RefreshCw, X } from 'lucide-react'
+import { Activity, Check, ChevronDown, ChevronUp, ClipboardCheck, Droplets, LogOut, Plus, Radar, RefreshCw, Scale, X } from 'lucide-react'
 import {
   aprobarPropuestaIngesta,
   cerrarCorteOficial,
@@ -11,6 +11,8 @@ import {
   listarPropuestasIngesta,
   listarReportesPendientes,
   moderarReporte,
+  obtenerCorte,
+  obtenerIndiceCumplimientoPorCorte,
   obtenerSaludIngesta,
   obtenerSectores,
 } from '../api/services'
@@ -30,6 +32,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
   const [inicio, setInicio] = useState('')
   const [finPrometido, setFinPrometido] = useState('')
   const [causa, setCausa] = useState('')
+  const [corteExpandidoId, setCorteExpandidoId] = useState<string | null>(null)
 
   const reportes = useQuery({ queryKey: ['veedor', 'reportes', 'pendientes'], queryFn: listarReportesPendientes })
   const propuestas = useQuery({ queryKey: ['veedor', 'ingesta', 'propuestas'], queryFn: listarPropuestasIngesta })
@@ -39,6 +42,17 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
     queryKey: ['veedor', 'cortes', sectorFiltro],
     queryFn: () => listarCortesPorSector(sectorFiltro),
     enabled: Boolean(sectorFiltro),
+  })
+  const corteExpandidoEnLista = cortes.data?.find((corte) => corte.id === corteExpandidoId)
+  const detalleCorte = useQuery({
+    queryKey: ['veedor', 'cortes', 'detalle', corteExpandidoId],
+    queryFn: () => obtenerCorte(corteExpandidoId!),
+    enabled: Boolean(corteExpandidoId),
+  })
+  const indiceCorte = useQuery({
+    queryKey: ['cumplimiento', 'corte', corteExpandidoId],
+    queryFn: () => obtenerIndiceCumplimientoPorCorte(corteExpandidoId!),
+    enabled: Boolean(corteExpandidoId) && corteExpandidoEnLista?.estado === 'CERRADO',
   })
 
   const moderar = useMutation({
@@ -114,8 +128,51 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
           <div className="lista-cortes">
             {cortes.data?.map((corte) => (
               <article key={corte.id} className="corte-oficial">
-                <div><strong>{corte.causa}</strong><span>{corte.estado}</span><small>Prometido: {corte.finPrometido ? new Date(corte.finPrometido).toLocaleString('es-CO') : 'Sin fecha'}</small></div>
-                {corte.estado !== 'CERRADO' && corte.id && <button type="button" className="boton boton-secundario" disabled={cerrarCorte.isPending} onClick={() => cerrarCorte.mutate(corte.id!)}>Marcar restablecido</button>}
+                <div>
+                  <strong>{corte.causa}</strong><span>{corte.estado}</span>
+                  <small>Prometido: {corte.finPrometido ? new Date(corte.finPrometido).toLocaleString('es-CO') : 'Sin fecha'}</small>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {corte.estado !== 'CERRADO' && corte.id && <button type="button" className="boton boton-secundario" disabled={cerrarCorte.isPending} onClick={() => cerrarCorte.mutate(corte.id!)}>Marcar restablecido</button>}
+                  {corte.id && (
+                    <button
+                      type="button"
+                      className="boton-icono"
+                      aria-label={corteExpandidoId === corte.id ? 'Ocultar detalle del corte' : 'Ver detalle del corte'}
+                      onClick={() => setCorteExpandidoId((actual) => actual === corte.id ? null : corte.id!)}
+                    >
+                      {corteExpandidoId === corte.id ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
+                    </button>
+                  )}
+                </div>
+                {corteExpandidoId === corte.id && (
+                  <div className="corte-oficial-detalle">
+                    {detalleCorte.isPending && <p role="status">Cargando detalle…</p>}
+                    {detalleCorte.error && <p className="mensaje-error" role="alert">{normalizarErrorApi(detalleCorte.error).detalle}</p>}
+                    {detalleCorte.data && (
+                      <dl>
+                        <dt>Inicio</dt><dd>{detalleCorte.data.inicio ? new Date(detalleCorte.data.inicio).toLocaleString('es-CO') : '—'}</dd>
+                        <dt>Fin prometido</dt><dd>{detalleCorte.data.finPrometido ? new Date(detalleCorte.data.finPrometido).toLocaleString('es-CO') : '—'}</dd>
+                        <dt>Hora real</dt><dd>{detalleCorte.data.finReal ? new Date(detalleCorte.data.finReal).toLocaleString('es-CO') : 'Aún no se restablece'}</dd>
+                        <dt>Origen</dt><dd>{detalleCorte.data.origen ?? '—'}</dd>
+                      </dl>
+                    )}
+                    {corte.estado === 'CERRADO' && (
+                      <div className="corte-oficial-indice">
+                        <Scale size={14} aria-hidden="true" />
+                        {indiceCorte.isPending && <span>Calculando índice de cumplimiento…</span>}
+                        {indiceCorte.error && <span className="mensaje-error">{normalizarErrorApi(indiceCorte.error).detalle}</span>}
+                        {indiceCorte.data && (
+                          <span>
+                            Cumplimiento: <strong>{indiceCorte.data.porcentajeCumplimiento.toFixed(0)}%</strong>
+                            {' '}({(indiceCorte.data.duracionPrometidaSegundos / 3600).toFixed(1)} h prometidas vs.{' '}
+                            {(indiceCorte.data.duracionRealSegundos / 3600).toFixed(1)} h reales)
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </article>
             ))}
           </div>
