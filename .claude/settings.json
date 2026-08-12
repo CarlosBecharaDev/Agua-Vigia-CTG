@@ -1,0 +1,84 @@
+{
+  "$comment": [
+    "Configuracion compartida de Claude Code para AguaVigia CTG. SI se versiona.",
+    "Los permisos de 'allow' evitan que el agente pida confirmacion en operaciones",
+    "de solo lectura o inofensivas. Todo lo destructivo queda fuera a proposito."
+  ],
+
+  "$comment_autoria": [
+    "includeCoAuthoredBy en false: el agente NO se firma como coautor en los commits",
+    "ni en los Pull Requests. La autoria del repositorio es de las 5 personas del equipo,",
+    "que son quienes responden por el proyecto ante el docente y en la sustentacion.",
+    "La IA es una herramienta y se documenta como tal en el informe (Capitulo III),",
+    "no como integrante. Ver CLAUDE.md, seccion Convenciones de Git."
+  ],
+  "includeCoAuthoredBy": false,
+
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Glob(**)",
+      "Grep(**)",
+
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch)",
+      "Bash(git show:*)",
+
+      "Bash(gh pr review:*)",
+      "Bash(gh pr merge:*)",
+
+      "Bash(./mvnw test:*)",
+      "Bash(./mvnw verify:*)",
+      "Bash(./mvnw compile:*)",
+
+      "Bash(npm run test:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run build:*)",
+
+      "Bash(docker compose ps)",
+      "Bash(docker compose logs:*)",
+
+      "WebFetch(domain:acuacar.com)",
+      "WebFetch(domain:www.acuacar.com)",
+      "WebFetch(domain:news.google.com)",
+      "WebFetch(domain:zonacero.com)",
+      "WebFetch(domain:platform.claude.com)",
+      "WebFetch(domain:docs.spring.io)"
+    ],
+
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(**/credentials.json)",
+      "Read(**/*secret*)",
+
+      "Bash(git reset --hard:*)",
+      "Bash(git clean:*)",
+      "Bash(rm -rf:*)",
+      "Bash(docker compose down -v:*)",
+
+      "WebFetch(domain:eluniversal.com.co)",
+      "WebFetch(domain:www.eluniversal.com.co)",
+      "WebFetch(domain:eltiempo.com)",
+      "WebFetch(domain:www.eltiempo.com)",
+      "WebFetch(domain:elheraldo.co)",
+      "WebFetch(domain:www.elheraldo.co)",
+      "WebFetch(domain:bluradio.com)",
+      "WebFetch(domain:www.bluradio.com)",
+      "WebFetch(domain:facebook.com)",
+      "WebFetch(domain:instagram.com)",
+      "WebFetch(domain:x.com)",
+      "WebFetch(domain:twitter.com)"
+    ]
+  },
+
+  "$comment_deny": [
+    "Los dominios de medios en 'deny' NO son un capricho: esos sitios bloquean",
+    "explicitamente a anthropic-ai / Claude-Web / GPTBot en su robots.txt.",
+    "Bloquearlos aqui hace que la regla etica del proyecto sea imposible de violar",
+    "por accidente, en vez de depender de que alguien la recuerde.",
+    "Ver docs/ingenieria/auditoria-fuentes-de-datos.md"
+  ]
+}
