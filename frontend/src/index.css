@@ -477,27 +477,41 @@ p { max-width: 65ch; }
 
 @keyframes panel-contextual-entrada { from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none} }
 
-/* ─── Modo claro forzado por interruptor ─── */
+/* ─── Modo claro forzado por interruptor — la carta impresa ───────────────
+   Repite los valores del :root de arriba en vez de heredarlos porque este
+   selector tiene más especificidad que `:root` a secas y, si no, ganaba: con
+   la paleta anterior (verde agua sobre blanco) el interruptor de tema dejaba
+   el producto a medio camino entre dos sistemas — el mapa cambiaba a tiles
+   claros y la interfaz se quedaba con los colores del otro tema. */
 :root[data-theme="light"] {
-  --color-acento:        #087f8c;
-  --color-acento-vivo:   #0a9cab;
-  --color-acento-suave:  #d9f1f0;
-
-  --color-tinta:         #12333d;
-  --color-tinta-2:       #5d7379;
-  --color-tinta-3:       #8da0a4;
-  --color-marino:        #061b22;
-
-  --color-linea:         #dce8e8;
-  --color-superficie:    #ffffff;
-  --color-fondo:         #f3f8f7;
-
-  --color-estado-con:    #34c759;
-  --color-estado-sin:    #ff3b30;
-  --color-estado-baja:   #ff9500;
-  --color-estado-prog:   #8e8e93;
-
   color-scheme: light;
+  --color-fondo: #EDE7D8;
+  --color-fondo-profundo: #E3DCC9;
+  --color-superficie: #F6F2E6;
+  --color-superficie-2: #EFEADB;
+  --color-superficie-3: #E6DFCC;
+  --color-elevado: #FCFAF3;
+  --color-linea: #CFC5AB;
+  --color-linea-fuerte: #B3A688;
+  --color-tinta: #10242E;
+  --color-tinta-2: #4A5D66;
+  --color-tinta-3: #6E7F87;
+  --color-marino: #0B1F2A;
+  --color-acento: #14657A;
+  --color-acento-vivo: #17798F;
+  --color-acento-suave: #D7E6E9;
+  --color-coral: #C3306A;
+  --color-coral-hover: #A82459;
+  --color-estado-con: #1C7A52;
+  --color-estado-sin: #B3352A;
+  --color-estado-baja: #99690E;
+  --color-estado-prog: #2A628F;
+  --carta-magenta: #C3306A;
+  --carta-magenta-tenue: #F2DCE5;
+  --carta-boya: #14657A;
+  --carta-sin-sondar: #8A9AA2;
+  --carta-trama: rgba(16, 36, 46, .13);
+  --carta-retícula: rgba(16, 36, 46, .07);
 }
 
 /* ─── Reset y base global ─── */
@@ -2634,55 +2648,39 @@ select {
   .navbar-superior { gap: 1rem; padding: 0 .85rem; }
 }
 
-/* Recuadro unificado: mapa + panel de sectores comparten un solo marco (un borde, una
-   sombra, unas esquinas) — no dos piezas flotando por separado con un hueco entre ellas.
-   Vive anclado bajo el navbar, con el GradientWaves visible alrededor y detrás. Esquinas
-   redondeadas a propósito, no el --radio-lg estándar de las tarjetas: aquí el marco es
-   parte del gesto visual del hero. */
+/* Lámina de la carta: el mapa y el cuaderno de sondas comparten un solo marco
+   —un borde, una sombra, unas esquinas—, no dos piezas flotando con un hueco
+   entre ellas. */
 .panel-mapa-unificado {
   position: absolute;
-  top: 7.25rem;
-  /* Mismo margen que el navbar (left/right: .6rem) para que el borde derecho del recuadro
-     quede a plomo con el de la barra. */
-  right: 0.6rem;
-  bottom: 2.5rem;
+  top: 4.25rem;
+  right: 0.75rem;
+  bottom: 0.75rem;
   display: flex;
-  /* Sin "left": el ancho lo dan sus hijos (mapa + panel), no el viewport — el mapa
-     conserva la misma proporción que tenía antes de unir las dos piezas. Anclado a la
-     derecha, el GradientWaves queda abierto del lado izquierdo. */
+  /* Sin "left": el ancho lo dan sus hijos (mapa + columna), no el viewport. */
   width: fit-content;
-  /* Ancho de la columna, en una variable: la usan tanto .hoja-sectores (su flex-basis)
-     como .boton-colapsar-panel (para saber dónde flotar) — un solo número, no dos. */
+  /* Ancho de la columna en una variable: la usan .hoja-sectores (su flex-basis)
+     y .boton-colapsar-panel (para saber dónde flotar). Un solo número. */
   --ancho-hoja-sectores: 300px;
-  border-radius: 28px;
+  border: 1px solid var(--color-linea);
+  /* Esquinas casi rectas: una lámina impresa, no una tarjeta de aplicación.
+     Antes eran 28px, heredados de cuando el recuadro flotaba sobre el shader. */
+  border-radius: 3px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 24px 60px -20px rgba(2, 15, 26, 0.6);
-
-  /* Isla oscura: aquí adentro los tokens de tema se fijan a su variante oscura, pase lo
-     que pase afuera. Este recuadro vive sobre el hero (negro en ambos temas) y sus teselas
-     de mapa también son oscuras siempre, así que con el tema claro el texto salía en tinta
-     #12333d sobre vidrio oscuro — ilegible. Redefinirlos acá lo arregla de una vez para
-     todos los descendientes (título, buscador, ficha de sector, tarjetas de estado) sin
-     tener que pintar cada regla a mano. */
-  --color-tinta: #edf8f7;
-  --color-tinta-2: #a7bdbd;
-  --color-tinta-3: #71898c;
-  --color-acento: #54c6ca;
-  --color-acento-vivo: #78d9db;
-  --color-acento-suave: #153f44;
-  --color-linea: rgba(255, 255, 255, 0.12);
-  --color-superficie: rgba(255, 255, 255, 0.06);
-  --color-fondo: rgba(255, 255, 255, 0.04);
-  --glass-r: 28;
-  --glass-g: 28;
-  --glass-b: 30;
-  --color-estado-con: #30d158;
-  --color-estado-sin: #ff453a;
-  --color-estado-baja: #ff9f0a;
-  --color-estado-prog: #98989d;
-  color-scheme: dark;
+  background: var(--color-fondo);
+  box-shadow: var(--sombra-elevada);
 }
+
+/* Aquí vivía una "isla oscura" que fijaba todos los tokens de tema a su
+   variante oscura pasara lo que pasara afuera. Tenía sentido cuando el
+   recuadro flotaba sobre un hero negro en ambos temas: sin ella, el tema
+   claro pintaba tinta oscura sobre vidrio oscuro.
+
+   Al desaparecer ese hero dejó de tener sentido y pasó a ser el problema:
+   con el tema claro el mapa cambiaba a teselas claras y la cartela y la
+   barra se volvían de papel, pero todo lo de dentro de este recuadro seguía
+   en la paleta de noche. El interruptor de tema dejaba el producto partido
+   por la mitad. Ahora hereda el tema como cualquier otra superficie. */
 
 .mapa-lienzo-completo {
   position: relative;
@@ -2960,10 +2958,12 @@ select {
   .cartela { animation: none; }
 }
 
-/* ── Panel de sectores (resumen + lista accesible) — columna interna del recuadro único ── */
-/* Mismo vidrio líquido oscuro del navbar, no `.panel-glass`: esa clase invierte con el
-   tema (blanca en claro) y aquí vive sobre el hero, que es oscuro siempre. El marco y las
-   esquinas los pone .panel-mapa-unificado, así que este hijo va sin borde ni sombra. */
+/* ── Cuaderno de sondas: columna de lecturas, dentro de la lámina ─────────
+   Superficie opaca con tokens de tema, no el vidrio líquido oscuro de antes.
+   Aquel degradado translúcido estaba fijado en negro porque la columna vivía
+   sobre el hero: con la carta impresa dejaba los rótulos en gris tenue sobre
+   gris, ilegibles. Una columna de datos que hay que poder leer de un vistazo
+   no es sitio para transparencias. */
 .hoja-sectores {
   flex: 0 0 var(--ancho-hoja-sectores, 300px);
   /* Constante en los dos estados a propósito — ver por qué en el modificador --colapsado
@@ -2972,16 +2972,9 @@ select {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: linear-gradient(
-    155deg,
-    rgba(26, 26, 34, 0.62) 0%,
-    rgba(12, 12, 17, 0.48) 100%
-  );
-  backdrop-filter: blur(20px) saturate(175%);
-  -webkit-backdrop-filter: blur(20px) saturate(175%);
-  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--color-superficie);
+  border-left: 1px solid var(--color-linea);
   border-radius: 0;
-  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.06);
   transition: flex-basis 460ms cubic-bezier(0.16, 1, 0.3, 1), opacity 260ms ease,
     border-color 300ms ease;
 }
