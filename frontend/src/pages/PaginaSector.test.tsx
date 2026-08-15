@@ -25,13 +25,16 @@ describe('PaginaSector', () => {
 
     expect(await screen.findByRole('heading', { name: 'MANGA' })).toBeInTheDocument()
     expect(obtenerSector).toHaveBeenCalledWith('manga')
-    expect(screen.getByRole('link', { name: /reportar algo en este sector/i })).toHaveAttribute('href', '/reportar?sector=manga')
+    // La copia dice "barrio" y no "sector": "sector" es el nombre de la entidad en la API,
+    // pero en pantalla el producto le habla al vecino en su idioma y ya usaba "barrio" en
+    // /reportar y en la cartela del mapa. El destino del enlace no cambió.
+    expect(screen.getByRole('link', { name: /reportar el estado de este barrio/i })).toHaveAttribute('href', '/reportar?sector=manga')
   })
 
   it('muestra un mensaje claro cuando el sector no existe', async () => {
     obtenerSector.mockRejectedValue({ isAxiosError: true, response: { status: 404, data: { detail: "No existe el sector 'no-existe'" } } })
     renderizar('no-existe')
 
-    expect(await screen.findByRole('heading', { name: /no encontramos este sector/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /no encontramos este barrio/i })).toBeInTheDocument()
   })
 })

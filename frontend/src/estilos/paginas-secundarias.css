@@ -1,0 +1,433 @@
+/**
+ * paginas-secundarias.css — estilos de las pantallas que no son la carta principal:
+ * reportar, ficha de sector, confirmar reporte y página no encontrada.
+ *
+ * Vive aparte de index.css para que estas pantallas se puedan trabajar sin pelearse con
+ * el sistema base. Todo lo de aquí se construye con los tokens y las primitivas que
+ * define index.css (--carta-*, .sonda, .rotulo-hidrografico, .zona-sin-sondar,
+ * .rotulo-carta): este archivo no declara colores propios ni redefine tipografía.
+ *
+ * ─── Cómo convive con index.css ───────────────────────────────────────────────
+ * Este archivo se importa ANTES del cuerpo de index.css, así que en igualdad de
+ * especificidad manda index.css. Por eso las cuatro pantallas dejaron de usar el
+ * vocabulario antiguo (.estado-pagina, .reporte-real, .opciones-reporte-pagina) y
+ * estrenan uno propio —.pliego, .tramo, .opcion-novedad— que no existe en index.css:
+ * así no hay pelea de cascada ni se le rompe nada a PaginaVeedor, que sigue usando
+ * .pagina-estado. Las únicas reglas que sí pisan a index.css están acotadas con
+ * .pliego delante y se explican una por una donde aparecen.
+ */
+
+/* ─── Único token derivado que declara este archivo ───────────────────────────
+   BUG DE CONTRASTE: .boton-primario de index.css fija `color:#fff` sobre
+   --color-acento. En carta impresa el acento es #14657A (oscuro) y el blanco va
+   bien, pero en carta de noche el acento es #47C9E5 (claro) y blanco sobre ese
+   azul da 1,87:1 — muy por debajo del 4,5:1 de WCAG AA. Como el botón primario es
+   la acción principal de tres de estas cuatro pantallas, aquí se declara la tinta
+   que toca sobre el acento en cada tema y se aplica acotada a .pliego.
+   Pendiente para quien mantiene index.css: esto debería vivir con el resto de
+   tokens, no aquí. */
+:root { --tinta-sobre-acento: #FFFFFF; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --tinta-sobre-acento: #04121A; }
+}
+:root[data-theme="dark"] { --tinta-sobre-acento: #04121A; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EL PLIEGO — el armazón común de las cuatro pantallas
+   Una carta náutica se publica en pliegos: hojas del mismo formato, con el mismo
+   margen y la misma cartela, que juntas forman una sola carta. Antes estas cuatro
+   pantallas tenían tres lenguajes distintos (panel partido oscuro, tarjeta
+   centrada con degradado, formulario suelto); ahora comparten pliego para que se
+   lean como parte de la misma carta que el mapa.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.pagina-pliego {
+  width: min(1180px, calc(100% - 32px));
+  min-height: calc(100dvh - 76px);
+  margin: auto;
+  padding: clamp(1.5rem, 5vw, 3.5rem) 0;
+  display: grid;
+  place-items: center;
+}
+
+.pliego {
+  width: min(640px, 100%);
+  border: 1px solid var(--color-linea);
+  border-radius: var(--radio-lg);
+  background: var(--color-superficie);
+  box-shadow: var(--sombra-suave);
+  overflow: hidden;
+}
+
+/* El pliego de /reportar es un formulario: se le deja más ancho para que las tres
+   opciones del paso 2 quepan sin apretarse en tablet. */
+.pliego--reporte { width: min(680px, 100%); }
+
+/* Cabecera del pliego = la cartela de la hoja: de qué va esta hoja, en el mismo
+   orden que Cartela.tsx (rótulo → título → línea hidrográfica). */
+.pliego-cabecera {
+  padding: clamp(1.4rem, 4vw, 2.2rem);
+  border-bottom: 1px solid var(--color-linea);
+  background: var(--color-elevado);
+}
+
+.pliego-rotulo {
+  margin-bottom: 0.7rem;
+  color: var(--color-acento);
+}
+
+.pliego-titulo {
+  /* h1 de index.css llega a 5.4rem: correcto para la portada del mapa, absurdo
+     para una hoja de formulario que se lee a un palmo en un celular. */
+  margin-bottom: 0.6rem;
+  font-size: clamp(1.75rem, 5.5vw, 2.4rem);
+}
+
+.pliego-entradilla {
+  max-width: 46ch;
+  color: var(--color-tinta-2);
+  font-size: 0.95rem;
+}
+
+.pliego-cuerpo { padding: clamp(1.4rem, 4vw, 2.2rem); }
+
+.pliego-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.4rem;
+}
+
+.pliego-acciones .boton { flex: 1 1 auto; }
+
+/* Ver el bloque de --tinta-sobre-acento arriba: acotado a .pliego para no tocar
+   los botones del mapa ni los del veedor. */
+.pliego .boton-primario { color: var(--tinta-sobre-acento); }
+
+/* Letra chica del pliego (la nota de la huella anónima, RF006). Va en
+   --color-tinta-2 y no en --color-tinta-3: a 0.78rem, tinta-3 se queda en 3,4:1
+   sobre la superficie en carta impresa y no llega al 4,5:1 de AA. */
+.pliego-nota {
+  margin-top: 1.3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-linea);
+  color: var(--color-tinta-2);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.pliego-nota svg { vertical-align: -2px; }
+
+.pliego-error {
+  margin: 1rem 0 0;
+  padding: 0.75rem 0.85rem;
+  border-left: 3px solid var(--color-estado-sin);
+  border-radius: 0 var(--radio-sm) var(--radio-sm) 0;
+  background: color-mix(in srgb, var(--color-estado-sin) 10%, var(--color-superficie));
+  color: var(--color-tinta);
+  font-size: 0.85rem;
+}
+
+.pliego-cargando {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--color-tinta-2);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   /reportar — LOS DOS TRAMOS
+   La pantalla más exigente del producto: se abre desde la calle, sin agua y con
+   prisa. RF006 la define como "sin registro y en dos pasos", así que los dos
+   pasos se dibujan como los dos tramos de una derrota: ambos siempre a la vista,
+   cada uno declarando en qué estado está (en espera / activo / completo). Nada de
+   acordeones ni de pasos que aparecen y desaparecen — quien reporta tiene que
+   poder ver de un vistazo qué le falta.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.tramo {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 0.9rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid var(--color-linea);
+}
+
+.tramo:first-of-type { padding-top: 0; border-top: 0; }
+
+/* El paso 2 va dentro de un <fieldset> porque las tres opciones son un grupo y el
+   atributo disabled tiene que poder apagarlas de golpe. El reset global de
+   index.css no le quita el borde por defecto al fieldset. */
+.tramo fieldset { min-width: 0; border: 0; }
+
+.tramo-numero {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-linea);
+  border-radius: 50%;
+  background: var(--color-superficie-2);
+  color: var(--color-tinta-2);
+  font-size: 0.85rem;
+  /* El único movimiento de la pantalla que no es un spinner: el tramo que se
+     completa se rellena. Comunica avance, no adorna. */
+  transition: background var(--motion-ui) var(--ease), border-color var(--motion-ui) var(--ease), color var(--motion-ui) var(--ease);
+}
+
+.tramo[data-estado="activo"] .tramo-numero {
+  border-color: var(--color-acento);
+  background: var(--color-acento-suave);
+  color: var(--color-acento);
+}
+
+.tramo[data-estado="completo"] .tramo-numero {
+  border-color: var(--color-acento);
+  background: var(--color-acento);
+  color: var(--tinta-sobre-acento);
+}
+
+.tramo-titulo {
+  display: block;
+  margin-bottom: 0.15rem;
+  color: var(--color-tinta);
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+/* La lectura del tramo: qué hay elegido ahora mismo. Es la pieza que hace que el
+   estado de cada paso esté "siempre visible" sin abrir nada. */
+.tramo-lectura {
+  display: block;
+  margin-bottom: 0.75rem;
+  color: var(--color-tinta-2);
+  font-family: var(--font-util);
+  font-size: 0.74rem;
+  letter-spacing: 0.02em;
+}
+
+.tramo-campo {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 0.85rem;
+  border: 1px solid var(--color-linea-fuerte);
+  border-radius: var(--radio-base);
+  background: var(--color-elevado);
+  color: var(--color-tinta);
+  font-size: 1rem;
+}
+
+.tramo-campo:disabled { color: var(--color-tinta-2); cursor: wait; }
+
+/* ── Las tres novedades que se pueden reportar ──────────────────────────────
+   Cada opción lleva la marca del estado que va a pintar en el mapa (roja, ámbar,
+   verde). No es color decorativo: es el mismo código de la leyenda del mapa, para
+   que quien reporta sepa qué está a punto de publicar sobre su barrio.
+   Un toque envía — RF006 son dos pasos, no tres — y por eso el aviso de que "al
+   elegir se envía" va escrito encima, no escondido. */
+.opciones-novedad {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.opcion-novedad {
+  --color-estado: var(--color-acento);
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) 18px;
+  align-items: start;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 66px;
+  padding: 0.9rem;
+  border: 1px solid var(--color-linea);
+  border-radius: var(--radio-base);
+  background: var(--color-elevado);
+  color: var(--color-tinta);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--motion-fast) var(--ease), background var(--motion-fast) var(--ease);
+}
+
+.opcion-novedad:hover:not(:disabled) {
+  border-color: var(--color-estado);
+  background: color-mix(in srgb, var(--color-estado) 9%, var(--color-elevado));
+}
+
+.opcion-novedad-marca {
+  width: 12px;
+  height: 12px;
+  margin-top: 0.3rem;
+  border-radius: 3px;
+  background: var(--color-estado);
+}
+
+.opcion-novedad-titulo {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.opcion-novedad-detalle {
+  display: block;
+  margin-top: 0.1rem;
+  color: var(--color-tinta-2);
+  font-size: 0.8rem;
+}
+
+/* El fieldset se deshabilita hasta que hay barrio elegido. NO se baja la opacidad
+   (era .48 en el diseño anterior y tumbaba el texto por debajo de AA): se cambia
+   de superficie y la marca de estado se vacía, que dice lo mismo sin dejar de
+   leerse. */
+.opcion-novedad:disabled {
+  background: var(--color-superficie-2);
+  color: var(--color-tinta-2);
+  cursor: not-allowed;
+}
+
+.opcion-novedad:disabled .opcion-novedad-marca {
+  background: transparent;
+  border: 1px solid var(--carta-sin-sondar);
+}
+
+/* Mientras se envía, el fieldset entero queda disabled. La opción que se tocó
+   conserva su color para que se vea CUÁL se está enviando: si se apagara junto a
+   las otras, el spinner sería el único indicio y quedaría flotando. */
+.opcion-novedad.is-enviando:disabled {
+  border-color: var(--color-estado);
+  background: var(--color-elevado);
+  color: var(--color-tinta);
+}
+
+.opcion-novedad.is-enviando:disabled .opcion-novedad-marca {
+  border: 0;
+  background: var(--color-estado);
+}
+
+.opcion-novedad .spinner { margin-top: 0.35rem; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONFIRMACIÓN — el reporte enviado y la confirmación de un vecino
+   Momento de dirección, no de celebración: qué pasó, qué significa y cuál es la
+   siguiente acción útil.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.confirmacion {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 0.9rem;
+  animation: pliego-confirma var(--motion-ui) var(--ease) both;
+}
+
+.confirmacion-marca {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-acento);
+  color: var(--tinta-sobre-acento);
+}
+
+.confirmacion h2 {
+  margin-bottom: 0.35rem;
+  font-size: 1.5rem;
+}
+
+.confirmacion-texto { color: var(--color-tinta-2); font-size: 0.95rem; }
+.confirmacion-texto strong { color: var(--color-tinta); }
+
+/* El único keyframe del archivo. Marca que el envío llegó: sin él, en una
+   conexión rápida el formulario se sustituye tan seco que parece un salto. */
+@keyframes pliego-confirma {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FICHA DE BARRIO (/sectores/:id)
+   Destino del enlace del correo de cambio de estado. Es una ficha de sonda: qué
+   barrio, qué se leyó y cuándo se leyó.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.lectura-barrio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 1rem;
+  border: 1px solid var(--color-linea);
+  border-radius: var(--radio-md);
+  background: var(--color-elevado);
+}
+
+.lectura-barrio-titulo {
+  width: 100%;
+  color: var(--color-tinta-2);
+}
+
+/* ADR-014 llevado a la ficha: un barrio que nadie verificó no se presenta con
+   estado, se trama y se dice. El rayado es la primitiva .zona-sin-sondar, la
+   misma que llevan sus polígonos en el mapa, para que la ficha y el territorio se
+   reconozcan como la misma cosa. */
+.sin-sondar-aviso {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px dashed var(--carta-sin-sondar);
+  border-radius: var(--radio-md);
+}
+
+.sin-sondar-aviso p {
+  max-width: 52ch;
+  color: var(--color-tinta-2);
+  font-size: 0.88rem;
+}
+
+.sin-sondar-aviso .rotulo-carta {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--color-tinta);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FUERA DE LA CARTA (404)
+   Una carta náutica no inventa lo que queda fuera de su marco: lo corta y lo
+   rotula. Un 404 es exactamente eso, así que se dice y se ofrece la vuelta.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.fuera-de-carta {
+  height: 52px;
+  margin-bottom: 1.2rem;
+  border: 1px solid var(--color-linea);
+  border-radius: var(--radio-sm);
+}
+
+.fuera-de-carta-ruta {
+  display: block;
+  overflow-wrap: anywhere;
+  margin-top: 1rem;
+  color: var(--color-tinta-2);
+  font-size: 0.82rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Ajustes finos
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* El enlace para pedir confirmación (RF038/M11) vive dentro del pliego y no
+   necesita el margen suelto que trae de index.css. */
+.pliego .enlace-confirmar-reporte { margin: 1.1rem 0 0; background: var(--color-superficie-2); }
+
+@media (max-width: 560px) {
+  .pagina-pliego { width: calc(100% - 20px); padding: 1rem 0 2rem; }
+  .pliego { border-radius: var(--radio-md); }
+  .pliego-acciones .boton { flex-basis: 100%; }
+}
+
+/* El movimiento de esta zona solo comunica dos cosas (un tramo que se completa y
+   un envío que aterriza); quien pide menos movimiento se queda sin ninguna de las
+   dos sin perder información, porque las dos van también escritas. */
+@media (prefers-reduced-motion: reduce) {
+  .confirmacion { animation: none; }
+  .tramo-numero,
+  .opcion-novedad { transition: none; }
+}
