@@ -25,12 +25,12 @@ import { ModalReporte } from '../components/ModalReporte'
 import { ModalSuscripcion } from '../components/ModalSuscripcion'
 import { NavegacionFlotante } from '../components/NavegacionFlotante'
 import { GooeyNav } from '../components/GooeyNav/GooeyNav'
-import { PanelProyecto } from '../components/PanelProyecto'
-import { GradientWaves } from '../components/GradientWaves/GradientWaves'
+import { Cartela } from '../components/Cartela'
 import { PieDePagina } from '../components/PieDePagina'
 import { TarjetasEstadoMapa } from '../components/TarjetasEstadoMapa'
 import type { EstadoServicio, Sector } from '../types/tipos-dominio'
 import { useDatosEnVivo } from '../hooks/useDatosEnVivo'
+import { useFrescura } from '../hooks/useFrescura'
 import type { useTheme } from '../hooks/useTheme'
 
 // Cargados aparte del bundle de esta página, no antes de que haga falta: los tres arrastran
@@ -67,6 +67,17 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
     { estado: 'CORTE_PROGRAMADO' as const, n: sectores.filter(s => s.estado === 'CORTE_PROGRAMADO').length },
     { estado: 'CON_SERVICIO' as const, n: sectores.filter(s => s.estado === 'CON_SERVICIO').length },
   ]
+
+  // Un sector con estado null no es "con servicio": es un sector que nadie ha verificado
+  // (ADR-014). La carta lo declara en vez de esconderlo — ver Cartela y la fila de
+  // "sin sondar" en TarjetasEstadoMapa.
+  const sondados = sectores.filter((s) => s.estado !== null).length
+  const sinSondar = sectores.length - sondados
+
+  // La cartela declara cuándo se corrigió la carta por última vez, igual que una carta
+  // náutica real. Misma fuente que la etiqueta de frescura del pie del mapa, para que no
+  // puedan contradecirse.
+  const { etiqueta: etiquetaFrescura } = useFrescura(ultimaActualizacion)
 
   const alSeleccionarSector = useCallback((sector: Sector | null) => {
     setSectorActivo(sector)
@@ -133,14 +144,19 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
         }}
       />
 
-      {/* GradientWaves es el fondo del hero; el recuadro unificado (mapa + panel de sectores)
-          va anidado DENTRO de su contenedor para que el pointermove del efecto siga
-          llegando aunque el div de Leaflet lo cubra visualmente por completo — el evento
-          burbujea hacia arriba. Mapa y panel comparten un solo marco: un borde, una sombra,
-          unas esquinas — no dos piezas flotando por separado. */}
+      {/* El mapa ES el hero: ocupa la primera pantalla a sangre y todo lo demás flota
+          encima como anotaciones sobre una carta. Antes había un shader WebGL de olas
+          detrás (GradientWaves) y un panel de marca a la izquierda que se repartían la
+          pantalla con el mapa; los dos se fueron. El mapa contesta la pregunta del
+          producto —"¿tengo agua?"— y nada que compita con él por el primer vistazo se
+          gana el sitio (DESIGN.md §1: menos de 5 segundos). */}
       <section id="mapa" className="mapa-vista-completa" aria-label="Mapa en vivo">
-      <GradientWaves>
-        <PanelProyecto onSuscribirse={() => setSuscripcionAbierta(true)} />
+        <Cartela
+          totalBarrios={sectores.length}
+          barriosSondados={sondados}
+          ultimaActualizacion={etiquetaFrescura}
+          onSuscribirse={() => setSuscripcionAbierta(true)}
+        />
 
         <div className={`panel-mapa-unificado${panelColapsado ? ' panel-mapa-unificado--colapsado' : ''}`}>
           <div className="mapa-lienzo-completo">
@@ -235,6 +251,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
                 ) : filtroPanel === 'estado' ? (
                   <TarjetasEstadoMapa
                     resumen={conteos}
+                    sinSondar={sinSondar}
                     estadoDestacado={estadoDestacado}
                     onAlternar={alAlternarEstadoDestacado}
                   />
@@ -252,7 +269,6 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
             </div>
           </aside>
         </div>
-      </GradientWaves>
       </section>
 
       <Suspense fallback={<div className="seccion-cargando" role="status">Cargando bitácora…</div>}>

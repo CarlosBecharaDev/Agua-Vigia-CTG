@@ -16,7 +16,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { Locate } from 'lucide-react'
 import type { EstadoServicio, Sector } from '../types/tipos-dominio'
-import { COLOR_POR_ESTADO } from '../types/tipos-dominio'
+import { COLOR_POR_ESTADO, COLOR_SIN_DATOS } from '../types/tipos-dominio'
 import { EtiquetaFrescura } from './EtiquetaFrescura'
 import { obtenerGeoJSONBarrios } from '../data/barriosCartagena'
 
@@ -73,19 +73,32 @@ function calcularEstiloFeature(
   estadoDestacado: EstadoServicio | null
 ): L.PathOptions {
   const estado = sector?.estado
-  const color = estado ? COLOR_POR_ESTADO[estado].claro : '#ccc'
+  const color = estado ? COLOR_POR_ESTADO[estado].claro : COLOR_SIN_DATOS.claro
   const esActivo = !!(sectorActivo && sector && sectorActivo.id === sector.id)
   const enFoco = estadoDestacado !== null
   const esDestacado = !!(estado && estado === estadoDestacado)
   const atenuado = enFoco && !esDestacado
 
+  // Sin estado verificado = zona sin sondar. No se le da un relleno de color porque no
+  // tiene un estado que comunicar: se le da el rayado de carta náutica (ver el <pattern>
+  // más abajo y .barrio-sin-sondar en index.css). Antes era '#ccc' al 15% de opacidad —
+  // un gris tan tenue que el barrio desaparecía del mapa, que es la peor lectura posible:
+  // "aquí no pasa nada" en vez de "aquí nadie ha mirado" (ADR-014).
+  const sinSondar = !estado
+
+  const clases = [
+    sinSondar ? 'barrio-sin-sondar' : '',
+    esDestacado ? `barrio-destacado barrio-destacado-${estado}` : '',
+    esActivo ? 'barrio-seleccionado' : '',
+  ].filter(Boolean).join(' ')
+
   return {
     fillColor: color,
-    fillOpacity: !sector ? 0.15 : atenuado ? 0.08 : esDestacado ? 0.8 : esActivo ? 0.85 : 0.55,
-    color: esDestacado ? color : '#ffffff',
-    weight: esDestacado ? 3 : esActivo ? 2 : 1,
-    opacity: atenuado ? 0.18 : esActivo || esDestacado ? 1 : 0.7,
-    className: esDestacado ? `barrio-destacado barrio-destacado-${estado}` : esActivo ? 'barrio-seleccionado' : '',
+    fillOpacity: sinSondar ? 1 : atenuado ? 0.08 : esDestacado ? 0.8 : esActivo ? 0.85 : 0.55,
+    color: sinSondar ? COLOR_SIN_DATOS.claro : esDestacado ? color : '#ffffff',
+    weight: esDestacado ? 3 : esActivo ? 2 : sinSondar ? 0.7 : 1,
+    opacity: atenuado ? 0.18 : esActivo || esDestacado ? 1 : sinSondar ? 0.45 : 0.7,
+    className: clases,
   }
 }
 
@@ -100,6 +113,13 @@ export const MapaCartagena: FC<Props> = ({
   const contenedorRef = useRef<HTMLDivElement>(null)
   const mapaRef = useRef<L.Map | null>(null)
   const capaRef = useRef<L.GeoJSON | null>(null)
+  /** El encuadre automático es solo el de apertura: si el GeoJSON se recarga, el mapa no
+   *  le arrebata al usuario el zoom al que él haya llegado. */
+  const encuadreInicialHechoRef = useRef(false)
+  /** Se levanta con el primer zoom o arrastre hecho por una persona. Desde ese momento
+   *  ningún reajuste de tamaño vuelve a reencuadrar el mapa: mover la vista que alguien
+   *  está mirando es de las cosas más molestas que puede hacer un mapa. */
+  const usuarioMovioMapaRef = useRef(false)
   const capaBaseRef = useRef<L.TileLayer | null>(null)
   const destacadoLayerRef = useRef<L.LayerGroup | null>(null)
 
@@ -279,6 +299,17 @@ export const MapaCartagena: FC<Props> = ({
     }
     actualizarCapaBase()
 
+    // Eventos del DOM y no de Leaflet: 'zoomstart'/'movestart' los emite por igual un
+    // gesto de una persona y un flyTo del propio código (centrar, abrir un barrio,
+    // destacar un estado), y tras esos el reencuadre automático sí debe seguir activo.
+    // Una rueda, un puntero o una tecla sobre el contenedor solo los produce alguien.
+    const marcarMovimientoDelUsuario = () => { usuarioMovioMapaRef.current = true }
+    const contenedorMapa = mapa.getContainer()
+    const opcionesPasivas = { passive: true } as const
+    contenedorMapa.addEventListener('wheel', marcarMovimientoDelUsuario, opcionesPasivas)
+    contenedorMapa.addEventListener('pointerdown', marcarMovimientoDelUsuario, opcionesPasivas)
+    contenedorMapa.addEventListener('keydown', marcarMovimientoDelUsuario, opcionesPasivas)
+
     const observarTema = new MutationObserver(actualizarCapaBase)
     observarTema.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
     mediaOscura.addEventListener('change', actualizarCapaBase)
@@ -287,6 +318,9 @@ export const MapaCartagena: FC<Props> = ({
     return () => {
       observarTema.disconnect()
       mediaOscura.removeEventListener('change', actualizarCapaBase)
+      contenedorMapa.removeEventListener('wheel', marcarMovimientoDelUsuario)
+      contenedorMapa.removeEventListener('pointerdown', marcarMovimientoDelUsuario)
+      contenedorMapa.removeEventListener('keydown', marcarMovimientoDelUsuario)
       mapa.remove()
       mapaRef.current = null
       capaBaseRef.current = null
@@ -307,7 +341,21 @@ export const MapaCartagena: FC<Props> = ({
     if (!contenedor) return
 
     const ro = new ResizeObserver(() => {
-      mapaRef.current?.invalidateSize()
+      const mapa = mapaRef.current
+      if (!mapa) return
+      mapa.invalidateSize()
+
+      // Re-encuadrar tras recalcular el tamaño, mientras el usuario no haya tomado el
+      // control del mapa. invalidateSize por sí solo corrige la proyección pero conserva
+      // el zoom, y ese zoom se había elegido contra un contenedor que todavía no medía lo
+      // que mide ahora: el mapa quedaba encuadrado para una caja que ya no existe. Es la
+      // causa de fondo del mapa "vacío" al abrir — el primer fitBounds corría mientras el
+      // layout aún se asentaba.
+      // En cuanto alguien mueve o hace zoom, esto deja de dispararse para siempre: nada
+      // reencuadra el mapa por debajo de quien lo está usando.
+      if (!usuarioMovioMapaRef.current) {
+        mapa.fitBounds(BOUNDS_CARTAGENA, { padding: [16, 16], animate: false })
+      }
     })
     ro.observe(contenedor)
     return () => ro.disconnect()
@@ -341,17 +389,21 @@ export const MapaCartagena: FC<Props> = ({
             // varios tooltips pegados a la vez ("spam"). El detalle ahora es solo por click
             // — el sector seleccionado se muestra en PanelDetalleSector, en el panel lateral.
             layer.on('click', () => {
-              // Si el barrio no está en la BD, lo generamos al vuelo como CON_SERVICIO
-              const sectorClick = sector || {
+              // Un barrio que no está en la BD viaja con estado null — zona sin sondar —,
+              // nunca inventado como CON_SERVICIO. Antes se fabricaba aquí un sector
+              // "con servicio, actualizado en este momento" para cualquier barrio del
+              // GeoJSON sin fila en la BD: el mapa le decía a un vecino que su barrio
+              // tenía agua verificada hace un instante sin que nadie hubiera comprobado
+              // nada. Es exactamente el falso positivo que ADR-014 prohíbe y el que el
+              // proyecto entero existe para evitar.
+              const sectorClick: Sector = sector ?? {
                 id: `geo-${normalizarNombre(nombre)}`,
-                nombre: nombre,
-                estado: 'CON_SERVICIO',
-                reportesActivos: 0,
-                actualizadoHace: 'En este momento',
-                actualizadoEn: new Date().toISOString()
-              };
+                nombre,
+                estado: null,
+                actualizadoEn: null,
+              }
 
-              onSectorSeleccionado?.(sectorClick as Sector)
+              onSectorSeleccionado?.(sectorClick)
             })
 
             layer.on('mouseover', (e) => {
@@ -365,6 +417,28 @@ export const MapaCartagena: FC<Props> = ({
         }).addTo(mapa)
 
         capaRef.current = capa
+
+        // Encuadre inicial contra BOUNDS_CARTAGENA y NO contra capa.getBounds().
+        //
+        // Encuadrar los 213 features deja el mapa inservible al abrir: el GeoJSON incluye
+        // los corregimientos insulares —Islas del Rosario, Archipiélago de San Bernardo,
+        // Isla Fuerte— que bajan hasta la latitud 9.38, a más de 100 km del casco urbano.
+        // Su bounding box mide casi 1,3° de latitud y desborda el maxBounds de la ciudad;
+        // como el mapa se construye con maxBoundsViscosity 1.0, Leaflet tiene que resolver
+        // un encuadre imposible y termina en un zoom absurdo sobre una manzana cualquiera.
+        // Ese era el mapa "vacío" con el que abría la página.
+        //
+        // Se encuadra la Cartagena que la gente consulta, que es la misma región que ya
+        // declara maxBounds. Las islas siguen en la carta: se llega a ellas navegando.
+        //
+        // fitBounds y no setView(CENTRO, ZOOM): el zoom que hace falta depende de cuánto
+        // mida el contenedor, y con un zoom constante el encuadre solo era correcto en la
+        // ventana donde se eligió la constante.
+        if (!encuadreInicialHechoRef.current) {
+          mapa.fitBounds(BOUNDS_CARTAGENA, { padding: [16, 16] })
+          encuadreInicialHechoRef.current = true
+        }
+
         dibujarDestacado()
       })
       .catch(console.error)
@@ -374,6 +448,24 @@ export const MapaCartagena: FC<Props> = ({
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
+      {/* Trama de zona sin sondar.
+          Un <pattern> de SVG solo se puede referenciar con url(#id), así que tiene que
+          existir en el documento aunque no se vea: este svg mide 0×0 y solo transporta la
+          definición. Los polígonos de barrios sin dato verificado lo usan como relleno
+          desde CSS (.barrio-sin-sondar), no desde las opciones de Leaflet, porque
+          `fillColor` solo acepta un color plano.
+
+          El rayado a 45° es la convención con la que una carta náutica marca el fondo que
+          nadie ha sondado. Es el motivo de que un barrio sin verificar se vea distinto y
+          no simplemente gris: gris es un color de estado más y esto no es un estado. */}
+      <svg width="0" height="0" aria-hidden="true" focusable="false" style={{ position: 'absolute' }}>
+        <defs>
+          <pattern id="trama-sin-sondar" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="7" stroke="currentColor" strokeWidth="1.15" />
+          </pattern>
+        </defs>
+      </svg>
+
       {/* Contenedor del mapa */}
       <div
         ref={contenedorRef}

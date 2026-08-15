@@ -11,7 +11,6 @@ import type { ErrorInfo, ReactNode } from 'react'
 import { Encabezado } from './components/Encabezado'
 import { useTheme } from './hooks/useTheme'
 import { ModalSuscripcion } from './components/ModalSuscripcion'
-import { SplashScreen } from './components/SplashScreen'
 
 // Cada vista carga solo cuando se visita, especialmente útil en conexiones móviles.
 const PaginaMapa = lazy(() => import('./pages/PaginaMapa'))
@@ -102,10 +101,13 @@ function ContenidoApp() {
   )
 }
 
+// Sin pantalla de bienvenida: bloqueaba 2,5 s cada carga —y cada recarga, porque no
+// recordaba haberse mostrado— sin dar ni un dato. El producto se compromete a contestar
+// "¿tengo agua?" en menos de 5 s (DESIGN.md §1) y RNF001 exige el mapa en menos de 3 s
+// sobre 3G: medio presupuesto se iba en mirar una gota. Lo primero que se ve es la carta.
 function App() {
   return (
     <BrowserRouter>
-      <SplashScreen />
       <a
         href="#contenido-principal"
         id="saltar-al-contenido"

@@ -1,29 +1,69 @@
 @import "tailwindcss";
 
-/* ─── Modo claro (por defecto) ─── */
+/* ─────────────────────────────────────────────────────────────────────────
+   Sistema de diseño: CARTA NÁUTICA CÍVICA
+   ─────────────────────────────────────────────────────────────────────────
+   Cartagena es un puerto amurallado y este producto es, literalmente, una
+   carta de su agua. De ahí sale todo lo de abajo.
+
+   La convención que da nombre al sistema: una carta náutica real *anota lo
+   que no se ha sondeado*. No pinta el fondo que no midió — lo trama y lo
+   rotula "sin sondar". Es exactamente el principio del proyecto (ADR-014:
+   un sector sin dato viaja con estado null, no como "con servicio"), así
+   que el estado vacío deja de ser un hueco del diseño y pasa a ser su
+   argumento. Ver .zona-sin-sondar más abajo.
+
+   La magenta es el color de la carta náutica: en las cartas del Almirantazgo
+   y de la NOAA todo lo que exige atención —boyas, avisos, límites— va en
+   magenta. Aquí se reserva para lo que exige atención cívica: la brecha
+   entre lo prometido y lo real. No se usa para nada decorativo.
+
+   Los cuatro estados del servicio NO son decisión de este sistema: los fija
+   DESIGN.md §2 y son requisito. Aquí solo se les da el matiz náutico —
+   verde estribor, rojo babor — sin cambiar su semántica.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* ─── Modo claro — la carta impresa en papel ─── */
 :root {
   color-scheme: light;
-  --color-fondo: #f2f7f6;
-  --color-fondo-profundo: #e9f1f0;
-  --color-superficie: #fbfdfc;
-  --color-superficie-2: #f5f9f8;
-  --color-superficie-3: #edf4f3;
-  --color-elevado: #ffffff;
-  --color-linea: #d8e5e3;
-  --color-linea-fuerte: #bfd2cf;
-  --color-tinta: #102f39;
-  --color-tinta-2: #526a70;
-  --color-tinta-3: #789095;
-  --color-marino: #082f3c;
-  --color-acento: #087f8c;
-  --color-acento-vivo: #0796a5;
-  --color-acento-suave: #dcefee;
-  --color-coral: #dc5a4e;
-  --color-coral-hover: #c64c42;
-  --color-estado-con: #1c7f55;
-  --color-estado-sin: #ae3428;
-  --color-estado-baja: #a87310;
-  --color-estado-prog: #2a628f;
+  --color-fondo: #EDE7D8;
+  --color-fondo-profundo: #E3DCC9;
+  --color-superficie: #F6F2E6;
+  --color-superficie-2: #EFEADB;
+  --color-superficie-3: #E6DFCC;
+  --color-elevado: #FCFAF3;
+  --color-linea: #CFC5AB;
+  --color-linea-fuerte: #B3A688;
+  --color-tinta: #10242E;
+  --color-tinta-2: #4A5D66;
+  --color-tinta-3: #6E7F87;
+  --color-marino: #0B1F2A;
+  --color-acento: #14657A;
+  --color-acento-vivo: #17798F;
+  --color-acento-suave: #D7E6E9;
+  --color-coral: #C3306A;
+  --color-coral-hover: #A82459;
+  --color-estado-con: #1C7A52;
+  --color-estado-sin: #B3352A;
+  --color-estado-baja: #99690E;
+  --color-estado-prog: #2A628F;
+
+  /* Tokens propios de la carta */
+  --carta-magenta: #C3306A;      /* aviso náutico — la brecha prometido/real */
+  --carta-magenta-tenue: #F2DCE5;
+  --carta-boya: #14657A;         /* dato verificado */
+  --carta-sin-sondar: #8A9AA2;   /* rótulo de lo que nadie ha medido */
+  --carta-trama: rgba(16, 36, 46, .13);  /* rayado de zona sin sondar */
+  --carta-retícula: rgba(16, 36, 46, .07);
+
+  /* Tipografía.
+     Cero fuentes descargadas, a propósito: RNF001 (mapa < 3 s en 3G) sigue
+     abierto y una familia web costaría más de lo que aporta. El carácter
+     sale de cómo se usan, no de cuáles son.
+     La itálica de --font-display no es énfasis: en cartografía náutica los
+     rótulos hidrográficos —todo lo que es agua— van en itálica y los
+     terrestres en romana. Esa distinción es gratis y es la voz de la marca:
+     ver .rotulo-hidrografico. */
   --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   --font-cuerpo: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-util: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
@@ -40,57 +80,83 @@
   --foco-outline: 3px solid rgba(8, 127, 140, .72); --foco-offset: 3px;
 }
 
-/* ─── Modo oscuro — media query del SO ─── */
+/* ─── Modo oscuro — la carta de noche ───────────────────────────────────
+   Es el modo por defecto de facto: a la gente le falta el agua de madrugada
+   y consulta esto a oscuras. El fondo no es negro sino índigo de sonda
+   profunda, y el texto no es blanco puro sino papel cálido — una carta
+   iluminada por la luz de la mesa de derrota, no una pantalla apagada.
+   Las variables se declaran una sola vez y se reutilizan en los dos
+   selectores (media query e interruptor manual) para que no puedan
+   divergir, que es justo lo que le pasaba al sistema anterior. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { color-scheme: dark; }
+}
+:root[data-theme="dark"] { color-scheme: dark; }
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --color-acento:       #54c6ca;
-    --color-acento-vivo:  #78d9db;
-    --color-acento-suave: #153f44;
-
-    --color-tinta:        #edf8f7;
-    --color-tinta-2:      #a7bdbd;
-    --color-tinta-3:      #71898c;
-    --color-marino:       #061b22;
-
-    --color-linea:        #234a4f;
-    --color-superficie:   #102f36;
-    --color-fondo:        #071f26;
-
-    --sombra-suave: 0 4px 20px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15);
-    --sombra-elevada: 0 12px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
-
-    --color-estado-con:   #30d158;
-    --color-estado-sin:   #ff453a;
-    --color-estado-baja:  #ff9f0a;
-    --color-estado-prog:  #98989d;
-
-    color-scheme: dark;
+    --color-fondo: #071A22;
+    --color-fondo-profundo: #04121A;
+    --color-superficie: #0D2733;
+    --color-superficie-2: #113040;
+    --color-superficie-3: #163B4D;
+    --color-elevado: #17414F;
+    --color-linea: #24505F;
+    --color-linea-fuerte: #396B7C;
+    --color-tinta: #EDE7D6;
+    --color-tinta-2: #A9BAC0;
+    --color-tinta-3: #7B9099;
+    --color-marino: #EDE7D6;
+    --color-acento: #47C9E5;
+    --color-acento-vivo: #6FDDF3;
+    --color-acento-suave: #10353F;
+    --color-coral: #F0578F;
+    --color-coral-hover: #FF7AA8;
+    --color-estado-con: #45C48A;
+    --color-estado-sin: #F0584A;
+    --color-estado-baja: #E7A83F;
+    --color-estado-prog: #6BA8DA;
+    --carta-magenta: #F0578F;
+    --carta-magenta-tenue: #3A1526;
+    --carta-boya: #47C9E5;
+    --carta-sin-sondar: #6F858E;
+    --carta-trama: rgba(237, 231, 214, .12);
+    --carta-retícula: rgba(237, 231, 214, .05);
+    --sombra-suave: 0 1px 2px rgba(0,0,0,.3), 0 10px 28px rgba(0,0,0,.26);
+    --sombra-elevada: 0 2px 4px rgba(0,0,0,.3), 0 20px 50px rgba(0,0,0,.42);
   }
 }
 
-/* ─── Modo oscuro — interruptor manual ─── */
 :root[data-theme="dark"] {
-  color-scheme: dark;
-  --color-fondo: #061c23; --color-fondo-profundo: #04161c;
-  --color-superficie: #0c2830; --color-superficie-2: #102f37; --color-superficie-3: #163941; --color-elevado: #183b43;
-  --color-linea: #24454b; --color-linea-fuerte: #356068;
-  --color-tinta: #eef8f7; --color-tinta-2: #aac0c0; --color-tinta-3: #789296; --color-marino: #e7f7f6;
-  --color-acento: #57c7cb; --color-acento-vivo: #78d9db; --color-acento-suave: #153f44;
-  --color-coral: #ef7468; --color-coral-hover: #ff887d;
-  --color-estado-con: #4fbf89; --color-estado-sin: #e2695b; --color-estado-baja: #d9a63c; --color-estado-prog: #6ba8da;
-  --sombra-suave: 0 1px 2px rgba(0,0,0,.2), 0 10px 28px rgba(0,0,0,.18);
-  --sombra-elevada: 0 2px 4px rgba(0,0,0,.22), 0 20px 50px rgba(0,0,0,.3);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --color-fondo: #061c23; --color-fondo-profundo: #04161c; --color-superficie: #0c2830; --color-superficie-2: #102f37; --color-superficie-3: #163941; --color-elevado: #183b43;
-    --color-linea: #24454b; --color-linea-fuerte: #356068; --color-tinta: #eef8f7; --color-tinta-2: #aac0c0; --color-tinta-3: #789296; --color-marino: #e7f7f6;
-    --color-acento: #57c7cb; --color-acento-vivo: #78d9db; --color-acento-suave: #153f44; --color-coral: #ef7468; --color-coral-hover: #ff887d;
-    --color-estado-con: #4fbf89; --color-estado-sin: #e2695b; --color-estado-baja: #d9a63c; --color-estado-prog: #6ba8da;
-    --sombra-suave: 0 1px 2px rgba(0,0,0,.2), 0 10px 28px rgba(0,0,0,.18); --sombra-elevada: 0 2px 4px rgba(0,0,0,.22), 0 20px 50px rgba(0,0,0,.3);
-  }
+  --color-fondo: #071A22;
+  --color-fondo-profundo: #04121A;
+  --color-superficie: #0D2733;
+  --color-superficie-2: #113040;
+  --color-superficie-3: #163B4D;
+  --color-elevado: #17414F;
+  --color-linea: #24505F;
+  --color-linea-fuerte: #396B7C;
+  --color-tinta: #EDE7D6;
+  --color-tinta-2: #A9BAC0;
+  --color-tinta-3: #7B9099;
+  --color-marino: #EDE7D6;
+  --color-acento: #47C9E5;
+  --color-acento-vivo: #6FDDF3;
+  --color-acento-suave: #10353F;
+  --color-coral: #F0578F;
+  --color-coral-hover: #FF7AA8;
+  --color-estado-con: #45C48A;
+  --color-estado-sin: #F0584A;
+  --color-estado-baja: #E7A83F;
+  --color-estado-prog: #6BA8DA;
+  --carta-magenta: #F0578F;
+  --carta-magenta-tenue: #3A1526;
+  --carta-boya: #47C9E5;
+  --carta-sin-sondar: #6F858E;
+  --carta-trama: rgba(237, 231, 214, .12);
+  --carta-retícula: rgba(237, 231, 214, .05);
+  --sombra-suave: 0 1px 2px rgba(0,0,0,.3), 0 10px 28px rgba(0,0,0,.26);
+  --sombra-elevada: 0 2px 4px rgba(0,0,0,.3), 0 20px 50px rgba(0,0,0,.42);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -102,14 +168,100 @@ button, a { -webkit-tap-highlight-color: transparent; }
 button, [role="button"], a, select { min-height: 44px; min-width: 44px; }
 button { color: inherit; }
 a { color: var(--color-acento); }
-h1, h2, h3 { color: var(--color-tinta); font-family: var(--font-display); line-height: 1.08; letter-spacing: -.035em; text-wrap: balance; }
-h1 { font-size: clamp(2.4rem, 5.5vw, 5rem); font-weight: 650; }
-h2 { font-size: clamp(1.55rem, 2.4vw, 2.25rem); }
-h3 { font-size: 1.3rem; }
+h1, h2, h3 { color: var(--color-tinta); font-family: var(--font-display); line-height: 1.05; letter-spacing: -.028em; text-wrap: balance; }
+h1 { font-size: clamp(2.6rem, 6vw, 5.4rem); font-weight: 500; }
+h2 { font-size: clamp(1.6rem, 2.5vw, 2.35rem); font-weight: 500; }
+h3 { font-size: 1.32rem; font-weight: 600; }
 p { max-width: 65ch; }
 :focus-visible { outline: var(--foco-outline); outline-offset: var(--foco-offset); border-radius: var(--radio-sm); }
 ::selection { background: var(--color-acento-suave); color: var(--color-tinta); }
 ::-webkit-scrollbar { width: 7px; height: 7px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--color-linea-fuerte); border-radius: 10px; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PRIMITIVAS DE LA CARTA
+   Cuatro piezas. Todo lo demás del producto se compone con ellas.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* 1 ─ Rótulo hidrográfico.
+   Convención cartográfica real: lo que es agua se rotula en itálica, lo que
+   es tierra en romana. Aquí marca todo lo que habla del servicio de agua en
+   sí (estados, lecturas, horas), y es la voz de la marca. No usarlo como
+   énfasis genérico — si se pone en todo, deja de significar algo. */
+.rotulo-hidrografico {
+  font-family: var(--font-display);
+  font-style: italic;
+  letter-spacing: .01em;
+}
+
+/* 2 ─ Sonda: una lectura de dato.
+   En una carta, las sondas son los números de profundidad repartidos por el
+   agua — el dato medido, desnudo, sin adorno. Aquí es cualquier cifra que
+   el producto pueda sustentar. Tabular para que las columnas de cifras no
+   bailen al actualizarse en vivo. */
+.sonda {
+  font-family: var(--font-util);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -.02em;
+}
+
+/* 3 ─ Zona sin sondar — EL elemento del sistema.
+   Un barrio del que nadie ha verificado nada no se pinta de ningún color de
+   estado: se trama, igual que una carta náutica trama el fondo que no ha
+   medido. Que se vea "incompleto" es el punto — el proyecto existe para no
+   afirmar lo que no puede sustentar (ADR-014).
+   El rayado va a 45° y se declara aquí una sola vez para que el mapa, las
+   listas y las tarjetas lo compartan. */
+.zona-sin-sondar {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--carta-trama) 0 1px,
+    transparent 1px 7px
+  );
+}
+
+/* 3b ─ El mismo tramado, aplicado a los polígonos del mapa.
+   Va por CSS y no por las opciones de Leaflet porque `fillColor` solo admite un
+   color plano, no un url(#patrón). Funciona porque Leaflet pinta el relleno con
+   el atributo de presentación `fill`, y cualquier regla CSS le gana en
+   especificidad — sin !important y sin pelearse con setStyle, que sigue
+   mandando en el resto de propiedades.
+   `color` no es el texto: es lo que hereda el currentColor de las líneas del
+   <pattern>, y por eso el rayado cambia solo entre carta impresa y carta de
+   noche. */
+.barrio-sin-sondar {
+  color: var(--carta-sin-sondar);
+  fill: url(#trama-sin-sondar);
+}
+
+/* 4 ─ Retícula de carta: la malla de meridianos y paralelos.
+   Fondo estructural, nunca decoración a secas: da la sensación de estar
+   leyendo una carta y no una landing. Muy tenue a propósito. */
+.reticula-carta {
+  background-image:
+    linear-gradient(var(--carta-retícula) 1px, transparent 1px),
+    linear-gradient(90deg, var(--carta-retícula) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* Eyebrow: rótulo de carta. Mayúsculas espaciadas, como los nombres de
+   accidentes geográficos en una carta impresa. */
+.eyebrow, .rotulo-carta {
+  font-family: var(--font-util);
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+/* La brecha: prometido contra real. Es el diferencial del producto (M6) y
+   el único sitio donde la magenta de aviso náutico tiene permiso de
+   aparecer con fuerza. */
+.brecha-magenta { color: var(--carta-magenta); }
+.brecha-regla {
+  border-left: 2px solid var(--carta-magenta);
+  padding-left: .85rem;
+}
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
 .uppercase-label, .eyebrow, .paso-numero, .preview-label { font: 650 .72rem/1.2 var(--font-util); letter-spacing: .09em; text-transform: uppercase; }
 .eyebrow { align-items: center; color: var(--color-acento); display: flex; gap: .5rem; margin-bottom: .7rem; }
@@ -1362,111 +1514,102 @@ select {
    foco del mapa ("Ver en el mapa" — ver MapaCartagena/dibujarDestacado).
    ═══════════════════════════════════════════════════════════ */
 
-.tarjetas-estado-mapa {
-  display: grid;
-  /* minmax(0, 1fr), no "1fr" a secas: con "1fr" cada columna conserva su ancho mínimo de
-     contenido (p.ej. "22"/"29" son más anchos que "0"/"2") y esa diferencia se filtra al
-     tamaño final — las columnas quedan visiblemente desiguales aunque el fr sea el mismo. */
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 0.6rem;
-}
-
-.tarjeta-estado-mapa {
-  --color-neon: var(--color-acento);
-  position: relative;
+/* ── Escala de sondas ────────────────────────────────────────────────────
+   La leyenda de profundidades de la carta: rótulo a la izquierda, cifra a la
+   derecha, alineadas en columna para que se lean de un vistazo como una tabla
+   de lecturas. Sustituye a cuatro tarjetas neón con parpadeo infinito: el
+   parpadeo no comunicaba nada (corría igual con 0 barrios afectados que con
+   40), competía con el mapa por la atención y obligaba a apagarlo entero en
+   prefers-reduced-motion. Aquí lo único que se mueve es lo que cambia. */
+.escala-sondas {
   display: flex;
   flex-direction: column;
+}
+
+.sonda-fila {
+  --color-estado: var(--color-acento);
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
   align-items: center;
-  height: 144px;
-  padding: 0.7rem 0.75rem 0.6rem;
-  text-align: center;
-  background: color-mix(in srgb, var(--color-neon) 9%, var(--color-fondo));
-  border: 1.5px solid color-mix(in srgb, var(--color-neon) 50%, transparent);
-  border-radius: 14px;
-  animation: tarjeta-neon-parpadeo 3.2s ease-in-out infinite;
-}
-
-.tarjeta-estado-mapa.is-activa {
-  border-color: var(--color-neon);
-  animation-duration: 1.5s;
-}
-
-@keyframes tarjeta-neon-parpadeo {
-  0%, 100% { box-shadow: 0 0 3px color-mix(in srgb, var(--color-neon) 40%, transparent); }
-  50%      { box-shadow: 0 0 13px 1px color-mix(in srgb, var(--color-neon) 70%, transparent); }
-}
-
-.tarjeta-estado-mapa-cab {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
+  gap: 0.7rem;
   width: 100%;
-  margin-bottom: 0.35rem;
+  min-height: 52px;
+  padding: 0.55rem 0.35rem;
+  border: 0;
+  border-bottom: 1px solid var(--color-linea);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--motion-fast) var(--ease), padding-left var(--motion-fast) var(--ease);
 }
 
-.tarjeta-estado-mapa-punto {
-  width: 8px;
-  height: 8px;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  background: var(--color-neon);
-  box-shadow: 0 0 6px var(--color-neon);
+.sonda-fila:last-child { border-bottom: 0; }
+
+.sonda-fila:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-estado) 10%, transparent);
+  padding-left: 0.6rem;
 }
 
-.tarjeta-estado-mapa-etiqueta {
+/* Activa = ese estado está encuadrado en el mapa. La barra de color a la
+   izquierda es el mismo recurso que usa la lista de sectores para "esto es lo
+   que estás mirando", para que el vínculo con el mapa se lea igual en los dos
+   sitios. */
+.sonda-fila.is-activa {
+  background: color-mix(in srgb, var(--color-estado) 14%, transparent);
+  box-shadow: inset 2px 0 0 var(--color-estado);
+  padding-left: 0.6rem;
+}
+
+.sonda-fila:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.sonda-fila-marca {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--color-estado);
+}
+
+.sonda-fila-etiqueta {
   overflow: hidden;
   color: var(--color-tinta-2);
-  font-size: 0.66rem;
-  font-weight: 700;
+  font-family: var(--font-util);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.tarjeta-estado-mapa-num {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 800;
-  line-height: 1;
+.sonda-fila-cifra {
   color: var(--color-tinta);
+  font-size: 1.6rem;
+  font-weight: 500;
+  line-height: 1;
 }
 
-.tarjeta-estado-mapa-sub {
-  margin: 0.1rem 0 0.6rem;
-  color: var(--color-tinta-3);
-  font-size: 0.68rem;
+/* La lectura de lo que nadie ha verificado. Sin color de estado —no es un
+   estado— y con el mismo rayado que llevan sus barrios en el mapa, para que
+   la fila y el territorio se reconozcan como la misma cosa. */
+.sonda-fila--sin-sondar {
+  margin-top: 0.35rem;
+  border-top: 1px solid var(--color-linea);
+  border-bottom: 0;
+  cursor: default;
 }
 
-.tarjeta-estado-mapa-btn {
-  width: 100%;
-  margin-top: auto;
-  min-height: 44px;
-  padding: 0 0.5rem;
-  color: var(--color-neon);
-  background: color-mix(in srgb, var(--color-neon) 14%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-neon) 40%, transparent);
-  border-radius: var(--radio-pill);
-  font-size: 0.68rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background var(--transicion), color var(--transicion), transform var(--transicion);
+.sonda-fila--sin-sondar .sonda-fila-marca {
+  background: transparent;
+  border: 1px solid var(--carta-sin-sondar);
 }
 
-.tarjeta-estado-mapa-btn:hover:not(:disabled) {
-  background: var(--color-neon);
-  color: #04201e;
-  transform: translateY(-1px);
-}
-
-.tarjeta-estado-mapa-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .tarjeta-estado-mapa { animation: none; }
+.sonda-fila--sin-sondar .sonda-fila-etiqueta,
+.sonda-fila--sin-sondar .sonda-fila-cifra {
+  color: var(--carta-sin-sondar);
 }
 
 /* ── Foco de "Ver en el mapa" — parpadeo lento por estado (dibujarDestacado en
@@ -2545,147 +2688,169 @@ select {
   transform: scale(0.95);
 }
 
-/* ── Panel del proyecto — agua abierta a la izquierda del recuadro del mapa ── */
-.panel-proyecto {
+/* ── Cartela: el bloque de título de la carta ───────────────────────────
+   Reemplaza a .panel-proyecto (logo animado + dos StrokeText sobre GSAP +
+   copy centrado sobre el shader de olas). Aquella pieza pintaba sus colores
+   a mano —#fff, rgba(255,255,255,…), #54c6ca— porque vivía sobre un hero
+   negro en ambos temas; al desaparecer el hero, todo eso queda en tokens y
+   la cartela funciona igual en carta impresa (claro) y carta de noche.
+
+   Va anclada arriba a la izquierda, encima del mapa, como la cartela de una
+   carta náutica de verdad: ocupa una esquina y no le disputa el centro al
+   territorio. */
+.cartela {
   position: absolute;
-  /* Mismo alto que el recuadro del mapa — el contenido se centra adentro con flex, así
-     las dos piezas quedan simétricas en la misma franja. */
-  top: 6rem;
-  bottom: 2.5rem;
-  /* Centrado en la franja que queda libre a la izquierda del recuadro del mapa, en vez de
-     pegado al borde con un `left` fijo. El `right` reproduce el ancho de ese recuadro
-     (mapa + panel de sectores + su margen), así que el centrado se mantiene solo cuando
-     cambia el ancho de la ventana. */
-  left: 0;
-  right: calc(0.6rem + min(56vw, 720px) + 300px);
-  margin-inline: auto;
+  top: 5.5rem;
+  left: 1.5rem;
   z-index: 900;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: min(360px, calc(100% - 2rem));
-  padding: 1.8rem 1.6rem;
-  border-radius: 24px;
-  text-align: center;
+  width: min(310px, calc(100% - 3rem));
+  padding: 1.4rem 1.5rem 1.5rem;
+  border: 1px solid var(--color-linea);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--color-superficie) 94%, transparent);
+  backdrop-filter: blur(14px) saturate(130%);
+  box-shadow: var(--sombra-elevada);
+  animation: cartela-entrada 620ms var(--ease) both;
 }
 
-/* ── Marca: logo + nombre, arriba ── */
-.panel-proyecto-marca {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  opacity: 0;
-  animation: proyecto-marca-entrada 900ms cubic-bezier(0.16, 1, 0.3, 1) 150ms both;
+/* Doble filete: el marco fino por dentro del borde es la convención de
+   recuadro de las cartas impresas, y es lo que la separa de "una tarjeta con
+   sombra" sin costar un elemento más en el DOM. */
+.cartela::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid color-mix(in srgb, var(--color-linea) 55%, transparent);
+  border-radius: 2px;
+  pointer-events: none;
 }
 
-/* Sin halo turquesa detrás: el logo ya trae animación propia y el resplandor pulsante
-   competía con ella. La sombra que queda es neutra, solo para despegarlo de las olas. */
-.panel-proyecto-logo {
-  position: relative;
-  width: 150px;
-  height: auto;
-  margin-bottom: 0;
-  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.45));
-  animation: proyecto-logo-flotar 4.5s ease-in-out infinite;
+@keyframes cartela-entrada {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes proyecto-marca-entrada {
-  from { opacity: 0; transform: scale(.82) translateY(10px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
+.cartela-rotulo {
+  color: var(--carta-magenta);
+  margin-bottom: 0.7rem;
 }
 
-@keyframes proyecto-logo-flotar {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50%      { transform: translateY(-8px) rotate(-1.5deg); }
+.cartela-titulo {
+  font-size: 2.15rem;
+  font-weight: 500;
+  line-height: 0.94;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.55rem;
 }
 
-/* ── Cuerpo: eyebrow, título, copy, suscripción — todo centrado ── */
-/* Colores fijos de la rampa clara, no tokens de tema. Al quitarle la tarjeta `panel-glass`
-   este texto quedó directamente sobre el hero, que es negro en los dos temas: con
-   --color-tinta (#12333d en claro) el título se volvía ilegible al cambiar de tema. Mismo
-   criterio que el navbar — lo que vive sobre el hero se pinta para fondo oscuro. */
-/* Titular de marca (StrokeText). El componente está hecho para ocupar el 100% del ancho de
-   su contenedor y escalar el texto dentro del viewBox, así que las dos palabras se reparten
-   la fila por `flex-basis` proporcional al número de letras (4 y 5) en vez de intentar que
-   cada SVG se autodimensione — con `width:auto` el viewBox no cuadra y las letras salen
-   recortadas. */
-.panel-proyecto-marca-texto {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: .35rem;
-  width: 100%;
-  margin-bottom: .9rem;
-}
-
-.panel-proyecto-marca-texto > span {
+/* "de Indias" en segunda línea y a menor tamaño: el nombre completo de la
+   ciudad es el título de la carta, pero la jerarquía real la manda la
+   palabra que la gente busca. */
+.cartela-titulo-de {
   display: block;
-  min-width: 0;
-  line-height: 0;
-}
-
-.panel-proyecto-marca-texto > span:nth-child(1) { flex: 4 1 0; }
-.panel-proyecto-marca-texto > span:nth-child(2) { flex: 5 1 0; }
-
-.panel-proyecto-titulo {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  font-weight: 800;
-  line-height: 1.2;
+  margin-top: 0.12rem;
+  color: var(--color-tinta-2);
+  font-size: 1.15rem;
+  font-style: italic;
   letter-spacing: -0.01em;
-  color: #fff;
-  margin: 0 0 .8rem;
-  text-wrap: balance;
 }
 
-.panel-proyecto-copy {
-  color: rgba(255, 255, 255, 0.72);
-  font-size: .92rem;
-  line-height: 1.6;
-  margin: 0 auto;
-  max-width: 34ch;
+.cartela-lema {
+  margin-bottom: 1.1rem;
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid var(--color-linea);
+  color: var(--color-tinta-2);
+  font-size: 1rem;
 }
 
-.panel-proyecto-suscripcion {
-  margin-top: 1.4rem;
-  padding-top: 1.2rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.14);
+/* Las declaraciones de la cartela, en filas de rótulo + lectura. */
+.cartela-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.05rem;
 }
 
-.panel-proyecto-suscripcion p {
-  margin: 0 0 .8rem;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: .84rem;
-  line-height: 1.5;
+.cartela-datos > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
-.panel-proyecto-boton {
+.cartela-datos dt {
+  color: var(--color-tinta-3);
+  font-family: var(--font-util);
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.cartela-datos dd {
+  color: var(--color-tinta);
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.cartela-dato-de {
+  color: var(--color-tinta-3);
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+.cartela-datum {
+  font-size: 0.78rem !important;
+  font-weight: 500 !important;
+  color: var(--color-tinta-2) !important;
+}
+
+.cartela-correccion {
+  margin-bottom: 1.15rem;
+  color: var(--color-tinta-3);
+  font-size: 0.73rem;
+}
+
+.cartela-correccion .sonda { color: var(--color-tinta-2); }
+
+.cartela-boton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: .5rem;
+  gap: 0.5rem;
+  width: 100%;
   min-height: 44px;
-  padding: 0 1.5rem;
-  color: #04201e;
-  background: #54c6ca;
-  border: none;
-  border-radius: var(--radio-pill);
-  font-size: .88rem;
-  font-weight: 700;
+  padding: 0 1.1rem;
+  border: 1px solid var(--carta-magenta);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--carta-magenta);
+  font-size: 0.84rem;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 8px 22px rgba(84, 198, 202, 0.4);
+  transition: background var(--motion-fast) var(--ease), color var(--motion-fast) var(--ease);
 }
 
+.cartela-boton:hover {
+  background: var(--carta-magenta);
+  color: var(--color-fondo);
+}
+
+/* Por debajo de 900px el mapa necesita toda la pantalla y la cartela pasa a
+   ser una banda sobre él, no un recuadro flotante que le robe la mitad. */
 @media (max-width: 900px) {
-  .panel-proyecto { display: none; }
+  .cartela {
+    position: static;
+    width: auto;
+    margin: 0 0 0.6rem;
+    padding: 1.1rem 1.2rem 1.2rem;
+    backdrop-filter: none;
+  }
+  .cartela-titulo { font-size: 1.8rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .panel-proyecto-marca { opacity: 1; animation: none; }
-  .panel-proyecto-logo { animation: none; }
+  .cartela { animation: none; }
 }
 
 /* ── Panel de sectores (resumen + lista accesible) — columna interna del recuadro único ── */

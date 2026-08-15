@@ -1,0 +1,23 @@
+[mcp_servers."$disabled_github"]
+command = "npx"
+args = [
+    "-y",
+    "@modelcontextprotocol/server-github",
+]
+env_vars = ["GITHUB_PERSONAL_ACCESS_TOKEN"]
+
+[mcp_servers."$disabled_mongodb"]
+command = "npx"
+args = [
+    "-y",
+    "mongodb-mcp-server",
+]
+env_vars = ["MONGODB_URI"]
+
+[mcp_servers.filesystem]
+command = "npx"
+args = [
+    "-y",
+    "@modelcontextprotocol/server-filesystem",
+    "./docs",
+]
