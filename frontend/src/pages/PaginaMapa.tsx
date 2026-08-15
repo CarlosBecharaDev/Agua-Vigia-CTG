@@ -17,15 +17,15 @@
 import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
 import type { FC } from 'react'
 import { useLocation } from 'react-router-dom'
-import { MapPin, Menu } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import { MapaCartagena } from '../components/MapaCartagena'
 import { BuscadorBarrios } from '../components/BuscadorBarrios'
 import { CarruselSector } from '../components/CarruselSector/CarruselSector'
 import { ModalReporte } from '../components/ModalReporte'
 import { ModalSuscripcion } from '../components/ModalSuscripcion'
 import { NavegacionFlotante } from '../components/NavegacionFlotante'
-import { GooeyNav } from '../components/GooeyNav/GooeyNav'
 import { Cartela } from '../components/Cartela'
+import { BrechaCumplimiento } from '../components/BrechaCumplimiento'
 import { PieDePagina } from '../components/PieDePagina'
 import { TarjetasEstadoMapa } from '../components/TarjetasEstadoMapa'
 import type { EstadoServicio, Sector } from '../types/tipos-dominio'
@@ -158,6 +158,10 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
           onSuscribirse={() => setSuscripcionAbierta(true)}
         />
 
+        {/* Lo prometido contra lo real, en la esquina baja de la carta: es el argumento
+            del proyecto y hasta ahora vivía enterrado en la sección de estadísticas. */}
+        <BrechaCumplimiento />
+
         <div className={`panel-mapa-unificado${panelColapsado ? ' panel-mapa-unificado--colapsado' : ''}`}>
           <div className="mapa-lienzo-completo">
             <MapaCartagena
@@ -195,33 +199,42 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
             aria-label="Resumen y lista de sectores"
             inert={panelColapsado || undefined}
           >
+            {/* Cuaderno de sondas: las lecturas que acompañan a la carta. El título de la
+                columna ya no pregunta "¿Cómo está el agua en tu barrio?" —esa pregunta la
+                contesta el mapa que está al lado, y repetirla aquí gastaba el sitio más
+                valioso del panel en algo que nadie necesita leer— sino que rotula lo que
+                esta columna es. */}
             <div className="hoja-sectores-cab mapa-resumen">
-              <h2 className="mapa-titulo">¿Cómo está el agua en tu barrio?</h2>
-              <p className="mapa-subtitulo">
-                Sé un <strong>AguaVigía</strong>: reporta y ayuda a que esto se resuelva más rápido.
-              </p>
+              <p className="rotulo-carta cuaderno-rotulo">Cuaderno de sondas</p>
+              <h2 className="cuaderno-titulo">
+                {sondados > 0
+                  ? `${sondados} de ${sectores.length} barrios con lectura`
+                  : 'Ningún barrio con lectura verificada'}
+              </h2>
 
-              {/* Puramente decorativo — ya no es el estado "vacío" de PanelDetalleSector (ese
-                  branch se eliminó). No reacciona a nada: mismo texto de siempre, reubicado
-                  aquí arriba de las pestañas como una pista fija de cómo usar el panel. */}
-              <p className="hoja-sectores-pista">
-                <MapPin size={13} aria-hidden="true" />
-                Selecciona un sector para ver su información
-              </p>
-
-              {/* Mismo componente y efecto líquido del navbar (GooeyNav): la píldora activa
-                  se sombrea de blanco, igual que "Mapa en vivo" arriba. Los href son
-                  anclas ficticias — GooeyNav siempre hace preventDefault, así que acá
-                  solo sirven de key/aria, el cambio real de vista lo hace onSelect. */}
-              <div className="filtro-panel-tabs">
-                <GooeyNav
-                  items={[
-                    { href: '#por-estado', label: 'Por estado' },
-                    { href: '#por-sector', label: 'Por sector' },
-                  ]}
-                  activeIndex={filtroPanel === 'estado' ? 0 : 1}
-                  onSelect={(indice) => setFiltroPanel(indice === 0 ? 'estado' : 'sector')}
-                />
+              {/* Dos vistas del mismo cuaderno: el recuento por estado, o la búsqueda
+                  barrio por barrio. Botones normales en vez del GooeyNav anterior, que
+                  arrastraba un efecto líquido de burbujas —copiado con su CSS y su paleta
+                  de la librería de origen— para conmutar dos pestañas. */}
+              <div className="cuaderno-vistas" role="tablist" aria-label="Cómo ver los barrios">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={filtroPanel === 'estado'}
+                  className={`cuaderno-vista${filtroPanel === 'estado' ? ' is-activa' : ''}`}
+                  onClick={() => setFiltroPanel('estado')}
+                >
+                  Por estado
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={filtroPanel === 'sector'}
+                  className={`cuaderno-vista${filtroPanel === 'sector' ? ' is-activa' : ''}`}
+                  onClick={() => setFiltroPanel('sector')}
+                >
+                  Buscar barrio
+                </button>
               </div>
             </div>
 

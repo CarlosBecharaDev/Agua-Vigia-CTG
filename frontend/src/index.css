@@ -1,4 +1,8 @@
 @import "tailwindcss";
+/* Las pantallas secundarias (reportar, ficha de sector, confirmar, no encontrada) llevan
+   sus estilos en un archivo aparte. Se importa después de tailwind y antes de los tokens
+   para que las reglas de este archivo, más específicas, sigan mandando. */
+@import "./estilos/paginas-secundarias.css";
 
 /* ─────────────────────────────────────────────────────────────────────────
    Sistema de diseño: CARTA NÁUTICA CÍVICA
@@ -1440,71 +1444,143 @@ select {
   animation: aparecerAbajo 380ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.mapa-titulo {
+/* ── Cuaderno de sondas: cabecera de la columna de lecturas ──────────────
+   Antes esta cabecera repetía la pregunta del producto ("¿Cómo está el agua
+   en tu barrio?") justo al lado del mapa que la contesta, y debajo una pista
+   fija que decía cómo usar el panel. Ahora rotula lo que la columna es y
+   declara de una la única cifra que importa: cuántos barrios tienen lectura
+   de verdad. */
+.cuaderno-rotulo {
+  color: var(--color-tinta-3);
+  margin-bottom: 0.5rem;
+}
+
+.cuaderno-titulo {
   font-family: var(--font-display);
-  font-size: 1.3rem;
-  font-weight: 800;
-  line-height: 1.18;
-  letter-spacing: -0.01em;
+  font-size: 1.22rem;
+  font-weight: 500;
+  line-height: 1.22;
+  letter-spacing: -0.02em;
   text-wrap: balance;
 }
 
-.mapa-subtitulo {
-  margin-top: 0.35rem;
-  color: var(--color-tinta-2);
-  font-size: 0.85rem;
-  line-height: 1.5;
-}
-
-.mapa-subtitulo strong {
-  color: var(--color-acento);
-  font-weight: 700;
-}
-
-/* Pista fija sobre las pestañas — antes era el mensaje del estado "vacío" de
-   PanelDetalleSector; ahora es puro texto decorativo, sin ligar a si hay sector elegido o
-   no (esa lógica se fue con CarruselSector). */
-.hoja-sectores-pista {
+/* Conmutador de vistas. Dos botones y un subrayado: el estado activo se lee
+   por el filete inferior y el color de la tinta, sin píldora ni relleno. */
+.cuaderno-vistas {
   display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-top: 0.85rem;
+  gap: 1.2rem;
+  margin-top: 1.1rem;
+  border-bottom: 1px solid var(--color-linea);
+}
+
+.cuaderno-vista {
+  position: relative;
+  min-height: 40px;
+  padding: 0 0 0.6rem;
+  border: 0;
+  background: transparent;
+  color: var(--color-tinta-3);
+  font-family: var(--font-util);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color var(--motion-fast) var(--ease);
+}
+
+.cuaderno-vista:hover { color: var(--color-tinta-2); }
+
+.cuaderno-vista.is-activa { color: var(--color-tinta); }
+
+/* -1px para montarse sobre el borde del contenedor y no dejar una hendidura
+   de un píxel entre el filete activo y la línea de la cabecera. */
+.cuaderno-vista.is-activa::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--carta-boya);
+}
+
+/* ── La brecha: lo prometido contra lo real ─────────────────────────────
+   Esquina inferior izquierda de la carta, bajo la cartela. Es contexto del
+   producto, no la respuesta a "¿tengo agua?", así que se mantiene discreta:
+   la magenta aparece en una sola cifra y solo cuando el desvío va en contra. */
+.brecha {
+  position: absolute;
+  left: 1.5rem;
+  bottom: 2rem;
+  z-index: 900;
+  width: min(310px, calc(100% - 3rem));
+  padding: 0.95rem 1.15rem 1rem;
+  border: 1px solid var(--color-linea);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--color-superficie) 94%, transparent);
+  backdrop-filter: blur(14px) saturate(130%);
+  box-shadow: var(--sombra-suave);
+}
+
+.brecha-rotulo {
+  color: var(--color-tinta-3);
+  margin-bottom: 0.6rem;
+}
+
+.brecha-comparacion {
+  display: flex;
+  gap: 1.6rem;
+}
+
+.brecha-comparacion dt {
+  color: var(--color-tinta-3);
+  font-size: 0.68rem;
+  margin-bottom: 0.15rem;
+}
+
+.brecha-comparacion dd {
+  color: var(--color-tinta);
+  font-size: 1.18rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.brecha-desvio {
+  margin-top: 0.7rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--color-linea);
+  color: var(--color-tinta-2);
+  font-size: 0.78rem;
+}
+
+.brecha-desvio .sonda {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.brecha-vacia {
   color: var(--color-tinta-3);
   font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.brecha-alcance {
+  margin-top: 0.35rem;
+  color: var(--color-tinta-3);
+  font-size: 0.68rem;
   line-height: 1.4;
 }
 
-.hoja-sectores-pista svg {
-  flex: 0 0 auto;
-  color: var(--color-acento);
-}
-
-/* Toggle "Por estado" / "Por sector": mismo GooeyNav del navbar, pero acá las dos píldoras
-   se reparten el ancho completo del panel en vez de encogerse a su texto — ese es el único
-   ajuste, el efecto líquido y el sombreado blanco de la píldora activa son los de siempre. */
-.filtro-panel-tabs {
-  margin-top: 0.9rem;
-}
-
-.filtro-panel-tabs .gooey-nav-container nav ul {
-  width: 100%;
-  gap: 0.4rem;
-}
-
-.filtro-panel-tabs .gooey-nav-container nav ul li {
-  flex: 1 1 0;
-  text-align: center;
-}
-
-.filtro-panel-tabs .gooey-nav-container nav ul li a {
-  justify-content: center;
-  width: 100%;
-  padding: 0.55em 0.4em;
-  font-size: 0.82rem;
-}
-
-.filtro-panel-tabs .gooey-nav-container .effect.text {
-  font-size: 0.82rem;
+/* En móvil la carta ocupa todo y estas dos piezas dejan de flotar: pasan a
+   apilarse sobre el mapa, en el orden en que se necesitan. */
+@media (max-width: 900px) {
+  .brecha {
+    position: static;
+    width: auto;
+    margin: 0.6rem 0 0;
+    backdrop-filter: none;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -2372,109 +2448,104 @@ select {
 /* Píldora oscura despegada del borde, no una barra pegada arriba: flota sobre el hero de
    olas igual que en la referencia de reactbits. Es oscura en los dos temas a propósito —
    su contexto principal es el hero, que ahora es negro en ambos. */
+/* ── Barra superior de la carta ─────────────────────────────────────────
+   Reescrita sobre tokens. La versión anterior pintaba todo con blancos
+   fijos (#fff, rgba(255,255,255,…)) porque flotaba sobre un shader que era
+   oscuro en los dos temas; al desaparecer ese fondo, esos blancos se
+   quedaban ilegibles sobre la carta impresa. Ahora la barra usa la misma
+   superficie que la cartela, y funciona igual de día y de noche.
+
+   Barra recta y no píldora flotante: se apoya en el borde superior de la
+   carta como el margen impreso de una lámina, y deja el ancho completo al
+   territorio. */
 .navbar-superior {
   position: fixed;
-  top: 0.6rem;
-  left: 0.6rem;
-  right: 0.6rem;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 1200;
   display: flex;
   align-items: center;
-  gap: 1.25rem;
-  height: 4rem;
-  padding: 0 0.7rem 0 1.1rem;
-  /* Vidrio líquido oscuro: el degradado translúcido da el cuerpo, el backdrop-filter
-     recoge y desenfoca las olas de atrás, y el `saturate` evita que ese desenfoque salga
-     lavado. La línea interior clara arriba es el reflejo del borde superior. */
-  background: linear-gradient(
-    155deg,
-    rgba(26, 26, 34, 0.62) 0%,
-    rgba(12, 12, 17, 0.48) 100%
-  );
-  backdrop-filter: blur(20px) saturate(175%);
-  -webkit-backdrop-filter: blur(20px) saturate(175%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 18px;
-  box-shadow:
-    0 18px 40px -12px rgba(0, 0, 0, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
-  animation: navbar-deslizar 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes navbar-deslizar {
-  from { opacity: 0; transform: translateY(-140%); }
-  to   { opacity: 1; transform: translateY(0); }
+  gap: 2rem;
+  height: 3.5rem;
+  padding: 0 1.25rem;
+  border-bottom: 1px solid var(--color-linea);
+  background: color-mix(in srgb, var(--color-fondo) 88%, transparent);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
 }
 
 .navbar-marca {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: .55rem;
   flex: 0 0 auto;
   min-height: 44px;
-  color: #fff;
+  color: var(--color-tinta);
   text-decoration: none;
-  transition: transform var(--transicion);
 }
-
-.navbar-marca:hover { transform: translateY(-1px); }
 
 .navbar-marca-copy {
   font-family: var(--font-display);
-  font-size: .95rem;
-  font-weight: 700;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: -.02em;
   white-space: nowrap;
 }
 
-/* ── Buscador de la bitácora — junto al logo, a la izquierda del navbar ── */
-.navbar-buscador-bitacora {
-  position: relative;
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: .5rem;
-  width: min(220px, 30vw);
-  min-height: 40px;
-  padding: 0 .8rem;
-  color: rgba(255, 255, 255, 0.45);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radio-pill);
-  transition: border-color var(--transicion), box-shadow var(--transicion), transform var(--transicion);
+/* El lugar al lado del nombre, en versalitas: una carta siempre dice de
+   dónde es. Se esconde en pantallas estrechas — ahí manda el mapa. */
+.navbar-marca-lugar {
+  color: var(--color-tinta-3);
+  font-family: var(--font-util);
+  font-size: .6rem;
+  font-weight: 600;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.navbar-buscador-bitacora:focus-within {
-  border-color: rgba(255, 255, 255, 0.3);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
-  transform: scale(1.02);
-}
-
-.navbar-buscador-bitacora svg { flex: 0 0 auto; }
-
-.navbar-buscador-bitacora input {
-  flex: 1;
-  min-width: 0;
-  min-height: 36px;
-  padding: 0;
-  color: #fff;
-  background: transparent;
-  border: none;
-  outline: none;
-  font-family: var(--font-cuerpo);
-  font-size: .82rem;
-}
-
-.navbar-buscador-bitacora input::-webkit-search-cancel-button { cursor: pointer; }
-
-/* Contenedor del GooeyNav. Sin `overflow` de ningún tipo: el efecto gotea fuera de la
-   caja (su capa de desenfoque se extiende 75px por cada lado con mix-blend-mode) y
-   cualquier recorte lo cortaría en seco. */
+/* ── Enlaces de sección ── */
 .navbar-enlaces {
   display: flex;
-  flex: 1 1 auto;
   align-items: center;
-  justify-content: flex-end;
+  gap: 1.5rem;
+  flex: 1 1 auto;
   min-width: 0;
+  height: 100%;
+}
+
+.navbar-enlace {
+  position: relative;
+  height: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-tinta-3);
+  font-family: var(--font-util);
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--motion-fast) var(--ease);
+}
+
+.navbar-enlace:hover { color: var(--color-tinta-2); }
+.navbar-enlace.is-activo { color: var(--color-tinta); }
+
+/* -1px para montarse sobre el borde inferior de la barra en vez de dejar
+   una hendidura de un píxel entre el filete y la línea. */
+.navbar-enlace.is-activo::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--carta-boya);
 }
 
 .navbar-acciones {
@@ -2484,47 +2555,83 @@ select {
   flex: 0 0 auto;
 }
 
-/* El selector de tema hereda de `.theme-toggle`, que usa --color-superficie: en tema claro
-   eso es blanco puro y dentro de la barra oscura se convertiría en un segundo botón blanco
-   compitiendo con "Reportar ahora". Acá va translúcido, secundario. */
+/* ── Buscador de la bitácora ── */
+.navbar-buscador-bitacora {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  width: min(200px, 24vw);
+  min-height: 36px;
+  padding: 0 .7rem;
+  border: 1px solid var(--color-linea);
+  border-radius: 3px;
+  background: var(--color-superficie);
+  color: var(--color-tinta-3);
+  transition: border-color var(--motion-fast) var(--ease);
+}
+
+.navbar-buscador-bitacora:focus-within { border-color: var(--carta-boya); }
+
+.navbar-buscador-bitacora svg { flex: 0 0 auto; }
+
+.navbar-buscador-bitacora input {
+  flex: 1;
+  min-width: 0;
+  min-height: 34px;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--color-tinta);
+  font-family: var(--font-cuerpo);
+  font-size: .8rem;
+}
+
+.navbar-buscador-bitacora input::-webkit-search-cancel-button { cursor: pointer; }
+
 .navbar-superior .theme-toggle {
-  color: rgba(255, 255, 255, 0.62);
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.08);
-  border-radius: var(--radio-pill);
+  min-height: 36px;
+  border-radius: 3px;
+  border-color: var(--color-linea);
+  background: var(--color-superficie);
+  color: var(--color-tinta-2);
   box-shadow: none;
 }
 
 .navbar-superior .theme-toggle:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.16);
+  color: var(--color-tinta);
+  border-color: var(--color-linea-fuerte);
 }
 
-/* ── CTA "Reportar ahora" — también disponible en el navbar, siempre visible ── */
-/* Píldora blanca sobre la barra oscura, como el "Sign up" de la referencia. Se le quitó el
-   `pulso-neon-rojo`: ese latido estaba pensado para un botón turquesa sobre fondo claro y
-   sobre blanco se lee como un parpadeo sucio. El contraste ya lo destaca de sobra. */
+/* Única acción con relleno de la barra: es lo que el producto le pide a la
+   gente que haga. Lleva la magenta de aviso náutico, el mismo color con el
+   que la carta marca lo que exige atención. */
 .navbar-reportar {
   display: inline-flex;
   align-items: center;
-  gap: .4rem;
-  min-height: 44px;
-  padding: 0 1.15rem;
-  color: #08080c;
-  font-size: .84rem;
-  font-weight: 700;
-  white-space: nowrap;
-  background: #fff;
+  gap: .45rem;
+  min-height: 36px;
+  padding: 0 1rem;
   border: 1px solid transparent;
-  border-radius: var(--radio-pill);
+  border-radius: 3px;
+  background: var(--carta-magenta);
+  color: var(--color-fondo);
+  font-size: .82rem;
+  font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
-  transition: transform var(--transicion), box-shadow var(--transicion);
+  transition: background var(--motion-fast) var(--ease);
 }
 
 .navbar-reportar:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 22px -6px rgba(255, 255, 255, 0.35);
+  background: color-mix(in srgb, var(--carta-magenta) 82%, var(--color-tinta));
+}
+
+@media (max-width: 860px) {
+  .navbar-marca-lugar { display: none; }
+  .navbar-buscador-bitacora { display: none; }
+  .navbar-enlaces { gap: 1rem; }
+  .navbar-superior { gap: 1rem; padding: 0 .85rem; }
 }
 
 /* Recuadro unificado: mapa + panel de sectores comparten un solo marco (un borde, una
