@@ -41,10 +41,31 @@ export default defineConfig({
         ]
       },
       workbox: {
-        // Cachear assets estáticos incluyendo el GeoJSON de barrios
+        // Cachear assets estáticos incluyendo el GeoJSON de barrios.
+        // `gif` NO va aquí a propósito: el logo animado pesa 4,6MB y precachearlo obligaría
+        // a descargarlo entero en la instalación (además de pasarse del tope de 2MiB que
+        // Workbox aplica por defecto). Se cachea en runtime, más abajo.
         globPatterns: ['**/*.{js,css,html,ico,png,svg,geojson,woff2}'],
         // Caché en runtime para tiles de mapa y APIs externas
         runtimeCaching: [
+          {
+            // Logo animado de la marca. Estaba fuera de globPatterns y de runtimeCaching, así
+            // que el service worker no lo tenía y la petición caía a red; contra el dev server
+            // esa ruta con hash no existe y devolvía el index.html, que el <img> decodificaba
+            // como 0x0 — el logo simplemente no aparecía.
+            urlPattern: /\.gif$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'imagenes-marca',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 días
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
           {
             // Tiles de OpenStreetMap — CacheFirst para funcionar offline
             urlPattern: /^https:\/\/[abc]\.tile\.openstreetmap\.org/,
@@ -95,12 +116,32 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
+      // El backend vive en otro puerto, así que sin esto `apiClient` (baseURL '/api') le
+      // pegaba al propio dev server: GET devolvía el index.html del SPA con 200 y axios lo
+      // daba por bueno, POST devolvía 404. Con el proxy el origen es el mismo que en
+      // producción (nginx hace lo propio, ver frontend/nginx.conf) y no hace falta CORS.
+      '/api': {
+        target: process.env.VITE_BACKEND_ORIGIN || 'http://localhost:8080',
+        changeOrigin: true,
+        // RF de mapa en vivo: /api/sectores/stream es text/event-stream y se queda abierto.
+        // Sin esto el proxy lo bufferiza y los eventos no llegan hasta que cierra.
+        configure: (proxy) => {
+          proxy.on('proxyRes', (proxyRes) => {
+            if (proxyRes.headers['content-type']?.includes('text/event-stream')) {
+              proxyRes.headers['cache-control'] = 'no-cache, no-transform'
+            }
+          })
+        },
+      },
       '/acuacar-api': {
         target: 'https://www.acuacar.com/wp-json/wp/v2',
         changeOrigin: true,
         secure: false,
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          // El colector se identifica siempre (CLAUDE.md §Ética de datos, regla 3). Antes iba
+          // un User-Agent de Chrome falsificado, que contradice la regla 1 del mismo archivo.
+          // Verificado contra la API real: con esta identidad acuacar.com responde 200 igual.
+          'User-Agent': 'AguaVigiaCTG-Bot/1.0 (+rafasarmiento777@gmail.com)',
           'Accept': 'application/json'
         },
         rewrite: (path) => path.replace(/^\/acuacar-api/, ''),
