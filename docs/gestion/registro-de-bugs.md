@@ -70,11 +70,15 @@ Tres razones concretas, no burocráticas:
 | BUG-043 | 2026-08-09 | S4 | Frontend | El tema claro cargaba el fondo morado del modo oscuro y ambos temas incumplían la paleta de `DESIGN.md` | Cerrado — corregido en el acto | D4 |
 | BUG-044 | 2026-08-11 | S2 | M1 | El mapa y el buscador solo reconocían ~30 de los 211 barrios reales del GeoJSON; el resto caía en un sector sintético inventado al hacer clic | Cerrado — corregido en el acto | D4 |
 | BUG-045 | 2026-08-11 | S2 | M1/M9 | Un barrio con nombre numeral en el GeoJSON ("SIETE DE AGOSTO") nunca calzaba si el boletín de Acuacar lo escribía en dígito ("7 de Agosto") | Cerrado — corregido en el acto | D4 |
-| BUG-046 | 2026-08-11 | S2 | M1/M9 | Los sub-sectores de "Olaya Herrera" en el GeoJSON llevan el prefijo "OLAYA ST. X"; los boletines de Acuacar los listan sin ese prefijo y nunca cruzan | Abierto | D4/D5 |
-| BUG-047 | 2026-08-11 | S2 | — (geoespacial) | Boletines reales de Acuacar nombran zonas ("María Auxiliadora", "Salim Bechara") sin ningún polígono equivalente en `barrios-cartagena.geojson` | Abierto | D5 |
-| BUG-048 | 2026-08-11 | S2 | — (infraestructura) | El proxy de Acuacar en `vite.config.ts` envía un `User-Agent` que se hace pasar por Chrome/Windows en vez de identificar el proyecto, violando la regla no negociable de `CLAUDE.md` | Abierto | Equipo (decisión: correo de contacto) |
+| BUG-046 | 2026-08-11 | S2 | M1/M9 | Los sub-sectores de "Olaya Herrera" en el GeoJSON llevan el prefijo "OLAYA ST. X"; los boletines de Acuacar los listan sin ese prefijo y nunca cruzan | Cerrado — 2026-08-16, con el scoping que faltaba | D4/D5 |
+| BUG-047 | 2026-08-11 | S2 | — (geoespacial) | Boletines reales de Acuacar nombran zonas ("María Auxiliadora", "Salim Bechara") sin ningún polígono equivalente en `barrios-cartagena.geojson` | Cerrado — 2026-08-16, se listan sin dibujarse | D5 |
+| BUG-048 | 2026-08-11 | S2 | — (infraestructura) | El proxy de Acuacar en `vite.config.ts` envía un `User-Agent` que se hace pasar por Chrome/Windows en vez de identificar el proyecto, violando la regla no negociable de `CLAUDE.md` | Cerrado — 2026-08-16 | Equipo (decisión: correo de contacto) |
 | BUG-049 | 2026-08-11 | S3 | M8 | Las imágenes de portada de los boletines de Acuacar no cargaban en las tarjetas de la Bitácora — bloqueadas por protección anti-hotlink basada en `Referer` | Cerrado — corregido en el acto | D4 |
 | BUG-050 | 2026-08-11 | S2 | M8 | El botón "Leer documento" de la Bitácora podía no navegar a ningún lado: el carrusel capturaba el puntero en cada clic, no solo al arrastrar | Cerrado — corregido en el acto | D4 |
+| BUG-051 | 2026-08-16 | S1 | M1/M9 | Todo boletín sin palabra clave reconocida se clasificaba como `CORTE_PROGRAMADO`: una nota sobre niños líderes ambientales pintaba con corte programado a cada barrio que nombrara de paso | Cerrado — corregido en el acto | D4 |
+| BUG-052 | 2026-08-16 | S1 | M1/M9 | El cruce de nombres busca por subcadena sin límite de palabra: el barrio "ANITA" salía de la palabra "alcantarillado s-anita-rio" y aparecía con corte en 5 boletines que no hablan de él | Cerrado — corregido en el acto | D4 |
+| BUG-053 | 2026-08-16 | S1 | M2/M4/M5 | El frontend nunca llega al backend: `apiClient` usa `/api` y no existe proxy ni en `vite.config.ts` ni en `nginx.conf`; `GET /api/sectores` devolvía el `index.html` del SPA con 200 y `POST /api/reportes` 404 | Cerrado — corregido en el acto | D4/D3 |
+| BUG-054 | 2026-08-16 | S3 | M1 | El logo animado de la marca no aparece: `gif` no está en `globPatterns` del service worker y la petición caía a red, donde la ruta con hash no existe y devolvía el `index.html` | Cerrado — corregido en el acto | D4 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -241,16 +245,31 @@ aparece en el resultado de `extraerBarriosDeTexto`, aunque el texto sí menciona
 **Esperado:** esos ~10 sub-sectores deberían poder detectarse cuando el boletín los menciona dentro
 del párrafo que empieza con "Olaya Herrera, sectores: ...".
 
-**Por qué no se corrigió en el acto:** la opción obvia — quitar el prefijo `"OLAYA ST. "` y buscar el
-resto como alias — es peligrosa: nombres como `"Central"`, `"Progreso"` o `"Playa Blanca"` son
-palabras genéricas que podrían aparecer en boletines sin relación con Olaya Herrera, y un alias así
-arriesga marcar un barrio equivocado como afectado — exactamente lo que la regla de ética de datos
-del proyecto prohíbe (nada al mapa sin poder citar la frase exacta que lo respalda; ver `ADR-006` y
-la "Regla especial" al pie de este archivo). La corrección real necesita un parser que reconozca el
-encabezado "Olaya Herrera, sectores:" como alcance antes de mapear los nombres cortos — no se
-construyó en esta sesión por quedar fuera de lo pedido y por el riesgo de falsos positivos.
+**Por qué no se corrigió en el acto (2026-08-11):** la opción obvia — quitar el prefijo `"OLAYA ST. "`
+y buscar el resto como alias — es peligrosa: nombres como `"Central"`, `"Progreso"` o `"Playa Blanca"`
+son palabras genéricas que podrían aparecer en boletines sin relación con Olaya Herrera.
 
-**Corrección:** pendiente — requiere que el equipo decida el criterio de scoping antes de implementar.
+**Causa raíz:** el cruce buscaba el nombre completo del polígono dentro del texto, en una sola
+dirección. El GeoJSON es catastral y Acuacar escribe en prosa: ningún boletín repite el prefijo
+`OLAYA ST.`, así que los once sub-sectores eran inalcanzables por construcción. Olaya Herrera es el
+barrio **más mencionado de todo el corpus** (68 veces en 150 boletines) y era invisible en el mapa.
+
+**Corrección (2026-08-16):** tabla de alias explícita en `frontend/src/data/barriosAcuacar.ts`
+(`ALIAS_DE_BARRIO`), donde un alias puede resolver a varios polígonos: `"Olaya Herrera"` marca los
+once sectores de una vez, y cada sector con nombre propio inequívoco (`Stella`, `Zarabanda`,
+`La Magdalena`, `Playa Blanca`, `La Puntilla`, `Rafael Nuñez`, `Villa Olímpica`) tiene el suyo.
+
+**La advertencia de 2026-08-11 era correcta y se respetó**: se auditaron los diez nombres contra los
+150 boletines reales antes de aliasarlos, y tres se dejaron **deliberadamente fuera** porque el corpus
+confirma el falso positivo — `"Ricaurte"` aparece como *"San Fernando, las viviendas entre la avenida
+El Consulado y el **canal Ricaurte**"* (linde de otro barrio); `"Progreso"` como *"Nelson Mandela,
+sectores … **sector El Progreso**"* y *"Zaragocilla … **sector El Progreso**"* (hay varios "El
+Progreso" en barrios distintos); `"Central"` choca con `"La Central"`. No se pierde cobertura: esas
+enumeraciones siempre van encabezadas por "Olaya Herrera, sectores:", y ese alias ya marca los once.
+
+**Prueba que lo cubre:** `src/api/acuacar.test.ts` → `reconoce a Olaya Herrera, que el GeoJSON parte
+en sectores` y `no marca Olaya/Ricaurte cuando el boletín usa el canal como linde de otro barrio
+(BUG-046)`.
 
 ---
 
@@ -278,8 +297,23 @@ cobertura real (211 barrios clicables/buscables en vez de ~30) pero se perdió l
 2-3 nombres que Acuacar sí reporta y D5 no tiene mapeados. No se inventó una correspondencia para no
 arriesgar un cruce falso (misma razón que `BUG-046`).
 
-**Corrección:** pendiente — D5 necesita confirmar si "María Auxiliadora"/"Salim Bechara" tienen
-polígono con otro nombre en el GeoJSON, o si falta agregarlos.
+**Causa raíz:** el universo de nombres reconocibles era exactamente el del GeoJSON, y el GeoJSON es
+catastral: no contiene urbanizaciones ni sectores internos. Acuacar sí los nombra. Auditando 150
+boletines reales (2025-12-03 → 2026-08-14) aparecen **324 lugares** que el GeoJSON no tiene, no dos.
+
+**Corrección (2026-08-16):** se separa "reconocer" de "dibujar". `BARRIOS_SIN_POLIGONO` en
+`frontend/src/data/barriosAcuacar.ts` lista los nombres que Acuacar reporta y D5 no tiene mapeados
+(los ~100 con presencia real en el corpus, incluidos "María Auxiliadora" y "Salim Bechara"). Se
+reconocen en el texto, se listan y se buscan, y viajan con la marca `sinPoligono: true` para que el
+mapa **no** los pinte. Así se recupera la información sin inventar geometría que nadie levantó —
+que es justo lo que este bug pedía sin poder resolver.
+
+**Sigue en manos de D5, ya no como bug:** si alguno de esos nombres sí corresponde a un polígono
+existente con otra grafía, mover esa fila de `BARRIOS_SIN_POLIGONO` a `ALIAS_DE_BARRIO` lo hace
+dibujable. Es trabajo de datos, no un defecto.
+
+**Prueba que lo cubre:** `src/api/acuacar.test.ts` → `reconoce barrios que Acuacar nombra y el GeoJSON
+no tiene, sin polígono`.
 
 ---
 
@@ -307,8 +341,185 @@ identificación del proyecto — la fuente en sí ya está verificada y permitid
 `docs/ingenieria/auditoria-fuentes-de-datos.md`), así que camuflar el origen no era ni siquiera
 necesario para que la petición funcione.
 
-**Corrección:** pendiente — no se corrigió sin que el equipo decida el correo de contacto real a usar
-en el `User-Agent` final (p. ej. `AguaVigiaCTG/0.1 (+contacto@dominio)`).
+**Corrección (2026-08-16):** el correo de contacto ya no estaba pendiente — `BL-006` lo cerró el
+2026-08-08 con `rafasarmiento777@gmail.com`, y `.env.example` ya lo usa en `COLLECTOR_USER_AGENT`.
+Se aplicó la misma identidad al proxy: `vite.config.ts` envía ahora
+`AguaVigiaCTG-Bot/1.0 (+rafasarmiento777@gmail.com)`.
+
+**Verificado, no supuesto:** se probó contra la API real antes de cambiarlo —
+`curl -A "AguaVigiaCTG-Bot/1.0 (+rafasarmiento777@gmail.com)" https://www.acuacar.com/wp-json/wp/v2/posts`
+responde **HTTP 200** con los 20 boletines. El camuflaje no era necesario ni para que funcionara.
+
+---
+
+### BUG-051 — Un boletín que no habla del servicio marcaba con corte a todo barrio que nombrara
+
+- **Fecha:** 2026-08-16 · **Severidad:** S1 · **Módulo:** M1/M9 · **Responsable:** D4
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** `determinarEstadoBoletin` clasificaba por palabras clave del título y su rama por
+defecto era `CORTE_PROGRAMADO`. Como la mayoría de los boletines de Acuacar son notas
+institucionales sin ninguna de esas palabras, cualquier barrio nombrado de paso en ellos quedaba
+publicado en el mapa con un corte programado que nadie anunció.
+
+**Reproducción:** consistente, contra la API real. De los 20 boletines más recientes, **7** eran
+notas institucionales y los 7 caían en `CORTE_PROGRAMADO`. Casos concretos:
+`#2852 – "AGUAS DE CARTAGENA IMPULSA UNA GENERACIÓN DE LÍDERES AMBIENTALES: MÁS DE 1.000 NIÑOS…"`
+→ marcaba ANITA con corte; `#2844 – "EMANUEL DICKSON BÁNQUEZ REPRESENTARÁ A CARTAGENA…"` → marcaba
+5 barrios; `#2832 – "…OBTIENE UN ÍNDICE ÚNICO SECTORIAL DE 94,39…"`; `#2835`; `#2837`; `#2833`.
+
+**Esperado:** la regla del proyecto es explícita — *"Nada llega al mapa público sin verificación. Si
+la IA no puede citar la frase exacta del boletín que respalda su extracción, no se publica"*
+(`CLAUDE.md` §Ética de datos, regla 4). Un boletín que no habla del servicio no dice nada de ningún
+barrio. **S1 por la regla dura al pie de este archivo:** publica un corte inexistente.
+
+**Causa raíz:** clasificación total sobre un dominio parcial. La función devolvía siempre uno de los
+tres estados, así que "no sé" y "corte programado" eran indistinguibles; el tipo de retorno no dejaba
+expresar la ausencia de evidencia.
+
+**Corrección:** `determinarEstadoBoletin` devuelve `EstadoServicioBoletin | null`, con `null` cuando
+el título no declara ningún evento de servicio, y `determinarEstadoBarrios` descarta esos boletines
+antes de tocar el mapa (`frontend/src/api/acuacar.ts`). Además cada barrio publicado viaja ahora con
+la frase textual que lo respalda (`MencionBarrio.cita`), que es la evidencia que la regla 4 exige.
+La bitácora los muestra como `Informativo` en vez de inventarles un estado
+(`frontend/src/components/SeccionBitacora.tsx`).
+
+**Nota de diseño — se probó clasificar también por el cuerpo del boletín y es peor:** un boletín
+largo termina conteniendo todas las palabras. El de la avería del 9-ago decía "restablecer" al
+explicar el plan, y clasificar por cuerpo lo daba como `CON_SERVICIO` para **126 barrios que estaban
+en rotación de cortes** — es decir, afirmar que hay agua donde no la hay. Se clasifica solo por
+título, que sí declara la intención: 21/21 boletines quedan bien clasificados.
+
+**Prueba que lo cubre:** `src/api/acuacar.test.ts` → `no inventa un corte cuando el boletín no habla
+del servicio`.
+
+---
+
+### BUG-052 — El barrio "ANITA" aparecía con corte por estar contenido en la palabra "sanitario"
+
+- **Fecha:** 2026-08-16 · **Severidad:** S1 · **Módulo:** M1/M9 · **Responsable:** D4
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** `extraerBarriosDeTexto` cruzaba nombres con `indexOf` sobre el texto normalizado, sin
+exigir límite de palabra. `"anita"` es subcadena de `"s-anita-rio"`, así que cualquier boletín que
+mencionara alcantarillado o normatividad **sanitaria** publicaba el barrio ANITA como afectado.
+
+**Reproducción:** consistente, contra la API real. ANITA aparecía en 7 boletines; en **5** el único
+respaldo era la palabra "sanitario". Citas textuales:
+`#2852` → *"la protección del sistema de alcantarillado **sanitario**"*;
+`#2837` → *"la normatividad **sanitaria** vigente"*;
+`#2844` → *"Reutilización de Aguas Grises para Baterías **Sanitarias**"*;
+`#2842` → *"la infraestructura **sanitaria** de la ciudad"*; `#2839`.
+El único uso legítimo era `#2849` → *"urbanización **Anita**"*.
+
+**Esperado:** un nombre de barrio solo cruza si aparece como palabra, no como fragmento.
+**S1 por la regla dura:** publica un corte inexistente.
+
+**Causa raíz:** `BUG-020` y `BUG-045` habían corregido la normalización (acentos, mayúsculas,
+numerales) y el orden longest-match-first, pero ninguno tocó la condición del cruce en sí: seguía
+siendo pertenencia de subcadena. El caso `NUEVO CHILE`/`CHILE` que sí se probaba está protegido por
+el longest-match, no por límites de palabra, así que la prueba existente no podía detectar esto.
+
+**Corrección:** `esPalabraCompleta()` en `frontend/src/api/acuacar.ts` — un cruce solo cuenta si los
+caracteres inmediatamente anterior y posterior no son letra ni dígito.
+
+**Prueba que lo cubre:** `src/api/acuacar.test.ts` → `exige palabra completa: "sanitario" no contiene
+el barrio ANITA`.
+
+---
+
+### BUG-053 — El frontend nunca llegaba al backend: no existe proxy de `/api` en ninguna capa
+
+- **Fecha:** 2026-08-16 · **Severidad:** S1 · **Módulo:** M2/M4/M5 · **Responsable:** D4/D3
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** `apiClient` usa `baseURL: '/api'` (`frontend/src/api/client.ts:23`), pero ni el dev
+server de Vite ni nginx enrutaban `/api` al backend. Las peticiones se las quedaba el propio
+servidor de estáticos. El formulario de reporte (M2), el de suscripción (M4) y el login del veedor
+(M5) no podían funcionar en ningún entorno.
+
+**Reproducción:** consistente. Con el backend levantado en `:8080` y el dev server en `:5173`:
+`GET localhost:5173/api/sectores` → **HTTP 200 `text/html`**, el `index.html` del SPA;
+`POST localhost:5173/api/reportes` → **HTTP 404**.
+El GET es el peor de los dos: axios resuelve la promesa sin error y el fallo aparece más tarde y
+disfrazado, dentro de `validarRespuestaSectores`.
+
+**Esperado:** `/api/**` llega al backend en dev y en producción, y el navegador ve el mismo origen.
+
+**Causa raíz:** `BUG-034` corrigió el CORS del arranque cambiando las llamadas absolutas a
+`localhost:8080` por la ruta relativa `/api` — la decisión correcta — pero **nunca se agregó el proxy
+que esa decisión da por supuesto**, ni en `vite.config.ts` (que sí proxea `/acuacar-api` y
+`/google-news-rss`) ni en `nginx.conf`. Quedó una media corrección: se fue el error de CORS y con él
+la señal de que la API no se estaba llamando. `application.yml:15-19` ya daba por hecho el proxy de
+nginx al justificar `forward-headers-strategy: framework`.
+
+**Corrección:** tres capas.
+1. `frontend/vite.config.ts` — proxy `/api` → `http://localhost:8080` (configurable con
+   `VITE_BACKEND_ORIGIN`), con `cache-control: no-transform` para que `/api/sectores/stream` (SSE) no
+   se bufferice.
+2. `frontend/nginx.conf` — `location /api/` con `proxy_pass http://backend:8080`, antes del
+   `try_files` del SPA, más `X-Forwarded-For` (que el rate limiting por IP necesita) y
+   `proxy_buffering off` para el SSE.
+3. `backend/.../SecurityConfig.java` + `CorsProperties.java` — CORS opt-in por perfil para quien
+   prefiera apuntar `VITE_API_BASE_URL` directo al backend. Vacío por defecto (mismo criterio que
+   `aguavigia.rate-limit`, `ADR-018`); `application-dev.yml` habilita solo `localhost:5173`.
+
+**Dos trampas de Spring que costaron un ciclo cada una, anotadas para el que venga:**
+`http.cors(Customizer.withDefaults())` **solo** recoge un bean llamado literalmente
+`corsConfigurationSource` — con el nombre en español la configuración se ignoraba en silencio y el
+preflight seguía en 403. Y al inyectar `CorsConfigurationSource` por tipo hay ambigüedad, porque
+Spring MVC registra el suyo (`mvcHandlerMappingIntrospector`): hace falta `@Qualifier`.
+
+**Verificación de punta a punta** (Mongo/Redis por `docker compose`, backend nativo, dev server):
+`GET /api/sectores` → **200** con los 211 sectores · `POST /api/reportes` → **201** ·
+`POST /api/suscripciones` → **201** · preflight desde `localhost:5173` → **200** con
+`Access-Control-Allow-Origin`, y desde un origen no declarado → **403**.
+
+---
+
+### BUG-054 — El logo animado de la marca no aparece en el hero
+
+- **Fecha:** 2026-08-16 · **Severidad:** S3 · **Módulo:** M1 · **Responsable:** D4
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** el `<img class="panel-proyecto-logo">` de `PanelProyecto.tsx` cargaba con HTTP 200 pero
+decodificaba a `naturalWidth: 0, naturalHeight: 0`, así que ocupaba 0px de alto y no se veía nada.
+El archivo en disco es un GIF89a válido de 480×480 y 4,6 MB.
+
+**Reproducción:** consistente. En el navegador,
+`document.querySelector('.panel-proyecto-logo').naturalWidth` → `0`. Descargando la URL servida:
+2.114 bytes en vez de 4.613.836 — y esos 2.114 bytes empiezan por `<!doctype html>`.
+
+**Causa raíz:** dos cosas encadenadas.
+1. `globPatterns` del service worker (`vite.config.ts`) es
+   `['**/*.{js,css,html,ico,png,svg,geojson,woff2}']` — **`gif` no está**, así que el logo nunca
+   entró al precache (0 coincidencias de "gif" en `dist/sw.js`) y su petición caía a red.
+2. Un service worker de un build de producción anterior seguía registrado en `localhost:5173` y
+   servía el `dist/` viejo por encima del dev server. La ruta con hash que ese build pide
+   (`/assets/logo-…-kkS-x3Bp.gif`) no existe en el dev server, que devuelve el `index.html` — y el
+   `<img>` intentaba decodificar HTML como imagen.
+
+**Corrección:** regla `runtimeCaching` `CacheFirst` para `/\.gif$/` (caché `imagenes-marca`) en
+`vite.config.ts`. **No** se agregó `gif` a `globPatterns` a propósito: precachear 4,6 MB obligaría a
+descargarlos en la instalación de la PWA, además de pasarse del tope de 2 MiB que Workbox aplica por
+defecto. El service worker rancio se desregistró y se limpiaron sus cachés.
+
+**Verificado:** `naturalWidth/naturalHeight` → `480/480`, alto renderizado 123px, logo visible.
+El build de producción sigue con 18 entradas de precache (2.286 KiB), sin el GIF dentro.
+
+**Pendiente que este bug deja a la vista, no corregido aquí:** 4,6 MB para un logo es desproporcionado
+(el resto del bundle pesa menos). Convertirlo a vídeo o a WebP animado es trabajo de D4, y se anota
+como mejora, no como defecto.
+
+---
+
+> **Nota de origen — BUG-051 a BUG-054:** encontrados el 2026-08-16 al levantar el proyecto completo
+> y auditar si el frontend estaba realmente conectado al backend. La auditoría de la extracción de
+> barrios se hizo contra la API real de Acuacar (150 boletines, 2025-12-03 → 2026-08-14), no contra
+> datos de ejemplo. `BUG-051` y `BUG-052` son los dos que publicaban información falsa; ambos
+> llevaban tiempo en `develop` sin que ninguna prueba pudiera detectarlos, porque las pruebas
+> existentes fijaban el comportamiento incorrecto como esperado (`acuacar.test.ts` afirmaba que un
+> boletín sin palabra clave **debía** dar `CORTE_PROGRAMADO`).
 
 ---
 
@@ -1465,5 +1676,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-051
+Siguiente número disponible: BUG-055
 -->
