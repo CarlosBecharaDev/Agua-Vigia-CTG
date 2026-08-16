@@ -126,6 +126,8 @@ export function useDatosEnVivo(): DatosEnVivo {
         nombre,
         estado: estadoServicio,
         actualizadoEn: estado.fechaBoletin,
+        fuente: estado.fuente,
+        cita: estado.cita,
       });
     });
 

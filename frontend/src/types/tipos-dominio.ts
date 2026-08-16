@@ -20,6 +20,12 @@ export interface Sector {
   estado: EstadoServicio
   /** Timestamp ISO de la última actualización del estado */
   actualizadoEn: string
+  /** Número del boletín de Acuacar que respalda el estado, p.ej. "#2849". Ausente cuando el
+   *  barrio no aparece en ningún boletín y se muestra con servicio por defecto. */
+  fuente?: string
+  /** Frase textual del boletín que respalda el estado. `CLAUDE.md` §Ética de datos, regla 4:
+   *  lo que el mapa afirma tiene que poder citarse. */
+  cita?: string
 }
 
 /** Resultado de GET /api/sectores — forma esperada cuando C2 abra */

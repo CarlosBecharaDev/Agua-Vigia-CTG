@@ -41,7 +41,7 @@ interface ItemBitacora {
   numero: string | null
   titulo: string
   fecha: string
-  estado: EstadoServicio
+  estado: EstadoServicio | null
   urlOficial: string | null
   imagenUrl: string | null
   imagenAlt: string
@@ -53,6 +53,15 @@ const ICONO_POR_ESTADO: Record<EstadoServicio, typeof AlertTriangle> = {
   CON_SERVICIO: CheckCircle2,
   PRESION_BAJA: AlertTriangle,
 }
+
+/** Un boletín puede no hablar del servicio (un premio, la calidad del agua, un programa
+ *  ambiental). Antes esos caían por defecto en CORTE_PROGRAMADO y la bitácora los mostraba
+ *  como si anunciaran un corte; ahora se listan como lo que son. */
+const INFORMATIVO = {
+  claro: '#6B7A85',
+  etiqueta: 'Informativo',
+  icono: Info,
+} as const
 
 const formatearFecha = (isoString: string) =>
   new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(isoString))
@@ -253,8 +262,9 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
             onBlur={reanudarConDemora}
           >
             {itemsCarrusel.map((item, i) => {
-              const Icono = ICONO_POR_ESTADO[item.estado]
-              const color = COLOR_POR_ESTADO[item.estado].claro
+              const Icono = item.estado ? ICONO_POR_ESTADO[item.estado] : INFORMATIVO.icono
+              const color = item.estado ? COLOR_POR_ESTADO[item.estado].claro : INFORMATIVO.claro
+              const etiquetaEstado = item.estado ? COLOR_POR_ESTADO[item.estado].etiqueta : INFORMATIVO.etiqueta
               const contenido = (
                 <>
                   <div
@@ -285,7 +295,7 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
                     </svg>
                   </div>
                   <div className="bitacora-tarjeta-pie">
-                    <span className="bitacora-tarjeta-estado" style={{ color }}>{COLOR_POR_ESTADO[item.estado].etiqueta}</span>
+                    <span className="bitacora-tarjeta-estado" style={{ color }}>{etiquetaEstado}</span>
                     <time dateTime={item.fecha}>{formatearFecha(item.fecha)}</time>
                     <h3>{item.titulo}</h3>
                     {item.urlOficial && (
