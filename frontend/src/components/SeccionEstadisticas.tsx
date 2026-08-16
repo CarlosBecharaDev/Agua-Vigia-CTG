@@ -11,10 +11,19 @@
  * comparable mes a mes, así que las gráficas se ajustan a esa forma (nada de tendencias o
  * "insights" inventados sobre datos que el backend no calcula).
  *
- * Glassmorphism en KPIs, animaciones countUp, barras con stagger al scroll — mismo lenguaje
- * visual del resto del rediseño, aplicado a datos reales.
+ * Sobre el color de las gráficas: las dos son de MAGNITUD (cuántos cortes), no de
+ * identidad, así que van en un solo tono. La versión anterior pintaba las barras con ocho
+ * colores categóricos —rojo, coral, ámbar, amarillo, verde, azul, púrpura, magenta— que
+ * insinuaban ocho categorías donde solo hay una cantidad ordenada de mayor a menor, y de
+ * paso metían una paleta ajena al producto. El tono elegido (#0A7EA4) pasa el validador de
+ * la guía de visualización sobre las dos superficies, la de papel y la de noche, así que
+ * es el mismo dato en los dos temas.
+ *
+ * El "peor sector" no se distingue por color sino por su posición y su etiqueta: dos
+ * colores para separar uno de otro no sobreviven a una protanopia (el par magenta/cian que
+ * se probó primero daba ΔE 3.4, muy por debajo del mínimo de 8).
  */
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FC } from 'react'
 import {
   BarChart,
@@ -24,7 +33,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Cell,
 } from 'recharts'
 
 import { AlertTriangle, CalendarDays, Clock, Download, Scale } from 'lucide-react'
@@ -32,51 +40,23 @@ import { obtenerEstadisticas, obtenerIndiceCumplimientoGlobal, urlExportarCumpli
 import type { EstadisticasGlobales, IndiceCumplimiento } from '../api/services'
 import { normalizarErrorApi } from '../api/client'
 
-/* ── Paleta premium para las barras del gráfico ── */
-const COLORES_BARRAS_PREMIUM = [
-  '#ff453a', // Rojo intenso — peor sector
-  '#ff6f61', // Coral
-  '#ff9f0a', // Ámbar
-  '#ffcc00', // Amarillo
-  '#30d158', // Verde
-  '#2997ff', // Azul acento
-  '#5856d6', // Púrpura
-  '#af52de', // Magenta
-]
+/** Un solo tono para toda barra: estas gráficas miden magnitud, no identidad. */
+const COLOR_DATO = '#0A7EA4'
 
 const DIAS_SEMANA = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 const DIAS_SEMANA_CORTOS: Record<string, string> = {
   Lunes: 'Lun', Martes: 'Mar', Miércoles: 'Mié', Jueves: 'Jue', Viernes: 'Vie', Sábado: 'Sáb', Domingo: 'Dom',
 }
 
-/* ── Hook de animación countUp para los KPIs ── */
-function useCountUp(target: number, duracion = 1200, activo = true): number {
-  const [valor, setValor] = useState(0)
-  const prevTarget = useRef(target)
-
-  useEffect(() => {
-    if (!activo) return
-    const inicio = prevTarget.current === target ? 0 : prevTarget.current
-    prevTarget.current = target
-    const diff = target - inicio
-    if (diff === 0) { setValor(target); return }
-
-    const pasos = 60
-    let paso = 0
-    const intervalo = setInterval(() => {
-      paso++
-      if (paso >= pasos) {
-        setValor(target)
-        clearInterval(intervalo)
-      } else {
-        const progreso = 1 - Math.pow(1 - paso / pasos, 3)
-        setValor(Math.round(inicio + diff * progreso))
-      }
-    }, duracion / pasos)
-    return () => clearInterval(intervalo)
-  }, [target, duracion, activo])
-
-  return valor
+/**
+ * Segundos a horas con un decimal — la unidad en la que se habla de un corte.
+ *
+ * Devuelve siempre la magnitud sin signo: el signo lo pone quien llama, que es el único
+ * que sabe si un desvío va a favor o en contra. Sin el valor absoluto, una desviación
+ * negativa traía su propio "−" de toLocaleString y la pantalla mostraba "−−20,0 h".
+ */
+function aHoras(segundos: number): string {
+  return (Math.abs(segundos) / 3600).toLocaleString('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 }
 
 export const SeccionEstadisticas: FC = () => {
@@ -102,40 +82,12 @@ export const SeccionEstadisticas: FC = () => {
     return () => { montado = false }
   }, [])
 
-  const totalCortes = datos?.sectoresMasAfectados.reduce((acc, s) => acc + s.cantidadCortes, 0) ?? 0
+  // El total sale de cortesPorDiaDeSemana, que reparte TODOS los cortes cerrados, y no de
+  // sectoresMasAfectados, que es un top 5: sumar ese top daba 32 bajo el rótulo "cortes
+  // registrados" cuando en la base había 120. La cifra era correcta para lo que sumaba y
+  // mentía sobre lo que decía ser.
+  const totalCortes = Object.values(datos?.cortesPorDiaDeSemana ?? {}).reduce((acc, n) => acc + n, 0)
   const sectorTop = datos?.sectoresMasAfectados[0]?.nombre ?? '—'
-
-  // Animación countUp para KPIs visibles
-  const [kpisVisibles, setKpisVisibles] = useState(false)
-  const kpiSeccionRef = useRef<HTMLDivElement>(null)
-  const totalCortesAnimado = useCountUp(totalCortes, 1400, kpisVisibles)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        setKpisVisibles(true)
-        observer.disconnect()
-      }
-    }, { threshold: 0.2 })
-
-    if (kpiSeccionRef.current) observer.observe(kpiSeccionRef.current)
-    return () => observer.disconnect()
-  }, [])
-
-  const [barrasVisibles, setBarrasVisibles] = useState(false)
-  const seccionBarrasRef = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        setBarrasVisibles(true)
-        observer.disconnect()
-      }
-    }, { threshold: 0.1, rootMargin: '200px' })
-
-    if (seccionBarrasRef.current) observer.observe(seccionBarrasRef.current)
-    return () => observer.disconnect()
-  }, [])
 
   const datosBarrios = datos?.sectoresMasAfectados.map((s) => ({ nombre: s.nombre, cortes: s.cantidadCortes })) ?? []
   const datosPorDia = DIAS_SEMANA.map((dia) => ({
@@ -143,304 +95,144 @@ export const SeccionEstadisticas: FC = () => {
     cortes: datos?.cortesPorDiaDeSemana[dia] ?? 0,
   }))
 
-  /* ── Estilos glassmorphism reutilizables ── */
-  const estiloGlass: React.CSSProperties = {
-    background: 'linear-gradient(135deg, rgba(var(--glass-r, 255), var(--glass-g, 255), var(--glass-b, 255), 0.6) 0%, rgba(var(--glass-r, 255), var(--glass-g, 255), var(--glass-b, 255), 0.3) 100%)',
-    backdropFilter: 'blur(20px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-    border: '1px solid rgba(255,255,255,0.18)',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255,255,255,0.2)',
-  }
+  // Ejes y rejilla en tinta, no en el color de la serie: el color identifica el dato y el
+  // texto se queda en los tokens de texto. Se leen del tema en vez de fijarse a un valor
+  // para que la gráfica funcione en la carta impresa y en la de noche.
+  const ejeProps = {
+    stroke: 'var(--color-tinta-3)',
+    tick: { fill: 'var(--color-tinta-2)', fontSize: 12 },
+    tickLine: false,
+  } as const
+
+  const estiloTooltip = {
+    background: 'var(--color-elevado)',
+    border: '1px solid var(--color-linea)',
+    borderRadius: '3px',
+    color: 'var(--color-tinta)',
+    fontSize: '0.8rem',
+  } as const
 
   return (
-    <section id="estadisticas" aria-label="Estadísticas del servicio de agua en Cartagena" style={{ background: 'var(--color-fondo)' }}>
-      {/* Mismo ancho que .bitacora-envoltorio (SeccionBitacora) — para que las dos
-          secciones se sientan de la misma medida al bajar por la página, no una más
-          angosta que la otra. */}
-      <div style={{ padding: '4rem 1.25rem', width: 'min(100% - 2.5rem, 1180px)', margin: '0 auto' }}>
+    <section id="estadisticas" className="seccion-inferior" aria-label="Estadísticas del servicio de agua en Cartagena">
+      <div className="seccion-inferior-caja">
+        <p className="rotulo-carta seccion-rotulo">Estadísticas</p>
+        <h2 className="seccion-titulo">Lo que dicen los cortes ya cerrados</h2>
+        <p className="seccion-entrada">
+          Todo lo de abajo sale de cortes oficiales que ya terminaron. Mientras un corte
+          sigue abierto no entra en ninguna cifra: no se puede medir lo que todavía no pasó.
+        </p>
 
-        <div style={{ marginBottom: '1rem' }}>
-          <h2 style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(1.75rem, 4vw, 2.25rem)',
-            marginBottom: '0.5rem',
-            color: 'var(--color-tinta)',
-            letterSpacing: '-0.5px',
-            fontWeight: '800',
-          }}>
-            Estadísticas
-          </h2>
-          <p style={{ color: 'var(--color-tinta-2)', fontSize: '1rem' }}>
-            Transparencia y seguimiento del servicio de acueducto en Cartagena, calculado a
-            partir de los cortes oficiales cerrados.
-          </p>
-        </div>
-
-        {/* Indicador de fuente de datos + exportación (RF025) */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
-          <div
-            role="note"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              backgroundColor: 'var(--color-superficie)',
-              padding: '0.3rem 0.85rem',
-              borderRadius: 'var(--radio-pill)',
-              border: '1px solid var(--color-linea)',
-              fontSize: '0.75rem',
-            }}
-          >
-            <span style={{
-              width: '8px', height: '8px', borderRadius: '50%',
-              backgroundColor: error ? 'var(--color-estado-baja)' : 'var(--color-estado-con)',
-              display: 'inline-block'
-            }}></span>
+        <div className="seccion-acciones">
+          <span className={`estado-fuente${error ? ' is-degradado' : ''}`}>
+            <span className="estado-fuente-punto" aria-hidden="true" />
             {cargando ? 'Cargando estadísticas…' : error ? `Sin conexión — ${error}` : 'Datos en vivo desde el backend'}
-          </div>
-          <a
-            href={urlExportarEstadisticasCsv()}
-            download
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-              padding: '0.3rem 0.85rem', borderRadius: 'var(--radio-pill)',
-              border: '1px solid var(--color-linea)', color: 'var(--color-tinta-2)',
-              fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none',
-            }}
-          >
-            <Download size={13} /> Exportar CSV
+          </span>
+          <a href={urlExportarEstadisticasCsv()} download className="enlace-descarga">
+            <Download size={13} aria-hidden="true" /> Descargar CSV
           </a>
         </div>
 
-        {/* ════════════════════════════════════════════════════════════
-            KPIs con Glassmorphism + countUp animation (DATOS REALES)
-           ════════════════════════════════════════════════════════════ */}
-        <div
-          ref={kpiSeccionRef}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
-          style={{ marginBottom: '3.5rem' }}
-        >
-          {[
-            {
-              titulo: 'Duración Promedio',
-              valor: `${datos?.duracionPromedioHoras ?? 0} h`,
-              sub: 'Por corte cerrado',
-              Icono: Clock,
-              gradiente: 'linear-gradient(135deg, #ff3b30 0%, #ff6f61 100%)',
-            },
-            {
-              titulo: 'Total de Cortes',
-              valor: totalCortesAnimado.toLocaleString(),
-              sub: 'En sectores con novedades',
-              Icono: CalendarDays,
-              gradiente: 'linear-gradient(135deg, #0066cc 0%, #2997ff 100%)',
-            },
-            {
-              titulo: 'Sector Más Afectado',
-              valor: sectorTop,
-              sub: 'Mayor cantidad de cortes',
-              Icono: AlertTriangle,
-              gradiente: 'linear-gradient(135deg, #ff9500 0%, #ffb340 100%)',
-            }
-          ].map((kpi, i) => {
-            const Icono = kpi.Icono
-            return (
-              <div
-                key={i}
-                className="hover-glowing"
-                style={{
-                  ...estiloGlass,
-                  padding: '1.5rem',
-                  borderRadius: '1.5rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '1.25rem',
-                  opacity: kpisVisibles ? 1 : 0,
-                  transform: kpisVisibles ? 'translateY(0)' : 'translateY(20px)',
-                  transition: `opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${i * 0.12}s, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${i * 0.12}s`,
-                  cursor: 'default',
-                }}
-              >
-                <div style={{
-                  flexShrink: 0,
-                  background: kpi.gradiente,
-                  padding: '0.85rem',
-                  borderRadius: '1rem',
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <Icono size={22} />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1, minWidth: 0 }}>
-                  <h3 style={{ color: 'var(--color-tinta-2)', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 0.3rem 0' }}>{kpi.titulo}</h3>
-                  <div className="tabular" style={{ color: 'var(--color-tinta)', fontSize: '1.5rem', fontWeight: '800', lineHeight: '1.1', margin: '0', letterSpacing: '-0.5px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kpi.valor}</div>
-                  <div style={{ color: 'var(--color-tinta-3)', fontSize: '0.7rem', margin: '0.3rem 0 0 0' }}>{kpi.sub}</div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
+        {/* Tres lecturas, sin animación de conteo. Ver una cifra correr desde cero durante
+            1,4 s antes de poder leerla no es información: es un retraso. */}
+        <dl className="lecturas">
+          <div className="lectura">
+            <dt><Clock size={15} aria-hidden="true" /> Duración promedio</dt>
+            <dd className="sonda">{datos?.duracionPromedioHoras ?? 0} h</dd>
+            <small>Por corte cerrado</small>
+          </div>
+          <div className="lectura">
+            <dt><CalendarDays size={15} aria-hidden="true" /> Cortes cerrados</dt>
+            <dd className="sonda">{totalCortes.toLocaleString('es-CO')}</dd>
+            <small>Registrados hasta hoy</small>
+          </div>
+          <div className="lectura">
+            <dt><AlertTriangle size={15} aria-hidden="true" /> Sector más afectado</dt>
+            <dd className="lectura-texto">{sectorTop}</dd>
+            <small>Por número de cortes</small>
+          </div>
+        </dl>
 
-        {/* ════════════════════════════════════════════════════════════
-            Índice de Cumplimiento (M6, RF020-022) — prometido vs. real. Es la promesa del
-            propio hero de la página ("la brecha entre lo prometido y lo real"), así que va
-            antes que el resto de gráficas, no escondida al final.
-           ════════════════════════════════════════════════════════════ */}
-        {cumplimiento && (
-          <section style={{
-            ...estiloGlass,
-            padding: '2rem',
-            borderRadius: '2rem',
-            marginBottom: '3rem',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.65rem', marginBottom: '1.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                <Scale size={20} color="var(--color-acento)" aria-hidden="true" />
-                <div>
-                  <h2 style={{ fontSize: '1.25rem', marginBottom: '0.2rem', color: 'var(--color-tinta)', fontWeight: '700', letterSpacing: '-0.3px' }}>Índice de Cumplimiento</h2>
-                  <p style={{ color: 'var(--color-tinta-2)', fontSize: '0.85rem' }}>
-                    Duración prometida contra duración real, sobre todos los cortes oficiales cerrados de la ciudad.
-                  </p>
-                </div>
-              </div>
-              <a
-                href={urlExportarCumplimientoCsv()}
-                download
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.35rem', flexShrink: 0,
-                  padding: '0.3rem 0.7rem', borderRadius: 'var(--radio-pill)',
-                  border: '1px solid var(--color-linea)', color: 'var(--color-tinta-2)',
-                  fontSize: '0.72rem', fontWeight: 600, textDecoration: 'none',
-                }}
-              >
-                <Download size={12} /> CSV
-              </a>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1.5rem', alignItems: 'end' }}>
-              <div>
-                <div style={{ color: 'var(--color-tinta-3)', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Prometido</div>
-                <div className="tabular" style={{ color: 'var(--color-tinta)', fontSize: '1.75rem', fontWeight: '800' }}>{(cumplimiento.duracionPrometidaSegundos / 3600).toFixed(1)} h</div>
-              </div>
-              <div>
-                <div style={{ color: 'var(--color-tinta-3)', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Real</div>
-                <div className="tabular" style={{ color: cumplimiento.desviacionSegundos > 0 ? '#ff453a' : '#30d158', fontSize: '1.75rem', fontWeight: '800' }}>{(cumplimiento.duracionRealSegundos / 3600).toFixed(1)} h</div>
-              </div>
-              <div>
-                <div style={{ color: 'var(--color-tinta-3)', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Cumplimiento</div>
-                <div className="tabular" style={{ color: 'var(--color-tinta)', fontSize: '1.75rem', fontWeight: '800' }}>{cumplimiento.porcentajeCumplimiento.toFixed(0)}%</div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ════════════════════════════════════════════════════════════
-            Cortes por día de la semana
-           ════════════════════════════════════════════════════════════ */}
-        <section style={{
-          ...estiloGlass,
-          padding: '2rem',
-          borderRadius: '2rem',
-          marginBottom: '3rem',
-        }}>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.25rem', marginBottom: '0.2rem', color: 'var(--color-tinta)', fontWeight: '700', letterSpacing: '-0.3px' }}>Cortes por Día de la Semana</h2>
-            <p style={{ color: 'var(--color-tinta-2)', fontSize: '0.85rem' }}>
-              Distribución de los cortes oficiales cerrados según el día en que iniciaron.
-            </p>
+        {/* El diferencial del proyecto, siempre como comparación y nunca como un puntaje
+            suelto: "87 %" no dice nada; "prometieron 2 h y fueron 8 h" sí (DESIGN.md). */}
+        <section className="bloque-cumplimiento" aria-label="Índice de cumplimiento">
+          <div className="bloque-cumplimiento-cab">
+            <h3><Scale size={17} aria-hidden="true" /> Lo prometido contra lo real</h3>
+            <a href={urlExportarCumplimientoCsv()} download className="enlace-descarga">
+              <Download size={13} aria-hidden="true" /> Descargar serie
+            </a>
           </div>
 
-          <div style={{ height: '280px', width: '100%', outline: 'none' }}>
-            {cargando ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                <div className="skeleton" style={{ width: '80%', height: '200px', borderRadius: '1rem' }}></div>
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%" style={{ outline: 'none' }}>
-                <BarChart data={datosPorDia} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} style={{ outline: 'none' }}>
-                  <CartesianGrid strokeDasharray="4 4" stroke="var(--color-linea)" vertical={false} opacity={0.5} />
-                  <XAxis dataKey="dia" stroke="var(--color-tinta-3)" axisLine={false} tickLine={false} dy={10} fontSize={11} fontWeight={600} />
-                  <YAxis stroke="var(--color-tinta-3)" axisLine={false} tickLine={false} dx={-10} fontSize={11} allowDecimals={false} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'var(--color-superficie)',
-                      border: '1px solid var(--color-linea)',
-                      borderRadius: '1rem',
-                      color: 'var(--color-tinta)',
-                      boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
-                      padding: '0.75rem 1rem',
-                    }}
-                    itemStyle={{ color: 'var(--color-tinta)', fontWeight: 'bold' }}
-                    formatter={(value: number) => [`${value} cortes`, 'Cantidad']}
-                  />
-                  <Bar dataKey="cortes" name="Cortes" fill="#2997ff" radius={[8, 8, 0, 0]} isAnimationActive animationDuration={1200} />
+          {cumplimiento ? (
+            <>
+              <dl className="comparacion">
+                <div>
+                  <dt>Prometieron</dt>
+                  <dd className="sonda">{aHoras(cumplimiento.duracionPrometidaSegundos)} h</dd>
+                </div>
+                <div>
+                  <dt>Fueron</dt>
+                  <dd className="sonda">{aHoras(cumplimiento.duracionRealSegundos)} h</dd>
+                </div>
+                <div>
+                  <dt>Diferencia</dt>
+                  {/* La magenta solo cuando el desvío va en contra: que un corte acabe
+                      antes de lo anunciado no es un incumplimiento que reprochar. */}
+                  <dd className={`sonda${cumplimiento.desviacionSegundos > 0 ? ' brecha-magenta' : ''}`}>
+                    {cumplimiento.desviacionSegundos > 0 ? '+' : '−'}
+                    {aHoras(cumplimiento.desviacionSegundos)} h
+                  </dd>
+                </div>
+              </dl>
+              <p className="comparacion-alcance">
+                Suma de todos los cortes cerrados hasta hoy.
+              </p>
+            </>
+          ) : (
+            <p className="seccion-vacia">
+              Todavía no hay cortes cerrados que comparar. En cuanto termine el primero,
+              aquí aparece cuánto duró frente a lo que se prometió.
+            </p>
+          )}
+        </section>
+
+        <div className="graficas">
+          <figure className="grafica">
+            <figcaption>
+              <h3>Barrios con más cortes</h3>
+              <p>De mayor a menor. Solo cortes ya cerrados.</p>
+            </figcaption>
+            {datosBarrios.length > 0 ? (
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={datosBarrios} layout="vertical" margin={{ left: 8, right: 24, top: 8, bottom: 8 }}>
+                  <CartesianGrid horizontal={false} stroke="var(--color-linea)" />
+                  <XAxis type="number" allowDecimals={false} {...ejeProps} />
+                  <YAxis type="category" dataKey="nombre" width={116} {...ejeProps} />
+                  <Tooltip contentStyle={estiloTooltip} cursor={{ fill: 'var(--color-superficie-2)' }} />
+                  {/* Extremo redondeado solo del lado del dato y sin animación larga. */}
+                  <Bar dataKey="cortes" name="Cortes" fill={COLOR_DATO} radius={[0, 4, 4, 0]} isAnimationActive={false} />
                 </BarChart>
               </ResponsiveContainer>
-            )}
-          </div>
-        </section>
-
-        {/* ════════════════════════════════════════════════════════════
-            Sectores más afectados (datos reales) — barras con colores premium
-           ════════════════════════════════════════════════════════════ */}
-        <section ref={seccionBarrasRef} style={{
-          ...estiloGlass,
-          padding: '2rem',
-          borderRadius: '2rem',
-          marginBottom: '3rem',
-        }}>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--color-tinta)', fontWeight: '700', letterSpacing: '-0.3px' }}>
-              Sectores Más Afectados
-            </h2>
-            <p style={{ color: 'var(--color-tinta-2)', fontSize: '0.875rem' }}>
-              Cantidad de cortes oficiales cerrados por sector.
-            </p>
-          </div>
-
-          <div style={{ height: datosBarrios.length > 5 ? '360px' : '280px', width: '100%', outline: 'none' }}>
-            {cargando ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem' }}>
-                {[1, 2, 3, 4, 5].map(i => (
-                  <div key={i} className="skeleton" style={{ height: '24px', borderRadius: '8px', width: `${90 - i * 12}%` }}></div>
-                ))}
-              </div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%" style={{ outline: 'none' }}>
-                {barrasVisibles && datosBarrios.length > 0 ? (
-                  <BarChart data={datosBarrios} layout="vertical" margin={{ top: 0, right: 20, left: 20, bottom: 0 }} barSize={18} style={{ outline: 'none' }}>
-                    <XAxis type="number" hide allowDecimals={false} />
-                    <YAxis dataKey="nombre" type="category" stroke="var(--color-tinta)" width={140} axisLine={false} tickLine={false} fontSize={11} fontWeight={600} />
-                    <Tooltip
-                      cursor={{ fill: 'var(--color-linea)', opacity: 0.15 }}
-                      contentStyle={{
-                        backgroundColor: 'var(--color-superficie)',
-                        border: '1px solid var(--color-linea)',
-                        borderRadius: '1rem',
-                        color: 'var(--color-tinta)',
-                        boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
-                        padding: '0.75rem 1rem',
-                      }}
-                      itemStyle={{ color: 'var(--color-tinta)', fontWeight: 'bold' }}
-                      formatter={(value: number) => [`${value} cortes`, 'Cantidad']}
-                    />
-                    <Bar dataKey="cortes" radius={[0, 10, 10, 0]} isAnimationActive animationDuration={1200} animationEasing="ease-in-out">
-                      {datosBarrios.map((entry, index) => (
-                        <Cell key={`cell-${entry.nombre}`} fill={COLORES_BARRAS_PREMIUM[index % COLORES_BARRAS_PREMIUM.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                ) : (
-                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-tinta-3)' }}>
-                    {datosBarrios.length === 0 ? 'No hay cortes cerrados registrados todavía.' : ''}
-                  </div>
-                )}
-              </ResponsiveContainer>
+              <p className="seccion-vacia">Sin cortes cerrados registrados todavía.</p>
             )}
-          </div>
-        </section>
+          </figure>
+
+          <figure className="grafica">
+            <figcaption>
+              <h3>Cortes por día de la semana</h3>
+              <p>En qué días se concentran los cortes.</p>
+            </figcaption>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={datosPorDia} margin={{ left: 8, right: 8, top: 8, bottom: 8 }}>
+                <CartesianGrid vertical={false} stroke="var(--color-linea)" />
+                <XAxis dataKey="dia" {...ejeProps} />
+                <YAxis allowDecimals={false} {...ejeProps} />
+                <Tooltip contentStyle={estiloTooltip} cursor={{ fill: 'var(--color-superficie-2)' }} />
+                <Bar dataKey="cortes" name="Cortes" fill={COLOR_DATO} radius={[4, 4, 0, 0]} isAnimationActive={false} />
+              </BarChart>
+            </ResponsiveContainer>
+          </figure>
+        </div>
       </div>
     </section>
   )

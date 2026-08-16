@@ -3,6 +3,7 @@
    sus estilos en un archivo aparte. Se importa después de tailwind y antes de los tokens
    para que las reglas de este archivo, más específicas, sigan mandando. */
 @import "./estilos/paginas-secundarias.css";
+@import "./estilos/secciones-inferiores.css";
 
 /* ─────────────────────────────────────────────────────────────────────────
    Sistema de diseño: CARTA NÁUTICA CÍVICA
