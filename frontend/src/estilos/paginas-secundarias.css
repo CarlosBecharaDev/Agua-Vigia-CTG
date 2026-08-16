@@ -54,7 +54,7 @@
   width: min(640px, 100%);
   border: 1px solid var(--color-linea);
   border-radius: var(--radio-lg);
-  background: var(--color-superficie);
+  background-color: var(--color-superficie);
   box-shadow: var(--sombra-suave);
   overflow: hidden;
 }
@@ -68,7 +68,7 @@
 .pliego-cabecera {
   padding: clamp(1.4rem, 4vw, 2.2rem);
   border-bottom: 1px solid var(--color-linea);
-  background: var(--color-elevado);
+  background-color: var(--color-elevado);
 }
 
 .pliego-rotulo {
@@ -123,7 +123,7 @@
   padding: 0.75rem 0.85rem;
   border-left: 3px solid var(--color-estado-sin);
   border-radius: 0 var(--radio-sm) var(--radio-sm) 0;
-  background: color-mix(in srgb, var(--color-estado-sin) 10%, var(--color-superficie));
+  background-color: color-mix(in srgb, var(--color-estado-sin) 10%, var(--color-superficie));
   color: var(--color-tinta);
   font-size: 0.85rem;
 }
@@ -167,7 +167,7 @@
   place-items: center;
   border: 1px solid var(--color-linea);
   border-radius: 50%;
-  background: var(--color-superficie-2);
+  background-color: var(--color-superficie-2);
   color: var(--color-tinta-2);
   font-size: 0.85rem;
   /* El único movimiento de la pantalla que no es un spinner: el tramo que se
@@ -177,13 +177,13 @@
 
 .tramo[data-estado="activo"] .tramo-numero {
   border-color: var(--color-acento);
-  background: var(--color-acento-suave);
+  background-color: var(--color-acento-suave);
   color: var(--color-acento);
 }
 
 .tramo[data-estado="completo"] .tramo-numero {
   border-color: var(--color-acento);
-  background: var(--color-acento);
+  background-color: var(--color-acento);
   color: var(--tinta-sobre-acento);
 }
 
@@ -212,12 +212,18 @@
   padding: 0 0.85rem;
   border: 1px solid var(--color-linea-fuerte);
   border-radius: var(--radio-base);
-  background: var(--color-elevado);
+  background-color: var(--color-elevado);
   color: var(--color-tinta);
   font-size: 1rem;
 }
 
-.tramo-campo:disabled { color: var(--color-tinta-2); cursor: wait; }
+/* Ver la nota de .opcion-novedad:disabled: Chrome repinta el texto de los controles
+   deshabilitados por su cuenta y solo -webkit-text-fill-color lo frena. */
+.tramo-campo:disabled {
+  color: var(--color-tinta-2);
+  -webkit-text-fill-color: var(--color-tinta-2);
+  cursor: wait;
+}
 
 /* ── Las tres novedades que se pueden reportar ──────────────────────────────
    Cada opción lleva la marca del estado que va a pintar en el mapa (roja, ámbar,
@@ -233,7 +239,7 @@
 .opcion-novedad {
   --color-estado: var(--color-acento);
   display: grid;
-  grid-template-columns: 12px minmax(0, 1fr) 18px;
+  grid-template-columns: 10px minmax(0, 1fr) 18px;
   align-items: start;
   gap: 0.75rem;
   width: 100%;
@@ -241,7 +247,7 @@
   padding: 0.9rem;
   border: 1px solid var(--color-linea);
   border-radius: var(--radio-base);
-  background: var(--color-elevado);
+  background-color: var(--color-elevado);
   color: var(--color-tinta);
   text-align: left;
   cursor: pointer;
@@ -250,15 +256,17 @@
 
 .opcion-novedad:hover:not(:disabled) {
   border-color: var(--color-estado);
-  background: color-mix(in srgb, var(--color-estado) 9%, var(--color-elevado));
+  background-color: color-mix(in srgb, var(--color-estado) 9%, var(--color-elevado));
 }
 
+/* Mismas medidas que .sonda-fila-marca de la escala de sondas del mapa (10 px,
+   radio 2): es la misma marca de leyenda, no una nueva. */
 .opcion-novedad-marca {
-  width: 12px;
-  height: 12px;
-  margin-top: 0.3rem;
-  border-radius: 3px;
-  background: var(--color-estado);
+  width: 10px;
+  height: 10px;
+  margin-top: 0.4rem;
+  border-radius: 2px;
+  background-color: var(--color-estado);
 }
 
 .opcion-novedad-titulo {
@@ -271,6 +279,9 @@
   display: block;
   margin-top: 0.1rem;
   color: var(--color-tinta-2);
+  /* -webkit-text-fill-color se hereda; sin esto, el relleno que fija el botón para
+     esquivar el repintado de Chrome se colaría también en la descripción. */
+  -webkit-text-fill-color: currentColor;
   font-size: 0.8rem;
 }
 
@@ -279,13 +290,18 @@
    de superficie y la marca de estado se vacía, que dice lo mismo sin dejar de
    leerse. */
 .opcion-novedad:disabled {
-  background: var(--color-superficie-2);
+  background-color: var(--color-superficie-2);
   color: var(--color-tinta-2);
+  /* Chrome ignora el `color` del autor en los controles deshabilitados y pinta el
+     texto con una mezcla propia: medido en carta impresa daba 2,76:1 sobre la
+     superficie, por debajo de AA. -webkit-text-fill-color es lo único que le gana.
+     Aquí importa de verdad: es el texto que hay que leer para saber qué tocar. */
+  -webkit-text-fill-color: var(--color-tinta-2);
   cursor: not-allowed;
 }
 
 .opcion-novedad:disabled .opcion-novedad-marca {
-  background: transparent;
+  background-color: transparent;
   border: 1px solid var(--carta-sin-sondar);
 }
 
@@ -294,13 +310,14 @@
    las otras, el spinner sería el único indicio y quedaría flotando. */
 .opcion-novedad.is-enviando:disabled {
   border-color: var(--color-estado);
-  background: var(--color-elevado);
+  background-color: var(--color-elevado);
   color: var(--color-tinta);
+  -webkit-text-fill-color: var(--color-tinta);
 }
 
 .opcion-novedad.is-enviando:disabled .opcion-novedad-marca {
   border: 0;
-  background: var(--color-estado);
+  background-color: var(--color-estado);
 }
 
 .opcion-novedad .spinner { margin-top: 0.35rem; }
@@ -324,7 +341,7 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--color-acento);
+  background-color: var(--color-acento);
   color: var(--tinta-sobre-acento);
 }
 
@@ -357,7 +374,7 @@
   padding: 1rem;
   border: 1px solid var(--color-linea);
   border-radius: var(--radio-md);
-  background: var(--color-elevado);
+  background-color: var(--color-elevado);
 }
 
 .lectura-barrio-titulo {
@@ -415,7 +432,7 @@
 
 /* El enlace para pedir confirmación (RF038/M11) vive dentro del pliego y no
    necesita el margen suelto que trae de index.css. */
-.pliego .enlace-confirmar-reporte { margin: 1.1rem 0 0; background: var(--color-superficie-2); }
+.pliego .enlace-confirmar-reporte { margin: 1.1rem 0 0; background-color: var(--color-superficie-2); }
 
 @media (max-width: 560px) {
   .pagina-pliego { width: calc(100% - 20px); padding: 1rem 0 2rem; }

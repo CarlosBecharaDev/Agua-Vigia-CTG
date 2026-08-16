@@ -142,7 +142,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
           {/* Itálica hidrográfica: es la única línea del panel que habla del agua misma. */}
           <p className="rotulo-hidrografico mesa-lema">Nada entra a la carta sin que alguien pueda sustentarlo</p>
         </div>
-        <button type="button" className="boton boton-secundario mesa-salir" onClick={onCerrarSesion}>
+        <button type="button" className="boton-carta mesa-salir" onClick={onCerrarSesion}>
           <LogOut size={16} aria-hidden="true" /> Cerrar sesión
         </button>
       </header>

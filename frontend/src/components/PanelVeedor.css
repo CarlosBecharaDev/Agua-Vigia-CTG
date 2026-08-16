@@ -103,7 +103,12 @@
   margin-bottom: 1rem;
 }
 
-.mesa-grid-cortes { grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr); }
+/* El registro y el asiento nuevo no tienen por qué medir lo mismo: cada hoja
+   ocupa lo que necesita, como dos papeles distintos sobre la misma mesa. */
+.mesa-grid-cortes {
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+  align-items: start;
+}
 
 /* ── La hoja ────────────────────────────────────────────────────────────
    Papel de carta: esquinas casi rectas (3 px), filete de un punto y nada de
@@ -199,7 +204,7 @@
 .boton-descartar { color: var(--color-tinta-2); }
 
 .boton-asentar {
-  justify-self: start;
+  align-self: stretch;
   padding: 0 1.4rem;
   border-color: var(--color-acento);
   background: var(--color-acento);
@@ -272,7 +277,7 @@
   font-size: 0.75rem;
 }
 
-.correccion-pie-sep { color: var(--color-linea-fuerte); }
+.correccion-pie-sep { color: var(--color-tinta-2); }
 
 .acciones-moderacion {
   display: flex;
@@ -312,7 +317,10 @@
 .marca-vencida {
   border-color: var(--carta-magenta);
   background: var(--carta-magenta-tenue);
-  color: var(--carta-magenta);
+  /* La magenta pura sobre su propio tinte se queda en 4.1:1 y esto es texto
+     pequeño: acercarla al color de tinta del tema la sube por encima de AA en
+     carta impresa y en carta de noche sin dejar de ser la magenta de aviso. */
+  color: color-mix(in srgb, var(--carta-magenta) 82%, var(--color-tinta));
   font-weight: 700;
 }
 
@@ -390,7 +398,9 @@
   border-left-width: 3px;
 }
 
-.brecha-incumplida > div:last-child dd { color: var(--carta-magenta); }
+/* Mismo ajuste de contraste que .marca-vencida: la cifra de cumplimiento es
+   texto normal y la magenta pura sobre el papel de fondo no llega a 4.5:1. */
+.brecha-incumplida > div:last-child dd { color: color-mix(in srgb, var(--carta-magenta) 82%, var(--color-tinta)); }
 
 /* ── Salud de los colectores ────────────────────────────────────────────
    Una línea por fuente automática. Es diagnóstico, no protagonismo: solo

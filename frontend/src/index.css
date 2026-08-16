@@ -1058,6 +1058,15 @@ select {
   min-height: 100dvh;
 }
 
+/* ── Margen de la carta: navegación de las pantallas secundarias ─────────
+   Reescrito sobre tokens. Toda esta columna estaba pintada a mano en un
+   único azul de pizarra (#0b2a32 de fondo, #eaf7f7 de texto, #7ce0df de
+   marca) y no cambiaba con el tema: en la carta impresa quedaba una banda
+   nocturna pegada a un contenido de papel, que era la costura más visible
+   entre los tres lenguajes visuales que convivían en la aplicación.
+
+   Se comporta como el margen impreso de una lámina: misma superficie que
+   el resto, separado solo por un filete. */
 .app-sidebar {
   position: fixed;
   inset: 0 auto 0 0;
@@ -1066,10 +1075,9 @@ select {
   display: flex;
   flex-direction: column;
   padding: 1.1rem 0.9rem;
-  color: #eaf7f7;
-  background: #0b2a32;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 8px 0 30px rgba(5, 25, 31, 0.08);
+  color: var(--color-tinta);
+  background: var(--color-superficie);
+  border-right: 1px solid var(--color-linea);
 }
 
 .sidebar-brand {
@@ -1078,7 +1086,7 @@ select {
   justify-content: space-between;
   min-height: 58px;
   padding: 0 0.45rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  border-bottom: 1px solid var(--color-linea);
 }
 
 #logo-aguavigia {
@@ -1087,20 +1095,20 @@ select {
   gap: 0.72rem;
   min-width: 0;
   min-height: 44px;
-  color: #f2fbfa;
+  color: var(--color-tinta);
   text-decoration: none;
 }
 
 .brand-mark {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  color: #0d5d68;
-  background: #7ce0df;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(84, 198, 202, 0.2);
+  color: var(--carta-boya);
+  background: var(--color-acento-suave);
+  border: 1px solid var(--color-linea);
+  border-radius: 3px;
 }
 
 .brand-copy,
@@ -1147,10 +1155,10 @@ select {
   gap: 0.7rem;
   margin: 1rem 0.2rem 1.35rem;
   padding: 0.8rem;
-  color: #d9eeee;
-  background: rgba(255, 255, 255, 0.055);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  color: var(--color-tinta-2);
+  background: var(--color-superficie-2);
+  border: 1px solid var(--color-linea);
+  border-radius: 3px;
 }
 
 .context-icon {
@@ -1159,20 +1167,22 @@ select {
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  color: #79d8d9;
-  background: rgba(84, 198, 202, 0.11);
-  border-radius: 9px;
+  color: var(--carta-boya);
+  background: var(--color-acento-suave);
+  border-radius: 3px;
 }
 
 .sidebar-context small {
-  color: #89aeb1;
-  font-size: 0.64rem;
-  letter-spacing: 0.08em;
+  color: var(--color-tinta-3);
+  font-family: var(--font-util);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
 .sidebar-context strong {
   margin-top: 0.13rem;
+  color: var(--color-tinta);
   font-size: 0.82rem;
 }
 
@@ -1180,15 +1190,16 @@ select {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.15rem;
 }
 
 .sidebar-label {
   padding: 0 0.75rem 0.45rem;
-  color: #6f969b;
-  font-size: 0.65rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  color: var(--color-tinta-3);
+  font-family: var(--font-util);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
@@ -1197,54 +1208,54 @@ select {
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  min-height: 58px;
-  padding: 0.65rem 0.75rem;
-  color: #a9c2c5;
+  min-height: 54px;
+  padding: 0.6rem 0.75rem;
+  color: var(--color-tinta-2);
   text-decoration: none;
   border: 1px solid transparent;
-  border-radius: 11px;
-  transition: color var(--transicion), background var(--transicion), border-color var(--transicion), transform var(--transicion);
+  border-radius: 3px;
+  transition: color var(--motion-fast) var(--ease), background var(--motion-fast) var(--ease);
 }
 
 .sidebar-link:hover {
-  color: #f2fbfa;
-  background: rgba(255, 255, 255, 0.055);
-  transform: translateX(2px);
+  color: var(--color-tinta);
+  background: var(--color-superficie-2);
 }
 
 .sidebar-link.is-active {
-  color: #f6ffff;
-  background: rgba(84, 198, 202, 0.13);
-  border-color: rgba(120, 217, 219, 0.15);
+  color: var(--color-tinta);
+  background: var(--color-superficie-2);
 }
 
+/* Filete a la izquierda del enlace abierto: el mismo recurso con el que la
+   barra de la portada y el cuaderno de sondas marcan "esto es lo que estás
+   mirando". Un solo gesto para "activo" en todo el producto. */
 .sidebar-link.is-active::before {
   position: absolute;
-  inset: 12px auto 12px -0.72rem;
-  width: 3px;
+  inset: 10px auto 10px -0.72rem;
+  width: 2px;
   content: '';
-  background: #78d9db;
-  border-radius: 0 4px 4px 0;
+  background: var(--carta-boya);
 }
 
 .sidebar-link-icon {
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  color: #82aaae;
-  border-radius: 9px;
+  color: var(--color-tinta-3);
+  border-radius: 3px;
 }
 
 .sidebar-link.is-active .sidebar-link-icon {
-  color: #7ee0e0;
-  background: rgba(84, 198, 202, 0.1);
+  color: var(--carta-boya);
 }
 
 .sidebar-link-copy strong {
   overflow: hidden;
   font-size: 0.83rem;
+  font-weight: 600;
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1253,14 +1264,14 @@ select {
 .sidebar-link-copy small {
   margin-top: 0.18rem;
   overflow: hidden;
-  color: #789ca0;
+  color: var(--color-tinta-3);
   font-size: 0.68rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .sidebar-link.is-active small {
-  color: #9ac4c7;
+  color: var(--color-tinta-2);
 }
 
 .sidebar-footer {
@@ -1268,7 +1279,7 @@ select {
   align-items: center;
   gap: 0.7rem;
   padding: 1rem 0.65rem 0.15rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  border-top: 1px solid var(--color-linea);
 }
 
 .sidebar-footer-mark {
@@ -1277,18 +1288,19 @@ select {
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  color: #79d8d9;
-  background: rgba(84, 198, 202, 0.1);
+  color: var(--carta-boya);
+  background: var(--color-acento-suave);
   border-radius: 50%;
 }
 
 .sidebar-footer strong {
+  color: var(--color-tinta);
   font-size: 0.72rem;
 }
 
 .sidebar-footer small {
   margin-top: 0.12rem;
-  color: #789ca0;
+  color: var(--color-tinta-3);
   font-size: 0.65rem;
 }
 
