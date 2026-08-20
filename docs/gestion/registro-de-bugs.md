@@ -79,6 +79,8 @@ Tres razones concretas, no burocráticas:
 | BUG-052 | 2026-08-16 | S1 | M1/M9 | El cruce de nombres busca por subcadena sin límite de palabra: el barrio "ANITA" salía de la palabra "alcantarillado s-anita-rio" y aparecía con corte en 5 boletines que no hablan de él | Cerrado — corregido en el acto | D4 |
 | BUG-053 | 2026-08-16 | S1 | M2/M4/M5 | El frontend nunca llega al backend: `apiClient` usa `/api` y no existe proxy ni en `vite.config.ts` ni en `nginx.conf`; `GET /api/sectores` devolvía el `index.html` del SPA con 200 y `POST /api/reportes` 404 | Cerrado — corregido en el acto | D4/D3 |
 | BUG-054 | 2026-08-16 | S3 | M1 | El logo animado de la marca no aparece: `gif` no está en `globPatterns` del service worker y la petición caía a red, donde la ruta con hash no existe y devolvía el `index.html` | Cerrado — corregido en el acto | D4 |
+| BUG-055 | 2026-08-20 | S2 | — (infraestructura) | El backend nunca ingiere boletines de Acuacar en `docker compose up`: cada ciclo de `PipelineOrquestador` lanza `IllegalStateException` porque `COLLECTOR_USER_AGENT` llega vacío | Cerrado — faltaba `.env`, no código; guard ya cubierto por `AcuacarApiCollectorTest` | D2 |
+| BUG-056 | 2026-08-20 | S2 | M1/M8 | En Docker no llegaba ningún dato de Acuacar ni de Google News: `/acuacar-api` y `/google-news-rss` solo estaban proxeados en `vite.config.ts`, así que en `nginx.conf` caían al fallback del SPA y devolvían el `index.html` con 200 | Cerrado — corregido en el acto | D3/D4 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -1676,5 +1678,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-055
+Siguiente número disponible: BUG-057
 -->
