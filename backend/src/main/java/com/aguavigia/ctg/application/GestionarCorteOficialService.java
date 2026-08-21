@@ -98,9 +98,45 @@ public class GestionarCorteOficialService implements GestionarCorteOficialUseCas
                                      Function<SectorId, EventoBitacora> eventoDe) {
         for (SectorId sectorId : corte.sectoresAfectados()) {
             registrarEvento.registrar(eventoDe.apply(sectorId));
+            EstadoServicio estadoReal = sinDegradarPorOtrosCortesAbiertos(sectorId, corte, nuevoEstado);
             sectores.buscarPorId(sectorId)
-                    .filter(sector -> sector.estadoActual() != nuevoEstado)
-                    .ifPresent(sector -> sectores.guardar(sector.conEstado(nuevoEstado)));
+                    .filter(sector -> sector.estadoActual() != estadoReal)
+                    .ifPresent(sector -> sectores.guardar(sector.conEstado(estadoReal)));
         }
+    }
+
+    /**
+     * Un sector puede estar afectado por más de un corte a la vez (uno masivo, uno local sobre el
+     * mismo barrio). Cerrar o reprogramar el corte que se está tocando no debe pisar el estado del
+     * sector si otro corte distinto sigue abierto sobre él: cerrar el corte local mientras el
+     * masivo seguía abierto dejaba el sector en `CON_SERVICIO` aunque en la realidad seguía sin
+     * agua — el falso positivo que `ADR-014` prohíbe. Se calcula el estado más severo entre el que
+     * se iba a aplicar y el de cada otro corte todavía abierto sobre el mismo sector.
+     */
+    private EstadoServicio sinDegradarPorOtrosCortesAbiertos(SectorId sectorId, CorteAgua corteActual,
+                                                               EstadoServicio nuevoEstado) {
+        EstadoServicio masSevero = nuevoEstado;
+        for (CorteAgua otro : cortes.listarPorSector(sectorId)) {
+            if (otro.equals(corteActual) || otro.ventana().estaCerrada()) {
+                continue;
+            }
+            EstadoServicio estadoOtro = otro.ventana().inicio().isAfter(reloj.ahora())
+                    ? EstadoServicio.CORTE_PROGRAMADO
+                    : EstadoServicio.SIN_SERVICIO;
+            masSevero = masSevero(masSevero, estadoOtro);
+        }
+        return masSevero;
+    }
+
+    private static EstadoServicio masSevero(EstadoServicio a, EstadoServicio b) {
+        return severidad(a) >= severidad(b) ? a : b;
+    }
+
+    private static int severidad(EstadoServicio estado) {
+        return switch (estado) {
+            case SIN_SERVICIO -> 2;
+            case CORTE_PROGRAMADO -> 1;
+            default -> 0;
+        };
     }
 }

@@ -35,6 +35,8 @@ interface Props {
   sectores: Sector[]
   cargando: boolean
   ultimaActualizacion: string | null
+  /** F4 — false mientras el stream SSE en vivo está caído (ver useDatosEnVivo). */
+  conexionViva?: boolean
   sectorActivo: Sector | null
   /** Estado destacado desde las tarjetas de resumen (ver TarjetasEstadoMapa) — resalta,
    *  atenúa el resto, encuadra el zoom y dibuja pings + línea entre esos barrios. */
@@ -93,6 +95,7 @@ export const MapaCartagena: FC<Props> = ({
   sectores,
   cargando,
   ultimaActualizacion,
+  conexionViva = true,
   sectorActivo,
   estadoDestacado,
   onSectorSeleccionado,
@@ -375,10 +378,13 @@ export const MapaCartagena: FC<Props> = ({
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
       {/* Contenedor del mapa */}
+      {/* F7 — role="img" le decía a la mayoría de lectores de pantalla que tratara el subárbol
+          como no interactivo, ocultando los polígonos clicables y el link de atribución que sí
+          viven dentro. "region" describe mejor un contenedor con interactividad real. */}
       <div
         ref={contenedorRef}
         id="contenedor-mapa"
-        role="img"
+        role="region"
         aria-label="Mapa interactivo de sectores de Cartagena con estado del servicio de agua"
         style={{ height: '100%', width: '100%' }}
       />
@@ -394,7 +400,7 @@ export const MapaCartagena: FC<Props> = ({
         >
           <Locate size={18} aria-hidden="true" />
         </button>
-        <EtiquetaFrescura timestampIso={ultimaActualizacion} />
+        <EtiquetaFrescura timestampIso={ultimaActualizacion} conexionViva={conexionViva} />
       </div>
 
       {/* Overlay de carga con skeleton */}

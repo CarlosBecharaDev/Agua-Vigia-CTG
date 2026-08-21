@@ -94,7 +94,7 @@ export function ModalSuscripcion({ abierto, onCerrar }: Props) {
             background: 'none', border: 'none', cursor: 'pointer',
             color: 'var(--color-tinta-2)', display: 'flex',
             alignItems: 'center', justifyContent: 'center',
-            width: '32px', height: '32px', borderRadius: '50%',
+            width: '44px', height: '44px', borderRadius: '50%',
           }}
         >
           <X size={20} />

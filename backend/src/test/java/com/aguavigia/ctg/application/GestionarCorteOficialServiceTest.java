@@ -156,6 +156,76 @@ class GestionarCorteOficialServiceTest {
     }
 
     @Test
+    void noDebeRestablecerElSectorAlCerrarUnCorteSiOtroCorteDelMismoSectorSigueAbierto() {
+        // B1 — dos cortes sobre "manga": uno masivo (corte-2) sigue abierto y uno local
+        // (corte-1) se cierra. El sector debe seguir SIN_SERVICIO por el corte-2, no volver a
+        // CON_SERVICIO.
+        Sector sinServicio = new Sector(new SectorId("manga"), "MANGA", 5000, EstadoServicio.SIN_SERVICIO);
+        CorteAgua corteLocal = corte(EstadoCorte.CONFIRMADO, null);
+        CorteAgua corteMasivoAbierto = CorteAgua.builder()
+                .id(new CorteId("corte-2"))
+                .sectoresAfectados(List.of(new SectorId("manga"), new SectorId("bocagrande")))
+                .inicio(INICIO.minus(2, ChronoUnit.HOURS))
+                .finPrometido(INICIO.plus(10, ChronoUnit.HOURS))
+                .causa("Falla en la PTAP El Bosque")
+                .origen(OrigenCorte.OFICIAL_ACUACAR)
+                .build();
+
+        given(cortes.buscarPorId(new CorteId("corte-1"))).willReturn(Optional.of(corteLocal));
+        given(cortes.listarPorSector(new SectorId("manga")))
+                .willReturn(List.of(corteLocal, corteMasivoAbierto));
+        given(sectores.buscarPorId(new SectorId("manga"))).willReturn(Optional.of(sinServicio));
+
+        servicio.cerrar(new CorteId("corte-1"), INICIO.plus(5, ChronoUnit.HOURS));
+
+        verify(sectores, never()).guardar(any());
+    }
+
+    @Test
+    void debeRestablecerElSectorAlCerrarElUltimoCorteAbierto() {
+        Sector sinServicio = new Sector(new SectorId("manga"), "MANGA", 5000, EstadoServicio.SIN_SERVICIO);
+        CorteAgua corteLocal = corte(EstadoCorte.CONFIRMADO, null);
+
+        given(cortes.buscarPorId(new CorteId("corte-1"))).willReturn(Optional.of(corteLocal));
+        given(cortes.listarPorSector(new SectorId("manga"))).willReturn(List.of(corteLocal));
+        given(sectores.buscarPorId(new SectorId("manga"))).willReturn(Optional.of(sinServicio));
+
+        servicio.cerrar(new CorteId("corte-1"), INICIO.plus(5, ChronoUnit.HOURS));
+
+        verify(sectores).guardar(sinServicio.conEstado(EstadoServicio.CON_SERVICIO));
+    }
+
+    @Test
+    void noDebeDegradarUnSectorSinServicioAlRegistrarUnSegundoCorteFuturo() {
+        // Un corte ya en curso deja "manga" SIN_SERVICIO; registrar un segundo corte futuro
+        // sobre el mismo sector no debe retroceder el estado a CORTE_PROGRAMADO.
+        Sector sinServicio = new Sector(new SectorId("manga"), "MANGA", 5000, EstadoServicio.SIN_SERVICIO);
+        CorteAgua corteEnCurso = CorteAgua.builder()
+                .id(new CorteId("corte-en-curso"))
+                .sectoresAfectados(List.of(new SectorId("manga")))
+                .inicio(INICIO)
+                .finPrometido(INICIO.plus(6, ChronoUnit.HOURS))
+                .causa("Falla en la PTAP El Bosque")
+                .origen(OrigenCorte.OFICIAL_ACUACAR)
+                .build();
+        CorteAgua futuro = CorteAgua.builder()
+                .id(new CorteId("corte-futuro"))
+                .sectoresAfectados(List.of(new SectorId("manga")))
+                .inicio(AHORA.plus(3, ChronoUnit.DAYS))
+                .finPrometido(AHORA.plus(3, ChronoUnit.DAYS).plus(6, ChronoUnit.HOURS))
+                .causa("Mantenimiento planta El Bosque")
+                .origen(OrigenCorte.VEEDOR)
+                .build();
+
+        given(sectores.buscarPorId(new SectorId("manga"))).willReturn(Optional.of(sinServicio));
+        given(cortes.listarPorSector(new SectorId("manga"))).willReturn(List.of(corteEnCurso, futuro));
+
+        servicio.registrar(futuro);
+
+        verify(sectores, never()).guardar(any());
+    }
+
+    @Test
     void debeRechazarElRegistroSiAlgunSectorNoExiste() {
         given(sectores.buscarPorId(new SectorId("manga"))).willReturn(Optional.empty());
 

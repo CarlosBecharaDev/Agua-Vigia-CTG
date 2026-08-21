@@ -16,7 +16,10 @@ type TipoReporte = 'SIN_AGUA' | 'PRESION_BAJA' | 'SERVICIO_RESTABLECIDO'
 interface Props {
   sectores: Sector[]
   sectorPreseleccionado?: string
-  onReporteEnviado: (reporte: ReporteRespuesta) => void
+  /** `avisoFoto` viene con un mensaje cuando el reporte sí se guardó pero la evidencia
+   *  fotográfica no se pudo subir (F6) — antes se tragaba en silencio y el usuario nunca se
+   *  enteraba de que la foto no llegó. */
+  onReporteEnviado: (reporte: ReporteRespuesta, avisoFoto?: string) => void
 }
 
 const TIPOS: Array<{ valor: TipoReporte; etiqueta: string; detalle: string; Icono: typeof DropletOff }> = [
@@ -51,27 +54,42 @@ export const FormularioReporte: FC<Props> = ({ sectores, sectorPreseleccionado =
   const mutacion = useMutation({
     mutationFn: async ({ solicitud, foto }: { solicitud: SolicitudReporte; foto: File | null }) => {
       const reporte = await crearReporte(solicitud)
-      if (!foto) return reporte
-      // La evidencia es un añadido opcional: si falla la subida, el reporte ya quedó registrado.
-      try { return await agregarEvidenciaReporte(reporte.id!, foto) } catch { return reporte }
+      if (!foto) return { reporte, avisoFoto: undefined }
+      // F6 — el reporte en sí ya quedó registrado (evidencia es un añadido opcional); pero antes,
+      // si la subida fallaba, el `catch` vacío lo trataba igual que un éxito y el usuario nunca se
+      // enteraba de que la foto no llegó, contra DESIGN.md §5 ("los errores explican qué pasó").
+      // También cubre F6b: `reporte.id` es opcional en el contrato (schema.ts) — si el backend
+      // alguna vez respondiera sin id, esto lo trata como fallo explícito en vez de un
+      // `POST /reportes/undefined/foto` silencioso.
+      if (!reporte.id) {
+        return { reporte, avisoFoto: 'Reporte enviado, pero no pudimos adjuntar la foto. Intenta de nuevo desde el enlace de confirmación que puedes compartir con tus vecinos.' }
+      }
+      try {
+        const reporteConFoto = await agregarEvidenciaReporte(reporte.id, foto)
+        return { reporte: reporteConFoto, avisoFoto: undefined }
+      } catch {
+        return { reporte, avisoFoto: 'Reporte enviado, pero la foto no se pudo subir. Revisa tu conexión e inténtalo de nuevo más tarde.' }
+      }
     },
-    onSuccess: onReporteEnviado,
+    onSuccess: ({ reporte, avisoFoto }) => onReporteEnviado(reporte, avisoFoto),
     onSettled: () => { procesandoRef.current = false; setPreparando(false) },
   })
   const procesando = preparando || mutacion.isPending
 
-  const elegirFoto = (archivo: File | null) => {
-    if (!archivo) { setFoto(null); return }
+  /** Devuelve false cuando el archivo se rechazó, para que quien llama pueda limpiar el input (F9). */
+  const elegirFoto = (archivo: File | null): boolean => {
+    if (!archivo) { setFoto(null); return true }
     if (!TIPOS_FOTO_ACEPTADOS.includes(archivo.type)) {
       setErrorLocal('La foto debe ser JPG, PNG o WebP.')
-      return
+      return false
     }
     if (archivo.size > TAMANO_MAXIMO_FOTO) {
       setErrorLocal('La foto no puede pesar más de 10 MB.')
-      return
+      return false
     }
     setErrorLocal(null)
     setFoto(archivo)
+    return true
   }
 
   const enviar = async (tipo: TipoReporte) => {
@@ -133,7 +151,12 @@ export const FormularioReporte: FC<Props> = ({ sectores, sectorPreseleccionado =
         <input
           type="file"
           accept={TIPOS_FOTO_ACEPTADOS.join(',')}
-          onChange={(event) => elegirFoto(event.target.files?.[0] ?? null)}
+          onChange={(event) => {
+            const rechazada = !elegirFoto(event.target.files?.[0] ?? null)
+            // F9 — sin esto, reintentar con el mismo archivo rechazado no disparaba onChange
+            // (mismo `value`) y no pasaba nada visible.
+            if (rechazada) event.target.value = ''
+          }}
         />
         <Camera aria-hidden="true" />
         <span><strong>Adjuntar una foto</strong><small>{foto ? foto.name : 'Opcional. Ayuda al veedor a verificar el reporte.'}</small></span>

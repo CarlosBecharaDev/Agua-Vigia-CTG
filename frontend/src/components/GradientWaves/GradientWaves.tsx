@@ -203,7 +203,10 @@ export const GradientWaves: FC<Props> = ({
     const canvas = canvasRef.current
     if (!container || !canvas) return
 
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    // F12 — antes se leía una sola vez al montar; si el usuario cambiaba la preferencia del
+    // sistema con la página ya abierta, la animación no reaccionaba hasta un remontaje.
+    const mqlReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+    let reducedMotion = mqlReducedMotion.matches
 
     const renderer = new Renderer({
       canvas,
@@ -318,6 +321,17 @@ export const GradientWaves: FC<Props> = ({
       }
     }
 
+    const onCambioReducedMotion = (event: MediaQueryListEvent): void => {
+      reducedMotion = event.matches
+      if (reducedMotion) {
+        tryStop()
+        renderer.render({ scene: mesh })
+      } else {
+        tryStart()
+      }
+    }
+    mqlReducedMotion.addEventListener('change', onCambioReducedMotion)
+
     const io = new IntersectionObserver(
       ([entry]) => {
         isVisible = entry.isIntersecting
@@ -345,6 +359,7 @@ export const GradientWaves: FC<Props> = ({
       ro.disconnect()
       io.disconnect()
       document.removeEventListener('visibilitychange', onVisibility)
+      mqlReducedMotion.removeEventListener('change', onCambioReducedMotion)
       container.removeEventListener('pointermove', onPointerMove)
       container.removeEventListener('pointerleave', onPointerLeave)
       programRef.current = null

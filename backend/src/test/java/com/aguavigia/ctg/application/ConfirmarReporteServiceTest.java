@@ -1,5 +1,6 @@
 package com.aguavigia.ctg.application;
 
+import com.aguavigia.ctg.domain.EstadoModeracion;
 import com.aguavigia.ctg.domain.HuellaDispositivo;
 import com.aguavigia.ctg.domain.ReporteCiudadano;
 import com.aguavigia.ctg.domain.ReporteId;
@@ -55,6 +56,20 @@ class ConfirmarReporteServiceTest {
         given(reportes.buscarPorId(new ReporteId("no-existe"))).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> servicio.confirmar(new ReporteId("no-existe"), new HuellaDispositivo("hash-vecino")))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        verify(reportes, never()).guardar(any());
+    }
+
+    @Test
+    void debeRechazarConfirmarUnReporteDescartadoPorModeracion() {
+        // B2 — un reporte marcado como spam por el veedor no debe seguir acumulando
+        // confirmaciones públicas.
+        ReporteCiudadano descartado = new ReporteCiudadano(new ReporteId("r1"), new SectorId("manga"),
+                TipoReporte.SIN_AGUA, null, new HuellaDispositivo("hash-autor"), AHORA, EstadoModeracion.DESCARTADO);
+        given(reportes.buscarPorId(new ReporteId("r1"))).willReturn(Optional.of(descartado));
+
+        assertThatThrownBy(() -> servicio.confirmar(new ReporteId("r1"), new HuellaDispositivo("hash-vecino")))
                 .isInstanceOf(IllegalArgumentException.class);
 
         verify(reportes, never()).guardar(any());

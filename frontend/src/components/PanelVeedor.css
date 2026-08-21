@@ -9,7 +9,9 @@
 .panel-operativo > header > div { display: grid; }
 .panel-operativo h2 { font-size: 1.35rem; }
 .panel-icono { display: grid; place-items: center; flex: 0 0 auto; width: 42px; height: 42px; color: var(--color-acento); background: var(--color-acento-suave); border-radius: 12px; }
-.boton-icono { display: grid; place-items: center; margin-left: auto; color: var(--color-tinta-2); background: transparent; border: 1px solid var(--color-linea); border-radius: 10px; cursor: pointer; }
+/* F8 — sin width/height, el área clicable se reducía al tamaño del ícono SVG (17px): muy por
+   debajo del objetivo táctil mínimo de 44×44px que DESIGN.md §7 exige. */
+.boton-icono { display: grid; place-items: center; width: 44px; height: 44px; margin-left: auto; color: var(--color-tinta-2); background: transparent; border: 1px solid var(--color-linea); border-radius: 10px; cursor: pointer; }
 .panel-operativo > label,
 .crear-corte label { display: grid; gap: .35rem; color: var(--color-tinta); font-size: .78rem; font-weight: 700; }
 .panel-operativo select,

@@ -32,6 +32,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
   const [inicio, setInicio] = useState('')
   const [finPrometido, setFinPrometido] = useState('')
   const [causa, setCausa] = useState('')
+  const [errorVentanaCorte, setErrorVentanaCorte] = useState<string | null>(null)
   const [corteExpandidoId, setCorteExpandidoId] = useState<string | null>(null)
 
   const reportes = useQuery({ queryKey: ['veedor', 'reportes', 'pendientes'], queryFn: listarReportesPendientes })
@@ -69,6 +70,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
     onSuccess: async () => {
       const primerSector = sectoresNuevos[0]
       setCausa(''); setInicio(''); setFinPrometido('')
+      setErrorVentanaCorte(null)
       setSectoresNuevos([])
       if (primerSector) setSectorFiltro(primerSector)
       await queryClient.invalidateQueries({ queryKey: ['veedor', 'cortes'] })
@@ -89,6 +91,14 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
   const crearCorte = (event: FormEvent) => {
     event.preventDefault()
     if (sectoresNuevos.length === 0 || !inicio || !finPrometido || !causa.trim()) return
+    // F10 — antes esto se delegaba enteramente al backend (400/409) y aparecía como el banner
+    // de error genérico de arriba del panel, sin apuntar al campo. Un vistazo inline es más
+    // rápido y no requiere ida y vuelta al servidor para un error evidente en el cliente.
+    if (fechaLocalAISO(finPrometido) <= fechaLocalAISO(inicio)) {
+      setErrorVentanaCorte('El fin prometido debe ser posterior al inicio del corte.')
+      return
+    }
+    setErrorVentanaCorte(null)
     registrarCorte.mutate({ sectoresAfectados: sectoresNuevos, inicio: fechaLocalAISO(inicio), finPrometido: fechaLocalAISO(finPrometido), causa: causa.trim() })
   }
 
@@ -202,8 +212,9 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
               ))}
             </div>
           </fieldset>
-          <label>Inicio<input required type="datetime-local" value={inicio} onChange={(event) => setInicio(event.target.value)} /></label>
-          <label>Fin prometido<input required type="datetime-local" value={finPrometido} onChange={(event) => setFinPrometido(event.target.value)} /></label>
+          <label>Inicio<input required type="datetime-local" value={inicio} onChange={(event) => { setInicio(event.target.value); setErrorVentanaCorte(null) }} /></label>
+          <label>Fin prometido<input required type="datetime-local" value={finPrometido} onChange={(event) => { setFinPrometido(event.target.value); setErrorVentanaCorte(null) }} /></label>
+          {errorVentanaCorte && <p className="mensaje-error" role="alert">{errorVentanaCorte}</p>}
           <label className="campo-causa">Causa<input required value={causa} onChange={(event) => setCausa(event.target.value)} placeholder="Mantenimiento o daño reportado" /></label>
           <button className="boton boton-primario" type="submit" disabled={registrarCorte.isPending}>{registrarCorte.isPending ? 'Registrando…' : 'Registrar corte oficial'}</button>
         </form>

@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -67,7 +66,7 @@ public class SseSectoresBroadcaster implements MessageListener {
      * —cada instancia lo reconsulta— para no depender de que todas compartan el mismo serializador.
      */
     public void notificarActualizacion() {
-        redisTemplate.convertAndSend(CANAL, Instant.now().toString());
+        redisTemplate.convertAndSend(CANAL, reloj.ahora().toString());
     }
 
     @Override

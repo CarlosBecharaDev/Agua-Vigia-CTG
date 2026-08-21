@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import { Eye, EyeOff, KeyRound, LockKeyhole, ShieldCheck } from 'lucide-react'
 import { cerrarSesionVeedor, iniciarSesionVeedor } from '../api/services'
@@ -12,6 +12,14 @@ export default function PaginaVeedor() {
   const [enviando, setEnviando] = useState(false)
   const [mostrarClave, setMostrarClave] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // F1 — si el JWT vence (8h) o el backend reinicia con otro JWT_SECRET mientras el panel está
+  // abierto, el interceptor de 401 borra el token pero nadie más se enteraba: el panel seguía
+  // mostrándose como autenticado con todas las consultas fallando en silencio.
+  useEffect(() => sesionVeedor.alLimpiarse(() => {
+    setAutenticado(false)
+    setError('La sesión venció. Inicia sesión de nuevo.')
+  }), [])
 
   const iniciar = async (event: FormEvent) => {
     event.preventDefault()

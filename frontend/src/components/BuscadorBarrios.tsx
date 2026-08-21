@@ -62,7 +62,7 @@ const FilaBarrioAnimada: FC<FilaBarrioProps> = ({ sector, indice, seleccionado, 
         onMouseDown={(e) => e.preventDefault()}
         onMouseEnter={onEnfocar}
         onClick={onElegir}
-        aria-label={`Ver ${sector.nombre} en el mapa`}
+        aria-label={`Ver ${sector.nombre} en el mapa — estado: ${(sector.estado ? COLOR_POR_ESTADO[sector.estado] : COLOR_SIN_DATOS).etiqueta}`}
         className={`lista-barrios-btn${seleccionado ? ' is-seleccionado' : ''}`}
       >
         <span

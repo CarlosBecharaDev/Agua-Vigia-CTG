@@ -48,7 +48,7 @@ interface Props {
 }
 
 const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
-  const { sectores, cargando, error, ultimaActualizacion, boletines } = useDatosEnVivo();
+  const { sectores, cargando, error, ultimaActualizacion, conexionViva, boletines } = useDatosEnVivo();
 
   const [sectorActivo, setSectorActivo] = useState<Sector | null>(null)
   const [modalAbierto, setModalAbierto] = useState(false)
@@ -148,6 +148,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
               sectores={sectores}
               cargando={cargando}
               ultimaActualizacion={ultimaActualizacion}
+              conexionViva={conexionViva}
               sectorActivo={sectorActivo}
               estadoDestacado={estadoDestacado}
               onSectorSeleccionado={alSeleccionarSector}
