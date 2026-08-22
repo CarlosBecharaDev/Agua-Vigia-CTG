@@ -6,6 +6,8 @@ import com.aguavigia.ctg.domain.PropuestaId;
 import com.aguavigia.ctg.domain.PropuestaIngesta;
 import com.aguavigia.ctg.domain.SectorId;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 public interface PropuestaIngestaRepository {
@@ -23,4 +25,11 @@ public interface PropuestaIngestaRepository {
      * Sin este chequeo, un solo corte le deja al veedor cuatro propuestas idénticas que revisar.
      */
     boolean existePendiente(SectorId sectorId, EstadoServicio estadoPropuesto);
+
+    /**
+     * Propuestas ya aprobadas cuya ventana declarada todavía puede mover el estado de un sector:
+     * las que aún no terminan, más las que acaban de terminar y falta devolver el barrio a
+     * CON_SERVICIO. Acotar por {@code finDesde} evita recorrer el histórico entero en cada barrido.
+     */
+    List<PropuestaIngesta> listarAprobadasConVentanaVigente(Instant finDesde);
 }

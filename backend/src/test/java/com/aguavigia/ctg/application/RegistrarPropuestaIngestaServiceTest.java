@@ -44,7 +44,7 @@ class RegistrarPropuestaIngestaServiceTest {
 
     private Optional<PropuestaIngesta> registrar() {
         return servicio.registrar(MANGA, EstadoServicio.SIN_SERVICIO, "acuacar",
-                "https://acuacar.com/x", "cita del boletin", 0.6);
+                "https://acuacar.com/x", "cita del boletin", 0.6, null, null);
     }
 
     @Test

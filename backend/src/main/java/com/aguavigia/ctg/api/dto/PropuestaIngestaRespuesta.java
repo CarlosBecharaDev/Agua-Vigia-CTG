@@ -18,9 +18,21 @@ public record PropuestaIngestaRespuesta(
         String urlOriginal,
         @Schema(description = "Fragmento del que se dedujo el estado, para que el veedor pueda verificarlo")
         String citaTextual,
-        @Schema(description = "Entre 0 y 1. La heurística por expresiones regulares emite 0.6 (ADR-025)")
+        @Schema(description = """
+                Entre 0 y 1, graduada según la evidencia que halló el extractor (ADR-032): 0.85 con
+                enumeración explícita de barrios y horario, 0.75 con enumeración sin horario, 0.45
+                con una mención suelta en prosa. Sirve para ordenar la cola, no para publicar solo.""")
         double confianza,
         Instant detectadaEn,
         @Schema(description = "PENDIENTE, APROBADA o DESCARTADA")
-        String estadoRevision) {
+        String estadoRevision,
+        @Schema(description = """
+                Inicio de la ventana que el boletín prometió. Nulo cuando el texto no la declaraba:
+                no se estima (ADR-006).""", nullable = true)
+        Instant inicioDeclarado,
+        @Schema(description = """
+                Fin prometido de la misma ventana. Junto con el inicio es lo que permite que el
+                estado del sector evolucione solo (ADR-033) y lo que alimenta el Índice de
+                Cumplimiento (RF020-RF022).""", nullable = true)
+        Instant finPrometido) {
 }

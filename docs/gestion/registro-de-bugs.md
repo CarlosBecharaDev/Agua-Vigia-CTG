@@ -81,6 +81,10 @@ Tres razones concretas, no burocráticas:
 | BUG-054 | 2026-08-16 | S3 | M1 | El logo animado de la marca no aparece: `gif` no está en `globPatterns` del service worker y la petición caía a red, donde la ruta con hash no existe y devolvía el `index.html` | Cerrado — corregido en el acto | D4 |
 | BUG-055 | 2026-08-20 | S2 | — (infraestructura) | El backend nunca ingiere boletines de Acuacar en `docker compose up`: cada ciclo de `PipelineOrquestador` lanza `IllegalStateException` porque `COLLECTOR_USER_AGENT` llega vacío | Cerrado — faltaba `.env`, no código; guard ya cubierto por `AcuacarApiCollectorTest` | D2 |
 | BUG-056 | 2026-08-20 | S2 | M1/M8 | En Docker no llegaba ningún dato de Acuacar ni de Google News: `/acuacar-api` y `/google-news-rss` solo estaban proxeados en `vite.config.ts`, así que en `nginx.conf` caían al fallback del SPA y devolvían el `index.html` con 200 | Cerrado — corregido en el acto | D3/D4 |
+| BUG-057 | 2026-08-22 | S1 | M9 | Un corte anunciado para el día siguiente se publicaba como `SIN_SERVICIO` en vez de `CORTE_PROGRAMADO`: `aEstadoServicio` mandaba todo aviso al `default`, así que el mapa pintaba de rojo barrios que en ese momento tenían agua | Cerrado — el estado se decide contra la ventana declarada; `PipelineOrquestadorTest` y `ActualizarEstadosPorVentanaServiceTest` | D3 |
+| BUG-058 | 2026-08-22 | S2 | M9 | La ingesta no extraía ningún barrio de los boletines de Acuacar: `PATRON_BARRIOS` tomaba la primera aparición de «barrios», que en la plantilla de la fuente es la frase de resumen «suspensión … a barrios del entorno», y devolvía `["del entorno"]` mientras los 20 barrios enumerados más abajo se perdían enteros | Cerrado — el ancla exige enumeración explícita (`barrios:`); `HeuristicaExtractorTest` usa el texto literal del boletín #2854 | D3 |
+| BUG-059 | 2026-08-22 | S2 | M9 | Aun extrayendo bien los nombres, la mitad no casaba con el catálogo: la comparación era igualdad exacta y el GeoJSON escribe los números en letras (`9 de Abril` ↔ `NUEVE DE ABRIL`), omite la preposición (`Piedra Bolívar` ↔ `PIEDRA DE BOLIVAR`) y no lleva los prefijos de tipo que sí escribe el boletín (`sector Sena`, `urbanización La Heroica`) | Cerrado — `NormalizadorDeNombres` + `EmparejadorDeSectores`, sin coincidencia aproximada; `EmparejadorDeSectoresTest` | D3 |
+| BUG-060 | 2026-08-22 | S2 | M9 | El ciclo de ingesta corría cada 10 minutos contra el vacío: `VENTANA_DE_BUSQUEDA` era de 1 día y Acuacar publica cada 3–7, así que el boletín más reciente (una suspensión real en 20 barrios) quedaba fuera por 34 horas | Cerrado — ventana de 7 días, alineada con la del deduplicador; `PipelineOrquestadorTest` | D3 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -1678,5 +1682,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-057
+Siguiente número disponible: BUG-061
 -->

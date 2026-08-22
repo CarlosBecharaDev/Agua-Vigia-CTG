@@ -56,7 +56,7 @@ class PipelineOrquestadorTest {
         given(acuacar.obtenerDesde(any())).willReturn(List.of());
         given(rss.obtenerDesde(any())).willReturn(List.of());
         given(deduplicador.yaVistoRecientemente(any())).willReturn(false);
-        given(registrarPropuesta.registrar(any(), any(), anyString(), any(), any(), anyDouble()))
+        given(registrarPropuesta.registrar(any(), any(), anyString(), any(), any(), anyDouble(), any(), any()))
                 .willReturn(Optional.empty());
 
         orquestador = new PipelineOrquestador(acuacar, rss, deduplicador, extractor, sectores,
@@ -99,7 +99,8 @@ class PipelineOrquestadorTest {
         orquestador.ejecutarCiclo();
 
         verify(registrarPropuesta).registrar(eq(new SectorId("manga")), eq(EstadoServicio.SIN_SERVICIO),
-                eq("acuacar"), eq("https://acuacar.com/x"), eq("cita del boletin"), eq(0.6));
+                eq("acuacar"), eq("https://acuacar.com/x"), eq("cita del boletin"), eq(0.6),
+                any(), any());
     }
 
     @Test
@@ -111,7 +112,7 @@ class PipelineOrquestadorTest {
 
         orquestador.ejecutarCiclo();
 
-        verify(registrarPropuesta, never()).registrar(any(), any(), anyString(), any(), any(), anyDouble());
+        verify(registrarPropuesta, never()).registrar(any(), any(), anyString(), any(), any(), anyDouble(), any(), any());
     }
 
     // --- Aislamiento de fallos (RNF004) ---
@@ -126,7 +127,7 @@ class PipelineOrquestadorTest {
 
         orquestador.ejecutarCiclo();
 
-        verify(registrarPropuesta).registrar(eq(new SectorId("manga")), any(), anyString(), any(), any(), anyDouble());
+        verify(registrarPropuesta).registrar(eq(new SectorId("manga")), any(), anyString(), any(), any(), anyDouble(), any(), any());
     }
 
     @Test
@@ -136,7 +137,7 @@ class PipelineOrquestadorTest {
 
         orquestador.ejecutarCiclo();
 
-        verify(registrarPropuesta, never()).registrar(any(), any(), anyString(), any(), any(), anyDouble());
+        verify(registrarPropuesta, never()).registrar(any(), any(), anyString(), any(), any(), anyDouble(), any(), any());
     }
 
     // --- Salud por colector (RNF007) ---
@@ -206,7 +207,7 @@ class PipelineOrquestadorTest {
     void noDebeMarcarComoVistoUnDocumentoQueFalloAlProcesarse() {
         hayUnDocumentoSobre("Corte en Manga por daño en la red", List.of("Manga"),
                 List.of(new Sector(new SectorId("manga"), "Manga", 1000, EstadoServicio.CON_SERVICIO)));
-        given(registrarPropuesta.registrar(any(), any(), anyString(), any(), any(), anyDouble()))
+        given(registrarPropuesta.registrar(any(), any(), anyString(), any(), any(), anyDouble(), any(), any()))
                 .willThrow(new RuntimeException("Mongo caído"));
 
         orquestador.ejecutarCiclo();
@@ -234,7 +235,7 @@ class PipelineOrquestadorTest {
 
         orquestador.ejecutarCiclo();
 
-        verify(registrarPropuesta, never()).registrar(any(), any(), anyString(), any(), any(), anyDouble());
+        verify(registrarPropuesta, never()).registrar(any(), any(), anyString(), any(), any(), anyDouble(), any(), any());
     }
 
     @Test
@@ -244,7 +245,7 @@ class PipelineOrquestadorTest {
 
         orquestador.ejecutarCiclo();
 
-        verify(registrarPropuesta, never()).registrar(any(), any(), anyString(), any(), any(), anyDouble());
+        verify(registrarPropuesta, never()).registrar(any(), any(), anyString(), any(), any(), anyDouble(), any(), any());
         verify(deduplicador, never()).marcarComoVisto(anyString());
     }
 }

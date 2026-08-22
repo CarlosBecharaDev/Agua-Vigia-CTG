@@ -30,4 +30,8 @@ public class PropuestaIngestaDocumento {
     /** PENDIENTE, APROBADA o DESCARTADA. */
     @Indexed
     private String estadoRevision;
+
+    /** Ventana que el boletín prometió. Nulas cuando el texto no la declaraba: no se estima. */
+    private Instant inicioDeclarado;
+    private Instant finPrometido;
 }
