@@ -84,6 +84,37 @@ class EmparejadorDeSectoresTest {
         assertThat(resultado.noReconocidos()).containsExactly("Manzanares", "Andalucía");
     }
 
+    /**
+     * El catastro no guarda «Olaya Herrera» como unidad: lo tiene partido en once sectores que
+     * declaran su pertenencia en el propio nombre. Es el nombre más frecuente de los boletines.
+     */
+    @Test
+    void debeResolverUnNombrePadreEnTodosLosSectoresQueLoComponen() {
+        List<Sector> conOlaya = List.of(
+                sector("olaya-st-central", "OLAYA ST. CENTRAL"),
+                sector("olaya-st-ricaurte", "OLAYA ST. RICAURTE"),
+                sector("armenia", "ARMENIA"));
+        var conAlias = new EmparejadorDeSectores(conOlaya);
+
+        var resultado = conAlias.emparejar(List.of("Olaya Herrera"));
+
+        assertThat(resultado.sectores())
+                .containsExactlyInAnyOrder(
+                        new SectorId("olaya-st-central"), new SectorId("olaya-st-ricaurte"));
+        assertThat(resultado.noReconocidos()).isEmpty();
+    }
+
+    /** Una fila de alias que apunte a un sector inexistente no puede proponer ese sector. */
+    @Test
+    void debeIgnorarLosAliasQueApuntanASectoresQueNoEstanEnElCatalogo() {
+        var soloArmenia = new EmparejadorDeSectores(List.of(sector("armenia", "ARMENIA")));
+
+        var resultado = soloArmenia.emparejar(List.of("Olaya Herrera"));
+
+        assertThat(resultado.sectores()).isEmpty();
+        assertThat(resultado.noReconocidos()).containsExactly("Olaya Herrera");
+    }
+
     @Test
     void noDebeRepetirUnSectorNombradoDosVeces() {
         var resultado = emparejador.emparejar(List.of("Armenia", "armenia", "ARMENIA"));

@@ -1,0 +1,53 @@
+# Equivalencias entre el nombre que escribe la fuente y el sector del catálogo catastral.
+#
+# Formato:  nombre en el boletín;slug del sector
+# Un nombre que abarca varios sectores ocupa una línea por sector.
+#
+# ─────────────────────────────────────────────────────────────────────────────────────────
+# NORMA PARA AGREGAR UNA FILA — leerla antes de tocar este archivo
+#
+# Solo entra un alias cuando la equivalencia está *probada*, no cuando parece razonable.
+# Prueba admisible es una de estas dos:
+#
+#   1. El propio catálogo la documenta en el nombre del sector. «OLAYA ST. CENTRAL» dice
+#      literalmente «Olaya, sector Central»: la pertenencia está escrita en el dato.
+#   2. Una fuente oficial citable (POT del Distrito, cartografía catastral, acto administrativo)
+#      que se anota en el comentario de la fila.
+#
+# NO es prueba: que los nombres se parezcan, que queden cerca, ni que un buscador los asocie.
+# Sobre el corpus real, la coincidencia aproximada emparejaba «Las Gavias» con «LAS GAVIOTAS»
+# —dos barrios distintos nombrados en el mismo boletín— y «Barrio Nuevo» con «NUEVO PORVENIR»,
+# «NUEVO BOSQUE» y «NUEVO PARAISO», que son tres barrios que nada tienen que ver.
+#
+# Un alias equivocado publica un corte en el barrio equivocado. Ante la duda, no se agrega: el
+# nombre queda sin reconocer, aparece en el log de la ingesta y lo resuelve el veedor.
+# ─────────────────────────────────────────────────────────────────────────────────────────
+
+# Olaya Herrera — el nombre más frecuente de los boletines (45 menciones sobre 37 boletines de
+# mayo a agosto de 2026) y el que más barrios afecta. El catastro no lo guarda como una unidad:
+# lo tiene partido en once sectores, y cada uno declara su pertenencia en el propio nombre
+# («OLAYA ST. <sector>»). Los once polígonos ya están en el mapa; solo faltaba el nombre padre.
+Olaya Herrera;olaya-st-rafael-nunez
+Olaya Herrera;olaya-villa-olimpica
+Olaya Herrera;olaya-st-11-de-noviembre
+Olaya Herrera;olaya-st-ricaurte
+Olaya Herrera;olaya-st-central
+Olaya Herrera;olaya-st-la-magdalena
+Olaya Herrera;olaya-st-la-puntilla
+Olaya Herrera;olaya-st-progreso
+Olaya Herrera;olaya-st-stella
+Olaya Herrera;olaya-st-zarabanda
+Olaya Herrera;olaya-st-playa-blanca
+
+# Acuacar también lo escribe a secas. Mismo referente, misma prueba.
+Olaya;olaya-st-rafael-nunez
+Olaya;olaya-villa-olimpica
+Olaya;olaya-st-11-de-noviembre
+Olaya;olaya-st-ricaurte
+Olaya;olaya-st-central
+Olaya;olaya-st-la-magdalena
+Olaya;olaya-st-la-puntilla
+Olaya;olaya-st-progreso
+Olaya;olaya-st-stella
+Olaya;olaya-st-zarabanda
+Olaya;olaya-st-playa-blanca

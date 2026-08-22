@@ -2,6 +2,8 @@ package com.aguavigia.ctg.infrastructure.ingest;
 
 import com.aguavigia.ctg.domain.Sector;
 import com.aguavigia.ctg.domain.SectorId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,12 +30,19 @@ import java.util.Set;
  */
 public class EmparejadorDeSectores {
 
+    private static final Logger log = LoggerFactory.getLogger(EmparejadorDeSectores.class);
+
     public record Resultado(List<SectorId> sectores, List<String> noReconocidos) {
     }
 
     private final Map<String, SectorId> indice;
+    private final Map<String, List<SectorId>> equivalencias;
 
     public EmparejadorDeSectores(List<Sector> catalogo) {
+        this(catalogo, AliasDeBarrios.cargar());
+    }
+
+    EmparejadorDeSectores(List<Sector> catalogo, AliasDeBarrios alias) {
         this.indice = new HashMap<>();
         for (Sector sector : catalogo) {
             for (String variante : NormalizadorDeNombres.variantes(sector.nombre())) {
@@ -42,6 +51,32 @@ public class EmparejadorDeSectores {
                 indice.putIfAbsent(variante, sector.id());
             }
         }
+        this.equivalencias = resolver(alias, catalogo);
+    }
+
+    /**
+     * Un alias solo cuenta si su slug existe hoy en el catálogo. Si el GeoJSON cambia y un sector
+     * desaparece, la fila queda obsoleta y se avisa, en vez de proponer un sector inexistente que
+     * `RegistrarPropuestaIngestaService` descartaría después en silencio.
+     */
+    private static Map<String, List<SectorId>> resolver(AliasDeBarrios alias, List<Sector> catalogo) {
+        Set<String> existentes = catalogo.stream().map(s -> s.id().valor())
+                .collect(java.util.stream.Collectors.toSet());
+        Map<String, List<SectorId>> resueltas = new HashMap<>();
+        for (String nombre : alias.nombresDeclarados()) {
+            List<SectorId> sectores = new ArrayList<>();
+            for (String slug : alias.slugsPara(nombre)) {
+                if (existentes.contains(slug)) {
+                    sectores.add(new SectorId(slug));
+                } else {
+                    log.warn("Alias '{}' apunta al sector '{}', que no está en el catálogo", nombre, slug);
+                }
+            }
+            if (!sectores.isEmpty()) {
+                resueltas.put(NormalizadorDeNombres.normalizar(nombre), List.copyOf(sectores));
+            }
+        }
+        return resueltas;
     }
 
     public Resultado emparejar(List<String> mencionados) {
@@ -51,6 +86,12 @@ public class EmparejadorDeSectores {
             SectorId sector = buscar(mencion);
             if (sector != null) {
                 encontrados.add(sector);
+                continue;
+            }
+            List<SectorId> equivalentes =
+                    equivalencias.get(NormalizadorDeNombres.normalizar(mencion));
+            if (equivalentes != null) {
+                encontrados.addAll(equivalentes);
             } else if (!mencion.isBlank()) {
                 sinReconocer.add(mencion.trim());
             }
