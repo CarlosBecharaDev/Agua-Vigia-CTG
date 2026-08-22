@@ -763,7 +763,7 @@ export const SeccionEstadisticas: FC = () => {
   }
 
   return (
-    <section id="estadisticas" aria-label="Estadísticas del servicio de agua en Cartagena" style={{ background: 'var(--color-fondo)' }}>
+    <section id="estadisticas" aria-label="Estadísticas del servicio de agua en Cartagena">
       {/* Mismo ancho que .bitacora-envoltorio (SeccionBitacora) — para que las dos
           secciones se sientan de la misma medida al bajar por la página, no una más
           angosta que la otra. */}

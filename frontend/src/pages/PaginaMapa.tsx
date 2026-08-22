@@ -250,11 +250,13 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
       </GradientWaves>
       </section>
 
-      <SeccionBitacora busqueda={busquedaBitacora} />
+      <div className="zona-nebulosa">
+        <SeccionBitacora busqueda={busquedaBitacora} />
 
-      <SeccionEstadisticas />
+        <SeccionEstadisticas />
 
-      <PieDePagina />
+        <PieDePagina />
+      </div>
 
       <ModalReporte
         abierto={modalAbierto}

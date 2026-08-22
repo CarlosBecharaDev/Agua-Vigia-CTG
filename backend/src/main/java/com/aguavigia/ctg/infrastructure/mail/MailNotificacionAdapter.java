@@ -70,4 +70,26 @@ public class MailNotificacionAdapter implements NotificacionPort {
             log.error("No se pudo enviar el correo de confirmación a la suscripción {}", suscripcion.id().valor(), fallo);
         }
     }
+
+    @Async
+    @Override
+    public void avisarCambioDeEstado(Suscripcion suscripcion, Sector sector) {
+        try {
+            MimeMessage mensaje = mailSender.createMimeMessage();
+            MimeMessageHelper ayudante = new MimeMessageHelper(mensaje, "UTF-8");
+            ayudante.setFrom(remitente);
+            ayudante.setTo(suscripcion.correo().valor());
+            ayudante.setSubject("AguaVigía CTG - Cambio de estado en tu sector: " + sector.nombre());
+            
+            String estado = sector.estadoActual() != null ? sector.estadoActual().name() : "Desconocido";
+            String texto = "<p>Hola,</p><p>Te informamos que el sector <strong>" + sector.nombre() 
+                    + "</strong> ha cambiado su estado a: <strong>" + estado + "</strong>.</p>"
+                    + "<p>Gracias por usar AguaVigía CTG.</p>";
+                    
+            ayudante.setText(texto, true);
+            mailSender.send(mensaje);
+        } catch (Exception fallo) {
+            log.error("No se pudo enviar el aviso a la suscripción {}", suscripcion.id().valor(), fallo);
+        }
+    }
 }

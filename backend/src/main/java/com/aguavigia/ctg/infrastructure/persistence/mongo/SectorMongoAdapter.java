@@ -7,9 +7,11 @@ import com.aguavigia.ctg.domain.port.out.RelojPort;
 import com.aguavigia.ctg.domain.port.out.SectorRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+import com.aguavigia.ctg.application.SectorActualizadoEvent;
 import java.util.ArrayList;
 
 import java.util.List;
@@ -27,10 +29,12 @@ public class SectorMongoAdapter implements SectorRepository {
 
     private final SectorMongoRepository repositorio;
     private final RelojPort reloj;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public SectorMongoAdapter(SectorMongoRepository repositorio, RelojPort reloj) {
+    public SectorMongoAdapter(SectorMongoRepository repositorio, RelojPort reloj, ApplicationEventPublisher eventPublisher) {
         this.repositorio = repositorio;
         this.reloj = reloj;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -81,7 +85,11 @@ public class SectorMongoAdapter implements SectorRepository {
             documento.setEstadoActualizadoEn(reloj.ahora());
         }
 
-        return aDominio(repositorio.save(documento));
+        Sector guardado = aDominio(repositorio.save(documento));
+        if (cambioElEstado) {
+            eventPublisher.publishEvent(new SectorActualizadoEvent(guardado));
+        }
+        return guardado;
     }
 
     private static Sector aDominio(SectorDocumento documento) {

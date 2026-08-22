@@ -1,6 +1,4 @@
-# Sin probar end-to-end: esta maquina no tiene un daemon de Docker (solo el
-# cliente CLI, instalado para verificar C0 -- ver docs/gestion/registro-de-bloqueos.md).
-# Revisar antes de confiar en produccion: docker build -t ctg-backend . && docker run -p 8080:8080 ctg-backend
+# docker build -t ctg-backend . && docker run -p 8080:8080 ctg-backend
 
 # ---- Etapa de build ----
 FROM eclipse-temurin:21-jdk AS build
@@ -25,9 +23,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Sin root: el proceso de la aplicacion no necesita privilegios de root en el contenedor.
+# chown de /app completo, no solo del jar: AlmacenamientoLocalAdapter (M10) crea
+# data/fotos/ en tiempo de arranque, y sin esto el usuario sin privilegios no puede escribir
+# en un WORKDIR que Docker crea como root — el contenedor no llegaba a arrancar.
 RUN addgroup --system aguavigia && adduser --system --ingroup aguavigia aguavigia
 COPY --from=build /build/target/*.jar app.jar
-RUN chown aguavigia:aguavigia app.jar
+RUN chown -R aguavigia:aguavigia /app
 USER aguavigia
 
 EXPOSE 8080

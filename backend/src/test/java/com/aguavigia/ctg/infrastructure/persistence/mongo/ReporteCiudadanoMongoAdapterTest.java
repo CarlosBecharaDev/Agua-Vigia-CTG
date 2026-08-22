@@ -140,6 +140,35 @@ class ReporteCiudadanoMongoAdapterTest {
     }
 
     @Test
+    void noDebeSustentarElConsensoConUnReporteDescartado() {
+        adaptador.guardar(new ReporteCiudadano(new ReporteId("r11"), new SectorId("bocagrande"),
+                TipoReporte.SIN_AGUA, null, new HuellaDispositivo("hash-11"), AHORA));
+        ReporteCiudadano descartado = adaptador.buscarPorId(new ReporteId("r11")).orElseThrow().descartar();
+        adaptador.guardar(descartado);
+        adaptador.guardar(new ReporteCiudadano(new ReporteId("r12"), new SectorId("bocagrande"),
+                TipoReporte.SIN_AGUA, null, new HuellaDispositivo("hash-12"), AHORA));
+
+        List<ReporteCiudadano> recientes = adaptador.listarRecientesPorSector(
+                new SectorId("bocagrande"), Duration.ofMinutes(30));
+
+        assertThat(recientes).extracting(r -> r.id().valor()).containsExactly("r12");
+    }
+
+    @Test
+    void debeContarReportesDescartadosParaElCupoDelDispositivo() {
+        HuellaDispositivo huella = new HuellaDispositivo("hash-abusador");
+        adaptador.guardar(new ReporteCiudadano(new ReporteId("r13"), new SectorId("bocagrande"),
+                TipoReporte.SIN_AGUA, null, huella, AHORA));
+        ReporteCiudadano descartado = adaptador.buscarPorId(new ReporteId("r13")).orElseThrow().descartar();
+        adaptador.guardar(descartado);
+
+        long conteo = adaptador.contarRecientesPorSectorYDispositivo(
+                new SectorId("bocagrande"), Duration.ofMinutes(30), huella);
+
+        assertThat(conteo).isEqualTo(1);
+    }
+
+    @Test
     void debeSacarUnReporteDeLaColaAlModerarlo() {
         adaptador.guardar(new ReporteCiudadano(new ReporteId("r10"), new SectorId("bocagrande"),
                 TipoReporte.SIN_AGUA, null, new HuellaDispositivo("hash-10"), AHORA));
@@ -150,5 +179,38 @@ class ReporteCiudadanoMongoAdapterTest {
         assertThat(adaptador.listarPendientes()).isEmpty();
         assertThat(adaptador.buscarPorId(new ReporteId("r10")).orElseThrow().estadoModeracion())
                 .isEqualTo(EstadoModeracion.DESCARTADO);
+    }
+
+    @Test
+    void listarNombresDeFotoReferenciados_debeExtraerElNombreDeArchivoDeCadaFotoUrl() {
+        adaptador.guardar(new ReporteCiudadano(new ReporteId("r14"), new SectorId("bocagrande"),
+                TipoReporte.SIN_AGUA, null, new HuellaDispositivo("hash-14"), AHORA,
+                EstadoModeracion.PENDIENTE, "/fotos/abc123.jpg"));
+        // Un reporte DESCARTADO sigue siendo dueño legitimo de su foto: no es huerfana.
+        adaptador.guardar(new ReporteCiudadano(new ReporteId("r15"), new SectorId("bocagrande"),
+                TipoReporte.SIN_AGUA, null, new HuellaDispositivo("hash-15"), AHORA,
+                EstadoModeracion.DESCARTADO, "/fotos/def456.png"));
+        adaptador.guardar(new ReporteCiudadano(new ReporteId("r16"), new SectorId("bocagrande"),
+                TipoReporte.SIN_AGUA, null, new HuellaDispositivo("hash-16"), AHORA));
+
+        assertThat(adaptador.listarNombresDeFotoReferenciados())
+                .containsExactlyInAnyOrder("abc123.jpg", "def456.png");
+    }
+
+    @Test
+    void listarConFotoAnterioresA_debeExcluirReportesSinFotoOMasRecientesQueElLimite() {
+        adaptador.guardar(new ReporteCiudadano(new ReporteId("r17"), new SectorId("bocagrande"),
+                TipoReporte.SIN_AGUA, null, new HuellaDispositivo("hash-17"),
+                AHORA.minus(Duration.ofDays(400)), EstadoModeracion.APROBADO, "/fotos/vieja.jpg"));
+        adaptador.guardar(new ReporteCiudadano(new ReporteId("r18"), new SectorId("bocagrande"),
+                TipoReporte.SIN_AGUA, null, new HuellaDispositivo("hash-18"),
+                AHORA.minus(Duration.ofDays(1)), EstadoModeracion.APROBADO, "/fotos/reciente.jpg"));
+        adaptador.guardar(new ReporteCiudadano(new ReporteId("r19"), new SectorId("bocagrande"),
+                TipoReporte.SIN_AGUA, null, new HuellaDispositivo("hash-19"),
+                AHORA.minus(Duration.ofDays(400))));
+
+        List<ReporteCiudadano> vencidos = adaptador.listarConFotoAnterioresA(AHORA.minus(Duration.ofDays(365)));
+
+        assertThat(vencidos).extracting(r -> r.id().valor()).containsExactly("r17");
     }
 }

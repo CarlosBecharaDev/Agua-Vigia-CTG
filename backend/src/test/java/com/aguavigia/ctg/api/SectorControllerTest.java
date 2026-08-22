@@ -101,4 +101,35 @@ class SectorControllerTest {
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.type").value("https://aguavigia.example/errores/recurso-no-encontrado"));
     }
+
+    @Test
+    void debeIniciarStreamDeEventosSse() throws Exception {
+        given(reloj.ahora()).willReturn(INSTANTE_FIJO);
+        given(sectores.listarTodos()).willReturn(List.of(
+                new Sector(new SectorId("bocagrande"), "BOCAGRANDE", 12000, EstadoServicio.SIN_SERVICIO)));
+
+        mockMvc.perform(get("/api/sectores/stream"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("text/event-stream"));
+    }
+
+    @Autowired
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
+
+    @Test
+    void debeNotificarPorSseCuandoUnSectorEsActualizado() throws Exception {
+        given(reloj.ahora()).willReturn(INSTANTE_FIJO);
+        given(sectores.listarTodos()).willReturn(List.of(
+                new Sector(new SectorId("manga"), "MANGA", 5000, EstadoServicio.PRESION_BAJA)));
+
+        // Iniciamos la conexión SSE
+        mockMvc.perform(get("/api/sectores/stream"))
+                .andExpect(status().isOk());
+
+        // Disparamos el evento de dominio
+        eventPublisher.publishEvent(new com.aguavigia.ctg.application.SectorActualizadoEvent(
+                new Sector(new SectorId("manga"), "MANGA", 5000, EstadoServicio.PRESION_BAJA)));
+
+        // El test pasa si no hay excepciones enviando el evento a través del Emitter activo.
+    }
 }

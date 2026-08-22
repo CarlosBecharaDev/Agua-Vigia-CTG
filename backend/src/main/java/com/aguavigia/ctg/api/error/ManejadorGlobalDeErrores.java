@@ -9,6 +9,7 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.net.URI;
@@ -75,6 +76,16 @@ public class ManejadorGlobalDeErrores {
         problema.setProperty("errores", e.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .toList());
+        return problema;
+    }
+
+    /** M10 — sin esto, una foto que excede spring.servlet.multipart.max-file-size caía en el catch-all y respondía 500 en vez de 413. */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ProblemDetail archivoDemasiadoGrande(MaxUploadSizeExceededException e) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.PAYLOAD_TOO_LARGE,
+                "El archivo supera el tamaño máximo permitido.");
+        problema.setTitle("Archivo demasiado grande");
+        problema.setType(URI.create(BASE_TIPO + "archivo-demasiado-grande"));
         return problema;
     }
 

@@ -46,10 +46,12 @@ class ReglasDeRateLimitDeProduccionTest {
 
     @Test
     void debeLimitarElFloodDeReportesDejandoMargenAUnEdificioEntero() throws IOException {
+        // /api/reportes/** y no /api/reportes a secas: addPathPatterns() hace match exacto, asi
+        // que sin el comodin /{id}/foto y /{id}/confirmar quedarian sin limite.
         RateLimitProperties.Regla regla = cargarDeApplicationYml().reglas().stream()
-                .filter(r -> r.ruta().equals("/api/reportes"))
+                .filter(r -> r.ruta().equals("/api/reportes/**"))
                 .findFirst()
-                .orElseThrow(() -> new AssertionError("Sin regla para /api/reportes"));
+                .orElseThrow(() -> new AssertionError("Sin regla para /api/reportes/**"));
 
         // Holgado a proposito: muchos vecinos comparten IP. Un limite bajo aqui censuraria
         // reportes legitimos, que es peor que dejar pasar unos cuantos de mas (RF006 ya limita

@@ -9,5 +9,7 @@ public record ReporteRespuesta(
         String id,
         String sectorId,
         String tipo,
-        Instant timestamp) {
+        Instant timestamp,
+        String fotoUrl,
+        Integer confirmaciones) {
 }

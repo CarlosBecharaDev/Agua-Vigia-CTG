@@ -24,7 +24,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { FC, KeyboardEvent as ReactKeyboardEvent, UIEvent as ReactUIEvent } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { Search } from 'lucide-react'
+import { Check, Search } from 'lucide-react'
 import type { Sector } from '../types/tipos-dominio'
 import { COLOR_POR_ESTADO } from '../types/tipos-dominio'
 
@@ -35,17 +35,24 @@ interface Props {
   cargando: boolean
   error: string | null
   onSectorSeleccionado?: (sector: Sector) => void
+  /** Modo lista de mandado: no cierra el desplegable al elegir, y cada fila ya elegida se
+   *  marca con un check en vez de navegar al mapa. Lo usa el paso "ubicación" de
+   *  FormularioSuscripcion para juntar varios barrios sin reabrir el buscador cada vez. */
+  seleccionMultiple?: boolean
+  sectorIdsSeleccionados?: string[]
 }
 
 interface FilaBarrioProps {
   sector: Sector
   indice: number
   seleccionado: boolean
+  seleccionMultiple: boolean
+  agregado: boolean
   onEnfocar: () => void
   onElegir: () => void
 }
 
-const FilaBarrioAnimada: FC<FilaBarrioProps> = ({ sector, indice, seleccionado, onEnfocar, onElegir }) => {
+const FilaBarrioAnimada: FC<FilaBarrioProps> = ({ sector, indice, seleccionado, seleccionMultiple, agregado, onEnfocar, onElegir }) => {
   const ref = useRef<HTMLLIElement>(null)
   const enVista = useInView(ref, { amount: 0.5, once: false })
 
@@ -62,15 +69,17 @@ const FilaBarrioAnimada: FC<FilaBarrioProps> = ({ sector, indice, seleccionado, 
         onMouseDown={(e) => e.preventDefault()}
         onMouseEnter={onEnfocar}
         onClick={onElegir}
-        aria-label={`Ver ${sector.nombre} en el mapa`}
-        className={`lista-barrios-btn${seleccionado ? ' is-seleccionado' : ''}`}
+        aria-label={seleccionMultiple ? (agregado ? `Quitar ${sector.nombre}` : `Agregar ${sector.nombre}`) : `Ver ${sector.nombre} en el mapa`}
+        aria-pressed={seleccionMultiple ? agregado : undefined}
+        className={`lista-barrios-btn${seleccionado ? ' is-seleccionado' : ''}${agregado ? ' is-agregado' : ''}`}
       >
         <span
           className="lista-barrios-punto"
           style={{ backgroundColor: COLOR_POR_ESTADO[sector.estado].claro }}
           aria-hidden="true"
         />
-        {sector.nombre}
+        <span className="lista-barrios-nombre">{sector.nombre}</span>
+        {agregado && <Check size={14} className="lista-barrios-check" aria-hidden="true" />}
       </button>
     </motion.li>
   )
@@ -83,6 +92,8 @@ export const BuscadorBarrios: FC<Props> = ({
   cargando,
   error,
   onSectorSeleccionado,
+  seleccionMultiple = false,
+  sectorIdsSeleccionados = [],
 }) => {
   const [abierto, setAbierto] = useState(false)
   const [indiceSeleccionado, setIndiceSeleccionado] = useState(-1)
@@ -112,9 +123,9 @@ export const BuscadorBarrios: FC<Props> = ({
   const elegirSector = useCallback(
     (sector: Sector) => {
       onSectorSeleccionado?.(sector)
-      setAbierto(false)
+      if (!seleccionMultiple) setAbierto(false)
     },
-    [onSectorSeleccionado]
+    [onSectorSeleccionado, seleccionMultiple]
   )
 
   const alDesplazar = useCallback((e: ReactUIEvent<HTMLUListElement>) => {
@@ -154,7 +165,7 @@ export const BuscadorBarrios: FC<Props> = ({
         <Search size={16} aria-hidden="true" />
         <input
           type="text"
-          placeholder="Buscar barrio..."
+          placeholder={seleccionMultiple ? 'Buscar y agregar barrio...' : 'Buscar barrio...'}
           aria-label="Buscar barrio"
           value={busqueda}
           onChange={(e) => onCambiarBusqueda(e.target.value)}
@@ -193,6 +204,8 @@ export const BuscadorBarrios: FC<Props> = ({
                       sector={sector}
                       indice={indice}
                       seleccionado={indiceSeleccionado === indice}
+                      seleccionMultiple={seleccionMultiple}
+                      agregado={seleccionMultiple && sectorIdsSeleccionados.includes(sector.id)}
                       onEnfocar={() => setIndiceSeleccionado(indice)}
                       onElegir={() => elegirSector(sector)}
                     />

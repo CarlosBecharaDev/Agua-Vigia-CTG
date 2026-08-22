@@ -3,9 +3,20 @@ spring:
     name: aguavigia-ctg
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+  servlet:
+    multipart:
+      # M10: una foto de celular sin comprimir pesa 3-8MB. El default de Spring (1MB) convertía
+      # cualquier subida real en MaxUploadSizeExceededException, que el catch-all mandaba como 500.
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 server:
   port: ${SERVER_PORT:8080}
+  # nginx (frontend/nginx.conf) ya pone X-Forwarded-For; esto hace que Spring reescriba
+  # request.getRemoteAddr() con ese valor en vez de dejarlo en la IP del contenedor de nginx
+  # (docker-compose.yml pasa todo el trafico por ese proxy). Sin esto, RateLimitingInterceptor
+  # limita por IP del proxy, no del cliente: un solo contador global en vez de uno por IP real.
+  forward-headers-strategy: framework
 
 aguavigia:
   cache:
@@ -25,9 +36,31 @@ aguavigia:
       # Segunda linea, no la primera: RF006 ya limita por dispositivo dentro de
       # RegistrarReporteService. Esto frena el flood desde una IP que rote la huella, y por eso
       # el limite es holgado — un edificio entero sin agua sale por una sola IP.
-      - ruta: /api/reportes
+      # /** y no /api/reportes a secas: Spring hace addPathPatterns() con match exacto, asi que
+      # sin el comodin /{id}/foto (subida de hasta 10MB, sin auth) y /{id}/confirmar quedaban
+      # completamente fuera del limite.
+      - ruta: /api/reportes/**
         limite: 30
         ventana-segundos: 60
+      # M13 — un sensor mal configurado o una clave filtrada no debe poder inundar el consenso.
+      - ruta: /api/iot/presion
+        limite: 60
+        ventana-segundos: 60
+  mantenimiento:
+    fotos-huerfanas:
+      # Reconciliacion disco-vs-Mongo: borra archivos en data/fotos que ningun reporte referencia.
+      # Higiene pura, sin riesgo de perder evidencia real — ver LimpiezaFotosHuerfanasJob.
+      habilitada: true
+      cron: "0 0 3 * * *"
+      antiguedad-minima-horas: 24
+    retencion-evidencia:
+      # Data minimization: borra solo el binario de fotos mas viejas que dias-retencion; el
+      # reporte (sector, tipo, timestamp) se conserva para RF024/Indice de Cumplimiento.
+      # Deshabilitado por defecto: es una decision de politica de datos, no un default sorpresa
+      # (mismo criterio que aguavigia.rate-limit — ver ADR-018).
+      habilitada: false
+      cron: "0 30 3 * * *"
+      dias-retencion: 365
   jwt:
     # HS256 exige >= 32 bytes. Vacio por defecto: JwtProvider valida al usarse, no al arrancar
     # (ver su comentario), para que el resto del backend no dependa de esto para levantar.
@@ -36,12 +69,18 @@ aguavigia:
     # Hash BCrypt de la clave del veedor (RF019). Vacio por defecto: el login del veedor responde
     # 503 hasta que se configure, en vez de arrancar con una clave por defecto insegura.
     password-hash: ${VEEDOR_PASSWORD_HASH:}
+  iot:
+    # Clave compartida para /api/iot/presion (header X-IoT-Key), mismo patron que JWT_SECRET y
+    # VEEDOR_PASSWORD_HASH: vacia por defecto, el endpoint responde 503 hasta que se configure.
+    key: ${IOT_KEY:}
   ingesta:
     # Vacio por defecto: los colectores se niegan a llamar a la red sin esto (ver su comentario),
     # en vez de arrancar con una identidad por defecto que nadie decidio.
     user-agent: ${COLLECTOR_USER_AGENT:}
     conexion-timeout-ms: 10000
     lectura-timeout-ms: 15000
+    # Cada cuanto corre PipelineOrquestador.ejecutarCiclo() (M9). 10 minutos por defecto.
+    intervalo-ms: ${INGESTA_INTERVALO_MS:600000}
     acuacar:
       base-url: https://www.acuacar.com/wp-json/wp/v2
       tamanio-pagina: 100

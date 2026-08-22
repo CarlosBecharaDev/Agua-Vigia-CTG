@@ -1,0 +1,119 @@
+.stepper {
+  display: grid;
+  gap: 1.1rem;
+  min-width: 0;
+}
+
+.stepper-indicador {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 .25rem;
+}
+
+.stepper-indicador-item {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+}
+
+.stepper-indicador-item:last-child {
+  flex: 0 0 auto;
+}
+
+.stepper-circulo {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  color: var(--color-tinta-2);
+  font-size: .72rem;
+  font-weight: 700;
+  background: var(--color-fondo);
+  border: 2px solid var(--color-linea);
+  border-radius: 50%;
+  transition: border-color var(--transicion), background var(--transicion), color var(--transicion);
+}
+
+.stepper-circulo-activo {
+  color: #fff;
+  background: var(--color-acento);
+  border-color: var(--color-acento);
+  box-shadow: 0 0 0 4px var(--color-acento-suave);
+}
+
+.stepper-circulo-completo {
+  color: #fff;
+  background: var(--color-acento-vivo);
+  border-color: var(--color-acento-vivo);
+}
+
+.stepper-linea {
+  flex: 1 1 auto;
+  height: 2px;
+  margin: 0 .3rem;
+  background: var(--color-linea);
+  transition: background var(--transicion);
+}
+
+.stepper-linea-completa {
+  background: var(--color-acento-vivo);
+}
+
+.stepper-viewport {
+  min-width: 0;
+  /* Sin overflow:hidden a propósito: un paso puede contener un desplegable
+     position:absolute (el buscador de barrios) que necesita poder salirse de esta caja.
+     El costo es que la animación de entrada (un translateX de 18px) puede asomar por un
+     instante fuera del borde — imperceptible frente a recortar contenido real. */
+}
+
+.stepper-paso {
+  display: grid;
+  gap: .75rem;
+  min-width: 0;
+}
+
+.stepper-pie {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .6rem;
+}
+
+.stepper-boton {
+  padding: .7rem 1.1rem;
+  font-size: .85rem;
+  font-weight: 700;
+  border-radius: var(--radio-pill, 9999px);
+  cursor: pointer;
+  transition: background var(--transicion), border-color var(--transicion), opacity var(--transicion), transform var(--transicion);
+}
+
+.stepper-boton:disabled {
+  cursor: not-allowed;
+  opacity: .5;
+}
+
+.stepper-boton-atras {
+  color: var(--color-tinta-2);
+  background: transparent;
+  border: 1px solid var(--color-linea);
+}
+
+.stepper-boton-atras:hover:not(:disabled) {
+  color: var(--color-tinta);
+  border-color: var(--color-tinta-2);
+}
+
+.stepper-boton-siguiente {
+  color: #fff;
+  background: var(--color-acento);
+  border: 1px solid var(--color-acento);
+}
+
+.stepper-boton-siguiente:hover:not(:disabled) {
+  background: var(--color-acento-vivo);
+  border-color: var(--color-acento-vivo);
+  transform: translateY(-1px);
+}

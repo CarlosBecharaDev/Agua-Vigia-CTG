@@ -12,10 +12,12 @@ import java.time.Duration;
  * Una instancia por regla (RateLimitWebConfig crea una y la registra solo para su patron de
  * ruta), asi cada una solo necesita saber su propio limite — no interpreta cual regla aplica.
  *
- * Clave por IP del cliente, no por huella de dispositivo: request.getRemoteAddr() es confiable
- * porque docker-compose.yml expone el backend directo (puerto 8080), sin proxy inverso delante
- * todavia. Si eso cambia, esto necesita leer X-Forwarded-For con cuidado de no confiar en un
- * header que el propio cliente puede falsificar.
+ * Clave por IP del cliente, no por huella de dispositivo. request.getRemoteAddr() es la fuente
+ * correcta aqui — no X-Forwarded-For leido a mano — porque server.forward-headers-strategy:
+ * framework (application.yml) ya activa el ForwardedHeaderFilter de Spring, que reescribe
+ * getRemoteAddr() con el valor de X-Forwarded-For que pone nginx (frontend/nginx.conf) antes de
+ * que la peticion llegue aqui. En produccion el puerto del backend no se expone al host
+ * (docker-compose.prod.yml), asi que nginx es el unico que puede setear ese header.
  */
 public class RateLimitingInterceptor implements HandlerInterceptor {
 

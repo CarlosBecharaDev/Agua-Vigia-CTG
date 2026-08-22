@@ -19,6 +19,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.springframework.context.event.EventListener;
+import com.aguavigia.ctg.application.SectorActualizadoEvent;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * M1 — mapa en vivo (RF001-RF004).
@@ -35,11 +42,45 @@ public class SectorController {
     private final SectorRepository sectores;
     private final SectorApiMapper mapper;
     private final RelojPort reloj;
+    private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
     public SectorController(SectorRepository sectores, SectorApiMapper mapper, RelojPort reloj) {
         this.sectores = sectores;
         this.mapper = mapper;
         this.reloj = reloj;
+    }
+
+    @Operation(summary = "Suscribirse a cambios en vivo mediante SSE")
+    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamSectores() {
+        SseEmitter emitter = new SseEmitter(600_000L); // 10 minutos
+        emitters.add(emitter);
+
+        emitter.onCompletion(() -> emitters.remove(emitter));
+        emitter.onTimeout(() -> emitters.remove(emitter));
+        emitter.onError((e) -> emitters.remove(emitter));
+
+        try {
+            // Enviar el estado inicial al suscribirse
+            emitter.send(SseEmitter.event().name("sectores").data(listarSectores()));
+        } catch (IOException e) {
+            emitters.remove(emitter);
+        }
+
+        return emitter;
+    }
+
+    @EventListener
+    public void onSectorActualizado(SectorActualizadoEvent event) {
+        // Enviar la lista actualizada a todos los clientes conectados
+        RespuestaSectores respuesta = listarSectores();
+        for (SseEmitter emitter : emitters) {
+            try {
+                emitter.send(SseEmitter.event().name("sectores").data(respuesta));
+            } catch (IOException e) {
+                emitters.remove(emitter);
+            }
+        }
     }
 
     @Operation(summary = "Listar los sectores con su estado conocido",

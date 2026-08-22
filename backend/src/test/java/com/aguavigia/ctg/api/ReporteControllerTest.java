@@ -9,6 +9,8 @@ import com.aguavigia.ctg.domain.ReporteCiudadano;
 import com.aguavigia.ctg.domain.ReporteId;
 import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.TipoReporte;
+import com.aguavigia.ctg.domain.port.in.AgregarEvidenciaUseCase;
+import com.aguavigia.ctg.domain.port.in.ConfirmarReporteUseCase;
 import com.aguavigia.ctg.domain.port.in.RegistrarReporteUseCase;
 import com.aguavigia.ctg.infrastructure.config.SecurityConfig;
 import com.aguavigia.ctg.infrastructure.security.JwtProvider;
@@ -45,6 +47,12 @@ class ReporteControllerTest {
 
     @MockitoBean
     private RegistrarReporteUseCase registrarReporte;
+
+    @MockitoBean
+    private AgregarEvidenciaUseCase agregarEvidenciaUseCase;
+
+    @MockitoBean
+    private ConfirmarReporteUseCase confirmarReporte;
 
     @MockitoBean
     private JwtProvider jwtProvider;
@@ -128,5 +136,21 @@ class ReporteControllerTest {
                         .content("""
                                 {"sectorId":"bocagrande","tipo":"SIN_AGUA"}"""))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void debeConfirmarReporteYResponder200() throws Exception {
+        ReporteCiudadano confirmado = new ReporteCiudadano(
+                new ReporteId("r1"), new SectorId("bocagrande"), TipoReporte.SIN_AGUA,
+                new Coordenada(10.39, -75.48), new HuellaDispositivo("hash-1"), AHORA, com.aguavigia.ctg.domain.EstadoModeracion.PENDIENTE, null, java.util.Set.of("hash-confirm"));
+        given(confirmarReporte.confirmar(any(), any())).willReturn(confirmado);
+
+        mockMvc.perform(post("/api/reportes/r1/confirmar")
+                        .contentType("application/json")
+                        .content("""
+                                {"huella":"hash-confirm-hash-confirm-hash-conf"}"""))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("r1"))
+                .andExpect(jsonPath("$.confirmaciones").value(1));
     }
 }

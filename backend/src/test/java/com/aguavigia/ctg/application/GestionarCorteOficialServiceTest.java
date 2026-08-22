@@ -11,8 +11,10 @@ import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.TipoEvento;
 import com.aguavigia.ctg.domain.port.in.RegistrarEventoBitacoraUseCase;
 import com.aguavigia.ctg.domain.port.out.CorteAguaRepository;
+import com.aguavigia.ctg.domain.port.out.NotificacionPort;
 import com.aguavigia.ctg.domain.port.out.RelojPort;
 import com.aguavigia.ctg.domain.port.out.SectorRepository;
+import com.aguavigia.ctg.domain.port.out.SuscripcionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -38,6 +40,9 @@ class GestionarCorteOficialServiceTest {
     private CorteAguaRepository cortes;
     private SectorRepository sectores;
     private RegistrarEventoBitacoraUseCase registrarEvento;
+    private RelojPort reloj;
+    private SuscripcionRepository suscripciones;
+    private NotificacionPort notificador;
     private GestionarCorteOficialService servicio;
 
     @BeforeEach
@@ -45,8 +50,10 @@ class GestionarCorteOficialServiceTest {
         cortes = mock(CorteAguaRepository.class);
         sectores = mock(SectorRepository.class);
         registrarEvento = mock(RegistrarEventoBitacoraUseCase.class);
-        RelojPort reloj = () -> AHORA;
-        servicio = new GestionarCorteOficialService(cortes, sectores, registrarEvento, reloj);
+        reloj = () -> AHORA;
+        suscripciones = mock(SuscripcionRepository.class);
+        notificador = mock(NotificacionPort.class);
+        servicio = new GestionarCorteOficialService(cortes, sectores, registrarEvento, reloj, suscripciones, notificador);
 
         given(cortes.guardar(any(CorteAgua.class))).willAnswer(invocacion -> invocacion.getArgument(0));
     }

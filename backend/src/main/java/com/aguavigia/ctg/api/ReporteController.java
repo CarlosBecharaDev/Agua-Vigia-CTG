@@ -3,10 +3,14 @@ package com.aguavigia.ctg.api;
 import com.aguavigia.ctg.api.dto.ReporteRespuesta;
 import com.aguavigia.ctg.api.dto.SolicitudReporte;
 import com.aguavigia.ctg.api.mapper.ReporteApiMapper;
+import com.aguavigia.ctg.api.dto.SolicitudConfirmar;
 import com.aguavigia.ctg.domain.Coordenada;
 import com.aguavigia.ctg.domain.HuellaDispositivo;
+import com.aguavigia.ctg.domain.ReporteId;
 import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.TipoReporte;
+import com.aguavigia.ctg.domain.port.in.AgregarEvidenciaUseCase;
+import com.aguavigia.ctg.domain.port.in.ConfirmarReporteUseCase;
 import com.aguavigia.ctg.domain.port.in.RegistrarReporteUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -22,6 +26,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.RestController;
 
 /** M2 — RF005-RF008: reportar sin registro, en máximo dos toques. */
@@ -31,10 +38,17 @@ import org.springframework.web.bind.annotation.RestController;
 public class ReporteController {
 
     private final RegistrarReporteUseCase registrarReporte;
+    private final AgregarEvidenciaUseCase agregarEvidenciaUseCase;
+    private final ConfirmarReporteUseCase confirmarReporte;
     private final ReporteApiMapper mapper;
 
-    public ReporteController(RegistrarReporteUseCase registrarReporte, ReporteApiMapper mapper) {
+    public ReporteController(RegistrarReporteUseCase registrarReporte,
+                             AgregarEvidenciaUseCase agregarEvidenciaUseCase,
+                             ConfirmarReporteUseCase confirmarReporte,
+                             ReporteApiMapper mapper) {
         this.registrarReporte = registrarReporte;
+        this.agregarEvidenciaUseCase = agregarEvidenciaUseCase;
+        this.confirmarReporte = confirmarReporte;
         this.mapper = mapper;
     }
 
@@ -65,5 +79,35 @@ public class ReporteController {
                 new HuellaDispositivo(solicitud.huella()));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(mapper.aRespuesta(reporte));
+    }
+
+    @Operation(summary = "Agregar evidencia a un reporte",
+            description = "Permite subir una foto y asociarla a un reporte existente (M10).")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Evidencia agregada"),
+            @ApiResponse(responseCode = "400", description = "Error en la solicitud"),
+            @ApiResponse(responseCode = "404", description = "Reporte no encontrado")
+    })
+    @PostMapping(value = "/{id}/foto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ReporteRespuesta> agregarEvidencia(
+            @PathVariable("id") String id,
+            @RequestParam("foto") MultipartFile foto) throws java.io.IOException {
+        var reporte = agregarEvidenciaUseCase.agregarEvidencia(id, foto.getContentType(), foto.getBytes());
+        return ResponseEntity.ok(mapper.aRespuesta(reporte));
+    }
+
+    @Operation(summary = "Confirmar un reporte",
+            description = "Permite a otro vecino confirmar un reporte ciudadano (M11).")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Reporte confirmado"),
+            @ApiResponse(responseCode = "400", description = "Error en la solicitud"),
+            @ApiResponse(responseCode = "404", description = "Reporte no encontrado")
+    })
+    @PostMapping(value = "/{id}/confirmar")
+    public ResponseEntity<ReporteRespuesta> confirmar(
+            @PathVariable("id") String id,
+            @Valid @RequestBody SolicitudConfirmar solicitud) {
+        var reporte = confirmarReporte.confirmar(new ReporteId(id), new HuellaDispositivo(solicitud.huella()));
+        return ResponseEntity.ok(mapper.aRespuesta(reporte));
     }
 }

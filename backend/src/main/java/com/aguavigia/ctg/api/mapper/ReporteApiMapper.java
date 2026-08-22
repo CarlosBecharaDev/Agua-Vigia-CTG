@@ -10,5 +10,6 @@ public interface ReporteApiMapper {
 
     @Mapping(target = "id", source = "id.valor")
     @Mapping(target = "sectorId", source = "sectorId.valor")
+    @Mapping(target = "confirmaciones", expression = "java(reporte.numeroConfirmaciones())")
     ReporteRespuesta aRespuesta(ReporteCiudadano reporte);
 }

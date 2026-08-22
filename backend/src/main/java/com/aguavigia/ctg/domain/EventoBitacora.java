@@ -3,9 +3,14 @@ package com.aguavigia.ctg.domain;
 import java.time.Instant;
 
 /**
- * RF026-028 — inmutable, solo anexado. La restricción de crearse únicamente vía Factory Method
- * (docs/ingenieria/modelo-de-dominio.md) es tarea de Sprint 4; por ahora es un record validado
- * en construcción, que es la protección real contra un evento inconsistente.
+ * RF026-028 — inmutable, solo anexado. La creación de negocio pasa siempre por
+ * {@link EventoBitacoraFactory}, nunca por este constructor directamente. La única excepción es
+ * {@code EventoBitacoraMongoAdapter.aDominio()} (infrastructure/persistence/mongo): ese código
+ * rehidrata un evento que ya existió con su propio id, no crea uno nuevo, así que no tiene
+ * sentido que pase por la factory. El constructor sigue siendo público porque el adaptador vive
+ * en otro paquete y otra capa — restringir la visibilidad rompería esa reconstrucción legítima o
+ * forzaría a mover el adaptador a domain/, violando Arquitectura Limpia. La regla se hace cumplir
+ * con {@code ReglaDeOroArchitectureTest.eventoBitacoraSoloDebeCrearseDesdeLaFactoryODesdeElAdaptadorMongo}.
  */
 public record EventoBitacora(
         EventoId id,

@@ -177,6 +177,48 @@ prefiltro sin tener que rehacer nada anterior.
 
 ---
 
+**Actualización 2026-08-09 — el bloqueo mezclaba dos preguntas distintas, y solo una necesita
+gasto real.**
+
+La duda original (`"ni el equipo está seguro de que el código de ejemplo compile contra
+anthropic-java 2.53.0"`) es sobre la **forma del SDK**, no sobre el **comportamiento del modelo**.
+Son dos riesgos separados y solo el segundo requiere una llamada real de pago:
+
+| Qué hay que verificar | ¿Necesita `ANTHROPIC_API_KEY` real? | Costo |
+|---|---|---|
+| Que `AnthropicOkHttpClient`, `MessageCreateParams.builder()` y `outputConfig(EventoExtraido.class)` existan con esa firma exacta en `anthropic-java:2.53.0` | **No** — es resolución de símbolos en compilación, no una llamada HTTP | Cero |
+| Que `EventoExtraido` deserialice bien desde una respuesta con la forma real de la API (campos, tipos, `citaTextual`) y que el enrutamiento por confianza (etapa 5) tome la rama correcta | **No** — se prueba contra una respuesta HTTP simulada (WireMock/MockWebServer), no contra `api.anthropic.com` | Cero |
+| Que el prompt del sistema realmente extraiga bien los campos de un boletín real de Acuacar (precisión/exhaustividad sobre el conjunto dorado) | **Sí** — esto sí exige el modelo real respondiendo | Sí, pero acotable |
+
+**Solución sin costo para las dos primeras filas — puede avanzar ya, sin clave:**
+1. Escribir el adaptador (`ExtraccionIAPort` + implementación) y compilarlo contra
+   `anthropic-java:2.53.0` **sin invocar `.create()`** — solo construir el objeto de parámetros.
+   Si compila, la firma del SDK asumida en `pipeline-ingesta-datos.md` §4 queda verificada.
+2. Prueba de contrato con **WireMock** (ya no hay que agregar dependencia nueva de pago: es una
+   librería de test) que simula la respuesta HTTP de Anthropic con la forma documentada y verifica
+   que `EventoExtraido` deserializa, que `citaTextual` se valida contra el texto del documento, y
+   que el enrutamiento 0.85/0.5 de la etapa 5 manda cada caso a la cola correcta.
+
+Esto no es "rodear" el bloqueo — no se inventa una clave falsa ni se simula que el modelo real
+funciona. Se prueba, con evidencia, todo lo que no depende de una respuesta real del modelo, y se
+deja abierto exactamente lo que sí depende de ella.
+
+**Para la tercera fila (comportamiento real del modelo) — opciones con costo, a decidir en equipo:**
+- **Clave personal con tope de gasto duro** en la Consola de Anthropic (p. ej. USD 1–5/mes). El
+  volumen real es bajo (~300 boletines históricos, pocos por semana; el prefiltro ya descarta ~70 %
+  antes de gastar un token), así que correr el conjunto dorado de 100 boletines una vez, con un
+  modelo económico para la prueba de humo, cuesta céntimos — pero sigue siendo gasto real y alguien
+  lo pone de su bolsillo. No prometer crédito gratuito de Anthropic sin verificarlo primero en la
+  Consola: la política de créditos de prueba cambia y no está confirmada para este caso.
+- Aplazar la verificación E2E con modelo real hasta que el equipo decida quién pone la clave — no
+  bloquea el Sprint 4 si las dos filas sin costo ya están cubiertas por pruebas de contrato.
+
+**No se actualiza aquí el estado de la compuerta ni se marca cerrado el bloqueo real de modelo**:
+sigue abierto para eso. Lo que cambia es que la tarea de D3 ya no está 100 % detenida — el
+adaptador y su prueba de contrato se pueden escribir y fusionar ahora mismo, sin clave.
+
+---
+
 ## 3. Bloqueos cerrados
 
 | ID | Fecha | Rol bloqueado | Compuerta | Días detenido | Cómo se resolvió |
