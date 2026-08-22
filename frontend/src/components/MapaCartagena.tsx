@@ -4,8 +4,8 @@
  * Sprint 1: carga el GeoJSON de barrios desde /data/geoespacial/barrios-cartagena.geojson
  * (datos reales de D5) y colorea los polígonos según su estado.
  *
- * Sin C2: los estados son mock locales que se reemplazarán con GET /api/sectores
- * cuando D3 publique el contrato OpenAPI. Los tipos y colores son definitivos.
+ * C2 ya está abierta: el estado de cada sector viene de GET /api/sectores (vía
+ * useDatosEnVivo), no de datos locales. Los tipos y colores son definitivos.
  *
  * Leaflet requiere que su CSS se importe antes de crear el mapa.
  */
@@ -35,9 +35,11 @@ interface Props {
   sectores: Sector[]
   cargando: boolean
   ultimaActualizacion: string | null
+  /** F4 — false mientras el stream SSE en vivo está caído (ver useDatosEnVivo). */
+  conexionViva?: boolean
   sectorActivo: Sector | null
-  /** Estado destacado desde las tarjetas de resumen (ver TarjetasEstadoMapa) \u2014 resalta,
-   *  aten\u00faa el resto, encuadra el zoom y dibuja pings + l\u00ednea entre esos barrios. */
+  /** Estado destacado desde las tarjetas de resumen (ver TarjetasEstadoMapa) — resalta,
+   *  atenúa el resto, encuadra el zoom y dibuja pings + línea entre esos barrios. */
   estadoDestacado: EstadoServicio | null
   onSectorSeleccionado?: (sector: Sector | null) => void
 }
@@ -47,8 +49,26 @@ function normalizarNombre(nombre: string): string {
   return nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
 }
 
-/** Estilo de un pol\u00edgono \u2014 compartido entre la carga inicial y la actualizaci\u00f3n reactiva
- *  para que ambos caminos nunca diverjan en c\u00f3mo se ve un barrio. */
+/**
+ * `L.Map.flyToBounds` no valida su argumento: si `bounds` viene con alg\u00fan NaN, Leaflet lanza
+ * "Invalid LatLng object: (NaN, NaN)" desde dentro de la animaci\u00f3n, fuera de cualquier
+ * try/catch nuestro \u2014 React lo capta como error de render y tumba toda la vista (bug real,
+ * visto seleccionando un barrio desde el buscador; no se logr\u00f3 aislar una causa
+ * determin\u00edstica, probablemente una carrera puntual con el layout). `isValid()` es la propia
+ * comprobaci\u00f3n que Leaflet usa internamente antes de operar con un `LatLngBounds`; hacerla
+ * antes de llamar a `flyToBounds` convierte un crash de toda la p\u00e1gina en, como mucho, un
+ * "no se movi\u00f3 el mapa esta vez".
+ */
+export function volarABounds(mapa: L.Map, bounds: L.LatLngBounds, opciones: L.FitBoundsOptions): void {
+  if (!bounds.isValid()) {
+    console.warn('Se descart\u00f3 un flyToBounds con l\u00edmites inv\u00e1lidos', bounds)
+    return
+  }
+  mapa.flyToBounds(bounds, opciones)
+}
+
+/** Estilo de un polígono — compartido entre la carga inicial y la actualización reactiva
+ *  para que ambos caminos nunca diverjan en cómo se ve un barrio. */
 function calcularEstiloFeature(
   sector: Sector | undefined,
   sectorActivo: Sector | null,
@@ -75,6 +95,7 @@ export const MapaCartagena: FC<Props> = ({
   sectores,
   cargando,
   ultimaActualizacion,
+  conexionViva = true,
   sectorActivo,
   estadoDestacado,
   onSectorSeleccionado,
@@ -82,6 +103,7 @@ export const MapaCartagena: FC<Props> = ({
   const contenedorRef = useRef<HTMLDivElement>(null)
   const mapaRef = useRef<L.Map | null>(null)
   const capaRef = useRef<L.GeoJSON | null>(null)
+  const capaBaseRef = useRef<L.TileLayer | null>(null)
   const destacadoLayerRef = useRef<L.LayerGroup | null>(null)
 
   // Índice de sectores por nombre normalizado para lookup O(1)
@@ -128,7 +150,7 @@ export const MapaCartagena: FC<Props> = ({
       capaRef.current.eachLayer((layer: any) => {
         const nombre = layer.feature?.properties?.NOMBRE ?? ''
         if (normalizarNombre(nombre) !== nombreActivoNorm || !mapaRef.current) return
-        mapaRef.current.flyToBounds(layer.getBounds(), { padding: [20, 20], duration: 1.5 })
+        volarABounds(mapaRef.current, layer.getBounds(), { padding: [20, 20], duration: 1.5 })
       })
     } else if (sectorActivoAnteriorRef.current) {
       // Se acaba de CERRAR la ficha de un sector (había uno activo, ahora no) — vuelve a la
@@ -159,7 +181,7 @@ export const MapaCartagena: FC<Props> = ({
     if (!mapa) return
 
     if (!estado || !capa) {
-      mapa.flyToBounds(BOUNDS_CARTAGENA, { padding: [20, 20], duration: 1.2 })
+      volarABounds(mapa, L.latLngBounds(BOUNDS_CARTAGENA), { padding: [20, 20], duration: 1.2 })
       return
     }
 
@@ -170,9 +192,16 @@ export const MapaCartagena: FC<Props> = ({
       const nombre = layer.feature?.properties?.NOMBRE ?? ''
       const sector = indiceSectores.current.get(normalizarNombre(nombre))
       if (sector?.estado !== estado) return
-      const centro = typeof layer.getCenter === 'function' ? layer.getCenter() : layer.getBounds().getCenter()
+      const bounds = layer.getBounds ? layer.getBounds() : null
+      if (!bounds || !bounds.isValid()) return
+      // `getBounds().isValid()` solo confirma que hay esquinas SO/NE definidas, no que sean
+      // finitas: `getCenter()` calcula un centroide (área con signo como divisor) y un anillo
+      // degenerado puede devolver NaN aunque bounds.isValid() haya dado true. Mismo espíritu
+      // que `volarABounds` — nunca construir un LatLng con NaN.
+      const centro = typeof layer.getCenter === 'function' ? layer.getCenter() : bounds.getCenter()
+      if (!Number.isFinite(centro.lat) || !Number.isFinite(centro.lng)) return
       centros.push({ nombre: sector.nombre, centro })
-      limites.extend(layer.getBounds())
+      limites.extend(bounds)
     })
 
     if (centros.length === 0) return
@@ -208,7 +237,7 @@ export const MapaCartagena: FC<Props> = ({
 
     // El zoom lo decide fitBounds/flyToBounds solo, según cuánto abarquen los barrios
     // destacados — un solo barrio se acerca, varios dispersos se alejan.
-    mapa.flyToBounds(limites, { padding: [70, 70], duration: 1.2, maxZoom: 16 })
+    volarABounds(mapa, limites, { padding: [70, 70], duration: 1.2, maxZoom: 16 })
   }, [])
 
   useEffect(() => {
@@ -231,15 +260,39 @@ export const MapaCartagena: FC<Props> = ({
 
     L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(mapa)
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
-      maxZoom: 19,
-    }).addTo(mapa)
+    // La capa base cambia entre claro/oscuro según el tema activo, para que el mapa nunca
+    // desentone con el resto de la interfaz (ver SelectorTema / useTheme).
+    const mediaOscura = window.matchMedia('(prefers-color-scheme: dark)')
+    const usarMapaOscuro = () => document.documentElement.dataset.theme === 'dark'
+      || (!document.documentElement.dataset.theme && mediaOscura.matches)
+    const actualizarCapaBase = () => {
+      capaBaseRef.current?.remove()
+      const oscuro = usarMapaOscuro()
+      capaBaseRef.current = L.tileLayer(
+        oscuro
+          ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+          : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {
+          attribution: oscuro
+            ? '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>'
+            : '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+          maxZoom: 19,
+        },
+      ).addTo(mapa)
+    }
+    actualizarCapaBase()
+
+    const observarTema = new MutationObserver(actualizarCapaBase)
+    observarTema.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    mediaOscura.addEventListener('change', actualizarCapaBase)
 
     mapaRef.current = mapa
     return () => {
+      observarTema.disconnect()
+      mediaOscura.removeEventListener('change', actualizarCapaBase)
       mapa.remove()
       mapaRef.current = null
+      capaBaseRef.current = null
     }
   }, [])
 
@@ -300,7 +353,7 @@ export const MapaCartagena: FC<Props> = ({
                 actualizadoHace: 'En este momento',
                 actualizadoEn: new Date().toISOString()
               };
-              
+
               onSectorSeleccionado?.(sectorClick as Sector)
             })
 
@@ -325,10 +378,13 @@ export const MapaCartagena: FC<Props> = ({
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
       {/* Contenedor del mapa */}
+      {/* F7 — role="img" le decía a la mayoría de lectores de pantalla que tratara el subárbol
+          como no interactivo, ocultando los polígonos clicables y el link de atribución que sí
+          viven dentro. "region" describe mejor un contenedor con interactividad real. */}
       <div
         ref={contenedorRef}
         id="contenedor-mapa"
-        role="img"
+        role="region"
         aria-label="Mapa interactivo de sectores de Cartagena con estado del servicio de agua"
         style={{ height: '100%', width: '100%' }}
       />
@@ -344,7 +400,7 @@ export const MapaCartagena: FC<Props> = ({
         >
           <Locate size={18} aria-hidden="true" />
         </button>
-        <EtiquetaFrescura timestampIso={ultimaActualizacion} />
+        <EtiquetaFrescura timestampIso={ultimaActualizacion} conexionViva={conexionViva} />
       </div>
 
       {/* Overlay de carga con skeleton */}

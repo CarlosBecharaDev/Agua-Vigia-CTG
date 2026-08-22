@@ -63,6 +63,15 @@ public class IndicesMongo {
             var indicesBitacora = mongoTemplate.indexOps(EventoBitacoraDocumento.class);
             indicesBitacora.ensureIndex(new Index().on("timestamp", Sort.Direction.DESC));
             log.info("Indices de `eventos_bitacora` asegurados: timestamp");
+
+            // La cola del veedor se lee filtrando por estadoRevision y ordenando por detectadaEn, y
+            // el pipeline pregunta existePendiente(sector, estado) por cada documento de cada ciclo.
+            var indicesPropuestas = mongoTemplate.indexOps(PropuestaIngestaDocumento.class);
+            indicesPropuestas.ensureIndex(new CompoundIndexDefinition(
+                    new Document("estadoRevision", 1).append("detectadaEn", -1)));
+            indicesPropuestas.ensureIndex(new CompoundIndexDefinition(
+                    new Document("sectorId", 1).append("estadoPropuesto", 1).append("estadoRevision", 1)));
+            log.info("Indices de `propuestas_ingesta` asegurados: estadoRevision+detectadaEn y sectorId+estadoPropuesto+estadoRevision");
         } catch (DataAccessException noHayMongo) {
             // El backend no debe caerse porque Mongo no este disponible al arrancar (DoD de D3,
             // punto 2). Se registra y se sigue: las consultas fallaran con su propio error.

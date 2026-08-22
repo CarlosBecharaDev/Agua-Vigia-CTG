@@ -1,8 +1,10 @@
 package com.aguavigia.ctg.application;
 
+import com.aguavigia.ctg.domain.AgregadoDuraciones;
 import com.aguavigia.ctg.domain.CorteAgua;
 import com.aguavigia.ctg.domain.CorteId;
 import com.aguavigia.ctg.domain.IndiceCumplimiento;
+import com.aguavigia.ctg.domain.PuntoSerieCumplimiento;
 import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.VentanaTiempo;
 import com.aguavigia.ctg.domain.port.in.CalcularCumplimientoUseCase;
@@ -10,6 +12,7 @@ import com.aguavigia.ctg.domain.port.out.CorteAguaRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -60,18 +63,42 @@ public class CalcularCumplimientoService implements CalcularCumplimientoUseCase 
         return indiceDe(sectorId, ventanasCerradas);
     }
 
+    /**
+     * `estado-del-backend.md` #6.1 — antes traía todos los cortes cerrados a memoria
+     * (`cortes.listarTodos()`) solo para sumarlos; hoy la suma la hace Mongo
+     * (`CorteAguaRepository.agregarCerrados`) y aquí solo se calcula el porcentaje.
+     */
     @Override
     public IndiceCumplimiento global() {
-        List<VentanaTiempo> ventanasCerradas = cortes.listarTodos().stream()
-                .map(CorteAgua::ventana)
-                .filter(VentanaTiempo::estaCerrada)
-                .toList();
+        AgregadoDuraciones agregado = cortes.agregarCerrados(null);
 
-        if (ventanasCerradas.isEmpty()) {
+        if (agregado.cantidadCortes() == 0) {
             throw new IllegalArgumentException("No hay cortes cerrados todavía");
         }
 
-        return indiceDe(null, ventanasCerradas);
+        return construirIndice(null, agregado.duracionPrometida(), agregado.duracionReal());
+    }
+
+    /**
+     * RF024 — misma condición de "cerrado" y misma fórmula de porcentaje (`construirIndice`) que
+     * {@link #global()}, agrupada por mes dentro del pipeline Mongo
+     * (`CorteAguaRepository.agregarCerradosPorMes`). Reusar la fórmula en vez de la consulta es lo
+     * que garantiza que la serie y el índice global cuenten la misma historia: si divergieran,
+     * `ADR-022` (suma de duraciones, no promedio de porcentajes) estaría implementado dos veces y
+     * una de las dos se desviaría tarde o temprano.
+     *
+     * El mes se decide en hora de Cartagena, no en UTC — el adaptador agrupa con `$dateToString` en
+     * `America/Bogota`: un corte restablecido a las 02:00Z del 1 de agosto fue el 31 de julio a las
+     * 21:00 para quien lo vivió, y esta serie la lee un vecino o un periodista de la ciudad.
+     */
+    @Override
+    public List<PuntoSerieCumplimiento> serieMensual(SectorId sectorId, Instant desde, Instant hasta) {
+        return cortes.agregarCerradosPorMes(sectorId, desde, hasta).stream()
+                .map(punto -> new PuntoSerieCumplimiento(
+                        punto.periodo(),
+                        construirIndice(sectorId, punto.agregado().duracionPrometida(), punto.agregado().duracionReal()),
+                        Math.toIntExact(punto.agregado().cantidadCortes())))
+                .toList();
     }
 
     private static IndiceCumplimiento indiceDe(SectorId sectorId, List<VentanaTiempo> ventanas) {
@@ -81,6 +108,12 @@ public class CalcularCumplimientoService implements CalcularCumplimientoUseCase 
         Duration duracionReal = ventanas.stream()
                 .map(v -> Duration.between(v.inicio(), v.finReal()))
                 .reduce(Duration.ZERO, Duration::plus);
+
+        return construirIndice(sectorId, duracionPrometida, duracionReal);
+    }
+
+    private static IndiceCumplimiento construirIndice(
+            SectorId sectorId, Duration duracionPrometida, Duration duracionReal) {
         Duration desviacion = duracionReal.minus(duracionPrometida);
 
         double porcentajeCumplimiento = duracionReal.isZero()

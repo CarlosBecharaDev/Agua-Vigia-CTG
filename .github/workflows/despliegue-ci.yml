@@ -1,0 +1,85 @@
+name: Despliegue y dependencias
+
+# RNF020 ("levanta con un solo comando") se daba por cumplido sin que nada lo verificara: el CI
+# solo corría `mvnw verify` y únicamente cuando cambiaba `backend/**`. Un Dockerfile roto o un
+# compose mal editado no fallaba la build de nadie hasta que alguien intentaba desplegar.
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  compose:
+    name: Construir las imágenes y validar los compose
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Detecta un YAML inválido o una variable sin definir antes de gastar tiempo construyendo.
+      - name: Validar la sintaxis de ambos compose
+        run: |
+          cp .env.example .env
+          docker compose -f docker-compose.yml config --quiet
+          docker compose -f docker-compose.prod.yml config --quiet
+
+      # El fallo que motivó este job: el manual indicaba combinar ambos archivos, y eso reexpone
+      # Mongo, Redis y el backend en producción. Aquí se verifica que el de producción, usado como
+      # corresponde, no publique nada más que el 80 del frontend.
+      - name: Producción no debe publicar puertos de base de datos
+        run: |
+          PUERTOS=$(docker compose -f docker-compose.prod.yml config --format json \
+            | jq -r '.services | to_entries[] | .value.ports // [] | .[] | .published' | sort -u)
+          echo "Puertos publicados: ${PUERTOS:-ninguno}"
+          for prohibido in 27017 6379 8081 1025 8025; do
+            if echo "$PUERTOS" | grep -qx "$prohibido"; then
+              echo "::error::docker-compose.prod.yml publica el puerto $prohibido al host"
+              exit 1
+            fi
+          done
+          if [ "$PUERTOS" != "80" ]; then
+            echo "::error::Se esperaba únicamente el puerto 80 (frontend), y hay: $PUERTOS"
+            exit 1
+          fi
+
+      - name: Construir la imagen del backend
+        run: docker compose -f docker-compose.prod.yml build backend
+
+      - name: Verificar que los scripts de respaldo son shell válido
+        run: |
+          for script in scripts/*.sh; do
+            bash -n "$script" || exit 1
+          done
+
+  dependencias:
+    name: Vulnerabilidades conocidas en dependencias
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      # `gitleaks` cubre secretos filtrados; nada cubría un CVE conocido en Spring Boot, jjwt o el
+      # driver de Mongo. Falla solo con severidad alta o crítica: un aviso de severidad media no
+      # debe bloquear a nadie un viernes.
+      # Trivy resuelve cada POM que no encuentre en el caché local, y Maven Central responde 429
+      # tras unas pocas decenas de peticiones. Resolviendo antes, el escaneo lee de ~/.m2.
+      - name: Poblar el caché de Maven
+        working-directory: backend
+        run: ./mvnw -B -q dependency:resolve dependency:resolve-plugins
+
+      # La etiqueta lleva prefijo `v`: sin el, la acción no resuelve y el job falla en "Set up job"
+      # sin llegar a escanear nada.
+      - name: Escanear dependencias
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: backend
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          ignore-unfixed: true

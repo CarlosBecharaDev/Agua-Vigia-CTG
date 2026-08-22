@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { FC } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { Droplet, Mail, Menu, Waves, X } from 'lucide-react'
+import { Droplet, Mail, Megaphone, Menu, Waves, X } from 'lucide-react'
 import { SelectorTema } from './SelectorTema'
 import { ENLACES } from '../config/navegacion'
 import type { useTheme } from '../hooks/useTheme'
@@ -11,6 +11,7 @@ type ThemeProps = ReturnType<typeof useTheme>
 interface Props {
   temaActivo: ThemeProps['temaActivo']
   onAlternarTema: ThemeProps['alternarTema']
+  onAbrirSuscripcion: () => void
 }
 
 const TITULOS: Record<string, { seccion: string; titulo: string }> = {
@@ -19,7 +20,7 @@ const TITULOS: Record<string, { seccion: string; titulo: string }> = {
   '/veedor': { seccion: 'Operación', titulo: 'Panel veedor' },
 }
 
-export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema }) => {
+export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema, onAbrirSuscripcion }) => {
   const { pathname } = useLocation()
   const [menuAbierto, setMenuAbierto] = useState(false)
   const contexto = TITULOS[pathname] ?? { seccion: 'AguaVigía', titulo: 'Página' }
@@ -62,7 +63,7 @@ export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema }) => {
           <span><small>Espacio de trabajo</small><strong>Servicio de agua</strong></span>
         </div>
 
-        <nav className="sidebar-nav">
+        <nav className="sidebar-nav" aria-label="Navegación principal">
           <span className="sidebar-label">Navegación</span>
           {ENLACES.map(({ a, etiqueta, resumen, Icono }) => (
             <NavLink
@@ -109,10 +110,15 @@ export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema }) => {
         </div>
 
         <div className="topbar-actions">
+          <Link to="/reportar" className="topbar-subscribe">
+            <Megaphone size={17} />
+            <span>Reportar</span>
+          </Link>
           <button
             type="button"
             className="topbar-subscribe"
-            onClick={() => window.open('mailto:alertas@aguavigia.com?subject=Suscripción a Alertas', '_blank')}
+            onClick={onAbrirSuscripcion}
+            aria-label="Suscribirse a avisos por correo"
           >
             <Mail size={17} />
             <span>Suscribirme</span>

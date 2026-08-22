@@ -16,12 +16,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AlmacenamientoLocalAdapterTest {
 
+    private static final com.aguavigia.ctg.domain.port.out.RelojPort RELOJ =
+            java.time.Instant::now;
+
     @TempDir
     Path tempDir;
 
     @Test
     void debeGuardarElArchivoYDevolverUnaUrlBajoFotos() throws Exception {
-        AlmacenamientoLocalAdapter adaptador = new AlmacenamientoLocalAdapter(tempDir.toString());
+        AlmacenamientoLocalAdapter adaptador = new AlmacenamientoLocalAdapter(tempDir.toString(), RELOJ);
 
         String url = adaptador.guardar(".jpg", new byte[]{1, 2, 3});
 
@@ -34,7 +37,7 @@ class AlmacenamientoLocalAdapterTest {
 
     @Test
     void noDebeUsarNombreDeArchivoDelCliente_soloLaExtensionValidada() throws Exception {
-        AlmacenamientoLocalAdapter adaptador = new AlmacenamientoLocalAdapter(tempDir.toString());
+        AlmacenamientoLocalAdapter adaptador = new AlmacenamientoLocalAdapter(tempDir.toString(), RELOJ);
 
         String url = adaptador.guardar(".png", new byte[]{1});
 
@@ -43,7 +46,7 @@ class AlmacenamientoLocalAdapterTest {
 
     @Test
     void listarNombresConAntiguedadMinima_soloDebeIncluirArchivosMasViejosQueElUmbral() throws Exception {
-        AlmacenamientoLocalAdapter adaptador = new AlmacenamientoLocalAdapter(tempDir.toString());
+        AlmacenamientoLocalAdapter adaptador = new AlmacenamientoLocalAdapter(tempDir.toString(), RELOJ);
         Path viejo = tempDir.resolve("viejo.jpg");
         Path nuevo = tempDir.resolve("nuevo.jpg");
         Files.write(viejo, new byte[]{1});
@@ -57,7 +60,7 @@ class AlmacenamientoLocalAdapterTest {
 
     @Test
     void eliminar_debeBorrarElArchivo() throws Exception {
-        AlmacenamientoLocalAdapter adaptador = new AlmacenamientoLocalAdapter(tempDir.toString());
+        AlmacenamientoLocalAdapter adaptador = new AlmacenamientoLocalAdapter(tempDir.toString(), RELOJ);
         Path archivo = tempDir.resolve("borrar-este.jpg");
         Files.write(archivo, new byte[]{1});
 
@@ -68,14 +71,14 @@ class AlmacenamientoLocalAdapterTest {
 
     @Test
     void eliminar_esIdempotenteSiElArchivoYaNoExiste() {
-        AlmacenamientoLocalAdapter adaptador = new AlmacenamientoLocalAdapter(tempDir.toString());
+        AlmacenamientoLocalAdapter adaptador = new AlmacenamientoLocalAdapter(tempDir.toString(), RELOJ);
 
         assertThatCode(() -> adaptador.eliminar("nunca-existio.jpg")).doesNotThrowAnyException();
     }
 
     @Test
     void eliminar_debeRechazarNombresQueIntentenEscaparDelDirectorio() {
-        AlmacenamientoLocalAdapter adaptador = new AlmacenamientoLocalAdapter(tempDir.toString());
+        AlmacenamientoLocalAdapter adaptador = new AlmacenamientoLocalAdapter(tempDir.toString(), RELOJ);
 
         assertThatThrownBy(() -> adaptador.eliminar("../fuera.jpg"))
                 .isInstanceOf(IllegalArgumentException.class);

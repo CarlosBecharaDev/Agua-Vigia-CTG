@@ -134,7 +134,7 @@ class ReporteCiudadanoMongoAdapterTest {
         adaptador.guardar(new ReporteCiudadano(new ReporteId("r9"), new SectorId("bocagrande"),
                 TipoReporte.SIN_AGUA, null, new HuellaDispositivo("hash-9"), AHORA).aprobar());
 
-        List<ReporteCiudadano> pendientes = adaptador.listarPendientes();
+        List<ReporteCiudadano> pendientes = adaptador.listarPendientes(0, 50).contenido();
 
         assertThat(pendientes).extracting(r -> r.id().valor()).containsExactlyInAnyOrder("r7", "r8");
     }
@@ -176,7 +176,7 @@ class ReporteCiudadanoMongoAdapterTest {
         ReporteCiudadano recuperado = adaptador.buscarPorId(new ReporteId("r10")).orElseThrow();
         adaptador.guardar(recuperado.descartar());
 
-        assertThat(adaptador.listarPendientes()).isEmpty();
+        assertThat(adaptador.listarPendientes(0, 50).contenido()).isEmpty();
         assertThat(adaptador.buscarPorId(new ReporteId("r10")).orElseThrow().estadoModeracion())
                 .isEqualTo(EstadoModeracion.DESCARTADO);
     }

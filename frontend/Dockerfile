@@ -1,7 +1,5 @@
-# Sin probar end-to-end: esta maquina no tiene un daemon de Docker (solo el
-# cliente CLI, ver docs/gestion/registro-de-bloqueos.md, BL-002 cerrado).
-# Revisar antes de confiar en produccion: docker build -t ctg-frontend . && docker run -p 8080:80 ctg-frontend
-# `npm run build` sí se verificó fuera de Docker: genera dist/ con index.html + assets con hash.
+# docker build -t ctg-frontend . && docker run -p 8080:80 ctg-frontend
+# `npm run build` genera dist/ con index.html + assets con hash.
 
 # ---- Etapa de build ----
 FROM node:22-alpine AS build

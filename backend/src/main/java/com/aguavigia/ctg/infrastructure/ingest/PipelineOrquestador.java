@@ -1,9 +1,9 @@
 package com.aguavigia.ctg.infrastructure.ingest;
 
 import com.aguavigia.ctg.domain.EstadoServicio;
-import com.aguavigia.ctg.domain.EventoBitacoraFactory;
 import com.aguavigia.ctg.domain.Sector;
-import com.aguavigia.ctg.domain.port.in.RegistrarEventoBitacoraUseCase;
+import com.aguavigia.ctg.domain.SectorId;
+import com.aguavigia.ctg.domain.port.in.RegistrarPropuestaIngestaUseCase;
 import com.aguavigia.ctg.domain.port.out.RelojPort;
 import com.aguavigia.ctg.domain.port.out.SectorRepository;
 import org.slf4j.Logger;
@@ -12,23 +12,36 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 /**
  * Orquestador principal del pipeline de Ingesta Automatizada (M9).
+ *
+ * **No publica: propone.** Antes llamaba `SectorRepository.guardar()` directamente, con lo que una
+ * expresión regular sobre una nota de prensa cambiaba el estado público de un barrio y disparaba
+ * correo, push y SSE sin que nadie lo revisara. Ahora deja una `PropuestaIngesta` PENDIENTE y el
+ * mapa solo se mueve cuando un veedor la aprueba — que es lo que el Javadoc de
+ * {@link HeuristicaExtractor} ya prometía con su confianza de 0.6.
+ *
+ * Cada colector se llama por separado y con su propio try/catch: son sitios de terceros
+ * independientes y uno caído no puede impedir que se lea el otro (RNF004). `RssCollector` ya aislaba
+ * feed por feed; lo que faltaba era el mismo aislamiento a nivel de fuente.
  */
 @Service
 public class PipelineOrquestador {
 
     private static final Logger log = LoggerFactory.getLogger(PipelineOrquestador.class);
+    private static final Duration VENTANA_DE_BUSQUEDA = Duration.ofDays(1);
 
     private final AcuacarApiCollector acuacarApiCollector;
     private final RssCollector rssCollector;
     private final DeduplicadorReciente deduplicador;
     private final HeuristicaExtractor extractor;
     private final SectorRepository sectorRepository;
-    private final RegistrarEventoBitacoraUseCase registrarEvento;
+    private final RegistrarPropuestaIngestaUseCase registrarPropuesta;
+    private final EstadoColectorRegistry estadoColectores;
     private final RelojPort reloj;
 
     public PipelineOrquestador(AcuacarApiCollector acuacarApiCollector,
@@ -36,76 +49,122 @@ public class PipelineOrquestador {
                                DeduplicadorReciente deduplicador,
                                HeuristicaExtractor extractor,
                                SectorRepository sectorRepository,
-                               RegistrarEventoBitacoraUseCase registrarEvento,
+                               RegistrarPropuestaIngestaUseCase registrarPropuesta,
+                               EstadoColectorRegistry estadoColectores,
                                RelojPort reloj) {
         this.acuacarApiCollector = acuacarApiCollector;
         this.rssCollector = rssCollector;
         this.deduplicador = deduplicador;
         this.extractor = extractor;
         this.sectorRepository = sectorRepository;
-        this.registrarEvento = registrarEvento;
+        this.registrarPropuesta = registrarPropuesta;
+        this.estadoColectores = estadoColectores;
         this.reloj = reloj;
     }
 
-    /**
-     * Ejecuta el pipeline periódicamente.
-     */
     @Scheduled(fixedDelayString = "${aguavigia.ingesta.intervalo-ms:600000}")
     public void ejecutarCiclo() {
-        java.time.Instant desde = reloj.ahora().minus(Duration.ofDays(1));
-        List<DocumentoCrudo> deAcuacar = acuacarApiCollector.obtenerDesde(desde);
-        List<DocumentoCrudo> deRss = rssCollector.obtenerDesde(desde);
+        Instant desde = reloj.ahora().minus(VENTANA_DE_BUSQUEDA);
 
-        Stream.concat(deAcuacar.stream(), deRss.stream())
-                .filter(doc -> !deduplicador.yaVistoRecientemente(doc.hash()))
-                .filter(doc -> PrefiltroDeterminista.posibleInterrupcionDeAcueducto(doc.texto()))
-                .forEach(doc -> {
-                    deduplicador.marcarComoVisto(doc.hash());
-                    EventoExtraido evento = extractor.extraer(doc);
-                    enrutar(evento, doc.fuente());
-                });
+        List<DocumentoCrudo> documentos = new ArrayList<>();
+        documentos.addAll(recolectar("acuacar", () -> acuacarApiCollector.obtenerDesde(desde)));
+        documentos.addAll(recolectar("rss", () -> rssCollector.obtenerDesde(desde)));
+
+        // listarTodos() una sola vez por ciclo: son 213 barrios y antes se pedia dentro del bucle,
+        // una vez por documento que pasara el prefiltro.
+        List<Sector> sectores = sectorRepository.listarTodos();
+
+        for (DocumentoCrudo documento : documentos) {
+            if (deduplicador.yaVistoRecientemente(documento.hash())) {
+                continue;
+            }
+            if (!PrefiltroDeterminista.posibleInterrupcionDeAcueducto(documento.texto())) {
+                continue;
+            }
+            procesar(documento, sectores);
+        }
     }
 
-    private void enrutar(EventoExtraido evento, String fuente) {
-        if (!evento.esInterrupcionDeAcueducto()) {
-            return;
-        }
-        log.info("Reflejando evento en la base de datos: {} - Tipo: {}", evento.sectoresMencionados(), evento.tipo());
-        List<Sector> todosSectores = sectorRepository.listarTodos();
+    private interface Colector {
+        List<DocumentoCrudo> obtener();
+    }
 
-        EstadoServicio nuevoEstado = switch (evento.tipo()) {
+    /**
+     * Un colector caído devuelve lista vacía en vez de tumbar el ciclo. Antes, un 5xx de
+     * acuacar.com —o un COLLECTOR_USER_AGENT sin configurar— lanzaba antes de que el RSS se
+     * llegara a leer.
+     *
+     * El resultado se registra en `EstadoColectorRegistry` pase lo que pase: RNF007 pide saber
+     * cuándo fue la última ejecución exitosa de cada colector, y eso no se puede reconstruir
+     * después si el fallo se tragó en silencio.
+     */
+    private List<DocumentoCrudo> recolectar(String nombre, Colector colector) {
+        try {
+            List<DocumentoCrudo> documentos = colector.obtener();
+            estadoColectores.registrarExito(nombre, documentos.size());
+            return documentos;
+        } catch (Exception fallo) {
+            log.warn("El colector '{}' falló en este ciclo, se sigue con el resto: {}", nombre, fallo.toString());
+            estadoColectores.registrarFallo(nombre, fallo.toString());
+            return List.of();
+        }
+    }
+
+    /**
+     * Se marca como visto **después** de registrar la propuesta, no antes: si el registro falla, el
+     * documento debe poder reintentarse en el siguiente ciclo. Marcarlo primero lo dejaba mudo
+     * durante los 7 días de la ventana del deduplicador, que es el descarte silencioso que RNF006
+     * prohíbe.
+     */
+    private void procesar(DocumentoCrudo documento, List<Sector> sectores) {
+        try {
+            EventoExtraido evento = extractor.extraer(documento);
+            if (!evento.esInterrupcionDeAcueducto()) {
+                deduplicador.marcarComoVisto(documento.hash());
+                return;
+            }
+
+            EstadoServicio estadoPropuesto = aEstadoServicio(evento.tipo());
+            for (SectorId sectorId : sectoresMencionados(evento, sectores)) {
+                registrarPropuesta.registrar(sectorId, estadoPropuesto, documento.fuente(),
+                        documento.urlOriginal(), evento.citaTextual(), evento.confianza());
+            }
+            deduplicador.marcarComoVisto(documento.hash());
+        } catch (Exception fallo) {
+            log.warn("Documento de '{}' no procesado, se reintentará en el próximo ciclo: {}",
+                    documento.fuente(), fallo.toString());
+        }
+    }
+
+    /**
+     * Coincidencia exacta del nombre normalizado, no `contains`: una mención larga extraída de una
+     * nota de prensa contenía como substring el nombre de decenas de los 211 barrios sembrados, y
+     * un solo artículo podía pintar media Cartagena.
+     */
+    private static List<SectorId> sectoresMencionados(EventoExtraido evento, List<Sector> sectores) {
+        List<SectorId> encontrados = new ArrayList<>();
+        for (String mencionado : evento.sectoresMencionados()) {
+            String normalizado = normalizarParaComparacion(mencionado);
+            sectores.stream()
+                    .filter(sector -> normalizarParaComparacion(sector.nombre()).equals(normalizado))
+                    .map(Sector::id)
+                    .forEach(encontrados::add);
+        }
+        return encontrados;
+    }
+
+    private static EstadoServicio aEstadoServicio(String tipoDeEvento) {
+        return switch (tipoDeEvento) {
             case "PRESION_BAJA" -> EstadoServicio.PRESION_BAJA;
             case "SERVICIO_NORMAL" -> EstadoServicio.CON_SERVICIO;
             default -> EstadoServicio.SIN_SERVICIO;
         };
-
-        for (String sectorMencionado : evento.sectoresMencionados()) {
-            String mencionadoNorm = normalizarParaComparacion(sectorMencionado);
-            // Coincidencia exacta del nombre normalizado, no `contains`: una mención larga
-            // extraída de una nota de prensa contenía como substring el nombre de decenas de los
-            // 211 barrios sembrados, y un solo artículo podía pintar media Cartagena de rojo.
-            todosSectores.stream()
-                    .filter(s -> normalizarParaComparacion(s.nombre()).equals(mencionadoNorm))
-                    .forEach(s -> actualizarSector(s, nuevoEstado, fuente));
-        }
     }
 
-    private void actualizarSector(Sector sector, EstadoServicio nuevoEstado, String fuente) {
-        if (sector.estadoActual() == nuevoEstado) {
-            return;
+    private static String normalizarParaComparacion(String texto) {
+        if (texto == null) {
+            return "";
         }
-        Sector actualizado = sector.conEstado(nuevoEstado);
-        sectorRepository.guardar(actualizado);
-        log.info("Sector actualizado: {} a {}", sector.nombre(), nuevoEstado);
-
-        // RF026: la ingesta cambia estado igual que el consenso ciudadano, así que también anexa
-        // a la bitácora — antes lo hacía en silencio.
-        registrarEvento.registrar(EventoBitacoraFactory.detectadoPorIngesta(
-                sector.id(), nuevoEstado, fuente, reloj.ahora()));
-    }
-
-    private String normalizarParaComparacion(String texto) {
-        if (texto == null) return "";
         return texto.toLowerCase()
                 .replaceAll("[áàäâ]", "a")
                 .replaceAll("[éèëê]", "e")

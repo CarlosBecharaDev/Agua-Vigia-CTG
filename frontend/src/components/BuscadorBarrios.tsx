@@ -26,7 +26,7 @@ import type { FC, KeyboardEvent as ReactKeyboardEvent, UIEvent as ReactUIEvent }
 import { motion, useInView } from 'framer-motion'
 import { Check, Search } from 'lucide-react'
 import type { Sector } from '../types/tipos-dominio'
-import { COLOR_POR_ESTADO } from '../types/tipos-dominio'
+import { COLOR_POR_ESTADO, COLOR_SIN_DATOS } from '../types/tipos-dominio'
 
 interface Props {
   sectores: Sector[]
@@ -69,13 +69,17 @@ const FilaBarrioAnimada: FC<FilaBarrioProps> = ({ sector, indice, seleccionado, 
         onMouseDown={(e) => e.preventDefault()}
         onMouseEnter={onEnfocar}
         onClick={onElegir}
-        aria-label={seleccionMultiple ? (agregado ? `Quitar ${sector.nombre}` : `Agregar ${sector.nombre}`) : `Ver ${sector.nombre} en el mapa`}
+        aria-label={
+          seleccionMultiple
+            ? (agregado ? `Quitar ${sector.nombre}` : `Agregar ${sector.nombre}`)
+            : `Ver ${sector.nombre} en el mapa — estado: ${(sector.estado ? COLOR_POR_ESTADO[sector.estado] : COLOR_SIN_DATOS).etiqueta}`
+        }
         aria-pressed={seleccionMultiple ? agregado : undefined}
         className={`lista-barrios-btn${seleccionado ? ' is-seleccionado' : ''}${agregado ? ' is-agregado' : ''}`}
       >
         <span
           className="lista-barrios-punto"
-          style={{ backgroundColor: COLOR_POR_ESTADO[sector.estado].claro }}
+          style={{ backgroundColor: (sector.estado ? COLOR_POR_ESTADO[sector.estado] : COLOR_SIN_DATOS).claro }}
           aria-hidden="true"
         />
         <span className="lista-barrios-nombre">{sector.nombre}</span>

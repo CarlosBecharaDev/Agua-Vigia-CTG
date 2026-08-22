@@ -1,9 +1,11 @@
 package com.aguavigia.ctg.infrastructure.persistence.mongo;
 
+import com.aguavigia.ctg.domain.AgregadoDuraciones;
 import com.aguavigia.ctg.domain.CorteAgua;
 import com.aguavigia.ctg.domain.CorteId;
 import com.aguavigia.ctg.domain.EstadoCorte;
 import com.aguavigia.ctg.domain.OrigenCorte;
+import com.aguavigia.ctg.domain.PuntoAgregadoMensual;
 import com.aguavigia.ctg.domain.SectorId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,7 +18,9 @@ import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.time.Duration;
 import java.time.Instant;
+import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -58,6 +62,19 @@ class CorteAguaMongoAdapterTest {
                 .causa("Mantenimiento planta El Bosque")
                 .origen(OrigenCorte.OFICIAL_ACUACAR)
                 .estado(estado)
+                .build();
+    }
+
+    private CorteAgua corteCerrado(String id, List<String> sectores, Instant inicio, Duration prometida, Duration real) {
+        return CorteAgua.builder()
+                .id(new CorteId(id))
+                .sectoresAfectados(sectores.stream().map(SectorId::new).toList())
+                .inicio(inicio)
+                .finPrometido(inicio.plus(prometida))
+                .finReal(inicio.plus(real))
+                .causa("Mantenimiento planta El Bosque")
+                .origen(OrigenCorte.OFICIAL_ACUACAR)
+                .estado(EstadoCorte.RESTABLECIDO)
                 .build();
     }
 
@@ -139,5 +156,98 @@ class CorteAguaMongoAdapterTest {
         assertThatThrownBy(() -> adaptador.buscarPorId(new CorteId("corte-corrupto")))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("corte-corrupto");
+    }
+
+    /** estado-del-backend.md #6.1 — la suma para el índice global la hace el pipeline, no Java. */
+    @Test
+    void debeAgregarLasDuracionesDeCortesCerradosDeTodosLosSectores() {
+        adaptador.guardar(corteCerrado("corte-1", List.of("manga"), INICIO, Duration.ofHours(2), Duration.ofHours(2)));
+        adaptador.guardar(corteCerrado("corte-2", List.of("bocagrande"), INICIO, Duration.ofHours(2), Duration.ofHours(6)));
+
+        AgregadoDuraciones agregado = adaptador.agregarCerrados(null);
+
+        assertThat(agregado.duracionPrometida()).isEqualTo(Duration.ofHours(4));
+        assertThat(agregado.duracionReal()).isEqualTo(Duration.ofHours(8));
+        assertThat(agregado.cantidadCortes()).isEqualTo(2);
+    }
+
+    @Test
+    void debeExcluirCortesAbiertosDeAgregarCerrados() {
+        adaptador.guardar(corteCerrado("cerrado", List.of("manga"), INICIO, Duration.ofHours(2), Duration.ofHours(4)));
+        adaptador.guardar(corteDePrueba("abierto", EstadoCorte.CONFIRMADO, List.of("manga")));
+
+        AgregadoDuraciones agregado = adaptador.agregarCerrados(null);
+
+        assertThat(agregado.cantidadCortes()).isEqualTo(1);
+        assertThat(agregado.duracionReal()).isEqualTo(Duration.ofHours(4));
+    }
+
+    @Test
+    void debeDevolverAgregadoVacioSinCortesCerrados() {
+        assertThat(adaptador.agregarCerrados(null)).isEqualTo(AgregadoDuraciones.vacio());
+    }
+
+    @Test
+    void debeAgregarSoloLosCortesDeUnSectorAlPasarSectorId() {
+        adaptador.guardar(corteCerrado("corte-1", List.of("manga"), INICIO, Duration.ofHours(2), Duration.ofHours(4)));
+        adaptador.guardar(corteCerrado("corte-2", List.of("bocagrande"), INICIO, Duration.ofHours(1), Duration.ofHours(1)));
+
+        AgregadoDuraciones agregado = adaptador.agregarCerrados(new SectorId("manga"));
+
+        assertThat(agregado.cantidadCortes()).isEqualTo(1);
+        assertThat(agregado.duracionReal()).isEqualTo(Duration.ofHours(4));
+    }
+
+    /**
+     * RF024 — un corte restablecido a las 02:00Z del 1 de agosto fue el 31 de julio a las 21:00
+     * para quien lo vivió en Cartagena (UTC-5): debe caer en julio, no en agosto.
+     */
+    @Test
+    void debeAgruparPorMesEnHoraDeCartagenaYNoEnUtc() {
+        adaptador.guardar(corteCerrado("corte-1", List.of("manga"),
+                Instant.parse("2026-07-31T20:00:00Z"), Duration.ofHours(2), Duration.ofHours(6)));
+
+        List<PuntoAgregadoMensual> serie = adaptador.agregarCerradosPorMes(null, null, null);
+
+        assertThat(serie).extracting(PuntoAgregadoMensual::periodo).containsExactly(YearMonth.of(2026, 7));
+    }
+
+    @Test
+    void debeOrdenarLaSerieMensualCronologicamente() {
+        adaptador.guardar(corteCerrado("c-sep", List.of("manga"),
+                Instant.parse("2026-09-10T13:00:00Z"), Duration.ofHours(2), Duration.ofHours(4)));
+        adaptador.guardar(corteCerrado("c-jul", List.of("manga"),
+                Instant.parse("2026-07-05T13:00:00Z"), Duration.ofHours(2), Duration.ofHours(2)));
+        adaptador.guardar(corteCerrado("c-ago", List.of("manga"),
+                Instant.parse("2026-08-05T13:00:00Z"), Duration.ofHours(2), Duration.ofHours(6)));
+
+        List<PuntoAgregadoMensual> serie = adaptador.agregarCerradosPorMes(null, null, null);
+
+        assertThat(serie).extracting(PuntoAgregadoMensual::periodo)
+                .containsExactly(YearMonth.of(2026, 7), YearMonth.of(2026, 8), YearMonth.of(2026, 9));
+    }
+
+    @Test
+    void debeAcotarLaSerieMensualPorLaHoraRealDeRestablecimiento() {
+        adaptador.guardar(corteCerrado("julio", List.of("manga"),
+                Instant.parse("2026-07-05T13:00:00Z"), Duration.ofHours(2), Duration.ofHours(4)));
+        adaptador.guardar(corteCerrado("agosto", List.of("manga"),
+                Instant.parse("2026-08-05T13:00:00Z"), Duration.ofHours(2), Duration.ofHours(4)));
+
+        List<PuntoAgregadoMensual> serie = adaptador.agregarCerradosPorMes(null,
+                Instant.parse("2026-08-01T00:00:00Z"), Instant.parse("2026-08-31T23:59:59Z"));
+
+        assertThat(serie).extracting(PuntoAgregadoMensual::periodo).containsExactly(YearMonth.of(2026, 8));
+    }
+
+    @Test
+    void debeDevolverListaVaciaCuandoNoHayCortesCerradosEnElRango() {
+        adaptador.guardar(corteCerrado("corte-1", List.of("manga"),
+                Instant.parse("2026-08-05T13:00:00Z"), Duration.ofHours(2), Duration.ofHours(4)));
+
+        List<PuntoAgregadoMensual> serie = adaptador.agregarCerradosPorMes(
+                null, Instant.parse("2027-01-01T00:00:00Z"), null);
+
+        assertThat(serie).isEmpty();
     }
 }

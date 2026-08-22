@@ -2,6 +2,8 @@ package com.aguavigia.ctg.api;
 
 import com.aguavigia.ctg.api.dto.ReporteModeracionRespuesta;
 import com.aguavigia.ctg.api.mapper.ReporteModeracionApiMapper;
+import com.aguavigia.ctg.domain.Pagina;
+import com.aguavigia.ctg.domain.ReporteCiudadano;
 import com.aguavigia.ctg.domain.ReporteId;
 import com.aguavigia.ctg.domain.port.in.ModerarReporteUseCase;
 import com.aguavigia.ctg.domain.port.out.ReporteCiudadanoRepository;
@@ -13,10 +15,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -45,10 +49,20 @@ public class ModeracionReporteController {
         this.mapper = mapper;
     }
 
-    @Operation(summary = "Listar los reportes pendientes de moderación")
+    @Operation(summary = "Listar los reportes pendientes de moderación, más antiguos primero",
+            description = """
+                    Paginado, con el total y el enlace a la siguiente página en las cabeceras
+                    `X-Total-Count` y `Link`. Por defecto 50; el máximo por página es 200.""")
     @GetMapping("/pendientes")
-    public List<ReporteModeracionRespuesta> listarPendientes() {
-        return mapper.aRespuestas(reportes.listarPendientes());
+    public ResponseEntity<List<ReporteModeracionRespuesta>> listarPendientes(
+            @RequestParam(required = false) Integer pagina,
+            @RequestParam(required = false) Integer tamano) {
+
+        Pagina<ReporteCiudadano> resultado = reportes.listarPendientes(
+                Pagina.paginaValida(pagina), Pagina.tamanoValido(tamano));
+
+        return CabecerasDePaginacion.respuesta(
+                resultado, mapper.aRespuestas(resultado.contenido()), "/api/veedor/reportes/pendientes");
     }
 
     @Operation(summary = "Aprobar un reporte")

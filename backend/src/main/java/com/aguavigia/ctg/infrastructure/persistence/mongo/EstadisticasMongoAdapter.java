@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.DayOfWeek;
 import java.time.format.TextStyle;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -22,6 +22,8 @@ import java.util.stream.Collectors;
 /** M7 — RF023. Sale de application/ (Regla de Oro): la capa de casos de uso no debe conocer Mongo. */
 @Component
 public class EstadisticasMongoAdapter implements EstadisticasRepository {
+
+    private static final Locale LOCALE_CO = Locale.forLanguageTag("es-CO");
 
     private final MongoTemplate mongoTemplate;
 
@@ -38,7 +40,12 @@ public class EstadisticasMongoAdapter implements EstadisticasRepository {
                 Aggregation.group("sectoresAfectados").count().as("cantidadCortes"),
                 Aggregation.sort(Sort.Direction.DESC, "cantidadCortes"),
                 Aggregation.limit(5),
-                Aggregation.lookup("sectores", "_id", "_id", "sectorInfo"),
+                // Contra `slug`, no contra `_id`: `cortes.sectoresAfectados` guarda el SectorId de
+                // dominio, que es el slug, mientras que `sectores._id` es el ObjectId que genera
+                // Mongo — scripts/sembrar-sectores.mjs inserta los 213 barrios sin fijar `_id` y
+                // SectorMongoAdapter tampoco lo hace. Cruzarlos por `_id` no empataba nunca y los
+                // cinco sectores salian como "Desconocido".
+                Aggregation.lookup("sectores", "_id", "slug", "sectorInfo"),
                 Aggregation.unwind("sectorInfo", true),
                 Aggregation.project("cantidadCortes")
                         .and("_id").as("sectorId")
@@ -62,11 +69,18 @@ public class EstadisticasMongoAdapter implements EstadisticasRepository {
                 Aggregation.group("diaSemana").count().as("cantidad")
         );
         AggregationResults<Map> diasResults = mongoTemplate.aggregate(diasAgg, CorteAguaDocumento.class, Map.class);
-        Map<String, Integer> cortesPorDia = new HashMap<>();
+
+        // LinkedHashMap sembrado con los siete dias en cero, de lunes a domingo: un HashMap dejaba
+        // el orden a merced del hashing y los dias sin cortes ni siquiera aparecian, asi que el
+        // cliente tenia que adivinar si un dia faltaba por ser cero o por un fallo de la consulta.
+        Map<String, Integer> cortesPorDia = new LinkedHashMap<>();
+        for (DayOfWeek dia : DayOfWeek.values()) {
+            cortesPorDia.put(nombreDe(dia), 0);
+        }
         for (Map m : diasResults.getMappedResults()) {
             Number num = (Number) m.get("_id");
             if (num != null) {
-                // MongoDB dayOfWeek: 1 (Sunday) to 7 (Saturday)
+                // MongoDB dayOfWeek: 1 (domingo) a 7 (sabado)
                 DayOfWeek day = switch (num.intValue()) {
                     case 1 -> DayOfWeek.SUNDAY;
                     case 2 -> DayOfWeek.MONDAY;
@@ -78,9 +92,7 @@ public class EstadisticasMongoAdapter implements EstadisticasRepository {
                     default -> null;
                 };
                 if (day != null) {
-                    String nombreDia = day.getDisplayName(TextStyle.FULL, new Locale("es", "CO"));
-                    String diaCapitalizado = nombreDia.substring(0, 1).toUpperCase() + nombreDia.substring(1);
-                    cortesPorDia.put(diaCapitalizado, ((Number) m.get("cantidad")).intValue());
+                    cortesPorDia.put(nombreDe(day), ((Number) m.get("cantidad")).intValue());
                 }
             }
         }
@@ -102,5 +114,11 @@ public class EstadisticasMongoAdapter implements EstadisticasRepository {
         }
 
         return new EstadisticasGlobales(topSectores, cortesPorDia, duracionPromedioHoras);
+    }
+
+    /** "Lunes", "Martes"... Locale.forLanguageTag y no new Locale(...), deprecado desde Java 19. */
+    private static String nombreDe(DayOfWeek dia) {
+        String nombre = dia.getDisplayName(TextStyle.FULL, LOCALE_CO);
+        return nombre.substring(0, 1).toUpperCase(LOCALE_CO) + nombre.substring(1);
     }
 }

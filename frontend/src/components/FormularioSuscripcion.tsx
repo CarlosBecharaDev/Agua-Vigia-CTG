@@ -24,7 +24,6 @@ export const FormularioSuscripcion: FC<{ sectores: Sector[] }> = ({ sectores }) 
   const [errorUbicacion, setErrorUbicacion] = useState<string | null>(null)
   const [barrioDetectado, setBarrioDetectado] = useState<string | null>(null)
   const [busquedaBarrio, setBusquedaBarrio] = useState('')
-
   const opciones = useMemo(() => [...sectores].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')), [sectores])
   const mutacion = useMutation({ mutationFn: crearSuscripcion })
 

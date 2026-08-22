@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { FC } from 'react'
 import { FormularioReporte } from './FormularioReporte'
+import { EnlaceConfirmarReporte } from './EnlaceConfirmarReporte'
 import { X, CheckCircle } from 'lucide-react'
 import type { Sector } from '../types/tipos-dominio'
+import type { ReporteRespuesta } from '../api/services'
 
 interface Props {
   abierto: boolean
@@ -12,21 +14,56 @@ interface Props {
 }
 
 export const ModalReporte: FC<Props> = ({ abierto, alCerrar, sectores, sectorPreseleccionado }) => {
-  const [reporteExitoso, setReporteExitoso] = useState(false)
+  const [reporteExitoso, setReporteExitoso] = useState<ReporteRespuesta | null>(null)
+  const [avisoFoto, setAvisoFoto] = useState<string | null>(null)
+  const dialogoRef = useRef<HTMLDivElement>(null)
+  const botonCerrarRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
-    if (abierto) {
-      setReporteExitoso(false)
-    }
+    if (abierto) { setReporteExitoso(null); setAvisoFoto(null) }
   }, [abierto])
+
+  // F3 — este modal es el flujo más importante del producto (M2) y no tenía trampa de foco ni
+  // cierre con Escape: un usuario de teclado podía tabular hacia el contenido detrás del backdrop.
+  // Mismo patrón ya usado y probado en ModalSuscripcion.
+  useEffect(() => {
+    if (!abierto) return
+
+    const scrollAnterior = document.body.style.overflow
+    const activoAnterior = document.activeElement as HTMLElement | null
+    document.body.style.overflow = 'hidden'
+    botonCerrarRef.current?.focus()
+
+    const manejarTeclado = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') alCerrar()
+      if (event.key !== 'Tab' || !dialogoRef.current) return
+
+      const enfocables = Array.from(dialogoRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), a[href]'))
+      if (enfocables.length === 0) return
+      const primero = enfocables[0]
+      const ultimo = enfocables[enfocables.length - 1]
+      if (event.shiftKey && document.activeElement === primero) {
+        event.preventDefault()
+        ultimo.focus()
+      } else if (!event.shiftKey && document.activeElement === ultimo) {
+        event.preventDefault()
+        primero.focus()
+      }
+    }
+
+    document.addEventListener('keydown', manejarTeclado)
+    return () => {
+      document.removeEventListener('keydown', manejarTeclado)
+      document.body.style.overflow = scrollAnterior
+      activoAnterior?.focus()
+    }
+  }, [abierto, alCerrar])
 
   if (!abierto) return null
 
   return (
     <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="titulo-modal-reporte"
+      role="presentation"
       style={{
         position: 'fixed',
         inset: 0,
@@ -38,10 +75,13 @@ export const ModalReporte: FC<Props> = ({ abierto, alCerrar, sectores, sectorPre
         backdropFilter: 'blur(8px)',
         padding: '1rem'
       }}
-      onClick={alCerrar}
+      onMouseDown={(event) => { if (event.target === event.currentTarget) alCerrar() }}
     >
-      <div 
-        onClick={(e) => e.stopPropagation()}
+      <div
+        ref={dialogoRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-modal-reporte"
         className="panel-glass"
         style={{
           position: 'relative',
@@ -57,6 +97,7 @@ export const ModalReporte: FC<Props> = ({ abierto, alCerrar, sectores, sectorPre
         }}
       >
         <button
+          ref={botonCerrarRef}
           onClick={alCerrar}
           aria-label="Cerrar ventana de reporte"
           style={{
@@ -70,8 +111,8 @@ export const ModalReporte: FC<Props> = ({ abierto, alCerrar, sectores, sectorPre
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '32px',
-            height: '32px',
+            width: '44px',
+            height: '44px',
             borderRadius: '50%',
             transition: 'background var(--transicion)'
           }}
@@ -90,9 +131,16 @@ export const ModalReporte: FC<Props> = ({ abierto, alCerrar, sectores, sectorPre
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: '1.75rem', color: 'var(--color-tinta)', marginBottom: '1rem', fontWeight: '800' }}>
               ¡Reporte Recibido!
             </h2>
-            <p style={{ color: 'var(--color-tinta-2)', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '2rem' }}>
+            <p style={{ color: 'var(--color-tinta-2)', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '1.5rem' }}>
               Gracias por ser un AguaVigía. Tu reporte ha sido registrado y ya forma parte del consenso de la ciudad para ayudar a tus vecinos.
             </p>
+
+            {avisoFoto && (
+              <p className="mensaje-error" role="alert" style={{ marginBottom: '1.5rem' }}>{avisoFoto}</p>
+            )}
+
+            {reporteExitoso?.id && <EnlaceConfirmarReporte reporteId={reporteExitoso.id} />}
+
             <button
               onClick={alCerrar}
               className="hover-glowing"
@@ -123,7 +171,7 @@ export const ModalReporte: FC<Props> = ({ abierto, alCerrar, sectores, sectorPre
             <FormularioReporte
               sectores={sectores}
               sectorPreseleccionado={sectorPreseleccionado}
-              onReporteEnviado={() => setReporteExitoso(true)}
+              onReporteEnviado={(reporte, aviso) => { setReporteExitoso(reporte); setAvisoFoto(aviso ?? null) }}
             />
 
             <p style={{ color: 'var(--color-tinta-3)', fontSize: '0.75rem', marginTop: '2.5rem', textAlign: 'center' }}>

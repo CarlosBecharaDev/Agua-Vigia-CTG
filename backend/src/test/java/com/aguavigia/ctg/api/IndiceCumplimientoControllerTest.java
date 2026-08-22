@@ -3,6 +3,7 @@ package com.aguavigia.ctg.api;
 import com.aguavigia.ctg.api.error.ManejadorGlobalDeErrores;
 import com.aguavigia.ctg.api.mapper.CumplimientoApiMapperImpl;
 import com.aguavigia.ctg.domain.IndiceCumplimiento;
+import com.aguavigia.ctg.domain.PuntoSerieCumplimiento;
 import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.port.in.CalcularCumplimientoUseCase;
 import com.aguavigia.ctg.infrastructure.config.SecurityConfig;
@@ -17,10 +18,16 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Duration;
+import java.time.Instant;
+import java.time.YearMonth;
+import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -117,5 +124,73 @@ class IndiceCumplimientoControllerTest {
 
         mockMvc.perform(get("/api/cumplimiento"))
                 .andExpect(status().isBadRequest());
+    }
+
+    // --- RF024: evolución en el tiempo ---
+
+    private PuntoSerieCumplimiento puntoDeAgosto() {
+        return new PuntoSerieCumplimiento(YearMonth.of(2026, 8),
+                new IndiceCumplimiento(null, Duration.ofHours(4), Duration.ofHours(8), Duration.ofHours(4), 50.0),
+                2);
+    }
+
+    @Test
+    void debeDevolverLaSerieMensualDeLaCiudad() throws Exception {
+        given(calcularCumplimiento.serieMensual(null, null, null)).willReturn(List.of(puntoDeAgosto()));
+
+        mockMvc.perform(get("/api/cumplimiento/serie"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].periodo").value("2026-08"))
+                .andExpect(jsonPath("$[0].duracionPrometidaSegundos").value(14400))
+                .andExpect(jsonPath("$[0].duracionRealSegundos").value(28800))
+                .andExpect(jsonPath("$[0].desviacionSegundos").value(14400))
+                .andExpect(jsonPath("$[0].porcentajeCumplimiento").value(50.0))
+                .andExpect(jsonPath("$[0].cantidadCortes").value(2));
+    }
+
+    @Test
+    void debePasarSectorYRangoAlCasoDeUso() throws Exception {
+        given(calcularCumplimiento.serieMensual(
+                new SectorId("manga"),
+                Instant.parse("2026-08-01T00:00:00Z"),
+                Instant.parse("2026-08-31T23:59:59Z")))
+                .willReturn(List.of(puntoDeAgosto()));
+
+        mockMvc.perform(get("/api/cumplimiento/serie")
+                        .param("sectorId", "manga")
+                        .param("desde", "2026-08-01T00:00:00Z")
+                        .param("hasta", "2026-08-31T23:59:59Z"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].periodo").value("2026-08"));
+    }
+
+    /** Una serie sin datos es una respuesta válida, no un 400 como en el índice de un corte. */
+    @Test
+    void debeDevolver200ConListaVaciaCuandoNoHayDatos() throws Exception {
+        given(calcularCumplimiento.serieMensual(null, null, null)).willReturn(List.of());
+
+        mockMvc.perform(get("/api/cumplimiento/serie"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isEmpty());
+    }
+
+    // --- RF025: exportación ---
+
+    @Test
+    void debeExportarLaSerieEnCsvDescargableConHorasLegibles() throws Exception {
+        given(calcularCumplimiento.serieMensual(null, null, null)).willReturn(List.of(puntoDeAgosto()));
+
+        String csv = mockMvc.perform(get("/api/cumplimiento/serie.csv"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("text/csv"))
+                .andExpect(header().string("Content-Disposition",
+                        "attachment; filename=\"aguavigia-cumplimiento.csv\""))
+                .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+
+        assertThat(csv).contains(
+                "periodo;duracion_prometida_horas;duracion_real_horas;desviacion_horas;"
+                        + "porcentaje_cumplimiento;cantidad_cortes");
+        // Horas y no segundos, y con coma decimal fijada en es-CO.
+        assertThat(csv).contains("2026-08;4,0;8,0;4,0;50,0;2");
     }
 }

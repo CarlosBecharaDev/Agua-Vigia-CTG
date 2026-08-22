@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.Instant;
 import java.util.List;
@@ -23,6 +24,7 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -51,6 +53,9 @@ class SectorControllerTest {
     // name="redisTemplate" porque RateLimitConfig lo pide con @Qualifier("redisTemplate").
     @MockitoBean(name = "redisTemplate")
     private RedisTemplate<String, String> redisTemplateMock;
+
+    @MockitoBean
+    private SseSectoresBroadcaster sseBroadcaster;
 
     @Test
     void debeDevolverElListadoConLaHoraEnQueSeGenero() throws Exception {
@@ -102,34 +107,35 @@ class SectorControllerTest {
                 .andExpect(jsonPath("$.type").value("https://aguavigia.example/errores/recurso-no-encontrado"));
     }
 
+    /**
+     * El controlador solo delega en el broadcaster (ADR-015-like: sin regla propia). Que la
+     * respuesta viaje como `text/event-stream` con el estado actual es responsabilidad de
+     * SseSectoresBroadcaster.registrar() y se prueba en SseSectoresBroadcasterTest.
+     */
     @Test
     void debeIniciarStreamDeEventosSse() throws Exception {
-        given(reloj.ahora()).willReturn(INSTANTE_FIJO);
-        given(sectores.listarTodos()).willReturn(List.of(
-                new Sector(new SectorId("bocagrande"), "BOCAGRANDE", 12000, EstadoServicio.SIN_SERVICIO)));
+        given(sseBroadcaster.registrar()).willReturn(new SseEmitter());
 
         mockMvc.perform(get("/api/sectores/stream"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith("text/event-stream"));
+                .andExpect(status().isOk());
+
+        verify(sseBroadcaster).registrar();
     }
 
     @Autowired
     private org.springframework.context.ApplicationEventPublisher eventPublisher;
 
+    /**
+     * Backplane Redis (estado-del-backend.md #6.1): el controlador ya no difunde directo a
+     * emitters propios, solo le avisa al broadcaster para que publique en Redis. Quién de verdad
+     * empuja a los clientes conectados (SseSectoresBroadcaster.onMessage) se prueba aparte, en
+     * SseSectoresBroadcasterTest.
+     */
     @Test
-    void debeNotificarPorSseCuandoUnSectorEsActualizado() throws Exception {
-        given(reloj.ahora()).willReturn(INSTANTE_FIJO);
-        given(sectores.listarTodos()).willReturn(List.of(
-                new Sector(new SectorId("manga"), "MANGA", 5000, EstadoServicio.PRESION_BAJA)));
-
-        // Iniciamos la conexión SSE
-        mockMvc.perform(get("/api/sectores/stream"))
-                .andExpect(status().isOk());
-
-        // Disparamos el evento de dominio
+    void debeNotificarAlBroadcasterCuandoUnSectorEsActualizado() {
         eventPublisher.publishEvent(new com.aguavigia.ctg.application.SectorActualizadoEvent(
                 new Sector(new SectorId("manga"), "MANGA", 5000, EstadoServicio.PRESION_BAJA)));
 
-        // El test pasa si no hay excepciones enviando el evento a través del Emitter activo.
+        verify(sseBroadcaster).notificarActualizacion();
     }
 }

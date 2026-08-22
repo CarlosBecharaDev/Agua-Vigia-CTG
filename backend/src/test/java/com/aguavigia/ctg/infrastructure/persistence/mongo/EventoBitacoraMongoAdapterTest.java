@@ -64,7 +64,7 @@ class EventoBitacoraMongoAdapterTest {
         adaptador.guardar(new EventoBitacora(new EventoId("e2"), TipoEvento.CORTE_RESTABLECIDO,
                 new SectorId("bocagrande"), null, AHORA.plusSeconds(60), "segundo"));
 
-        List<EventoBitacora> eventos = adaptador.listarTodos();
+        List<EventoBitacora> eventos = adaptador.listar(0, 50).contenido();
 
         assertThat(eventos).extracting(e -> e.id().valor()).containsExactly("e2", "e1");
     }

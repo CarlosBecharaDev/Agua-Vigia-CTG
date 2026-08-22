@@ -8,20 +8,18 @@
  * son rutas aparte (/bitacora, /estadisticas): todo lo que antes eran páginas satélite del
  * mapa ahora es la misma página principal, para que no haya que "ir a otro lado" a verlo.
  *
- * Conectado a datos reales vía useDatosEnVivo:
- *  - Acuacar WordPress API → boletines oficiales → estado de barrios
- *  - Open-Meteo → clima en tiempo real
- *  - Fallback automático a datos mock si las APIs no responden.
+ * Conectado al backend real vía useDatosEnVivo (GET /api/sectores + SSE /api/sectores/stream).
+ * Los boletines de Acuacar son solo contexto complementario en la ficha de un sector — ver
+ * PanelDetalleSector y la nota en useDatosEnVivo.ts.
  *
  * DESIGN.md §1: responde "¿tengo agua?" en menos de 5 segundos.
  */
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
 import type { FC } from 'react'
 import { useLocation } from 'react-router-dom'
 import { MapPin, Menu } from 'lucide-react'
 import { MapaCartagena } from '../components/MapaCartagena'
 import { BuscadorBarrios } from '../components/BuscadorBarrios'
-import { PanelDetalleSector } from '../components/PanelDetalleSector'
 import { CarruselSector } from '../components/CarruselSector/CarruselSector'
 import { ModalReporte } from '../components/ModalReporte'
 import { ModalSuscripcion } from '../components/ModalSuscripcion'
@@ -29,13 +27,18 @@ import { NavegacionFlotante } from '../components/NavegacionFlotante'
 import { GooeyNav } from '../components/GooeyNav/GooeyNav'
 import { PanelProyecto } from '../components/PanelProyecto'
 import { GradientWaves } from '../components/GradientWaves/GradientWaves'
-import { SeccionBitacora } from '../components/SeccionBitacora'
-import { SeccionEstadisticas } from '../components/SeccionEstadisticas'
 import { PieDePagina } from '../components/PieDePagina'
 import { TarjetasEstadoMapa } from '../components/TarjetasEstadoMapa'
 import type { EstadoServicio, Sector } from '../types/tipos-dominio'
 import { useDatosEnVivo } from '../hooks/useDatosEnVivo'
 import type { useTheme } from '../hooks/useTheme'
+
+// Cargados aparte del bundle de esta página, no antes de que haga falta: los tres arrastran
+// `recharts` (SeccionEstadisticas y PanelDetalleSector, por su mini-gráfica de cumplimiento) o
+// van bajo el pliegue (SeccionBitacora). RNF001 medía 715 KB en un solo chunk sin dividir.
+const PanelDetalleSector = lazy(() => import('../components/PanelDetalleSector').then((m) => ({ default: m.PanelDetalleSector })))
+const SeccionBitacora = lazy(() => import('../components/SeccionBitacora').then((m) => ({ default: m.SeccionBitacora })))
+const SeccionEstadisticas = lazy(() => import('../components/SeccionEstadisticas').then((m) => ({ default: m.SeccionEstadisticas })))
 
 type ThemeProps = ReturnType<typeof useTheme>
 
@@ -45,7 +48,7 @@ interface Props {
 }
 
 const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
-  const { sectores, cargando, error, ultimaActualizacion, boletines } = useDatosEnVivo();
+  const { sectores, cargando, error, ultimaActualizacion, conexionViva, boletines } = useDatosEnVivo();
 
   const [sectorActivo, setSectorActivo] = useState<Sector | null>(null)
   const [modalAbierto, setModalAbierto] = useState(false)
@@ -117,7 +120,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
   }, [])
 
   return (
-    <main id="contenido-principal" role="main" aria-label="Mapa en vivo del servicio de agua en Cartagena" className="pagina-principal">
+    <main id="contenido-principal" tabIndex={-1} role="main" aria-label="Mapa en vivo del servicio de agua en Cartagena" className="pagina-principal">
       <NavegacionFlotante
         temaActivo={temaActivo}
         onAlternarTema={onAlternarTema}
@@ -145,6 +148,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
               sectores={sectores}
               cargando={cargando}
               ultimaActualizacion={ultimaActualizacion}
+              conexionViva={conexionViva}
               sectorActivo={sectorActivo}
               estadoDestacado={estadoDestacado}
               onSectorSeleccionado={alSeleccionarSector}
@@ -218,15 +222,17 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
                 vista={sectorActivo ? 'detalle' : filtroPanel}
               >
                 {sectorActivo ? (
-                  <PanelDetalleSector
-                    sector={sectorActivo}
-                    boletines={boletines}
-                    onCerrar={() => alSeleccionarSector(null)}
-                    onAbrirReporte={(id) => {
-                      setSectorReporte(id)
-                      setModalAbierto(true)
-                    }}
-                  />
+                  <Suspense fallback={null}>
+                    <PanelDetalleSector
+                      sector={sectorActivo}
+                      boletines={boletines}
+                      onCerrar={() => alSeleccionarSector(null)}
+                      onAbrirReporte={(id) => {
+                        setSectorReporte(id)
+                        setModalAbierto(true)
+                      }}
+                    />
+                  </Suspense>
                 ) : filtroPanel === 'estado' ? (
                   <TarjetasEstadoMapa
                     resumen={conteos}
@@ -251,9 +257,13 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
       </section>
 
       <div className="zona-nebulosa">
-        <SeccionBitacora busqueda={busquedaBitacora} />
+        <Suspense fallback={<div className="seccion-cargando" role="status">Cargando bitácora…</div>}>
+          <SeccionBitacora busqueda={busquedaBitacora} />
+        </Suspense>
 
-        <SeccionEstadisticas />
+        <Suspense fallback={<div className="seccion-cargando" role="status">Cargando estadísticas…</div>}>
+          <SeccionEstadisticas />
+        </Suspense>
 
         <PieDePagina />
       </div>
@@ -267,8 +277,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
 
       <ModalSuscripcion
         abierto={suscripcionAbierta}
-        alCerrar={() => setSuscripcionAbierta(false)}
-        sectores={sectores}
+        onCerrar={() => setSuscripcionAbierta(false)}
       />
     </main>
   )

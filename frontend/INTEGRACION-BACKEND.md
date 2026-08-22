@@ -1,22 +1,65 @@
-# Integracion frontend-backend
+# Integración frontend-backend
 
-El frontend mantiene `VITE_FRONTEND_MODE=simulation` por defecto. Esto permite continuar
-con la interfaz mientras D2/D3 implementan y verifican los casos de uso del backend.
+El frontend consume siempre la API real del backend en `/api` — no hay modo simulación.
+En desarrollo, Vite hace de proxy hacia el backend local (ver `vite.config.ts`); en
+producción, Nginx lo hace bajo el mismo origen (ver `nginx.conf`).
 
-## Cuando el backend este listo
+## Arrancar contra un backend local
 
-1. Copiar `.env.example` a `.env.local`.
-2. Configurar `VITE_API_URL` con el origen de Spring Boot.
-3. Cambiar `VITE_FRONTEND_MODE=api`.
-4. Validar cada endpoint contra `backend/openapi.yaml`.
-5. Ejecutar `npm run build` y `npm test -- --run` antes de retirar un fallback.
+1. Levantar el backend (`cd backend && ./mvnw spring-boot:run`, o `docker-compose up`).
+2. Copiar `.env.example` a `.env.local` si necesitas cambiar el puerto del backend
+   (`VITE_BACKEND_PROXY_TARGET`, por defecto `http://localhost:8080`).
+3. `npm run dev` — las llamadas a `/api/*` se redirigen automáticamente al backend.
 
-El cliente ya apunta al login publicado por backend:
+Todo lo anterior es suficiente para el mapa y el resto de pantallas públicas. Para el panel
+del veedor (`PaginaVeedor` — login, moderación, cortes oficiales) el backend necesita
+`JWT_SECRET` y `VEEDOR_PASSWORD_HASH` en su `.env`, vacías por defecto — ver
+[`../docs/ingenieria/entorno-local.md`](../docs/ingenieria/entorno-local.md).
 
-`POST /api/veedor/sesion` con `{ "clave": "..." }` y respuesta `{ "token": "..." }`.
+## Endpoints que consume el frontend
 
-Pendientes de backend que el frontend espera consumir:
+- `GET /api/sectores` + `GET /api/sectores/stream` (SSE) — mapa en vivo (M1).
+- `GET /api/sectores/{id}` — detalle de un sector (`/sectores/:id`, destino del enlace "ver mi
+  sector" del correo de cambio de estado — `MailNotificacionAdapter`).
+- `POST /api/reportes` — reportes ciudadanos (M2).
+- `POST /api/reportes/{id}/foto` — adjuntar evidencia fotográfica a un reporte propio (M10).
+- `POST /api/reportes/{id}/confirmar` — confirmar el reporte de otro vecino (M11, RF038), vía el
+  enlace compartido `/confirmar/:id` (no hay listado público de reportes por sector, así que el
+  único id de reporte que un vecino puede confirmar es el que otro le compartió a propósito).
+- `POST /api/suscripciones` — avisos por correo (M3/M4).
+- `GET /api/suscripciones/confirmar` y `/cancelar` — el enlace de correo vive en el backend, no en
+  el frontend: responde HTML o JSON según el `Accept` de quien pide (ADR-030), el frontend no llama
+  a esta ruta directamente.
+- `POST /api/veedor/sesion`, `GET/PATCH /api/veedor/reportes/*`, `GET/POST/PATCH /api/veedor/cortes/*`,
+  `GET /api/veedor/cortes/{id}` (detalle de un corte, expandible en el panel) — panel del veedor (M4/M5).
+- `GET /api/estadisticas` + `GET /api/estadisticas/exportar.csv` — estadísticas públicas y su
+  exportación (M7, RF025).
+- `GET /api/bitacora` — bitácora pública (M8).
+- `GET /api/cumplimiento` (global), `/sectores/{id}` (por sector, en el panel de detalle del mapa),
+  `/cortes/{id}` (por corte, expandible en el panel del veedor), `/serie` y `/serie.csv` — índice de
+  cumplimiento (M6).
+- `GET/PATCH /api/veedor/ingesta/propuestas/*`, `GET /api/veedor/ingesta/salud` — cola de revisión
+  de la ingesta automatizada (M9, ADR-028).
 
-- `POST /api/reportes` para el formulario ciudadano.
-- Endpoints de reportes pendientes, moderacion y cortes oficiales para el panel del veedor.
-- Endpoints reales de estadisticas y bitacora.
+**Deliberadamente sin conectar** (son para otros consumidores, no para esta SPA):
+`POST /api/iot/presion` (sensores externos empujando telemetría) y `GET /api/v2/requests.json`
+(Open311, formato estándar para sistemas cívicos de terceros).
+
+Antes de cambiar un contrato, regenerar los tipos con `npm run api:sync` (lee
+`backend/openapi.yaml`) y correr `npm run api:check` en CI para detectar el desfase.
+
+## Verificación de punta a punta (2026-08-12)
+
+`backend/openapi.yaml` estaba desincronizado del contrato real del backend vivo (el cambio de
+`ADR-030` — respuesta HTML/JSON en `/confirmar` y `/cancelar` según `Accept` — nunca se
+regeneró). Regenerado desde `GET /v3/api-docs.yaml` y sincronizado `src/api/generated/schema.ts`
+con `npm run api:sync`; detalle completo en
+[`../docs/ingenieria/estado-del-backend.md`](../docs/ingenieria/estado-del-backend.md) (nota de
+sesión). `npm run api:check` no lo detectó porque solo compara `openapi.yaml` ↔ `schema.ts` entre
+sí, no contra un backend corriendo — ambos estaban desactualizados de forma consistente.
+
+Con el stack completo levantado (`docker compose up -d --build --wait`), se probó en navegador
+cada ruta de esta lista: mapa en vivo con SSE, reporte ciudadano, bitácora, estadísticas e índice
+de cumplimiento, y el panel del veedor completo (login, cola de moderación con datos reales, cola
+de propuestas de ingesta, registro y cierre de cortes). Todo responde con datos reales del backend,
+sin ningún endpoint huérfano en ninguna dirección.

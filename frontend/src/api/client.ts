@@ -13,10 +13,24 @@ export interface ErrorApi {
 
 const CLAVE_SESION = 'aguavigia_veedor_token'
 
+// F1 — el interceptor de 401 de más abajo borra el token sin que ninguna pantalla se entere: el
+// panel del veedor se quedaba "atascado" mostrando el contenido protegido con todas las consultas
+// fallando en silencio. `alLimpiarse` deja que la UI reaccione en el momento exacto en que la
+// sesión deja de ser válida, sin que cada componente tenga que releer sessionStorage por su cuenta.
+const eventosSesion = new EventTarget()
+const EVENTO_SESION_LIMPIADA = 'sesion-limpiada'
+
 export const sesionVeedor = {
   obtener: () => sessionStorage.getItem(CLAVE_SESION),
   guardar: (token: string) => sessionStorage.setItem(CLAVE_SESION, token),
-  limpiar: () => sessionStorage.removeItem(CLAVE_SESION),
+  limpiar: () => {
+    sessionStorage.removeItem(CLAVE_SESION)
+    eventosSesion.dispatchEvent(new Event(EVENTO_SESION_LIMPIADA))
+  },
+  alLimpiarse: (callback: () => void) => {
+    eventosSesion.addEventListener(EVENTO_SESION_LIMPIADA, callback)
+    return () => eventosSesion.removeEventListener(EVENTO_SESION_LIMPIADA, callback)
+  },
 }
 
 export const apiClient = axios.create({

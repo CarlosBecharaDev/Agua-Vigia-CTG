@@ -3,12 +3,16 @@ package com.aguavigia.ctg.infrastructure.persistence.mongo;
 import com.aguavigia.ctg.domain.Coordenada;
 import com.aguavigia.ctg.domain.EstadoModeracion;
 import com.aguavigia.ctg.domain.HuellaDispositivo;
+import com.aguavigia.ctg.domain.Pagina;
 import com.aguavigia.ctg.domain.ReporteCiudadano;
 import com.aguavigia.ctg.domain.ReporteId;
 import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.TipoReporte;
 import com.aguavigia.ctg.domain.port.out.RelojPort;
 import com.aguavigia.ctg.domain.port.out.ReporteCiudadanoRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -70,11 +74,18 @@ public class ReporteCiudadanoMongoAdapter implements ReporteCiudadanoRepository 
         return repositorio.findById(id.valor()).map(ReporteCiudadanoMongoAdapter::aDominio);
     }
 
+    /** Más antiguos primero: la cola de moderación se atiende en orden de llegada. */
     @Override
-    public List<ReporteCiudadano> listarPendientes() {
-        return repositorio.findPendientesIncluyendoNulo(EstadoModeracion.PENDIENTE.name()).stream()
-                .map(ReporteCiudadanoMongoAdapter::aDominio)
-                .toList();
+    public Pagina<ReporteCiudadano> listarPendientes(int pagina, int tamano) {
+        Page<ReporteCiudadanoDocumento> resultado = repositorio.findPendientesIncluyendoNulo(
+                EstadoModeracion.PENDIENTE.name(),
+                PageRequest.of(pagina, tamano, Sort.by(Sort.Direction.ASC, "timestamp")));
+
+        return new Pagina<>(
+                resultado.getContent().stream().map(ReporteCiudadanoMongoAdapter::aDominio).toList(),
+                pagina,
+                tamano,
+                resultado.getTotalElements());
     }
 
     @Override

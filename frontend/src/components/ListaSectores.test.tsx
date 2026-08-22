@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import { MemoryRouter } from 'react-router-dom'
 import { ListaSectores } from './ListaSectores'
 
 const sectores = [
@@ -19,7 +20,7 @@ describe('ListaSectores', () => {
         cargando={false}
         error="Sin conexion"
         onSectorSeleccionado={vi.fn()}
-      />,
+      />
     )
 
     expect(screen.getByText('BOCAGRANDE')).toBeInTheDocument()
@@ -38,16 +39,16 @@ describe('ListaSectores', () => {
     expect(screen.getByRole('alert')).toHaveTextContent(/No pudimos cargar los sectores/i)
   })
 
-  it('no inventa reportes para sectores sin datos', () => {
-    render(
+  it('oculta de barrios monitoreados los sectores que todavía no tienen reporte', () => {
+    render(<MemoryRouter>
       <ListaSectores
         sectores={[{ id: 'sin-dato', nombre: 'MANGA', estado: null, actualizadoEn: null }]}
         cargando={false}
         error={null}
       />,
-    )
+    </MemoryRouter>)
 
-    expect(screen.getByText('MANGA')).toBeInTheDocument()
-    expect(screen.queryByText(/reportes ciudadanos/i)).not.toBeInTheDocument()
+    expect(screen.queryByText('MANGA')).not.toBeInTheDocument()
+    expect(screen.getByText(/todavía no hay barrios con estado reportado/i)).toBeInTheDocument()
   })
 })

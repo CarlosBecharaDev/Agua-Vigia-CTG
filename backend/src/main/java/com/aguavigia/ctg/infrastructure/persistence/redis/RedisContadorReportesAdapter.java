@@ -74,7 +74,36 @@ public class RedisContadorReportesAdapter implements ContadorReportesPort {
         return total == null ? 0L : total;
     }
 
+    /**
+     * INCR primero y comparar después: es la única forma de que dos peticiones simultáneas del
+     * mismo dispositivo no lean ambas el mismo conteo. El EXPIRE se pone solo en el primer INCR,
+     * asi la ventana es fija desde el primer reporte y no se renueva con cada intento — si se
+     * renovara, un dispositivo que insiste sin parar nunca recuperaria su cupo.
+     */
+    @Override
+    public boolean intentarReservarCupo(SectorId sectorId, HuellaDispositivo huella, int limite, Duration ventana) {
+        String clave = claveDeCupo(sectorId, huella);
+
+        Long usados = redis.opsForValue().increment(clave);
+        if (usados == null) {
+            // Redis caido: no se bloquea a un vecino por un problema de infraestructura ajeno a el
+            // (mismo criterio que RateLimitingInterceptor). El limite deja de aplicarse mientras
+            // tanto, que es preferible a rechazar reportes reales durante un corte.
+            return true;
+        }
+        if (usados == 1L) {
+            redis.expire(clave, ventana);
+        }
+        return usados <= limite;
+    }
+
     private static String clave(SectorId sectorId) {
         return "consenso:sector:" + sectorId.valor();
+    }
+
+    /** Separada de la del consenso: son dos controles distintos y mezclarlos haria que cambiar uno
+     * rompiera el otro sin avisar (ver el javadoc de esta clase). */
+    private static String claveDeCupo(SectorId sectorId, HuellaDispositivo huella) {
+        return "cupo:" + sectorId.valor() + ":" + huella.hash();
     }
 }

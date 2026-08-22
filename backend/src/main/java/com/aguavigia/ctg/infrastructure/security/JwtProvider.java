@@ -1,5 +1,6 @@
 package com.aguavigia.ctg.infrastructure.security;
 
+import com.aguavigia.ctg.domain.port.out.RelojPort;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -25,13 +26,17 @@ public class JwtProvider {
     private static final String SUJETO_VEEDOR = "veedor";
 
     private final String secreto;
+    private final RelojPort reloj;
 
-    public JwtProvider(@Value("${aguavigia.jwt.secret:}") String secreto) {
+    public JwtProvider(@Value("${aguavigia.jwt.secret:}") String secreto, RelojPort reloj) {
         this.secreto = secreto;
+        this.reloj = reloj;
     }
 
     public String emitirParaVeedor() {
-        Instant ahora = Instant.now();
+        // RelojPort y no Instant.now(): sin esto, comprobar que el token expira a las 8 horas
+        // (RNF011) exigiría una prueba que espere 8 horas o que mockee el reloj del sistema.
+        Instant ahora = reloj.ahora();
         return Jwts.builder()
                 .subject(SUJETO_VEEDOR)
                 .issuedAt(Date.from(ahora))
@@ -48,7 +53,12 @@ public class JwtProvider {
      */
     public Optional<String> validarYObtenerSujeto(String token) {
         try {
-            String sujeto = Jwts.parser().verifyWith(clave()).build()
+            // El mismo reloj que emite decide si expiró. Sin esto, emitir usaba RelojPort y validar
+            // el reloj del sistema: en una prueba con reloj fijo el token nacía ya vencido, y en
+            // producción cualquier deriva entre ambos relojes sería un fallo intermitente.
+            String sujeto = Jwts.parser()
+                    .clock(() -> Date.from(reloj.ahora()))
+                    .verifyWith(clave()).build()
                     .parseSignedClaims(token)
                     .getPayload()
                     .getSubject();

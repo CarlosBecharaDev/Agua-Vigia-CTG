@@ -93,22 +93,6 @@ export default defineConfig({
               }
             }
           },
-          {
-            // API de clima Open-Meteo — NetworkFirst con fallback
-            urlPattern: /^https:\/\/api\.open-meteo\.com/,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'weather-api',
-              networkTimeoutSeconds: 5,
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 30, // 30 minutos
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          }
         ]
       }
     })
@@ -121,8 +105,15 @@ export default defineConfig({
       // daba por bueno, POST devolvía 404. Con el proxy el origen es el mismo que en
       // producción (nginx hace lo propio, ver frontend/nginx.conf) y no hace falta CORS.
       '/api': {
-        target: process.env.VITE_BACKEND_ORIGIN || 'http://localhost:8080',
+        // Se aceptan los dos nombres porque cada uno quedó documentado en un sitio distinto:
+        // VITE_BACKEND_PROXY_TARGET en frontend/INTEGRACION-BACKEND.md y VITE_BACKEND_ORIGIN
+        // en docs/gestion/registro-de-bugs.md (BUG-052).
+        target:
+          process.env.VITE_BACKEND_PROXY_TARGET ||
+          process.env.VITE_BACKEND_ORIGIN ||
+          'http://localhost:8080',
         changeOrigin: true,
+        secure: false,
         // RF de mapa en vivo: /api/sectores/stream es text/event-stream y se queda abierto.
         // Sin esto el proxy lo bufferiza y los eventos no llegan hasta que cierra.
         configure: (proxy) => {
@@ -146,18 +137,17 @@ export default defineConfig({
         },
         rewrite: (path) => path.replace(/^\/acuacar-api/, ''),
       },
-      '/google-news-rss': {
-        target: 'https://news.google.com/rss',
-        changeOrigin: true,
-        secure: true,
-        rewrite: (path) => path.replace(/^\/google-news-rss/, ''),
-      },
     },
+  },
+  build: {
+    target: 'esnext',
+    cssCodeSplit: true,
   },
   // @ts-ignore - Vitest types
   test: {
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/setupTests.ts',
+    exclude: ['node_modules', 'tests/e2e/**'],
   }
 })

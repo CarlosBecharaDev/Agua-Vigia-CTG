@@ -12,7 +12,12 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -28,8 +33,14 @@ public class MailNotificacionAdapter implements NotificacionPort {
 
     private static final Logger log = LoggerFactory.getLogger(MailNotificacionAdapter.class);
 
+    /** Hora de Cartagena: al vecino no le sirve un UTC. CLAUDE.md — fecha en hora local. */
+    private static final DateTimeFormatter FORMATO_FECHA = DateTimeFormatter
+            .ofPattern("d 'de' MMMM 'a las' h:mm a", Locale.forLanguageTag("es-CO"))
+            .withZone(ZoneId.of("America/Bogota"));
+
     private final JavaMailSender mailSender;
     private final PlantillaCorreo plantillaConfirmacion;
+    private final PlantillaCorreo plantillaCambioDeEstado;
     private final String remitente;
     private final String urlBasePublica;
     private final int horasVigenciaToken;
@@ -40,6 +51,7 @@ public class MailNotificacionAdapter implements NotificacionPort {
                                     @Value("${aguavigia.suscripcion.horas-vigencia-token:48}") int horasVigenciaToken) {
         this.mailSender = mailSender;
         this.plantillaConfirmacion = PlantillaCorreo.desdeClasspath("plantillas-correo/confirmar-suscripcion.html");
+        this.plantillaCambioDeEstado = PlantillaCorreo.desdeClasspath("plantillas-correo/cambio-de-estado.html");
         this.remitente = remitente;
         this.urlBasePublica = urlBasePublica;
         this.horasVigenciaToken = horasVigenciaToken;
@@ -71,25 +83,48 @@ public class MailNotificacionAdapter implements NotificacionPort {
         }
     }
 
+    /**
+     * Un sector sin estado registrado no genera aviso: no hay nada que contarle al vecino, y
+     * "Desconocido" era exactamente lo que el correo anterior le mandaba.
+     */
     @Async
     @Override
     public void avisarCambioDeEstado(Suscripcion suscripcion, Sector sector) {
+        if (sector.estadoActual() == null) {
+            log.warn("Sector '{}' sin estado registrado: no se envía aviso a la suscripción {}",
+                    sector.id().valor(), suscripcion.id().valor());
+            return;
+        }
+
+        EstadoServicioLegible estado = EstadoServicioLegible.de(sector.estadoActual());
+        String html = plantillaCambioDeEstado.renderizar(Map.ofEntries(
+                Map.entry("nombreSector", sector.nombre()),
+                Map.entry("estadoEtiqueta", estado.etiqueta()),
+                Map.entry("estadoTitular", estado.titular(sector.nombre())),
+                Map.entry("estadoDetalle", estado.detalle(sector.nombre())),
+                Map.entry("estadoColorTexto", estado.colorTexto()),
+                Map.entry("estadoColorFondo", estado.colorFondo()),
+                Map.entry("estadoColorBorde", estado.colorBorde()),
+                Map.entry("actualizadoLegible", fechaLegible(sector.estadoActualizadoEn())),
+                Map.entry("urlReportar", urlBasePublica + "/sectores/" + sector.id().valor()),
+                // RF015 — baja en 1 clic en cada correo, no solo en el de confirmación.
+                Map.entry("urlBaja", urlBasePublica + "/api/suscripciones/cancelar?token="
+                        + suscripcion.tokenConfirmacion())));
+
         try {
             MimeMessage mensaje = mailSender.createMimeMessage();
             MimeMessageHelper ayudante = new MimeMessageHelper(mensaje, "UTF-8");
             ayudante.setFrom(remitente);
             ayudante.setTo(suscripcion.correo().valor());
-            ayudante.setSubject("AguaVigía CTG - Cambio de estado en tu sector: " + sector.nombre());
-            
-            String estado = sector.estadoActual() != null ? sector.estadoActual().name() : "Desconocido";
-            String texto = "<p>Hola,</p><p>Te informamos que el sector <strong>" + sector.nombre() 
-                    + "</strong> ha cambiado su estado a: <strong>" + estado + "</strong>.</p>"
-                    + "<p>Gracias por usar AguaVigía CTG.</p>";
-                    
-            ayudante.setText(texto, true);
+            ayudante.setSubject(estado.titular(sector.nombre()));
+            ayudante.setText(html, true);
             mailSender.send(mensaje);
         } catch (Exception fallo) {
             log.error("No se pudo enviar el aviso a la suscripción {}", suscripcion.id().valor(), fallo);
         }
+    }
+
+    private static String fechaLegible(Instant instante) {
+        return instante == null ? "hace un momento" : FORMATO_FECHA.format(instante);
     }
 }

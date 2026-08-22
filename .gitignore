@@ -51,6 +51,11 @@ tmp/
 docker/data/
 mongo-data/
 redis-data/
+data/
+
+# ─── Respaldos generados por scripts/backup-*.sh (contienen datos de produccion) ───
+respaldos-mongo/
+respaldos-fotos/
 
 # ─── Resultados de pruebas ───
 playwright-report/
@@ -63,3 +68,4 @@ dist-dashboard/
 # Quien tenga estos archivos puede enviar mensajes como el numero vinculado.
 # En CI vive en actions/cache, no en el repositorio.
 bot-whatsapp/sesion/
+.worktrees/

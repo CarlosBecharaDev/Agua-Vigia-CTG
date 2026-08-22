@@ -111,6 +111,26 @@ class SectorMongoAdapterCacheTest {
         assertThat(cacheado.estadoActual()).isNull();
     }
 
+    /**
+     * El ObjectMapper por defecto de GenericJackson2JsonRedisSerializer no trae el modulo de
+     * java.time: al agregarle a Sector el campo estadoActualizadoEn (RF003), escribir en el cache
+     * empezo a lanzar InvalidDefinitionException. Sin esta prueba, el sintoma en produccion habria
+     * sido el mapa entero fallando en la primera lectura despues de un cambio de estado.
+     */
+    @Test
+    void debeSobrevivirLaFechaDelEstadoAlaIdaYVueltaPorElCache() {
+        sembrar("manga", "MANGA");
+        Sector sector = adaptador.listarTodos().getFirst();
+        adaptador.guardar(sector.conEstado(EstadoServicio.SIN_SERVICIO));
+
+        adaptador.listarTodos();                       // llena el cache
+        mongoTemplate.getDb().getCollection("sectores").drop();
+        Sector cacheado = adaptador.listarTodos().getFirst();   // ahora solo puede venir del cache
+
+        assertThat(cacheado.estadoActual()).isEqualTo(EstadoServicio.SIN_SERVICIO);
+        assertThat(cacheado.estadoActualizadoEn()).isNotNull();
+    }
+
     @Test
     void debeInvalidarElCacheAlGuardarUnCambioDeEstado() {
         sembrar("manga", "MANGA");

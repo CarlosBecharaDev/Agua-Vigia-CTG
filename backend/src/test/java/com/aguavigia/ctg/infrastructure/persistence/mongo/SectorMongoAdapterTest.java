@@ -122,6 +122,42 @@ class SectorMongoAdapterTest {
         assertThat(guardado.getDate("estadoActualizadoEn").toInstant()).isEqualTo(INSTANTE_FIJO);
     }
 
+    /** RF003 — sin esto la fecha se escribe en Mongo y se pierde al mapear a dominio, y el mapa
+     * nunca puede decir "actualizado hace X". */
+    @Test
+    void debeDevolverLaFechaDelEstadoAlLeerElSector() {
+        sembrar("manga", "MANGA", 5000);
+        Sector sector = adaptador.buscarPorId(new SectorId("manga")).orElseThrow();
+        adaptador.guardar(sector.conEstado(EstadoServicio.SIN_SERVICIO));
+
+        Sector releido = adaptador.buscarPorId(new SectorId("manga")).orElseThrow();
+
+        assertThat(releido.estadoActual()).isEqualTo(EstadoServicio.SIN_SERVICIO);
+        assertThat(releido.estadoActualizadoEn()).isEqualTo(INSTANTE_FIJO);
+    }
+
+    @Test
+    void unSectorSinEstadoNoDebeTraerFechaDeEstado() {
+        sembrar("manga", "MANGA", 5000);
+
+        Sector sector = adaptador.buscarPorId(new SectorId("manga")).orElseThrow();
+
+        assertThat(sector.estadoActual()).isNull();
+        assertThat(sector.estadoActualizadoEn()).isNull();
+    }
+
+    /** El evento que dispara el correo tiene que llevar ya la fecha nueva: NotificarSuscripcionesService
+     * lo recibe sin volver a consultar Mongo. */
+    @Test
+    void elSectorDevueltoPorGuardarDebeTraerLaFechaRecienSellada() {
+        sembrar("manga", "MANGA", 5000);
+        Sector sector = adaptador.buscarPorId(new SectorId("manga")).orElseThrow();
+
+        Sector guardado = adaptador.guardar(sector.conEstado(EstadoServicio.SIN_SERVICIO));
+
+        assertThat(guardado.estadoActualizadoEn()).isEqualTo(INSTANTE_FIJO);
+    }
+
     @Test
     void guardarNoDebePerderLaGeometriaSembradaPorD5() {
         sembrar("manga", "MANGA", 5000);

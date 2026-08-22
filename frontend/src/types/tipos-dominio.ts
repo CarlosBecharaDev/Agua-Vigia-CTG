@@ -13,19 +13,15 @@ export type EstadoServicio =
   | 'PRESION_BAJA'
   | 'CORTE_PROGRAMADO'
 
-/** Un sector con su estado — forma mínima que necesita el mapa */
+/** Un sector con su estado — forma mínima que necesita el mapa.
+ *  `estado`/`actualizadoEn` pueden ser null: el backend crea sectores desde el GeoJSON de
+ *  barrios sin que nadie los haya reportado o verificado todavía (ver COLOR_SIN_DATOS). */
 export interface Sector {
   id: string
   nombre: string
-  estado: EstadoServicio
+  estado: EstadoServicio | null
   /** Timestamp ISO de la última actualización del estado */
-  actualizadoEn: string
-  /** Número del boletín de Acuacar que respalda el estado, p.ej. "#2849". Ausente cuando el
-   *  barrio no aparece en ningún boletín y se muestra con servicio por defecto. */
-  fuente?: string
-  /** Frase textual del boletín que respalda el estado. `CLAUDE.md` §Ética de datos, regla 4:
-   *  lo que el mapa afirma tiene que poder citarse. */
-  cita?: string
+  actualizadoEn: string | null
 }
 
 /** Resultado de GET /api/sectores — forma esperada cuando C2 abra */
@@ -41,6 +37,8 @@ export const COLOR_POR_ESTADO: Record<EstadoServicio, { claro: string; oscuro: s
   PRESION_BAJA:     { claro: '#A87310', oscuro: '#D9A63C', etiqueta: 'Presión baja' },
   CORTE_PROGRAMADO: { claro: '#2A628F', oscuro: '#6BA8DA', etiqueta: 'Corte programado' },
 }
+
+export const COLOR_SIN_DATOS = { claro: '#788290', oscuro: '#8B95A5', etiqueta: 'Sin datos (Pendiente verificación)' }
 
 /** Cuántos minutos antes de que un dato se considere "fresco" */
 export const MINUTOS_FRESCURA = 15

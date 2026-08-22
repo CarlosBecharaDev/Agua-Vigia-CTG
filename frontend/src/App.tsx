@@ -6,12 +6,20 @@
  * (ver useTheme y DESIGN.md §3).
  */
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { Component, lazy, Suspense, useState } from 'react'
+import type { ErrorInfo, ReactNode } from 'react'
 import { Encabezado } from './components/Encabezado'
 import { useTheme } from './hooks/useTheme'
-import PaginaMapa from './pages/PaginaMapa'
-import PaginaReportar from './pages/PaginaReportar'
-import PaginaVeedor from './pages/PaginaVeedor'
+import { ModalSuscripcion } from './components/ModalSuscripcion'
 import { SplashScreen } from './components/SplashScreen'
+
+// Cada vista carga solo cuando se visita, especialmente útil en conexiones móviles.
+const PaginaMapa = lazy(() => import('./pages/PaginaMapa'))
+const PaginaReportar = lazy(() => import('./pages/PaginaReportar'))
+const PaginaConfirmarReporte = lazy(() => import('./pages/PaginaConfirmarReporte'))
+const PaginaSector = lazy(() => import('./pages/PaginaSector'))
+const PaginaVeedor = lazy(() => import('./pages/PaginaVeedor'))
+const PaginaNoEncontrada = lazy(() => import('./pages/PaginaNoEncontrada'))
 
 // Al recargar la página el navegador restaura por su cuenta la posición de scroll que
 // tenía antes del reload (aunque la URL sea la misma "/"), así que un reload en la sección
@@ -21,32 +29,76 @@ if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
   window.history.scrollRestoration = 'manual'
 }
 
+interface RouteErrorBoundaryProps { children: ReactNode }
+interface RouteErrorBoundaryState { hasError: boolean }
+
+class RouteErrorBoundary extends Component<RouteErrorBoundaryProps, RouteErrorBoundaryState> {
+  state: RouteErrorBoundaryState = { hasError: false }
+
+  static getDerivedStateFromError(): RouteErrorBoundaryState {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('No se pudo cargar la vista solicitada:', error, info)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <main id="contenido-principal" tabIndex={-1} role="alert" className="cargando-pagina">
+          <div style={{ maxWidth: '30rem', textAlign: 'center' }}>
+            <h1 style={{ fontSize: '1.35rem', marginBottom: '0.75rem' }}>No pudimos cargar esta vista</h1>
+            <p style={{ marginBottom: '1rem' }}>Comprueba tu conexión e inténtalo nuevamente.</p>
+            <button type="button" className="boton boton-primario" onClick={() => window.location.reload()}>
+              Recargar vista
+            </button>
+          </div>
+        </main>
+      )
+    }
+
+    return this.props.children
+  }
+}
+
 /**
  * ContenidoApp — vive dentro de BrowserRouter (useLocation lo exige) y decide el shell.
  *
  * "/" (la página principal) usa su propio chrome flotante (ver PaginaMapa +
- * NavegacionFlotante) a pantalla completa, sin el sidebar/topbar de Encabezado. El resto
- * de rutas conserva el shell de siempre, sin cambios.
+ * NavegacionFlotante) a pantalla completa, sin el sidebar/topbar de Encabezado, y maneja su
+ * propio ModalSuscripcion (ver PanelProyecto ahí). El resto de rutas conserva el shell de
+ * siempre, con su propia instancia del modal para el botón "Suscribirme" del Encabezado —
+ * montar las dos instancias a la vez en "/" duplicaría la conexión SSE de useDatosEnVivo.
  */
 function ContenidoApp() {
   const { temaActivo, alternarTema } = useTheme()
   const { pathname } = useLocation()
   const esPaginaPrincipal = pathname === '/'
-
-  if (esPaginaPrincipal) {
-    return <PaginaMapa temaActivo={temaActivo} onAlternarTema={alternarTema} />
-  }
+  const [suscripcionAbierta, setSuscripcionAbierta] = useState(false)
 
   return (
-    <>
-      <Encabezado temaActivo={temaActivo} onAlternarTema={alternarTema} />
-      <div className="app-main">
-        <Routes>
-          <Route path="/reportar"      element={<PaginaReportar />} />
-          <Route path="/veedor"        element={<PaginaVeedor />} />
-        </Routes>
-      </div>
-    </>
+    <RouteErrorBoundary key={pathname}>
+      <Suspense fallback={<div className="cargando-pagina" role="status"><span /> Cargando experiencia…</div>}>
+        {esPaginaPrincipal ? (
+          <PaginaMapa temaActivo={temaActivo} onAlternarTema={alternarTema} />
+        ) : (
+          <>
+            <Encabezado temaActivo={temaActivo} onAlternarTema={alternarTema} onAbrirSuscripcion={() => setSuscripcionAbierta(true)} />
+            <div className="app-main">
+              <Routes>
+                <Route path="/reportar" element={<PaginaReportar />} />
+                <Route path="/confirmar/:id" element={<PaginaConfirmarReporte />} />
+                <Route path="/sectores/:id" element={<PaginaSector />} />
+                <Route path="/veedor" element={<PaginaVeedor />} />
+                <Route path="*" element={<PaginaNoEncontrada />} />
+              </Routes>
+            </div>
+            <ModalSuscripcion abierto={suscripcionAbierta} onCerrar={() => setSuscripcionAbierta(false)} />
+          </>
+        )}
+      </Suspense>
+    </RouteErrorBoundary>
   )
 }
 

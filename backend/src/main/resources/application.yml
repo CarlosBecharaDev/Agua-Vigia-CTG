@@ -19,6 +19,13 @@ server:
   forward-headers-strategy: framework
 
 aguavigia:
+  reportes:
+    # RF006 — cupo por dispositivo dentro de la ventana. Estrecho para el celular anonimo, que es
+    # a quien el requisito quiere frenar. Un sensor de M13 se autentica con X-IoT-Key y reporta
+    # cada pocos minutos por diseno: con el cupo ciudadano se autobloqueaba al cuarto envio.
+    limite-por-dispositivo: 3
+    limite-por-sensor: 30
+    ventana-limite-minutos: 30
   cache:
     ttl-segundos-por-cache:
       # 15s y no los 30 por defecto: el estado de un sector es el dato que el mapa muestra en vivo,
@@ -96,6 +103,32 @@ aguavigia:
       - fuente: w-radio
         url: "https://www.wradio.com.co/arc/outboundfeeds/google-news-feed/?outputType=xml"
 
+resilience4j:
+  retry:
+    instances:
+      # RNF005 — "reintentar con retroceso exponencial". 3 intentos con 2s, 4s de espera: el
+      # objetivo es absorber un 502 pasajero del sitio de Acuacar, no insistirle a un servidor
+      # caido. Con intervalo-ms en 10 minutos, el ciclo siguiente reintenta de todas formas.
+      colectores:
+        max-attempts: 3
+        wait-duration: 2s
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+  circuitbreaker:
+    instances:
+      # RNF005 — "abrir un cortacircuitos tras 3 fallos consecutivos": ventana de 3 llamadas, mínimo
+      # 3 para evaluar y umbral de fallo del 100% es exactamente eso. Abierto 5 minutos; despues
+      # deja pasar una sola llamada de prueba antes de volver a cerrarse.
+      acuacar: &cortacircuitosDeColector
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 3
+        minimum-number-of-calls: 3
+        failure-rate-threshold: 100
+        wait-duration-in-open-state: 5m
+        permitted-number-of-calls-in-half-open-state: 1
+        automatic-transition-from-open-to-half-open-enabled: true
+      rss: *cortacircuitosDeColector
+
 springdoc:
   api-docs:
     path: /v3/api-docs
@@ -115,3 +148,11 @@ management:
   endpoint:
     health:
       show-details: never
+
+logging:
+  structured:
+    format:
+      # Diagnosticar en produccion era leer texto plano sin correlationId (estado-del-backend.md
+      # #6.1). ECS es soporte nativo de Spring Boot 3.4+, sin dependencia nueva; CorrelationIdFilter
+      # pone `correlationId` en MDC y este formato lo incluye en cada linea JSON.
+      console: ecs

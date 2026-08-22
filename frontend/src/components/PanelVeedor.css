@@ -1,0 +1,73 @@
+.panel-veedor { width: min(100% - 2rem, 1380px); margin: 0 auto; padding: clamp(1.5rem, 4vw, 3rem) 0 4rem; }
+.panel-veedor-cabecera { display: flex; align-items: end; justify-content: space-between; gap: 1.5rem; margin-bottom: 1.5rem; }
+.panel-veedor-cabecera h1 { margin: .35rem 0 .55rem; font-size: clamp(2rem, 5vw, 3.5rem); }
+.panel-veedor-cabecera p:not(.eyebrow) { color: var(--color-tinta-2); }
+.panel-veedor-error { padding: 1rem; background: var(--color-superficie); border: 1px solid var(--color-linea); border-radius: 12px; }
+.panel-veedor-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; }
+.panel-operativo { padding: clamp(1rem, 3vw, 1.5rem); background: var(--color-superficie); border: 1px solid var(--color-linea); border-radius: 18px; box-shadow: var(--sombra-suave); }
+.panel-operativo > header { display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem; }
+.panel-operativo > header > div { display: grid; }
+.panel-operativo h2 { font-size: 1.35rem; }
+.panel-icono { display: grid; place-items: center; flex: 0 0 auto; width: 42px; height: 42px; color: var(--color-acento); background: var(--color-acento-suave); border-radius: 12px; }
+/* F8 — sin width/height, el área clicable se reducía al tamaño del ícono SVG (17px): muy por
+   debajo del objetivo táctil mínimo de 44×44px que DESIGN.md §7 exige. */
+.boton-icono { display: grid; place-items: center; width: 44px; height: 44px; margin-left: auto; color: var(--color-tinta-2); background: transparent; border: 1px solid var(--color-linea); border-radius: 10px; cursor: pointer; }
+.panel-operativo > label,
+.crear-corte label { display: grid; gap: .35rem; color: var(--color-tinta); font-size: .78rem; font-weight: 700; }
+.panel-operativo select,
+.crear-corte input { width: 100%; min-height: 46px; padding: .65rem .75rem; color: var(--color-tinta); background: var(--color-fondo); border: 1px solid var(--color-linea); border-radius: 11px; }
+.lista-moderacion,
+.lista-cortes { display: grid; gap: .65rem; margin-top: 1rem; }
+.reporte-pendiente,
+.corte-oficial { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .85rem; background: var(--color-fondo); border: 1px solid var(--color-linea); border-radius: 13px; }
+.reporte-pendiente > div:first-child,
+.corte-oficial > div:first-child { display: grid; min-width: 0; }
+.reporte-pendiente span,
+.corte-oficial span { color: var(--color-acento); font-size: .72rem; font-weight: 750; text-transform: uppercase; }
+.reporte-pendiente small,
+.corte-oficial small { color: var(--color-tinta-2); font-size: .7rem; }
+.corte-oficial { flex-wrap: wrap; }
+.corte-oficial-detalle { flex-basis: 100%; margin-top: .65rem; padding-top: .65rem; border-top: 1px solid var(--color-linea); display: grid; gap: .5rem; }
+.corte-oficial-detalle dl { display: grid; grid-template-columns: auto 1fr; gap: .25rem .75rem; margin: 0; font-size: .78rem; }
+.corte-oficial-detalle dt { color: var(--color-tinta-2); font-weight: 600; }
+.corte-oficial-detalle dd { margin: 0; color: var(--color-tinta); }
+.corte-oficial-indice { display: flex; align-items: center; gap: .4rem; font-size: .78rem; color: var(--color-tinta); }
+.corte-oficial-indice svg { color: var(--color-acento); flex-shrink: 0; }
+.acciones-moderacion { display: flex; gap: .4rem; }
+.acciones-moderacion .boton { min-height: 38px; padding: .45rem .65rem; font-size: .72rem; }
+.acciones-moderacion .aprobar { color: var(--color-acento); background: var(--color-acento-suave); border: 1px solid color-mix(in srgb, var(--color-acento) 28%, transparent); }
+.acciones-moderacion .descartar { color: var(--color-tinta-2); background: var(--color-superficie); border: 1px solid var(--color-linea); }
+.panel-vacio { display: grid; justify-items: center; gap: .25rem; padding: 2rem 1rem; color: var(--color-tinta-2); text-align: center; }
+.panel-vacio svg { color: var(--color-acento); }
+.panel-vacio p { font-size: .78rem; }
+.crear-corte { margin-top: 1rem; }
+.crear-corte form { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .75rem; align-items: end; }
+.crear-corte fieldset { min-width: 0; padding: 0; border: 0; }
+.crear-corte legend { margin-bottom: .35rem; color: var(--color-tinta); font-size: .78rem; font-weight: 700; }
+.crear-corte .campo-sectores { grid-column: 1 / -1; }
+.selector-sectores-corte { display: grid; grid-template-columns: repeat(4, 1fr); gap: .3rem; max-height: 150px; padding: .5rem; overflow-y: auto; background: var(--color-fondo); border: 1px solid var(--color-linea); border-radius: 11px; }
+.selector-sectores-corte label { display: flex; align-items: center; gap: .4rem; min-width: 0; padding: .25rem; color: var(--color-tinta-2); font-size: .7rem; font-weight: 600; }
+.selector-sectores-corte input { accent-color: var(--color-acento); }
+.selector-sectores-corte span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crear-corte .campo-causa { grid-column: 1 / 3; }
+.crear-corte form > .boton { grid-column: 3; }
+
+@media (max-width: 900px) {
+  .panel-veedor-grid { grid-template-columns: 1fr; }
+  .crear-corte form { grid-template-columns: 1fr 1fr; }
+  .crear-corte .campo-causa { grid-column: 1 / -1; }
+  .crear-corte form > .boton { grid-column: 1 / -1; }
+  .selector-sectores-corte { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .panel-veedor-cabecera { align-items: start; flex-direction: column; }
+  .panel-veedor-cabecera .boton { width: 100%; }
+  .reporte-pendiente,
+  .corte-oficial { align-items: stretch; flex-direction: column; }
+  .acciones-moderacion { display: grid; grid-template-columns: 1fr 1fr; }
+  .crear-corte form { grid-template-columns: 1fr; }
+  .crear-corte .campo-causa,
+  .crear-corte form > .boton { grid-column: 1; }
+  .selector-sectores-corte { grid-template-columns: 1fr 1fr; }
+}

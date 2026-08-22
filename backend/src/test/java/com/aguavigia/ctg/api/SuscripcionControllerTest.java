@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -27,6 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -150,5 +152,47 @@ class SuscripcionControllerTest {
 
         mockMvc.perform(get("/api/suscripciones/cancelar").param("token", "no-existe"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void debeConfirmarEnHtmlCuandoElNavegadorLoPide() throws Exception {
+        Suscripcion confirmada = new Suscripcion(
+                new SuscripcionId("s1"), new CorreoElectronico("vecino@correo.com"),
+                List.of(new SectorId("bocagrande")), EstadoSuscripcion.CONFIRMADA,
+                "token-1", AHORA);
+        given(confirmarSuscripcion.confirmar("token-1")).willReturn(confirmada);
+
+        mockMvc.perform(get("/api/suscripciones/confirmar").param("token", "token-1")
+                        .accept("text/html,application/xhtml+xml,*/*;q=0.8"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Suscripción confirmada")));
+    }
+
+    @Test
+    void debeResponder400EnHtmlSiElTokenDeConfirmacionNoExiste() throws Exception {
+        given(confirmarSuscripcion.confirmar("no-existe"))
+                .willThrow(new IllegalArgumentException("Token de confirmación inválido o inexistente"));
+
+        mockMvc.perform(get("/api/suscripciones/confirmar").param("token", "no-existe")
+                        .accept("text/html,application/xhtml+xml,*/*;q=0.8"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Token de confirmación inválido o inexistente")));
+    }
+
+    @Test
+    void debeCancelarEnHtmlCuandoElNavegadorLoPide() throws Exception {
+        Suscripcion cancelada = new Suscripcion(
+                new SuscripcionId("s1"), new CorreoElectronico("vecino@correo.com"),
+                List.of(new SectorId("bocagrande")), EstadoSuscripcion.CANCELADA,
+                "token-1", AHORA);
+        given(cancelarSuscripcion.cancelar("token-1")).willReturn(cancelada);
+
+        mockMvc.perform(get("/api/suscripciones/cancelar").param("token", "token-1")
+                        .accept("text/html,application/xhtml+xml,*/*;q=0.8"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_HTML))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Baja confirmada")));
     }
 }

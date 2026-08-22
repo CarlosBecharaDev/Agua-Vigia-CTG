@@ -2,154 +2,111 @@
 
 **Plataforma ciudadana de monitoreo y trazabilidad del servicio de acueducto en Cartagena de Indias.**
 
-Cruza los avisos oficiales de Acuacar con reportes ciudadanos georreferenciados y publica un
-**Índice de Cumplimiento** que compara la duración prometida de cada corte con la real.
+AguaVigía cruza los avisos oficiales con reportes ciudadanos georreferenciados para publicar un **Índice de Cumplimiento** que compara la duración prometida de cada corte con la real.
 
 > Proyecto de aula · Fundación Universitaria Tecnológico Comfenalco
 > Tecnología en Desarrollo de Software · Cartagena de Indias D.T. y C. · 2026
 
-**Estado actual: Sprint 1.** Backend con API de sectores, mapa conectado a datos reales y PWA
-instalable ya en `develop`. Detalle vivo: [`docs/gestion/sprint-1.md`](docs/gestion/sprint-1.md).
+**Estado actual:** Backend y Bases de Datos completos salvo RF041 (webhook real de
+WhatsApp/Telegram), que depende de credenciales de terceros. **457 pruebas** de backend y **54** de
+frontend en verde, con **91.5%** de cobertura en `domain/` y **99.2%** en `application/`. El detalle
+requisito por requisito, con el nombre de la prueba que sostiene cada uno, está en la
+[matriz de trazabilidad](docs/ingenieria/matriz-trazabilidad.md). Frontend y backend conectados de
+punta a punta y verificados en local el 2026-08-12 (`docker compose up -d --build --wait`): mapa,
+reportes, bitácora, estadísticas y panel del veedor completo, sin ningún endpoint sin consumir en
+ninguna dirección — detalle en
+[`frontend/INTEGRACION-BACKEND.md`](frontend/INTEGRACION-BACKEND.md).
+
+📄 **¿Retomas el backend o entras nuevo al proyecto?** Empieza por
+[estado-del-backend.md](docs/ingenieria/estado-del-backend.md): qué está hecho, qué falta, qué se
+dejó fuera de alcance y las trampas del entorno.
 
 ---
 
-## Estructura del repositorio
+## 🏗️ Arquitectura y Stack Tecnológico
 
-Este proyecto está organizado como un **sistema de diseño agéntico**: el contexto vive en archivos
-que el agente de IA lee automáticamente, en vez de repetirse en cada conversación.
+El proyecto está construido bajo una estricta **Arquitectura Limpia (Puertos y Adaptadores)**, garantizando que la lógica de dominio (Java puro) esté totalmente aislada de la infraestructura y el framework web. El cumplimiento de las capas arquitectónicas se evalúa automáticamente mediante **ArchUnit**.
 
-```
-aguavigia-ctg/
-│
-├── CLAUDE.md              ← Instrucciones del proyecto para el agente. Se versiona.
-├── CLAUDE.local.md        ← Tus instrucciones personales. NO se versiona (plantilla: .example)
-├── DESIGN.md              ← Sistema de diseño: color, tipografía, voz, accesibilidad.
-├── MEMORY.md              ← Memoria persistente: hallazgos verificados y restricciones.
-├── .mcp.json              ← Conectores MCP compartidos por el equipo.
-│
-├── .claude/
-│   ├── settings.json        ← Permisos compartidos. Se versiona.
-│   ├── settings.local.json  ← Tus permisos. NO se versiona.
-│   ├── skills/              ← Habilidades reutilizables
-│   │   ├── verificar-arquitectura/   verificar-fuente/
-│   │   ├── registrar-decision/       registrar-bug/
-│   │   └── registrar-implementacion/ cerrar-sesion/
-│   └── agents/              ← Subagentes especializados
-│       ├── revisor-dominio.md      analista-requisitos.md
-│       └── explorador-fuentes.md
-│
-├── docs/
-│   ├── brief.md                    ← Qué construimos y para quién
-│   ├── product-requirements.md     ← 36 RF y 20 RNF con id, prioridad y origen
-│   ├── design-decisions.md         ← Bitácora de decisiones (ADR)
-│   ├── equipo/                     ← Roles, secuencia de trabajo y ficha de cada rol
-│   ├── ingenieria/                 ← Pipeline, auditoría de fuentes, matriz de trazabilidad
-│   ├── gestion/                    ← Scrum, bitácora de sesiones, bugs, implementaciones
-│   ├── informe-metodologico/       ← Los 4 capítulos académicos
-│   ├── anexos/                     ← Los 6 anexos institucionales
-│   └── index.html                  ← Presentación del proyecto
-│
-├── backend/               ← (pendiente) Spring Boot 3.4 · Java 21
-└── frontend/              ← (pendiente) React 19 · Vite · TypeScript
-```
+- **Backend:** Spring Boot 3.5 · Java 21 · Maven
+- **Base de Datos Principal:** MongoDB (Consultas Geoespaciales `2dsphere`)
+- **Caché y Seguridad:** Redis (Rate Limiting y Deduplicación)
+- **Frontend:** React 19 · Vite · TypeScript · Tailwind · Leaflet
+- **Pruebas de Integración:** Testcontainers (Bases de datos efímeras reales)
+- **CI/CD & DevOps:** Docker · GitHub Actions (pruebas + ArchUnit, construcción de imágenes, escaneo de secretos y de vulnerabilidades)
 
 ---
 
-## Por dónde empezar
+## 🧩 Módulos del Sistema
 
-**Si eres nuevo en el equipo, lee en este orden:**
-
-1. [`docs/brief.md`](docs/brief.md) — entiende qué construimos y por qué
-2. [`docs/equipo/roles-y-tareas.md`](docs/equipo/roles-y-tareas.md) — encuentra tu rol y tus tareas
-3. [`CLAUDE.md`](CLAUDE.md) — cómo se trabaja aquí (arquitectura, convenciones, ética de datos)
-4. [`docs/gestion/protocolo-de-contexto.md`](docs/gestion/protocolo-de-contexto.md) — **cómo trabajar
-   con IA sin desperdiciar contexto, y qué se registra siempre**
-5. [`DESIGN.md`](DESIGN.md) — si vas a tocar interfaz
-6. [`docs/design-decisions.md`](docs/design-decisions.md) — qué ya se decidió y qué se descartó
-
-**Después:** copia `CLAUDE.local.md.example` a `CLAUDE.local.md` y ajústalo a tu rol y tu máquina.
-No se sube al repositorio.
-
----
-
-## Los 9 módulos
-
-| # | Módulo | Responsable |
+| # | Módulo | Descripción |
 |---|---|---|
-| M1 | Mapa en vivo | D4 Frontend |
-| M2 | Reporte ciudadano | D3 (backend) + D4 (UI) |
-| M3 | Consenso automático | D2 Dominio |
-| M4 | Alertas por correo | D1 |
-| M5 | Panel del veedor | D3 (backend) + D4 (UI) |
-| M6 | **Índice de Cumplimiento** ⭐ | D2 Dominio |
-| M7 | Estadísticas | D5 (datos) + D4 (UI) |
-| M8 | Bitácora pública | D1 |
-| M9 | Ingesta automática con IA ⭐ | D3 Infraestructura |
+| **M1** | Mapa en vivo | Renderización Geoespacial de los sectores afectados. |
+| **M2** | Reporte ciudadano | Formulario de 2 toques sin registro con rate limiting. |
+| **M3** | Consenso automático | Cambio de estado de un barrio basado en masa crítica de reportes. |
+| **M4** | Alertas por correo | Notificaciones (Doble Opt-In) al cambiar el estado de un barrio. |
+| **M5** | Panel del veedor | Backoffice JWT para moderación y registro de cortes. |
+| **M6** | Índice de Cumplimiento | Diferencial de tiempo prometido vs real de reparación. |
+| **M7** | Estadísticas | Sectores más afectados, cortes por día, duración promedio, evolución del índice mes a mes y exportación en CSV. |
+| **M8** | Bitácora pública | Registro cronológico inmutable de todo lo acontecido. |
+| **M9** | Ingesta automatizada | Colectores de la API oficial y RSS de prensa, con deduplicación por hash, reintentos y cortacircuitos. La clasificación por IA (RF032-036) se descartó por bloqueo de dependencias (`ADR-025`); queda una heurística por expresiones regulares que **propone** cambios de estado a una cola de revisión del veedor, sin publicar nada por su cuenta (`ADR-028`). |
+| **M10** | Evidencia Multimedia | Soporte de capturas fotográficas en reportes. |
+| **M11** | Validación Comunitaria | Confirmaciones de un toque para un reporte existente. |
+| **M12** | API Abierta Open311 | Estándar internacional para consumo de datos cívicos. |
+| **M13** | Integración IoT Pasiva | Telemetría en tiempo real desde sensores de presión locales. |
+| **M14** | Alertas Push | La cadena evento → caso de uso → puerto está cableada y probada; el adaptador que llama al proveedor real (RF041) sigue pendiente porque exige credenciales de WhatsApp Business o Telegram. Hoy registra en el log. |
 
 ---
 
-## Stack
+## 🚀 Cómo levantar el entorno local
 
-**Backend** Spring Boot 3.4 · Java 21 · Maven · MongoDB · Redis · Anthropic Java SDK
-**Frontend** React 19 · Vite · TypeScript · Tailwind · Leaflet · Recharts
-**Infraestructura** Docker · GitHub Actions · Render/Railway + MongoDB Atlas + Upstash
+El proyecto está completamente contenerizado. Solo necesitas tener un motor de **Docker** en ejecución (Ej. Docker Desktop).
 
-Arquitectura Limpia (puertos y adaptadores), verificada automáticamente con ArchUnit.
+1. **Configurar el entorno:**
+   ```bash
+   cp .env.example .env
+   # Si deseas habilitar Webhooks (M14) y envío de correos, configura el .env.
+   ```
+   El mapa, los reportes y las estadísticas funcionan así, sin nada más. El **panel del
+   veedor** (`/veedor`) necesita dos variables que `.env.example` deja vacías a propósito
+   (`JWT_SECRET`, `VEEDOR_PASSWORD_HASH`) — ver
+   [`docs/ingenieria/entorno-local.md`](docs/ingenieria/entorno-local.md) para la clave de
+   equipo lista para copiar.
 
----
+2. **Levantar los servicios:**
+   ```bash
+   docker compose up -d --wait
+   ```
+   *Esto levantará MongoDB, Redis, un servidor de correo de pruebas (Mailhog), el backend y el frontend.*
 
-## Tres reglas que no se negocian
-
-**1. `domain/` es Java puro.** Si importa `org.springframework` o `com.mongodb`, la build falla.
-No es criterio de nadie: hay un test que lo verifica.
-
-**2. Se respeta `robots.txt` siempre**, incluso cuando técnicamente podríamos evadirlo. Varios
-medios bloquean explícitamente a los rastreadores de IA. No se scrapean, no se disfraza el
-`User-Agent`, no se discute. Exigirle transparencia a un operador de servicios públicos y colarse
-por la puerta trasera de un periódico sería incoherente.
-
-**3. Todo se registra: implementaciones, bugs y sesiones de trabajo.** Un bug arreglado sin registrar
-es un bug que el equipo no aprendió, y el Capítulo IV del informe se construye desde esos registros —
-en el Sprint 6 ya es tarde para reconstruirlos.
-
-Detalle en `CLAUDE.md`, en `docs/design-decisions.md` (ADR-005, ADR-008) y en
-`docs/gestion/protocolo-de-contexto.md`.
+3. **Interactuar con la API (Swagger UI):**
+   Una vez que el backend esté arriba, toda la documentación interactiva de los endpoints y modelos de datos estará disponible en:
+   👉 `http://localhost:8081/swagger-ui.html` (docker-compose mapea el backend a 8081:8080 en el host)
 
 ---
 
-## Ritmo de trabajo
+## 🔀 CORS y desarrollo del frontend
 
-**7 sprints:** Sprint 0 de preparación + Sprints 1–6 de construcción. 5 integrantes, metodología Scrum.
-
-**Un sprint no dura un número fijo de semanas: dura hasta que su entregable se demuestra funcionando.**
-Cerrar por calendario obliga a arrastrar lo que no alcanzó o a inventar trabajo para llenar la semana;
-cerrar por entregable deja el avance medido en lo único que se puede demostrar ante el docente.
-
-- Entregables, ceremonias y definición de terminado: [`docs/gestion/README.md`](docs/gestion/README.md)
-- Quién habilita a quién y en qué orden: [`docs/equipo/secuencia-de-trabajo.md`](docs/equipo/secuencia-de-trabajo.md)
-- Tareas por persona: [`docs/equipo/`](docs/equipo/)
+No hay configuración de CORS en el backend, y es intencional: `frontend/nginx.conf` sirve el
+frontend y hace `proxy_pass /api/ → backend:8080`, así que en el contenedor todo vive bajo el mismo
+origen. Si corres el frontend con `vite dev` en vez de Docker, usa el proxy de Vite (no esperes que
+el backend responda con cabeceras CORS — no las manda).
 
 ---
 
-## Cómo levantar el proyecto
+## 🧪 Pruebas y Aseguramiento de Calidad (QA)
 
-Requiere un **motor de contenedores** corriendo, no solo el cliente de Docker. En Linux o con Docker
-Desktop no hace falta nada más. En macOS sin Docker Desktop, instala [Colima](https://github.com/abiosoft/colima)
-(`brew install colima && colima start`) y exporta estas dos variables antes de compilar el backend o
-levantar el entorno — son necesarias para que Testcontainers encuentre el daemon y monte el socket
-correcto (`BUG-030`):
+El backend de AguaVigía cuenta con **457 pruebas unitarias y de integración**, y la build falla si la
+cobertura de `domain/` o `application/` baja del 85% (RNF017) o si se viola una capa de la
+arquitectura (RNF018, ArchUnit).
+
+Para correr la suite de pruebas localmente, asegúrate de tener Docker abierto y ejecuta:
 
 ```bash
-export DOCKER_HOST="unix://$HOME/.colima/default/docker.sock"
-export TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock
+cd backend
+./mvnw clean test
 ```
 
-```bash
-cp .env.example .env     # ajusta tus variables
-docker compose up -d --wait   # Mongo + Redis + Mailhog + backend + frontend, falla si algo no arranca
-```
+Este comando descargará las imágenes temporales de MongoDB y Redis, levantará el ecosistema en entornos efímeros, correrá la suite y se destruirá a sí mismo garantizando cero residuos locales.
 
 ---
-
-*Plataforma ciudadana e independiente. No está afiliada a Aguas de Cartagena S.A. E.S.P.
-ni a ninguna entidad distrital.*
+*Plataforma ciudadana e independiente. No está afiliada a Aguas de Cartagena S.A. E.S.P. ni a ninguna entidad distrital.*

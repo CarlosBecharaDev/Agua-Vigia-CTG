@@ -19,13 +19,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.springframework.context.event.EventListener;
 import com.aguavigia.ctg.application.SectorActualizadoEvent;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * M1 — mapa en vivo (RF001-RF004).
@@ -42,45 +39,36 @@ public class SectorController {
     private final SectorRepository sectores;
     private final SectorApiMapper mapper;
     private final RelojPort reloj;
-    private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
+    private final SseSectoresBroadcaster sseBroadcaster;
 
-    public SectorController(SectorRepository sectores, SectorApiMapper mapper, RelojPort reloj) {
+    public SectorController(SectorRepository sectores, SectorApiMapper mapper, RelojPort reloj,
+                             SseSectoresBroadcaster sseBroadcaster) {
         this.sectores = sectores;
         this.mapper = mapper;
         this.reloj = reloj;
+        this.sseBroadcaster = sseBroadcaster;
     }
 
     @Operation(summary = "Suscribirse a cambios en vivo mediante SSE")
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter streamSectores() {
-        SseEmitter emitter = new SseEmitter(600_000L); // 10 minutos
-        emitters.add(emitter);
-
-        emitter.onCompletion(() -> emitters.remove(emitter));
-        emitter.onTimeout(() -> emitters.remove(emitter));
-        emitter.onError((e) -> emitters.remove(emitter));
-
-        try {
-            // Enviar el estado inicial al suscribirse
-            emitter.send(SseEmitter.event().name("sectores").data(listarSectores()));
-        } catch (IOException e) {
-            emitters.remove(emitter);
-        }
-
-        return emitter;
+        return sseBroadcaster.registrar();
     }
 
+    /**
+     * @Async porque este listener corre en el hilo que guardó el sector — el POST /api/reportes de
+     * un vecino, o el ciclo de ingesta. Sin esto, ese vecino esperaba a que se recorrieran todos
+     * los emisores conectados, con una consulta del listado completo por medio, antes de recibir su
+     * 201. RNF002 exige confirmar un reporte en menos de un segundo.
+     *
+     * Publica en Redis en vez de difundir directo: SseSectoresBroadcaster.onMessage() es quien
+     * empuja a los clientes, en TODAS las instancias suscritas — no solo en esta (estado-del-backend.md
+     * #6.1, "SSE de una sola instancia").
+     */
+    @Async
     @EventListener
     public void onSectorActualizado(SectorActualizadoEvent event) {
-        // Enviar la lista actualizada a todos los clientes conectados
-        RespuestaSectores respuesta = listarSectores();
-        for (SseEmitter emitter : emitters) {
-            try {
-                emitter.send(SseEmitter.event().name("sectores").data(respuesta));
-            } catch (IOException e) {
-                emitters.remove(emitter);
-            }
-        }
+        sseBroadcaster.notificarActualizacion();
     }
 
     @Operation(summary = "Listar los sectores con su estado conocido",

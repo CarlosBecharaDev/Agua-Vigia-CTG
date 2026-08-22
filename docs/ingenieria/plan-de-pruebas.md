@@ -29,7 +29,7 @@ un `RNF` verificable con métrica y umbral — no hay pruebas "porque sí".
 | Arquitectura | RNF018 (falla si se viola una capa) | ArchUnit | En cada PR, CI | 1 |
 | Integración backend ↔ datos | — (soporta RNF017) | Testcontainers (Mongo, Redis reales) | En cada PR, CI | 2 |
 | Rendimiento del mapa | RNF001 (< 3 s en 3G simulada) | Lighthouse + throttling | Antes de cada release | 4 (ajustes 3G) |
-| Rendimiento de escritura | RNF002 (confirmación < 1 s) | Prueba de carga (k6 o similar, por decidir) | Antes de cada release | 2 |
+| Rendimiento de escritura | RNF002 (confirmación < 1 s) | k6 contra `POST /api/reportes` (`scripts/carga/rnf002-registrar-reporte.js`) | Antes de cada release | 2 |
 | Caché | RNF003 (TTL ≤ 60 s) | Inspección de cabeceras HTTP / Redis | Manual + smoke test en CI | 2 |
 | Caos — caída de fuente externa | RNF004, RNF005, RNF006 | Apagar el colector en `docker compose`, observar cortacircuitos y cola muerta | Sprint 4, repetible | 4 |
 | Salud de colectores | RNF007 | `GET /actuator/health` | Smoke test en CI | 4 |
