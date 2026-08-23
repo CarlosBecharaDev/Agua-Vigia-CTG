@@ -98,12 +98,12 @@ class RedisContadorReportesAdapterTest {
     }
 
     @Test
-    void noDeduplicaPorHuella_elRateLimitingEsResponsabilidadDeOtraCapa() {
+    void unDispositivoDebeContarUnaSolaVezParaElConsenso() {
         adaptador.registrar(MANGA, HUELLA_A);
         adaptador.registrar(MANGA, HUELLA_A);
         adaptador.registrar(MANGA, HUELLA_A);
 
-        assertThat(adaptador.contarRecientes(MANGA, Duration.ofMinutes(30))).isEqualTo(3);
+        assertThat(adaptador.contarRecientes(MANGA, Duration.ofMinutes(30))).isEqualTo(1);
     }
 
     @Test
