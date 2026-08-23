@@ -118,6 +118,7 @@ Este documento detalla los hallazgos, correcciones de configuración, modernizac
 4. **Protección Anti-Spam / Fuerza Bruta:** **Redis Rate Limiting** en el inicio de sesión del veedor y en el formulario de reportes ciudadanos.
 5. **Bitácora Inmutable (Append-Only):** Registro público y no modificable de incidencias y moderaciones.
 6. **Aislamiento en Contenedores:** Procesos de backend ejecutados con usuario sin privilegios `aguavigia:aguavigia`.
+7. **Escaneo de Secretos en CI/CD (Gitleaks):** Validación estricta en GitHub Actions contra fugas de credenciales, tokens o firmas; plantillas públicas (`.env.example`) 100% sanitizadas y sin cadenas sensibles.
 
 ---
 
@@ -129,6 +130,7 @@ Este documento detalla los hallazgos, correcciones de configuración, modernizac
 | **Arquitectura Limpia (ArchUnit)** | Aislamiento de capas de dominio y puertos | ✅ **5 / 5 reglas cumplidas** |
 | **Pruebas Frontend (Vitest)** | Componentes, formularios, hooks y flujos | ✅ **54 / 54 pasadas (100% verde)** |
 | **Compilación Frontend (Vite + TypeScript)** | Build de producción optimizado | ✅ **0 errores, 0 warnings (719 ms)** |
+| **Escaneo de Secretos (Gitleaks CI)** | Detección de claves API, tokens y credenciales | ✅ **100% aprobado (0 secretos detectados)** |
 | **Envío de Correos (Mailhog)** | `POST /api/suscripciones` -> Servidor SMTP | ✅ **Verificado y recibido en :8025** |
 | **Datos en Vivo** | Sectores activos y Bitácora | ✅ **169 Con Servicio, 16 Presión Baja, 15 Sin Servicio, 11 Corte Programado, 59 eventos** |
 | **Despliegue Contenedores Docker** | Nginx + Spring Boot + Mongo + Redis + Mailhog | ✅ **5 / 5 contenedores en estado Healthy / Running** |
