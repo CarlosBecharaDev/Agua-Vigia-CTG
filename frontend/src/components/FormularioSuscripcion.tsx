@@ -1,12 +1,17 @@
 import { useMemo, useState } from 'react'
 import type { FC, FormEvent } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { BellRing, Check, CheckCircle2, Mail, Search, X } from 'lucide-react'
+import { CheckCircle2, Mail, Search, Send, X } from 'lucide-react'
 import { crearSuscripcion } from '../api/services'
 import { normalizarErrorApi } from '../api/client'
 import type { Sector } from '../types/tipos-dominio'
 
-export const FormularioSuscripcion: FC<{ sectores: Sector[] }> = ({ sectores }) => {
+interface Props {
+  sectores: Sector[]
+  onFinalizado?: () => void
+}
+
+export const FormularioSuscripcion: FC<Props> = ({ sectores, onFinalizado }) => {
   const [correo, setCorreo] = useState('')
   const [sectorIds, setSectorIds] = useState<string[]>([])
   const [busqueda, setBusqueda] = useState('')
@@ -15,6 +20,7 @@ export const FormularioSuscripcion: FC<{ sectores: Sector[] }> = ({ sectores }) 
     const termino = busqueda.trim().toLocaleLowerCase('es')
     return termino ? opciones.filter((sector) => sector.nombre.toLocaleLowerCase('es').includes(termino)) : opciones
   }, [busqueda, opciones])
+
   const mutacion = useMutation({ mutationFn: crearSuscripcion })
 
   const enviar = (event: FormEvent) => {
@@ -25,9 +31,26 @@ export const FormularioSuscripcion: FC<{ sectores: Sector[] }> = ({ sectores }) 
 
   if (mutacion.isSuccess) {
     return (
-      <div className="suscripcion-exito" role="status">
-        <CheckCircle2 aria-hidden="true" />
-        <div><strong>Revisa tu correo</strong><p>Te enviamos un enlace para confirmar los avisos de tus barrios.</p></div>
+      <div className="suscripcion-exito-moderno" role="status">
+        <div className="suscripcion-exito-icono">
+          <CheckCircle2 size={36} />
+        </div>
+        <div className="suscripcion-exito-titulos">
+          <h3>¡Revisa tu correo!</h3>
+          <p>
+            Hemos enviado un enlace de confirmación a <strong>{correo}</strong> para los avisos de tus barrios seleccionados.
+          </p>
+        </div>
+        {onFinalizado && (
+          <button
+            type="button"
+            onClick={onFinalizado}
+            className="form-suscripcion-boton-enviar"
+            style={{ maxWidth: '200px', marginTop: '0.5rem' }}
+          >
+            Entendido
+          </button>
+        )}
       </div>
     )
   }
@@ -35,38 +58,129 @@ export const FormularioSuscripcion: FC<{ sectores: Sector[] }> = ({ sectores }) 
   const error = mutacion.error ? normalizarErrorApi(mutacion.error) : null
 
   return (
-    <form className="formulario-suscripcion" onSubmit={enviar}>
-      <div className="suscripcion-intro">
-        <span className="suscripcion-icono"><BellRing aria-hidden="true" /></span>
-        <div><p className="eyebrow">Alertas ciudadanas</p><h2>Recibe avisos de tus barrios</h2><p>Solo correo y cambios confirmados. Puedes cancelar cuando quieras.</p></div>
-      </div>
-      <div className="suscripcion-pasos" aria-hidden="true"><span className={correo ? 'completo' : 'activo'}>1</span><i /><span className={sectorIds.length ? 'completo' : correo ? 'activo' : ''}>2</span><i /><span className={correo && sectorIds.length ? 'activo' : ''}>3</span></div>
-      <div className="suscripcion-grid">
-        <div className="paso-formulario">
-          <span className="paso-numero">Paso 1</span>
-          <label htmlFor="correo-suscripcion">Correo electrónico</label>
-          <div className="campo-con-icono"><Mail aria-hidden="true" /><input id="correo-suscripcion" type="email" required autoComplete="email" value={correo} onChange={(event) => setCorreo(event.target.value)} placeholder="vecino@correo.com" /></div>
-          <p className="mensaje-campo">Usaremos esta dirección únicamente para tus avisos.</p>
+    <form className="form-suscripcion-moderno" onSubmit={enviar}>
+      {/* Paso 1: Correo */}
+      <div className="form-suscripcion-bloque">
+        <div className="form-suscripcion-bloque-cabecera">
+          <label htmlFor="correo-suscripcion" className="form-suscripcion-label">
+            <span className="form-suscripcion-chip-paso">1</span>
+            Correo electrónico
+          </label>
         </div>
-        <fieldset className="paso-formulario selector-suscripcion">
-          <legend><span className="paso-numero">Paso 2</span>Barrios que quieres seguir</legend>
-          <div className="selector-meta"><strong>{sectorIds.length} {sectorIds.length === 1 ? 'barrio seleccionado' : 'barrios seleccionados'}</strong>{sectorIds.length > 0 && <button type="button" onClick={() => setSectorIds([])}>Limpiar</button>}</div>
-          <label className="buscador-barrios buscador-suscripcion"><Search size={17} aria-hidden="true" /><span className="sr-only">Buscar barrio para seguir</span><input type="search" value={busqueda} onChange={(event) => setBusqueda(event.target.value)} placeholder="Buscar barrio…" />{busqueda && <button type="button" aria-label="Limpiar búsqueda de barrios" onClick={() => setBusqueda('')}><X size={15} /></button>}</label>
-          <div className="selector-sectores-suscripcion">
-            {opcionesVisibles.map((sector) => {
-              const seleccionado = sectorIds.includes(sector.id)
-              return <label key={sector.id} className={seleccionado ? 'seleccionado' : ''}>
-                <input type="checkbox" checked={seleccionado} onChange={(event) => setSectorIds((actual) => event.target.checked ? [...actual, sector.id] : actual.filter((id) => id !== sector.id))} />
-                <span>{sector.nombre}</span><i aria-hidden="true">{seleccionado && <Check size={14} />}</i>
-              </label>
-            })}
-            {opciones.length > 0 && opcionesVisibles.length === 0 && <p className="mensaje-campo">No encontramos un barrio con ese nombre.</p>}
-          </div>
-        </fieldset>
+        <div className="form-suscripcion-input-wrapper">
+          <Mail size={18} className="form-suscripcion-input-icono" aria-hidden="true" />
+          <input
+            id="correo-suscripcion"
+            type="email"
+            required
+            autoComplete="email"
+            value={correo}
+            onChange={(event) => setCorreo(event.target.value)}
+            placeholder="tu-correo@ejemplo.com"
+            className="form-suscripcion-input"
+          />
+        </div>
       </div>
-      {opciones.length === 0 && <p className="mensaje-campo">Los barrios estarán disponibles cuando el servidor termine de cargarlos.</p>}
-      {error && <p className="mensaje-error" role="alert">{error.detalle}</p>}
-      <div className="suscripcion-confirmacion"><div><span className="paso-numero">Paso 3</span><strong>Confirma tus avisos</strong><small>{correo && sectorIds.length ? 'Todo listo para enviar.' : 'Completa el correo y elige al menos un barrio.'}</small></div><button className="boton boton-primario" type="submit" disabled={mutacion.isPending || sectorIds.length === 0 || !correo.trim()}>{mutacion.isPending ? <><span className="spinner" /> Enviando…</> : 'Enviar confirmación'}</button></div>
+
+      {/* Paso 2: Selección de Barrios */}
+      <div className="form-suscripcion-bloque">
+        <div className="form-suscripcion-bloque-cabecera">
+          <div className="form-suscripcion-label">
+            <span className="form-suscripcion-chip-paso">2</span>
+            Barrios a monitorear
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <span className="form-suscripcion-contador-badge">
+              {sectorIds.length} {sectorIds.length === 1 ? 'barrio' : 'barrios'}
+            </span>
+            {sectorIds.length > 0 && (
+              <button type="button" onClick={() => setSectorIds([])} className="form-suscripcion-limpiar-btn">
+                Limpiar
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Buscador de barrios */}
+        <div className="form-suscripcion-barrios-search">
+          <Search size={16} className="search-icon" aria-hidden="true" />
+          <input
+            type="search"
+            value={busqueda}
+            onChange={(event) => setBusqueda(event.target.value)}
+            placeholder="Buscar barrio en Cartagena…"
+            aria-label="Buscar barrio para seguir"
+          />
+          {busqueda && (
+            <button
+              type="button"
+              className="clear-btn"
+              onClick={() => setBusqueda('')}
+              aria-label="Limpiar búsqueda de barrios"
+            >
+              <X size={15} />
+            </button>
+          )}
+        </div>
+
+        {/* Lista interactiva */}
+        <div className="form-suscripcion-barrios-lista">
+          {opcionesVisibles.map((sector) => {
+            const seleccionado = sectorIds.includes(sector.id)
+            return (
+              <label
+                key={sector.id}
+                className={`form-suscripcion-barrio-item ${seleccionado ? 'seleccionado' : ''}`}
+              >
+                <input
+                  type="checkbox"
+                  checked={seleccionado}
+                  onChange={(event) =>
+                    setSectorIds((actual) =>
+                      event.target.checked ? [...actual, sector.id] : actual.filter((id) => id !== sector.id)
+                    )
+                  }
+                  aria-label={sector.nombre}
+                />
+                <span title={sector.nombre}>{sector.nombre}</span>
+              </label>
+            )
+          })}
+          {opciones.length > 0 && opcionesVisibles.length === 0 && (
+            <p style={{ gridColumn: '1 / -1', color: 'rgba(226, 232, 240, 0.6)', fontSize: '0.82rem', padding: '0.5rem', textAlign: 'center' }}>
+              No se encontró ningún barrio con ese nombre.
+            </p>
+          )}
+        </div>
+      </div>
+
+      {error && (
+        <div className="form-suscripcion-error-badge" role="alert">
+          {error.detalle}
+        </div>
+      )}
+
+      {/* Botón de Envío */}
+      <button
+        type="submit"
+        disabled={mutacion.isPending || sectorIds.length === 0 || !correo.trim()}
+        className="form-suscripcion-boton-enviar"
+      >
+        {mutacion.isPending ? (
+          <>
+            <span className="spinner" /> Enviando solicitud…
+          </>
+        ) : (
+          <>
+            <Send size={18} aria-hidden="true" />
+            Enviar confirmación
+          </>
+        )}
+      </button>
+
+      <p style={{ fontSize: '0.76rem', color: 'rgba(216, 180, 254, 0.75)', margin: '0.25rem 0 0', textAlign: 'center' }}>
+        📧 En entorno local los correos se visualizan en la bandeja de pruebas: <strong style={{ color: '#e9d5ff' }}>http://127.0.0.1:8025</strong>
+      </p>
     </form>
   )
 }

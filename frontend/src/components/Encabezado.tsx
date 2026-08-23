@@ -71,6 +71,21 @@ export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema, onAbrirSuscr
               to={a}
               end={a === '/'}
               className={({ isActive }) => `sidebar-link${isActive ? ' is-active' : ''}`}
+              onClick={(e) => {
+                if (a === '/' && window.location.pathname === '/') {
+                  e.preventDefault()
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                  setMenuAbierto(false)
+                } else if (a.startsWith('/#') && window.location.pathname === '/') {
+                  const id = a.slice(2)
+                  const el = document.getElementById(id)
+                  if (el) {
+                    e.preventDefault()
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    setMenuAbierto(false)
+                  }
+                }
+              }}
             >
               <span className="sidebar-link-icon" aria-hidden="true"><Icono size={19} /></span>
               <span className="sidebar-link-copy"><strong>{etiqueta}</strong><small>{resumen}</small></span>

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { BellRing, X } from 'lucide-react'
 import { FormularioSuscripcion } from './FormularioSuscripcion'
 import { useDatosEnVivo } from '../hooks/useDatosEnVivo'
+import './ModalSuscripcion.css'
 
 interface Props {
   abierto: boolean
@@ -52,62 +53,46 @@ export function ModalSuscripcion({ abierto, onCerrar }: Props) {
   return createPortal(
     <div
       role="presentation"
+      className="modal-suscripcion-backdrop"
       onMouseDown={(event) => { if (event.target === event.currentTarget) onCerrar() }}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9999,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'rgba(0,0,0,0.4)',
-        backdropFilter: 'blur(8px)',
-        padding: '1rem',
-      }}
     >
       <div
         ref={dialogoRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="titulo-modal-suscripcion"
-        style={{
-          position: 'relative',
-          width: '100%',
-          maxWidth: '460px',
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          borderRadius: 'var(--radio-lg)',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-          border: '1px solid var(--color-linea)',
-          backgroundColor: 'var(--color-superficie)',
-          padding: '2rem 1.5rem',
-        }}
+        className="modal-suscripcion-contenedor"
       >
-        <button
-          ref={botonCerrarRef}
-          type="button"
-          onClick={onCerrar}
-          aria-label="Cerrar ventana de suscripción"
-          className="hover-glowing"
-          style={{
-            position: 'absolute', top: '1rem', right: '1rem',
-            background: 'none', border: 'none', cursor: 'pointer',
-            color: 'var(--color-tinta-2)', display: 'flex',
-            alignItems: 'center', justifyContent: 'center',
-            width: '44px', height: '44px', borderRadius: '50%',
-          }}
-        >
-          <X size={20} />
-        </button>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem' }}>
-          <span aria-hidden="true"><BellRing size={19} /></span>
-          <h2 id="titulo-modal-suscripcion" style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--color-tinta)' }}>
-            Avisos de tu barrio
-          </h2>
+        {/* Fondo animado morado con orbes fluidos en movimiento */}
+        <div className="modal-suscripcion-fondo-animado" aria-hidden="true">
+          <div className="orbe-purpura-1" />
+          <div className="orbe-purpura-2" />
+          <div className="orbe-purpura-3" />
         </div>
 
-        <FormularioSuscripcion sectores={sectores} />
+        {/* Cabecera del Modal */}
+        <div className="modal-suscripcion-cabecera">
+          <div className="modal-suscripcion-icono-titulo">
+            <div className="modal-suscripcion-badge-icono" aria-hidden="true">
+              <BellRing size={24} />
+            </div>
+            <div className="modal-suscripcion-titulos">
+              <h2 id="titulo-modal-suscripcion">Avisos de tu barrio</h2>
+              <p>Te notificamos al instante cuando haya cortes o cambios de servicio.</p>
+            </div>
+          </div>
+          <button
+            ref={botonCerrarRef}
+            type="button"
+            onClick={onCerrar}
+            aria-label="Cerrar ventana de suscripción"
+            className="modal-suscripcion-cerrar"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <FormularioSuscripcion sectores={sectores} onFinalizado={onCerrar} />
       </div>
     </div>,
     document.body,

@@ -4,7 +4,17 @@
 backend/mvnw text eol=lf
 *.sh text eol=lf
 
-# Sin esto, git detecta scripts/generar-dashboard.mjs como binario (falso positivo
-# por la densidad de caracteres acentuados en espanol) y deja de mostrar diffs
-# linea por linea en las revisiones — encontrado al fusionar el PR #46.
-*.mjs text
+# Forzar LF en código y configuración para evitar diferencias CRLF entre SO y contenedores
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.java text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+Dockerfile* text eol=lf
+.env* text eol=lf

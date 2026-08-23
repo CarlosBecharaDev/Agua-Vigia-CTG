@@ -39,6 +39,7 @@ import type { useTheme } from '../hooks/useTheme'
 const PanelDetalleSector = lazy(() => import('../components/PanelDetalleSector').then((m) => ({ default: m.PanelDetalleSector })))
 const SeccionBitacora = lazy(() => import('../components/SeccionBitacora').then((m) => ({ default: m.SeccionBitacora })))
 const SeccionEstadisticas = lazy(() => import('../components/SeccionEstadisticas').then((m) => ({ default: m.SeccionEstadisticas })))
+const SeccionVeedor = lazy(() => import('../components/SeccionVeedor').then((m) => ({ default: m.SeccionVeedor })))
 
 type ThemeProps = ReturnType<typeof useTheme>
 
@@ -58,7 +59,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
   const [filtroPanel, setFiltroPanel] = useState<'estado' | 'sector'>('estado')
   const [panelColapsado, setPanelColapsado] = useState(false)
   const [busquedaBitacora, setBusquedaBitacora] = useState<string>('')
-  const [seccionActiva, setSeccionActiva] = useState<'mapa' | 'bitacora' | 'estadisticas'>('mapa')
+  const [seccionActiva, setSeccionActiva] = useState<'mapa' | 'bitacora' | 'estadisticas' | 'veedor'>('mapa')
   const [estadoDestacado, setEstadoDestacado] = useState<EstadoServicio | null>(null)
 
   const conteos = [
@@ -86,7 +87,16 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
   const { hash } = useLocation()
   useEffect(() => {
     if (hash) {
-      document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' })
+      const id = hash.slice(1)
+      const el = document.getElementById(id)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } else {
+        const timer = setTimeout(() => {
+          document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 200)
+        return () => clearTimeout(timer)
+      }
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
@@ -262,6 +272,10 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
 
       <Suspense fallback={<div className="seccion-cargando" role="status">Cargando estadísticas…</div>}>
         <SeccionEstadisticas />
+      </Suspense>
+
+      <Suspense fallback={<div className="seccion-cargando" role="status">Cargando veeduría…</div>}>
+        <SeccionVeedor />
       </Suspense>
 
       <PieDePagina />

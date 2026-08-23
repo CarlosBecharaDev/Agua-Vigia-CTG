@@ -83,6 +83,11 @@ export default defineConfig({
         target: process.env.VITE_BACKEND_PROXY_TARGET || 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
+        configure: (proxy, options) => {
+          proxy.on('error', (err) => {
+            console.warn(`[Vite Proxy] No se pudo conectar con el backend en ${options.target}: ${err.message}. Si el backend corre en Docker usa VITE_BACKEND_PROXY_TARGET=http://localhost:8081`);
+          });
+        },
       },
       '/acuacar-api': {
         target: 'https://www.acuacar.com/wp-json/wp/v2',

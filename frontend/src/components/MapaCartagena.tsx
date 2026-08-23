@@ -20,15 +20,12 @@ import { COLOR_POR_ESTADO } from '../types/tipos-dominio'
 import { EtiquetaFrescura } from './EtiquetaFrescura'
 import { obtenerGeoJSONBarrios } from '../data/barriosCartagena'
 
-// Cartagena de Indias — centro, límites y zoom inicial
-const CENTRO: L.LatLngExpression = [10.3950, -75.4800]
-const ZOOM_INICIAL = 13
+// Cartagena de Indias — centro urbano equilibrado y zoom inicial
+const CENTRO: L.LatLngExpression = [10.4120, -75.5150]
+const ZOOM_INICIAL = 12.5
 const BOUNDS_CARTAGENA: L.LatLngBoundsExpression = [
-  [10.19, -75.68], // Suroeste (Expandido más al sur y al oeste para que no se corte Cartagena)
-  [10.58, -75.35]  // Noreste (10.48 cortaba La Boquilla, que llega hasta ~10.4995: el mapa
-  // la mostraba bien durante el flyToBounds pero al terminar la animación maxBoundsViscosity
-  // lo empujaba de vuelta dentro del límite, dando el salto brusco. Margen extra sobre el
-  // límite real del barrio para que el padding del flyToBounds no vuelva a chocar con el borde)
+  [10.25, -75.65], // Suroeste
+  [10.53, -75.40]  // Noreste
 ]
 
 interface Props {
@@ -181,12 +178,12 @@ export const MapaCartagena: FC<Props> = ({
     if (!mapa) return
 
     if (!estado || !capa) {
-      volarABounds(mapa, L.latLngBounds(BOUNDS_CARTAGENA), { padding: [20, 20], duration: 1.2 })
+      mapa.flyTo(CENTRO, ZOOM_INICIAL, { duration: 1.2 })
       return
     }
 
-    const centros: { nombre: string; centro: L.LatLng }[] = []
     const limites = L.latLngBounds([])
+    let barriosEncontrados = 0
 
     capa.eachLayer((layer: any) => {
       const nombre = layer.feature?.properties?.NOMBRE ?? ''
@@ -194,50 +191,23 @@ export const MapaCartagena: FC<Props> = ({
       if (sector?.estado !== estado) return
       const bounds = layer.getBounds ? layer.getBounds() : null
       if (!bounds || !bounds.isValid()) return
-      // `getBounds().isValid()` solo confirma que hay esquinas SO/NE definidas, no que sean
-      // finitas: `getCenter()` calcula un centroide (área con signo como divisor) y un anillo
-      // degenerado puede devolver NaN aunque bounds.isValid() haya dado true. Mismo espíritu
-      // que `volarABounds` — nunca construir un LatLng con NaN.
       const centro = typeof layer.getCenter === 'function' ? layer.getCenter() : bounds.getCenter()
       if (!Number.isFinite(centro.lat) || !Number.isFinite(centro.lng)) return
-      centros.push({ nombre: sector.nombre, centro })
-      limites.extend(bounds)
+
+      // Filtrar estrictamente para el área urbana de Cartagena (descartando islas remotas como Isla Fuerte o zonas industriales)
+      if (centro.lat >= 10.365 && centro.lat <= 10.465 && centro.lng >= -75.565 && centro.lng <= -75.440) {
+        limites.extend(bounds)
+        barriosEncontrados++
+      }
     })
 
-    if (centros.length === 0) return
-
-    const grupo = L.layerGroup()
-    const color = COLOR_POR_ESTADO[estado].claro
-
-    // Línea que conecta solo los barrios del estado destacado, en el orden en que aparecen
-    // en el GeoJSON — no es la ruta más corta, es simplemente "estos son los que están en
-    // este grupo ahora mismo".
-    if (centros.length > 1) {
-      L.polyline(centros.map((c) => c.centro), {
-        color,
-        weight: 2,
-        opacity: 0.8,
-        dashArray: '6 6',
-        interactive: false,
-      }).addTo(grupo)
+    if (barriosEncontrados === 0 || !limites.isValid()) {
+      mapa.flyTo(CENTRO, ZOOM_INICIAL, { duration: 1.2 })
+      return
     }
 
-    // "Ping" con el nombre de cada barrio — por ahora solo el nombre; el ancla vive en el
-    // span vía CSS (translate -50%,-100%) para que centre bien sin importar el largo del texto.
-    centros.forEach(({ nombre, centro }) => {
-      const icono = L.divIcon({
-        className: 'ping-barrio-destacado',
-        html: `<span class="ping-barrio-etiqueta" style="--color-ping:${color}">${nombre}</span>`,
-      })
-      L.marker(centro, { icon: icono, interactive: false, keyboard: false, zIndexOffset: 500 }).addTo(grupo)
-    })
-
-    grupo.addTo(mapa)
-    destacadoLayerRef.current = grupo
-
-    // El zoom lo decide fitBounds/flyToBounds solo, según cuánto abarquen los barrios
-    // destacados — un solo barrio se acerca, varios dispersos se alejan.
-    volarABounds(mapa, limites, { padding: [70, 70], duration: 1.2, maxZoom: 16 })
+    // Centrar con encuadre limpio en el mapa urbano sin saturar con etiquetas ni líneas
+    volarABounds(mapa, limites, { padding: [45, 45], duration: 1.2, maxZoom: 14 })
   }, [])
 
   useEffect(() => {
@@ -256,6 +226,7 @@ export const MapaCartagena: FC<Props> = ({
       maxBoundsViscosity: 1.0,
       zoomControl: false,
       attributionControl: false,
+      preferCanvas: true, // Renderizar capas vectoriales en Canvas HTML5 para 60fps fluidos en móviles
     })
 
     L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(mapa)

@@ -1,19 +1,3 @@
-/**
- * SeccionBitacora — M8 (Bitácora pública - UI), integrada en la página principal.
- *
- * Vivía en su propia ruta (/bitacora); ahora es una sección de "/" a la que se llega
- * haciendo scroll (o navegando a "/#bitacora" desde cualquier otra página — ver
- * PaginaMapa, que escucha el hash y hace scroll hasta acá).
- *
- * Carrusel horizontal de tarjetas: se desplaza solo hacia la derecha en bucle continuo
- * mientras nadie lo toca (arrastre, scroll, foco por teclado) — apenas el usuario
- * interactúa, se detiene, y retoma el auto-scroll unos segundos después de soltarlo.
- * Respeta prefers-reduced-motion (sin auto-scroll ahí; el usuario sigue pudiendo
- * desplazarlo a mano).
- *
- * Conectada al backend real: GET /api/bitacora (M8, público, sin auth, de solo anexado).
- * No hay datos de demostración — si el backend no responde, se muestra el error tal cual.
- */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, FC, PointerEvent as ReactPointerEvent } from 'react'
 import { listarBitacora } from '../api/services'
@@ -21,22 +5,21 @@ import type { EventoBitacora, TipoEventoBitacora } from '../api/services'
 import { normalizarErrorApi } from '../api/client'
 import { COLOR_POR_ESTADO } from '../types/tipos-dominio'
 import type { EstadoServicio } from '../types/tipos-dominio'
-import { RefreshCw, CheckCircle2, AlertTriangle, Info } from 'lucide-react'
+import { RefreshCw, CheckCircle2, AlertTriangle, Info, Radio } from 'lucide-react'
+import './SeccionBitacora.css'
 
-// La bitácora clasifica por tipo de evento (CORTE_ANUNCIADO/CONFIRMADO/RESTABLECIDO), no por
-// el estado de un sector — se reutiliza la misma paleta de EstadoServicio para no inventar
-// una segunda escala de colores (DESIGN.md §2: el color siempre significa lo mismo).
 const ESTADO_POR_TIPO: Record<TipoEventoBitacora, EstadoServicio> = {
   CORTE_ANUNCIADO: 'CORTE_PROGRAMADO',
   CORTE_CONFIRMADO_POR_CIUDADANOS: 'SIN_SERVICIO',
   CORTE_RESTABLECIDO: 'CON_SERVICIO',
 }
 
-const FILTROS: { valor: 'TODOS' | EstadoServicio; etiqueta: string }[] = [
-  { valor: 'TODOS', etiqueta: 'Todos' },
-  { valor: 'SIN_SERVICIO', etiqueta: 'Sin servicio' },
-  { valor: 'CORTE_PROGRAMADO', etiqueta: 'Programados' },
-  { valor: 'CON_SERVICIO', etiqueta: 'Restablecidos' },
+const FILTROS: { valor: 'TODOS' | EstadoServicio; etiqueta: string; icono?: string }[] = [
+  { valor: 'TODOS', etiqueta: 'Todos los eventos' },
+  { valor: 'SIN_SERVICIO', etiqueta: '🔴 Sin servicio' },
+  { valor: 'PRESION_BAJA', etiqueta: '🟡 Baja presión' },
+  { valor: 'CORTE_PROGRAMADO', etiqueta: '🔵 Programados' },
+  { valor: 'CON_SERVICIO', etiqueta: '🟢 Restablecidos' },
 ]
 
 interface ItemBitacora {
@@ -44,6 +27,7 @@ interface ItemBitacora {
   titulo: string
   fecha: string
   estado: EstadoServicio
+  tipo: TipoEventoBitacora
 }
 
 const ICONO_POR_ESTADO: Record<EstadoServicio, typeof AlertTriangle> = {
@@ -53,14 +37,16 @@ const ICONO_POR_ESTADO: Record<EstadoServicio, typeof AlertTriangle> = {
   PRESION_BAJA: AlertTriangle,
 }
 
-const formatearFecha = (isoString: string) =>
-  new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(isoString))
+const formatearFechaRelativa = (isoString: string) => {
+  const fecha = new Date(isoString)
+  const ahora = new Date()
+  const diffMin = Math.floor((ahora.getTime() - fecha.getTime()) / 60000)
+  if (diffMin < 60) return `hace ${Math.max(1, diffMin)} min`
+  const diffHoras = Math.floor(diffMin / 60)
+  if (diffHoras < 24) return `hace ${diffHoras} h`
+  return new Intl.DateTimeFormat('es-CO', { dateStyle: 'short', timeStyle: 'short' }).format(fecha)
+}
 
-// ── Borde con brillo direccional (adaptado de "Border Glow", reactbits.dev, a las variables
-//    de tema del proyecto) — el brillo aparece en el punto del borde más cercano al cursor y
-//    se apaga hacia el centro. Solo dos variables CSS por tarjeta (--proximidad-borde,
-//    --angulo-cursor); el color lo fija cada tarjeta según su estado (SIN_SERVICIO/etc.), así
-//    el "halo" refuerza el mismo color que ya usa el ícono y la etiqueta, no uno genérico. ──
 function calcularBrilloBorde(el: HTMLElement, clientX: number, clientY: number) {
   const r = el.getBoundingClientRect()
   const x = clientX - r.left
@@ -79,7 +65,6 @@ function calcularBrilloBorde(el: HTMLElement, clientX: number, clientY: number) 
 }
 
 interface Props {
-  /** Texto del buscador de la navbar (NavegacionFlotante) — filtra por título, además del filtro de estado. */
   busqueda?: string
 }
 
@@ -89,6 +74,7 @@ function aItemBitacora(evento: EventoBitacora): ItemBitacora {
     titulo: evento.descripcion,
     fecha: evento.timestamp,
     estado: ESTADO_POR_TIPO[evento.tipo as TipoEventoBitacora] ?? 'CORTE_PROGRAMADO',
+    tipo: evento.tipo as TipoEventoBitacora,
   }
 }
 
@@ -101,7 +87,7 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
   const cargarEventos = useCallback(async () => {
     setCargando(true)
     try {
-      const eventos = await listarBitacora(20)
+      const eventos = await listarBitacora(40)
       setItems(eventos.map(aItemBitacora))
       setError(null)
     } catch (causa) {
@@ -120,12 +106,9 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
     const termino = busqueda.trim().toLowerCase()
     return termino ? porEstado.filter((i) => i.titulo.toLowerCase().includes(termino)) : porEstado
   }, [items, filtro, busqueda])
-  // Duplicado para el bucle sin costura del carrusel — ver useEffect de auto-scroll.
+
   const itemsCarrusel = itemsFiltrados.length > 1 ? [...itemsFiltrados, ...itemsFiltrados] : itemsFiltrados
 
-  // ── Auto-scroll continuo hacia la derecha, en bucle, pausado mientras el usuario
-  //    interactúa (arrastre, scroll, hover, foco por teclado) o si prefiere menos
-  //    movimiento. ──
   const carruselRef = useRef<HTMLDivElement>(null)
   const interactuandoRef = useRef(false)
   const arrastreRef = useRef<{ activo: boolean; inicioX: number; inicioScroll: number; movio: boolean }>({
@@ -143,7 +126,7 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
     const paso = () => {
       if (!interactuandoRef.current && el.scrollWidth > el.clientWidth) {
         const mitad = el.scrollWidth / 2
-        el.scrollLeft += 0.55
+        el.scrollLeft += 0.5
         if (el.scrollLeft >= mitad) el.scrollLeft -= mitad
       }
       raf = requestAnimationFrame(paso)
@@ -166,11 +149,6 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
     if (!el) return
     pausar()
     arrastreRef.current = { activo: true, inicioX: e.clientX, inicioScroll: el.scrollLeft, movio: false }
-    // OJO: el.setPointerCapture() NO va acá. Capturar el puntero en cada pointerdown —incluido
-    // uno que termina siendo un simple clic sobre "Leer documento" o la tarjeta— podía desviar
-    // el pointerup (y con él el click sintetizado) hacia este contenedor en vez del enlace bajo
-    // el cursor, dejando el botón sin navegar. Ahora solo se captura más abajo, en
-    // onPointerMove, y únicamente si el gesto se confirma como arrastre real.
   }
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
     const el = carruselRef.current
@@ -193,36 +171,38 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
   return (
     <section id="bitacora" className="bitacora-seccion" aria-label="Bitácora pública de interrupciones del servicio">
       <div className="bitacora-envoltorio">
+        {/* Cabecera Apple Pro */}
         <div className="bitacora-cab">
           <div>
-            <div className="bitacora-eyebrow"><span /> BITÁCORA</div>
-            <h2 className="bitacora-titulo">Bitácora pública de eventos</h2>
-            <p className="bitacora-subtitulo">
-              Registro público, de solo anexado, de cortes anunciados, confirmados por la
-              ciudadanía y restablecidos en Cartagena.
+            <div className="bitacora-eyebrow-pro">
+              <span className="pulse-dot" />
+              <span>FEED DE EVENTOS EN VIVO</span>
+            </div>
+            <h2 className="bitacora-titulo-pro">Bitácora de Suministro y Redes</h2>
+            <p className="bitacora-subtitulo-pro">
+              Registro público, inmutable y en tiempo real de cortes anunciados, confirmaciones de presión
+              y restablecimientos comunitarios en Cartagena.
             </p>
           </div>
-          <button onClick={cargarEventos} disabled={cargando} className="bitacora-actualizar hover-glowing">
+          <button onClick={cargarEventos} disabled={cargando} className="bitacora-actualizar-pro">
             <RefreshCw size={15} className={cargando ? 'animate-spin' : ''} />
-            {cargando ? 'Sincronizando…' : 'Actualizar'}
+            {cargando ? 'Sincronizando…' : 'Actualizar feed'}
           </button>
         </div>
 
-        <div className="bitacora-filtros" role="tablist" aria-label="Filtrar bitácora por estado">
+        {/* Filtros Segmentados */}
+        <div className="bitacora-filtros-pro" role="tablist" aria-label="Filtrar bitácora por estado">
           {FILTROS.map((f) => (
             <button
               key={f.valor}
               role="tab"
               aria-selected={filtro === f.valor}
-              className={`bitacora-filtro${filtro === f.valor ? ' is-active' : ''}`}
+              className={`bitacora-filtro-btn${filtro === f.valor ? ' is-active' : ''}`}
               onClick={() => setFiltro(f.valor)}
             >
               {f.etiqueta}
             </button>
           ))}
-          <span className="bitacora-fuente">
-            {cargando ? 'conectando con el backend…' : error ? 'sin conexión' : 'datos en vivo'}
-          </span>
         </div>
 
         {error && items.length === 0 && !cargando ? (
@@ -236,7 +216,7 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
         ) : (
           <div
             ref={carruselRef}
-            className={`bitacora-carrusel${arrastrando ? ' is-arrastrando' : ''}`}
+            className={`bitacora-carrusel-pro${arrastrando ? ' is-arrastrando' : ''}`}
             tabIndex={0}
             onPointerDown={(e) => { setArrastrando(true); onPointerDown(e) }}
             onPointerMove={onPointerMove}
@@ -250,27 +230,52 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
             {itemsCarrusel.map((item, i) => {
               const Icono = ICONO_POR_ESTADO[item.estado]
               const color = COLOR_POR_ESTADO[item.estado].claro
+              const badgeClass =
+                item.estado === 'SIN_SERVICIO'
+                  ? 'badge-sin-servicio'
+                  : item.estado === 'PRESION_BAJA'
+                  ? 'badge-presion-baja'
+                  : item.estado === 'CORTE_PROGRAMADO'
+                  ? 'badge-corte-programado'
+                  : 'badge-con-servicio'
+
+              const tagFuente =
+                item.tipo === 'CORTE_CONFIRMADO_POR_CIUDADANOS'
+                  ? 'Masa crítica ciudadana'
+                  : item.tipo === 'CORTE_ANUNCIADO'
+                  ? 'Aviso preventivo oficial'
+                  : 'Servicio normalizado'
+
               return (
                 <div
                   key={`${item.id}-${i}`}
-                  className="bitacora-tarjeta"
+                  className="bitacora-tarjeta-pro"
                   style={{ '--color-glow': color } as CSSProperties}
                   onPointerMove={(e) => calcularBrilloBorde(e.currentTarget, e.clientX, e.clientY)}
                   onPointerLeave={(e) => e.currentTarget.style.setProperty('--proximidad-borde', '0')}
                 >
-                  <div
-                    className="bitacora-tarjeta-preview"
-                    style={{ background: `color-mix(in srgb, ${color} 16%, var(--color-fondo))` }}
-                  >
-                    <Icono size={26} color={color} aria-hidden="true" />
-                    <svg className="bitacora-tarjeta-ola" viewBox="0 0 200 22" preserveAspectRatio="none" aria-hidden="true">
-                      <path d="M0,11 C35,22 55,0 95,11 C135,22 155,0 200,11 L200,22 L0,22 Z" fill={color} />
-                    </svg>
+                  <div>
+                    <div className="bitacora-tarjeta-cabecera">
+                      <span className={`bitacora-badge-estado ${badgeClass}`}>
+                        <Icono size={14} aria-hidden="true" />
+                        {COLOR_POR_ESTADO[item.estado].etiqueta}
+                      </span>
+                      <time className="bitacora-tiempo-pro" dateTime={item.fecha}>
+                        {formatearFechaRelativa(item.fecha)}
+                      </time>
+                    </div>
+
+                    <div className="bitacora-tarjeta-cuerpo">
+                      <h3>{item.titulo}</h3>
+                    </div>
                   </div>
-                  <div className="bitacora-tarjeta-pie">
-                    <span className="bitacora-tarjeta-estado" style={{ color }}>{COLOR_POR_ESTADO[item.estado].etiqueta}</span>
-                    <time dateTime={item.fecha}>{formatearFecha(item.fecha)}</time>
-                    <h3>{item.titulo}</h3>
+
+                  <div className="bitacora-tarjeta-pie-pro">
+                    <span className="bitacora-tag-tipo" style={{ color }}>
+                      <span className="bitacora-dot-indicador" />
+                      {tagFuente}
+                    </span>
+                    <Radio size={13} style={{ opacity: 0.5, color: '#94a3b8' }} aria-hidden="true" />
                   </div>
                 </div>
               )

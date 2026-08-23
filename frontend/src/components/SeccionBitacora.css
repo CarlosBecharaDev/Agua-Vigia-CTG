@@ -1,0 +1,338 @@
+/* ── Apple-Grade Pro Bitácora — Terminal de Monitoreo Ciudadano ── */
+
+.bitacora-seccion {
+  position: relative;
+  background: linear-gradient(180deg, #050814 0%, #0a0f24 50%, #070a18 100%);
+  padding: 5.5rem 0 6.5rem;
+  color: #f8fafc;
+  overflow: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ── Resplandor de transición sutil desde el Hero ── */
+.bitacora-seccion::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 350px;
+  background: radial-gradient(ellipse at center, rgba(147, 51, 234, 0.18) 0%, rgba(59, 130, 246, 0.08) 50%, transparent 75%);
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bitacora-envoltorio {
+  position: relative;
+  z-index: 1;
+  width: min(100% - 2.5rem, 1200px);
+  margin: 0 auto;
+}
+
+/* ── Cabecera Apple Pro ── */
+.bitacora-cab {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.bitacora-eyebrow-pro {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(192, 132, 252, 0.3);
+  color: #d8b4fe;
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.85rem;
+}
+
+.bitacora-eyebrow-pro .pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #a855f7;
+  box-shadow: 0 0 8px #c084fc;
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.bitacora-titulo-pro {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  font-size: clamp(2rem, 3.8vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 0 0 0.6rem;
+  background: linear-gradient(180deg, #ffffff 30%, rgba(255, 255, 255, 0.75) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bitacora-subtitulo-pro {
+  color: rgba(226, 232, 240, 0.75);
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 48ch;
+  margin: 0;
+  font-weight: 400;
+}
+
+.bitacora-actualizar-pro {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 1.25rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  color: #f1f5f9;
+  font-size: 0.85rem;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bitacora-actualizar-pro:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(168, 85, 247, 0.4);
+  transform: translateY(-1px);
+}
+
+/* ── Filtros Segmentados Estilo Apple ── */
+.bitacora-filtros-pro {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  backdrop-filter: blur(14px);
+  width: fit-content;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.bitacora-filtro-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1.05rem;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(226, 232, 240, 0.75);
+  font-size: 0.84rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+
+.bitacora-filtro-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.bitacora-filtro-btn.is-active {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* ── Carrusel / Bento Feed ── */
+.bitacora-carrusel-pro {
+  display: flex;
+  gap: 1.25rem;
+  padding: 0.5rem 0.25rem 1rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  cursor: grab;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bitacora-carrusel-pro::-webkit-scrollbar {
+  display: none;
+}
+
+.bitacora-carrusel-pro.is-arrastrando {
+  cursor: grabbing;
+  scroll-snap-type: none;
+}
+
+/* ── Tarjeta Bento Apple Pro ── */
+.bitacora-tarjeta-pro {
+  --color-glow: rgba(168, 85, 247, 0.6);
+  position: relative;
+  flex: 0 0 auto;
+  width: min(85vw, 360px);
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 1.4rem;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px -5px rgba(15, 23, 42, 0.4);
+  transition: all 280ms cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.bitacora-tarjeta-pro:hover {
+  transform: translateY(-4px);
+  border-color: rgba(192, 132, 252, 0.4);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), 0 0 30px -5px var(--color-glow);
+}
+
+.bitacora-tarjeta-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.bitacora-badge-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.74rem;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+}
+
+.badge-sin-servicio {
+  background: rgba(239, 68, 68, 0.16);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.badge-presion-baja {
+  background: rgba(245, 158, 11, 0.16);
+  color: #fde047;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.badge-corte-programado {
+  background: rgba(59, 130, 246, 0.16);
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.badge-con-servicio {
+  background: rgba(34, 197, 94, 0.16);
+  color: #86efac;
+  border: 1px solid rgba(34, 197, 94, 0.35);
+}
+
+.bitacora-tiempo-pro {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.74rem;
+  color: rgba(203, 213, 225, 0.6);
+  font-weight: 500;
+}
+
+.bitacora-tarjeta-cuerpo h3 {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  font-size: 0.96rem;
+  font-weight: 550;
+  line-height: 1.55;
+  color: #f1f5f9;
+  margin: 0;
+}
+
+.bitacora-tarjeta-pie-pro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.bitacora-tag-tipo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(216, 180, 254, 0.8);
+}
+
+.bitacora-dot-indicador {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* ── Reglas Responsivas para Móvil en Bitácora ── */
+@media (max-width: 768px) {
+  .bitacora-seccion {
+    padding: 3.5rem 0 4.5rem;
+  }
+
+  .bitacora-envoltorio {
+    width: min(100% - 1.25rem, 1200px);
+  }
+
+  .bitacora-cab {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .bitacora-actualizar-pro {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .bitacora-filtros-pro {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+    border-radius: 16px;
+    padding: 0.25rem;
+  }
+
+  .bitacora-filtros-pro::-webkit-scrollbar {
+    display: none;
+  }
+
+  .bitacora-filtro-btn {
+    white-space: nowrap;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.78rem;
+  }
+
+  .bitacora-tarjeta-pro {
+    width: min(85vw, 300px);
+    min-height: 195px;
+    padding: 1.15rem;
+    border-radius: 20px;
+  }
+}

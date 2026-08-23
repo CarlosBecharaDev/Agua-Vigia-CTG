@@ -242,3 +242,22 @@
     display: none;
   }
 }
+
+@media (max-width: 640px) {
+  .gooey-nav-container nav ul {
+    gap: 0.2rem;
+  }
+
+  .gooey-nav-container nav ul li {
+    font-size: 0.72rem;
+  }
+
+  .gooey-nav-container nav ul li a {
+    min-height: 36px;
+    padding: 0.35em 0.55em;
+  }
+
+  .gooey-nav-container .effect.text {
+    font-size: 0.72rem;
+  }
+}
