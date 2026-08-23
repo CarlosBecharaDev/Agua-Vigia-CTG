@@ -21,10 +21,6 @@ export const ModalReporte: FC<Props> = ({ abierto, alCerrar, sectores, sectorPre
   const botonCerrarRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
-    if (abierto) { setReporteExitoso(null); setAvisoFoto(null) }
-  }, [abierto])
-
-  useEffect(() => {
     if (!abierto) return
 
     const scrollAnterior = document.body.style.overflow

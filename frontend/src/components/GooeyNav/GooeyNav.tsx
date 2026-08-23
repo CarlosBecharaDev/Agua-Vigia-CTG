@@ -81,11 +81,17 @@ export const GooeyNav: FC<Props> = ({
     const bubbleTime = animationTime * 2 + timeVariance
     element.style.setProperty('--time', `${bubbleTime}ms`)
 
+    /* La pildora debe empezar en el mismo evento que el texto. Si se deja dentro del
+       setTimeout de las particulas, un scroll pesado puede retrasarla y producir un breve
+       texto oscuro sin fondo. */
+    element.getAnimations({ subtree: true }).forEach((animacion) => animacion.cancel())
+    element.classList.remove('active')
+    void getComputedStyle(element, '::after').opacity
+    element.classList.add('active')
+
     for (let i = 0; i < particleCount; i++) {
       const t = animationTime * 2 + noise(timeVariance * 2)
       const p = createParticle(i, t, d, r)
-      element.classList.remove('active')
-
       setTimeout(() => {
         const particle = document.createElement('span')
         const point = document.createElement('span')
@@ -102,9 +108,6 @@ export const GooeyNav: FC<Props> = ({
         point.classList.add('point')
         particle.appendChild(point)
         element.appendChild(particle)
-        requestAnimationFrame(() => {
-          element.classList.add('active')
-        })
         setTimeout(() => {
           try {
             element.removeChild(particle)
@@ -141,9 +144,22 @@ export const GooeyNav: FC<Props> = ({
       filterRef.current.querySelectorAll('.particle').forEach((p) => p.remove())
     }
     if (textRef.current) {
-      textRef.current.classList.remove('active')
-      void textRef.current.offsetWidth
-      textRef.current.classList.add('active')
+      const texto = textRef.current
+      texto.getAnimations().forEach((animacion) => animacion.cancel())
+      texto.classList.add('active')
+      /* Una animación CSS finalizada con fill-mode: both no siempre vuelve a empezar al
+         retirar y añadir la clase en el mismo evento. Web Animations reinicia el contraste
+         de forma determinista en cada clic. */
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        texto.animate(
+          [
+            { color: '#fff', textShadow: '0 1px 1px hsl(205deg 30% 10% / 0.2)', offset: 0 },
+            { color: '#fff', textShadow: '0 1px 1px hsl(205deg 30% 10% / 0.2)', offset: 0.42 },
+            { color: '#08080c', textShadow: 'none', offset: 1 },
+          ],
+          { duration: 300, easing: 'ease', fill: 'both' },
+        )
+      }
     }
     if (filterRef.current) {
       makeParticles(filterRef.current)

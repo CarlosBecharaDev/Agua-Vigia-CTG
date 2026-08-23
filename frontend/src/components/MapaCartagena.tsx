@@ -19,6 +19,7 @@ import type { EstadoServicio, Sector } from '../types/tipos-dominio'
 import { COLOR_POR_ESTADO } from '../types/tipos-dominio'
 import { EtiquetaFrescura } from './EtiquetaFrescura'
 import { obtenerGeoJSONBarrios } from '../data/barriosCartagena'
+import { volarABounds } from '../utils/mapaLeaflet'
 
 // Cartagena de Indias — centro urbano equilibrado y zoom inicial
 const CENTRO: L.LatLngExpression = [10.4120, -75.5150]
@@ -56,14 +57,6 @@ function normalizarNombre(nombre: string): string {
  * antes de llamar a `flyToBounds` convierte un crash de toda la p\u00e1gina en, como mucho, un
  * "no se movi\u00f3 el mapa esta vez".
  */
-export function volarABounds(mapa: L.Map, bounds: L.LatLngBounds, opciones: L.FitBoundsOptions): void {
-  if (!bounds.isValid()) {
-    console.warn('Se descart\u00f3 un flyToBounds con l\u00edmites inv\u00e1lidos', bounds)
-    return
-  }
-  mapa.flyToBounds(bounds, opciones)
-}
-
 /** Estilo de un polígono — compartido entre la carga inicial y la actualización reactiva
  *  para que ambos caminos nunca diverjan en cómo se ve un barrio. */
 function calcularEstiloFeature(

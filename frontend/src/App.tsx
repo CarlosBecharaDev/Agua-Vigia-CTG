@@ -79,7 +79,11 @@ function ContenidoApp() {
 
   return (
     <RouteErrorBoundary key={pathname}>
-      <Suspense fallback={<div className="cargando-pagina" role="status"><span /> Cargando experiencia…</div>}>
+      <Suspense fallback={
+        <main id="contenido-principal" tabIndex={-1} className="cargando-pagina" aria-busy="true">
+          <div role="status"><span /> Cargando experiencia…</div>
+        </main>
+      }>
         {esPaginaPrincipal ? (
           <PaginaMapa temaActivo={temaActivo} onAlternarTema={alternarTema} />
         ) : (

@@ -1,0 +1,18 @@
+.seccion-veedor-root {
+  position: relative;
+  padding: 4rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, #050814 0%, #0a0f24 52%, #050814 100%);
+}
+
+.seccion-veedor-contenido {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .seccion-veedor-root {
+    padding: 3.25rem 0.75rem;
+  }
+}

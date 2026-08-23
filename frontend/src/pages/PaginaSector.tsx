@@ -15,21 +15,26 @@ import type { SectorSeguro } from '../api/services'
 
 export default function PaginaSector() {
   const { id } = useParams<{ id: string }>()
-  const [sector, setSector] = useState<SectorSeguro | null>(null)
-  const [cargando, setCargando] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [resultado, setResultado] = useState<{
+    id: string
+    sector: SectorSeguro | null
+    error: string | null
+  } | null>(null)
 
   useEffect(() => {
-    if (!id) { setCargando(false); return }
+    if (!id) return
     let montado = true
-    setCargando(true)
-    setError(null)
     obtenerSector(id)
-      .then((res) => { if (montado) setSector(res) })
-      .catch((causa) => { if (montado) setError(normalizarErrorApi(causa).detalle) })
-      .finally(() => { if (montado) setCargando(false) })
+      .then((sector) => { if (montado) setResultado({ id, sector, error: null }) })
+      .catch((causa) => {
+        if (montado) setResultado({ id, sector: null, error: normalizarErrorApi(causa).detalle })
+      })
     return () => { montado = false }
   }, [id])
+
+  const cargando = Boolean(id) && resultado?.id !== id
+  const sector = resultado?.id === id ? resultado.sector : null
+  const error = resultado?.id === id ? resultado.error : null
 
   return (
     <PageWrapper>

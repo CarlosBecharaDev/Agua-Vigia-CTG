@@ -33,31 +33,30 @@ const DIAS_SEMANA_CORTOS: Record<string, string> = {
   Lunes: 'Lun', Martes: 'Mar', Miércoles: 'Mié', Jueves: 'Jue', Viernes: 'Vie', Sábado: 'Sáb', Domingo: 'Dom',
 }
 
-function useCountUp(target: number, duracion = 1200, activo = true): number {
-  const [valor, setValor] = useState(0)
-  const prevTarget = useRef(target)
+function useCountUpSeguro(target: number, activo: boolean, duracion = 900): number {
+  const [valor, setValor] = useState(target)
 
   useEffect(() => {
-    if (!activo) return
-    const inicio = prevTarget.current === target ? 0 : prevTarget.current
-    prevTarget.current = target
-    const diff = target - inicio
-    if (diff === 0) { setValor(target); return }
+    if (!activo || target <= 0 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setValor(target)
+      return
+    }
 
-    const pasos = 60
-    let paso = 0
-    const intervalo = setInterval(() => {
-      paso++
-      if (paso >= pasos) {
-        setValor(target)
-        clearInterval(intervalo)
-      } else {
-        const progreso = 1 - Math.pow(1 - paso / pasos, 3)
-        setValor(Math.round(inicio + diff * progreso))
-      }
-    }, duracion / pasos)
-    return () => clearInterval(intervalo)
-  }, [target, duracion, activo])
+    let frame = 0
+    const inicio = performance.now()
+    setValor(0)
+
+    const actualizar = (ahora: number) => {
+      const progreso = Math.min((ahora - inicio) / duracion, 1)
+      const suavizado = 1 - Math.pow(1 - progreso, 3)
+      setValor(Math.round(target * suavizado))
+      if (progreso < 1) frame = requestAnimationFrame(actualizar)
+      else setValor(target)
+    }
+
+    frame = requestAnimationFrame(actualizar)
+    return () => cancelAnimationFrame(frame)
+  }, [activo, duracion, target])
 
   return valor
 }
@@ -73,10 +72,11 @@ export const SeccionEstadisticas: FC = () => {
   const [diaSeleccionado, setDiaSeleccionado] = useState<string | null>(null)
   const [modoBarrios, setModoBarrios] = useState<'cortes' | 'porcentaje'>('cortes')
   const [sectorSeleccionado, setSectorSeleccionado] = useState<string | null>(null)
+  const [entradaActiva, setEntradaActiva] = useState(false)
+  const seccionRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     let montado = true
-    setCargando(true)
     obtenerEstadisticas()
       .then((res) => { if (montado) { setDatos(res); setErrorApi(null) } })
       .catch((causa) => { if (montado) setErrorApi(normalizarErrorApi(causa).detalle) })
@@ -87,39 +87,23 @@ export const SeccionEstadisticas: FC = () => {
     return () => { montado = false }
   }, [])
 
+  useEffect(() => {
+    const seccion = seccionRef.current
+    if (!seccion || !('IntersectionObserver' in window)) return
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return
+      setEntradaActiva(true)
+      observer.disconnect()
+    }, { threshold: 0.08, rootMargin: '80px 0px' })
+
+    observer.observe(seccion)
+    return () => observer.disconnect()
+  }, [])
+
   const totalCortes = datos?.sectoresMasAfectados.reduce((acc, s) => acc + s.cantidadCortes, 0) ?? 0
   const sectorTop = datos?.sectoresMasAfectados[0]?.nombre ?? '—'
-
-  const [kpisVisibles, setKpisVisibles] = useState(false)
-  const kpiSeccionRef = useRef<HTMLDivElement>(null)
-  const totalCortesAnimado = useCountUp(totalCortes, 1400, kpisVisibles)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        setKpisVisibles(true)
-        observer.disconnect()
-      }
-    }, { threshold: 0.2 })
-
-    if (kpiSeccionRef.current) observer.observe(kpiSeccionRef.current)
-    return () => observer.disconnect()
-  }, [])
-
-  const [barrasVisibles, setBarrasVisibles] = useState(false)
-  const seccionBarrasRef = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        setBarrasVisibles(true)
-        observer.disconnect()
-      }
-    }, { threshold: 0.1, rootMargin: '200px' })
-
-    if (seccionBarrasRef.current) observer.observe(seccionBarrasRef.current)
-    return () => observer.disconnect()
-  }, [])
+  const totalCortesAnimado = useCountUpSeguro(totalCortes, entradaActiva && !cargando)
 
   const totalCortesDias = DIAS_SEMANA.reduce((acc, dia) => acc + (datos?.cortesPorDiaDeSemana[dia] ?? 0), 0) || 1
   const datosPorDia = DIAS_SEMANA.map((dia) => {
@@ -149,7 +133,12 @@ export const SeccionEstadisticas: FC = () => {
   })
 
   return (
-    <section id="estadisticas" className="estadisticas-seccion" aria-label="Estadísticas del servicio de agua en Cartagena">
+    <section
+      id="estadisticas"
+      ref={seccionRef}
+      className={`estadisticas-seccion${entradaActiva ? ' is-visible' : ''}`}
+      aria-label="Estadísticas del servicio de agua en Cartagena"
+    >
       {/* Fondo animado de orbes morados */}
       <div className="estadisticas-fondo-animado" aria-hidden="true">
         <div className="orbe-est-1" />
@@ -186,11 +175,7 @@ export const SeccionEstadisticas: FC = () => {
         </div>
 
         {/* KPIs Bento Glass — 4 Métricas Clave */}
-        <div
-          ref={kpiSeccionRef}
-          className="estadisticas-kpis-grid"
-          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' }}
-        >
+        <div className="estadisticas-kpis-grid">
           {[
             {
               titulo: 'Cumplimiento Global',
@@ -208,7 +193,7 @@ export const SeccionEstadisticas: FC = () => {
             },
             {
               titulo: 'Total de Incidencias',
-              valor: (totalCortesAnimado || 59).toLocaleString(),
+              valor: cargando ? '…' : totalCortesAnimado.toLocaleString(),
               sub: 'En sectores con novedades',
               Icono: CalendarDays,
               gradiente: 'linear-gradient(135deg, #2563eb 0%, #38bdf8 100%)',
@@ -223,15 +208,7 @@ export const SeccionEstadisticas: FC = () => {
           ].map((kpi, i) => {
             const Icono = kpi.Icono
             return (
-              <div
-                key={i}
-                className="estadisticas-kpi-card"
-                style={{
-                  opacity: kpisVisibles ? 1 : 0,
-                  transform: kpisVisibles ? 'translateY(0)' : 'translateY(20px)',
-                  transition: `opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${i * 0.1}s, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${i * 0.1}s`,
-                }}
-              >
+              <div key={i} className="estadisticas-kpi-card">
                 <div
                   className="estadisticas-kpi-icono"
                   style={{ background: kpi.gradiente }}
@@ -298,7 +275,7 @@ export const SeccionEstadisticas: FC = () => {
         </section>
 
         {/* Gráficos en Bento Grid Interactivos */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+        <div className="estadisticas-graficos-grid">
           {/* Gráfico 1: Cortes por día */}
           <section className="estadisticas-card-bloque" style={{ marginBottom: 0 }}>
             <div className="estadisticas-card-cab">
@@ -329,7 +306,7 @@ export const SeccionEstadisticas: FC = () => {
               </div>
             </div>
 
-            <div style={{ height: '280px', width: '100%', position: 'relative' }}>
+            <div className="estadisticas-chart">
               {cargando ? (
                 <div className="chart-skeleton-box">
                   {[60, 95, 75, 70, 45, 80, 90].map((altura, idx) => (
@@ -398,9 +375,7 @@ export const SeccionEstadisticas: FC = () => {
                     <Bar
                       dataKey="valorMostrado"
                       radius={[8, 8, 0, 0]}
-                      isAnimationActive
-                      animationDuration={1300}
-                      animationEasing="ease-out"
+                      isAnimationActive={false}
                     >
                       {datosPorDia.map((entry) => {
                         const esSeleccionado = diaSeleccionado === entry.diaCompleto
@@ -433,7 +408,7 @@ export const SeccionEstadisticas: FC = () => {
           </section>
 
           {/* Gráfico 2: Sectores más afectados */}
-          <section ref={seccionBarrasRef} className="estadisticas-card-bloque" style={{ marginBottom: 0 }}>
+          <section className="estadisticas-card-bloque" style={{ marginBottom: 0 }}>
             <div className="estadisticas-card-cab">
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
@@ -462,7 +437,7 @@ export const SeccionEstadisticas: FC = () => {
               </div>
             </div>
 
-            <div style={{ height: '280px', width: '100%', position: 'relative' }}>
+            <div className="estadisticas-chart estadisticas-chart--sectores">
               {cargando ? (
                 <div className="chart-skeleton-horizontal">
                   {[100, 85, 80, 80, 75].map((w, idx) => (
@@ -471,7 +446,7 @@ export const SeccionEstadisticas: FC = () => {
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  {barrasVisibles && datosBarrios.length > 0 ? (
+                  {datosBarrios.length > 0 ? (
                     <BarChart
                       data={datosBarrios}
                       layout="vertical"
@@ -529,9 +504,7 @@ export const SeccionEstadisticas: FC = () => {
                       <Bar
                         dataKey="valorMostrado"
                         radius={[0, 8, 8, 0]}
-                        isAnimationActive
-                        animationDuration={1300}
-                        animationEasing="ease-out"
+                        isAnimationActive={false}
                       >
                         {datosBarrios.map((entry, index) => {
                           const esSeleccionado = sectorSeleccionado === entry.nombre

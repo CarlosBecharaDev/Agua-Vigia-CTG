@@ -10,9 +10,14 @@ export const PanelProyecto: FC<Props> = ({ onSuscribirse }) => (
   <div className="panel-proyecto">
     <div className="panel-proyecto-card">
       <div className="panel-proyecto-marca">
-        <div className="panel-proyecto-logo-box">
-          <img className="panel-proyecto-logo" src={logoAguaVigia} alt="AguaVigía CTG" />
-        </div>
+        <img
+          className="panel-proyecto-logo"
+          src={logoAguaVigia}
+          alt="AguaVigía CTG"
+          loading="lazy"
+          decoding="async"
+          fetchPriority="low"
+        />
         <div className="panel-proyecto-eyebrow">
           <span className="pulse-dot-cyan" />
           <span>VEEDURÍA CIUDADANA EN VIVO</span>

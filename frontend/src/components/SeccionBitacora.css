@@ -3,7 +3,7 @@
 .bitacora-seccion {
   position: relative;
   background: linear-gradient(180deg, #050814 0%, #0a0f24 50%, #070a18 100%);
-  padding: 5.5rem 0 6.5rem;
+  padding: 4.5rem 0 4.75rem;
   color: #f8fafc;
   overflow: hidden;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -126,7 +126,7 @@
   backdrop-filter: blur(14px);
   width: fit-content;
   flex-wrap: wrap;
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 }
 
 .bitacora-filtro-btn {
@@ -166,6 +166,9 @@
   cursor: grab;
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 0.25rem;
+  overscroll-behavior-inline: contain;
 }
 
 .bitacora-carrusel-pro::-webkit-scrollbar {
@@ -177,12 +180,32 @@
   scroll-snap-type: none;
 }
 
+.bitacora-carrusel-pro:focus-visible {
+  outline: 2px solid #c084fc;
+  outline-offset: 4px;
+}
+
+.bitacora-carrusel-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: rgba(203, 213, 225, 0.6);
+  font-size: 0.74rem;
+}
+
+.bitacora-carrusel-meta span:first-child {
+  color: rgba(226, 232, 240, 0.85);
+  font-weight: 700;
+}
+
 /* ── Tarjeta Bento Apple Pro ── */
 .bitacora-tarjeta-pro {
   --color-glow: rgba(168, 85, 247, 0.6);
   position: relative;
   flex: 0 0 auto;
-  width: min(85vw, 360px);
+  width: calc((100% - 2.5rem) / 3);
+  min-width: 290px;
   min-height: 220px;
   display: flex;
   flex-direction: column;
@@ -195,6 +218,20 @@
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px -5px rgba(15, 23, 42, 0.4);
   transition: all 280ms cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.bitacora-seccion.is-visible .bitacora-tarjeta-pro {
+  animation: bitacora-tarjeta-entrada 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.bitacora-seccion.is-visible .bitacora-tarjeta-pro:nth-child(2) { animation-delay: 80ms; }
+.bitacora-seccion.is-visible .bitacora-tarjeta-pro:nth-child(3) { animation-delay: 160ms; }
+
+@keyframes bitacora-tarjeta-entrada {
+  from { opacity: 0.45; transform: translateY(14px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .bitacora-tarjeta-pro:hover {
@@ -291,7 +328,7 @@
 /* ── Reglas Responsivas para Móvil en Bitácora ── */
 @media (max-width: 768px) {
   .bitacora-seccion {
-    padding: 3.5rem 0 4.5rem;
+    padding: 3.25rem 0 3.5rem;
   }
 
   .bitacora-envoltorio {
@@ -324,15 +361,27 @@
   }
 
   .bitacora-filtro-btn {
+    flex: 0 0 auto;
     white-space: nowrap;
     padding: 0.35rem 0.85rem;
     font-size: 0.78rem;
   }
 
   .bitacora-tarjeta-pro {
-    width: min(85vw, 300px);
+    width: 100%;
+    min-width: 100%;
     min-height: 195px;
     padding: 1.15rem;
     border-radius: 20px;
+  }
+
+  .bitacora-carrusel-meta span:last-child {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bitacora-seccion.is-visible .bitacora-tarjeta-pro {
+    animation: none;
   }
 }

@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon-32.png', 'favicon-180.png', 'barrios-cartagena.geojson', 'pwa-192x192.png', 'pwa-512x512.png'],
+      includeAssets: ['favicon-32.png', 'favicon-180.png', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
         name: 'AguaVigía CTG — Monitoreo del Agua en Cartagena',
         short_name: 'AguaVigía',
@@ -41,8 +41,14 @@ export default defineConfig({
         ]
       },
       workbox: {
+        // En localhost, una versión nueva debe reemplazar también la pestaña que seguía
+        // controlada por el Service Worker anterior. El script no recarga clientes reales
+        // de producción; allí se conserva el ciclo normal de actualización del PWA.
+        importScripts: ['sw-local-refresh.js'],
         // Cachear assets estáticos incluyendo el GeoJSON de barrios
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,geojson,woff2}'],
+        // El GeoJSON se guarda al solicitarlo mediante runtimeCaching. Precachearlo también lo
+        // descargaba y almacenaba dos veces, compitiendo con el primer render sobre 3G.
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         // Caché en runtime para tiles de mapa y APIs externas
         runtimeCaching: [
           {

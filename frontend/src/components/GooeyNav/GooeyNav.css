@@ -80,8 +80,8 @@
 }
 
 .gooey-nav-container nav ul li.active {
-  color: #08080c;
   text-shadow: none;
+  animation: gooey-nav-texto-activo 0.3s ease both;
 }
 
 .gooey-nav-container nav ul li.active::after {
@@ -108,11 +108,25 @@
   font-size: 0.86rem;
   font-weight: 600;
   white-space: nowrap;
-  transition: color 0.3s ease;
+  text-shadow: 0 1px 1px hsl(205deg 30% 10% / 0.2);
 }
 
 .gooey-nav-container .effect.text.active {
-  color: #08080c;
+  animation: gooey-nav-texto-activo 0.3s ease both;
+}
+
+/* La pildora crece desde el centro. El texto conserva contraste claro durante esa primera
+   mitad y solo pasa a oscuro cuando el fondo blanco ya lo cubre. */
+@keyframes gooey-nav-texto-activo {
+  0%, 42% {
+    color: #fff;
+    text-shadow: 0 1px 1px hsl(205deg 30% 10% / 0.2);
+  }
+
+  100% {
+    color: #08080c;
+    text-shadow: none;
+  }
 }
 
 /* Sin mix-blend-mode ni rectángulo negro de respaldo: el umbral lo hace el filtro SVG
@@ -234,8 +248,16 @@
 @media (prefers-reduced-motion: reduce) {
   .gooey-nav-container .particle,
   .gooey-nav-container .point,
-  .gooey-nav-container .effect.active::after {
+  .gooey-nav-container .effect.active::after,
+  .gooey-nav-container nav ul li.active,
+  .gooey-nav-container .effect.text.active {
     animation: none;
+  }
+
+  .gooey-nav-container nav ul li.active,
+  .gooey-nav-container .effect.text.active {
+    color: #08080c;
+    text-shadow: none;
   }
 
   .gooey-nav-container .effect.filter {

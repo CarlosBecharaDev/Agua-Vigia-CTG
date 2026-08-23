@@ -347,7 +347,8 @@ export const GradientWaves: FC<Props> = ({
     const io = new IntersectionObserver(
       ([entry]) => {
         isVisible = entry.isIntersecting
-        isVisible ? tryStart() : tryStop()
+        if (isVisible) tryStart()
+        else tryStop()
       },
       { threshold: 0 }
     )
@@ -355,7 +356,8 @@ export const GradientWaves: FC<Props> = ({
 
     const onVisibility = (): void => {
       isPageVisible = !document.hidden
-      isPageVisible ? tryStart() : tryStop()
+      if (isPageVisible) tryStart()
+      else tryStop()
     }
     document.addEventListener('visibilitychange', onVisibility)
 

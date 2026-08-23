@@ -5,6 +5,7 @@ import { cerrarSesionVeedor, iniciarSesionVeedor } from '../api/services'
 import { normalizarErrorApi, sesionVeedor } from '../api/client'
 import { PanelVeedor } from './PanelVeedor'
 import './ModalReporte.css'
+import './SeccionVeedor.css'
 
 export function SeccionVeedor() {
   const [autenticado, setAutenticado] = useState(Boolean(sesionVeedor.obtener()))
@@ -39,11 +40,11 @@ export function SeccionVeedor() {
   }
 
   return (
-    <section id="veedor" className="seccion-veedor-root" style={{ position: 'relative', padding: '4rem 0 5rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)', background: 'linear-gradient(180deg, #050814 0%, #0a0f24 50%, #050814 100%)' }}>
+    <section id="veedor" className="seccion-veedor-root">
       {autenticado ? (
         <PanelVeedor onCerrarSesion={cerrar} />
       ) : (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '55vh', padding: '2rem 1rem' }}>
+        <div className="seccion-veedor-contenido">
           <div
             className="modal-reporte-contenedor"
             style={{ width: 'min(100%, 480px)', maxHeight: 'none', position: 'relative' }}

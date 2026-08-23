@@ -3,7 +3,7 @@
 .estadisticas-seccion {
   position: relative;
   background: linear-gradient(180deg, #070a18 0%, #050814 50%, #03050c 100%);
-  padding: 5.5rem 0 6.5rem;
+  padding: 4.5rem 0 4.75rem;
   color: #f8fafc;
   overflow: hidden;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
@@ -178,9 +178,9 @@
 /* ── Tarjetas Bento Glass para KPIs ── */
 .estadisticas-kpis-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1.25rem;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
 }
 
 .estadisticas-kpi-card {
@@ -195,6 +195,19 @@
   align-items: center;
   gap: 1.25rem;
   transition: all 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.estadisticas-seccion.is-visible .estadisticas-kpi-card {
+  animation: estadistica-entrada 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.estadisticas-seccion.is-visible .estadisticas-kpi-card:nth-child(2) { animation-delay: 70ms; }
+.estadisticas-seccion.is-visible .estadisticas-kpi-card:nth-child(3) { animation-delay: 140ms; }
+.estadisticas-seccion.is-visible .estadisticas-kpi-card:nth-child(4) { animation-delay: 210ms; }
+
+@keyframes estadistica-entrada {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .estadisticas-kpi-card:hover {
@@ -263,6 +276,43 @@
 
 .estadisticas-card-bloque:hover {
   border-color: rgba(255, 255, 255, 0.16);
+}
+
+.estadisticas-graficos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.estadisticas-chart {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  min-width: 0;
+}
+
+/* Las barras ya nacen con sus datos finales. Esta capa CSS solo anima su entrada al llegar
+   al viewport, por lo que nunca deja el grafico vacio si el navegador pausa animaciones. */
+.estadisticas-seccion.is-visible .estadisticas-chart:not(.estadisticas-chart--sectores) .recharts-bar-rectangle path {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: estadistica-barra-vertical 760ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.estadisticas-seccion.is-visible .estadisticas-chart--sectores .recharts-bar-rectangle path {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: estadistica-barra-horizontal 760ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes estadistica-barra-vertical {
+  from { opacity: 0.45; transform: scaleY(0.08); }
+  to { opacity: 1; transform: scaleY(1); }
+}
+
+@keyframes estadistica-barra-horizontal {
+  from { opacity: 0.45; transform: scaleX(0.08); }
+  to { opacity: 1; transform: scaleX(1); }
 }
 
 .estadisticas-card-cab {
@@ -470,7 +520,7 @@
 /* ── Reglas Responsivas para Móvil en Estadísticas ── */
 @media (max-width: 768px) {
   .estadisticas-seccion {
-    padding: 3.5rem 0 4.5rem;
+    padding: 3.25rem 0 3.5rem;
   }
 
   .estadisticas-envoltorio {
@@ -493,6 +543,11 @@
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 0.75rem;
     margin-bottom: 1.5rem;
+  }
+
+  .estadisticas-graficos-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .estadisticas-kpi-card {
@@ -522,6 +577,21 @@
   .estadisticas-card-bloque {
     padding: 1.25rem 1rem;
     border-radius: 20px;
+    margin-bottom: 1rem;
+  }
+
+  .estadisticas-card-cab {
+    flex-direction: column;
+    margin-bottom: 1rem;
+  }
+
+  .estadisticas-card-cab .estadisticas-pill-switch,
+  .estadisticas-card-cab .estadisticas-btn-exportar {
+    align-self: flex-start;
+  }
+
+  .estadisticas-chart {
+    height: 240px;
   }
 
   .cumplimiento-metricas-grid {
@@ -533,5 +603,16 @@
 @media (max-width: 480px) {
   .estadisticas-kpis-grid {
     grid-template-columns: 1fr !important;
+  }
+
+  .estadisticas-chart--sectores {
+    height: 260px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .estadisticas-seccion.is-visible .estadisticas-kpi-card,
+  .estadisticas-seccion.is-visible .estadisticas-chart .recharts-bar-rectangle path {
+    animation: none;
   }
 }

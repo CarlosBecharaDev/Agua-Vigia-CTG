@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { FC } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { Droplet, Mail, Megaphone, Menu, Waves, X } from 'lucide-react'
@@ -22,12 +22,13 @@ const TITULOS: Record<string, { seccion: string; titulo: string }> = {
 
 export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema, onAbrirSuscripcion }) => {
   const { pathname } = useLocation()
-  const [menuAbierto, setMenuAbierto] = useState(false)
+  const [menuAbiertoEn, setMenuAbiertoEn] = useState<string | null>(null)
+  const menuAbierto = menuAbiertoEn === pathname
+  const setMenuAbierto = useCallback(
+    (abierto: boolean) => setMenuAbiertoEn(abierto ? pathname : null),
+    [pathname],
+  )
   const contexto = TITULOS[pathname] ?? { seccion: 'AguaVigía', titulo: 'Página' }
-
-  useEffect(() => {
-    setMenuAbierto(false)
-  }, [pathname])
 
   useEffect(() => {
     const cerrarConEscape = (evento: KeyboardEvent) => {
@@ -35,7 +36,7 @@ export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema, onAbrirSuscr
     }
     window.addEventListener('keydown', cerrarConEscape)
     return () => window.removeEventListener('keydown', cerrarConEscape)
-  }, [])
+  }, [setMenuAbierto])
 
   return (
     <>

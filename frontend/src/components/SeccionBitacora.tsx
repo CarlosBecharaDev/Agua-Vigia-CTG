@@ -83,6 +83,8 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filtro, setFiltro] = useState<'TODOS' | EstadoServicio>('TODOS')
+  const [entradaActiva, setEntradaActiva] = useState(false)
+  const seccionRef = useRef<HTMLElement>(null)
 
   const cargarEventos = useCallback(async () => {
     setCargando(true)
@@ -98,8 +100,35 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
   }, [])
 
   useEffect(() => {
-    cargarEventos()
-  }, [cargarEventos])
+    let montado = true
+    listarBitacora(40)
+      .then((eventos) => {
+        if (!montado) return
+        setItems(eventos.map(aItemBitacora))
+        setError(null)
+      })
+      .catch((causa) => {
+        if (montado) setError(normalizarErrorApi(causa).detalle)
+      })
+      .finally(() => {
+        if (montado) setCargando(false)
+      })
+    return () => { montado = false }
+  }, [])
+
+  useEffect(() => {
+    const seccion = seccionRef.current
+    if (!seccion || !('IntersectionObserver' in window)) return
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return
+      setEntradaActiva(true)
+      observer.disconnect()
+    }, { threshold: 0.08, rootMargin: '80px 0px' })
+
+    observer.observe(seccion)
+    return () => observer.disconnect()
+  }, [])
 
   const itemsFiltrados = useMemo(() => {
     const porEstado = filtro === 'TODOS' ? items : items.filter((i) => i.estado === filtro)
@@ -107,47 +136,15 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
     return termino ? porEstado.filter((i) => i.titulo.toLowerCase().includes(termino)) : porEstado
   }, [items, filtro, busqueda])
 
-  const itemsCarrusel = itemsFiltrados.length > 1 ? [...itemsFiltrados, ...itemsFiltrados] : itemsFiltrados
-
   const carruselRef = useRef<HTMLDivElement>(null)
-  const interactuandoRef = useRef(false)
   const arrastreRef = useRef<{ activo: boolean; inicioX: number; inicioScroll: number; movio: boolean }>({
     activo: false, inicioX: 0, inicioScroll: 0, movio: false,
   })
   const [arrastrando, setArrastrando] = useState(false)
-  const reanudarTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-
-  useEffect(() => {
-    const el = carruselRef.current
-    if (!el) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-
-    let raf = 0
-    const paso = () => {
-      if (!interactuandoRef.current && el.scrollWidth > el.clientWidth) {
-        const mitad = el.scrollWidth / 2
-        el.scrollLeft += 0.5
-        if (el.scrollLeft >= mitad) el.scrollLeft -= mitad
-      }
-      raf = requestAnimationFrame(paso)
-    }
-    raf = requestAnimationFrame(paso)
-    return () => cancelAnimationFrame(raf)
-  }, [itemsCarrusel.length])
-
-  const pausar = () => {
-    clearTimeout(reanudarTimer.current)
-    interactuandoRef.current = true
-  }
-  const reanudarConDemora = () => {
-    clearTimeout(reanudarTimer.current)
-    reanudarTimer.current = setTimeout(() => { interactuandoRef.current = false }, 1500)
-  }
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     const el = carruselRef.current
     if (!el) return
-    pausar()
     arrastreRef.current = { activo: true, inicioX: e.clientX, inicioScroll: el.scrollLeft, movio: false }
   }
   const onPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
@@ -165,11 +162,15 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
     const el = carruselRef.current
     if (el?.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId)
     arrastreRef.current.activo = false
-    reanudarConDemora()
   }
 
   return (
-    <section id="bitacora" className="bitacora-seccion" aria-label="Bitácora pública de interrupciones del servicio">
+    <section
+      id="bitacora"
+      ref={seccionRef}
+      className={`bitacora-seccion${entradaActiva ? ' is-visible' : ''}`}
+      aria-label="Bitácora pública de interrupciones del servicio"
+    >
       <div className="bitacora-envoltorio">
         {/* Cabecera Apple Pro */}
         <div className="bitacora-cab">
@@ -214,20 +215,23 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
               : 'No hay eventos para este filtro todavía.'}
           </p>
         ) : (
-          <div
-            ref={carruselRef}
-            className={`bitacora-carrusel-pro${arrastrando ? ' is-arrastrando' : ''}`}
-            tabIndex={0}
-            onPointerDown={(e) => { setArrastrando(true); onPointerDown(e) }}
-            onPointerMove={onPointerMove}
-            onPointerUp={(e) => { setArrastrando(false); onPointerUp(e) }}
-            onPointerCancel={(e) => { setArrastrando(false); onPointerUp(e) }}
-            onMouseEnter={pausar}
-            onMouseLeave={() => { if (!arrastreRef.current.activo) reanudarConDemora() }}
-            onFocus={pausar}
-            onBlur={reanudarConDemora}
-          >
-            {itemsCarrusel.map((item, i) => {
+          <>
+            <div className="bitacora-carrusel-meta">
+              <span>{itemsFiltrados.length} eventos recientes</span>
+              <span>Desliza o arrastra para explorar</span>
+            </div>
+            <div
+              ref={carruselRef}
+              className={`bitacora-carrusel-pro${arrastrando ? ' is-arrastrando' : ''}`}
+              tabIndex={0}
+              role="region"
+              aria-label="Eventos recientes de la bitácora"
+              onPointerDown={(e) => { setArrastrando(true); onPointerDown(e) }}
+              onPointerMove={onPointerMove}
+              onPointerUp={(e) => { setArrastrando(false); onPointerUp(e) }}
+              onPointerCancel={(e) => { setArrastrando(false); onPointerUp(e) }}
+            >
+            {itemsFiltrados.map((item) => {
               const Icono = ICONO_POR_ESTADO[item.estado]
               const color = COLOR_POR_ESTADO[item.estado].claro
               const badgeClass =
@@ -248,7 +252,7 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
 
               return (
                 <div
-                  key={`${item.id}-${i}`}
+                  key={item.id}
                   className="bitacora-tarjeta-pro"
                   style={{ '--color-glow': color } as CSSProperties}
                   onPointerMove={(e) => calcularBrilloBorde(e.currentTarget, e.clientX, e.clientY)}
@@ -280,7 +284,8 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
                 </div>
               )
             })}
-          </div>
+            </div>
+          </>
         )}
       </div>
     </section>

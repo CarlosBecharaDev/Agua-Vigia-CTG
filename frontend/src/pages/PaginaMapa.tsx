@@ -57,6 +57,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
   const [sectorReporte, setSectorReporte] = useState<string>('')
   const [busqueda, setBusqueda] = useState<string>('')
   const [filtroPanel, setFiltroPanel] = useState<'estado' | 'sector'>('estado')
+  const [direccionCarrusel, setDireccionCarrusel] = useState(1)
   const [panelColapsado, setPanelColapsado] = useState(false)
   const [busquedaBitacora, setBusquedaBitacora] = useState<string>('')
   const [seccionActiva, setSeccionActiva] = useState<'mapa' | 'bitacora' | 'estadisticas' | 'veedor'>('mapa')
@@ -70,6 +71,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
   ]
 
   const alSeleccionarSector = useCallback((sector: Sector | null) => {
+    setDireccionCarrusel(sector ? 1 : -1)
     setSectorActivo(sector)
   }, [])
 
@@ -215,7 +217,11 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
                     { href: '#por-sector', label: 'Por sector' },
                   ]}
                   activeIndex={filtroPanel === 'estado' ? 0 : 1}
-                  onSelect={(indice) => setFiltroPanel(indice === 0 ? 'estado' : 'sector')}
+                  onSelect={(indice) => {
+                    const siguiente = indice === 0 ? 'estado' : 'sector'
+                    setDireccionCarrusel(siguiente === 'sector' ? 1 : -1)
+                    setFiltroPanel(siguiente)
+                  }}
                 />
               </div>
             </div>
@@ -230,10 +236,12 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
               <CarruselSector
                 className={`carrusel-sector${filtroPanel === 'estado' && !sectorActivo ? ' carrusel-sector--centrado' : ''}`}
                 vista={sectorActivo ? 'detalle' : filtroPanel}
+                direccion={direccionCarrusel}
               >
                 {sectorActivo ? (
                   <Suspense fallback={null}>
                     <PanelDetalleSector
+                      key={sectorActivo.id}
                       sector={sectorActivo}
                       boletines={boletines}
                       onCerrar={() => alSeleccionarSector(null)}
@@ -280,12 +288,14 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
 
       <PieDePagina />
 
-      <ModalReporte
-        abierto={modalAbierto}
-        alCerrar={() => setModalAbierto(false)}
-        sectores={sectores}
-        sectorPreseleccionado={sectorReporte}
-      />
+      {modalAbierto && (
+        <ModalReporte
+          abierto
+          alCerrar={() => setModalAbierto(false)}
+          sectores={sectores}
+          sectorPreseleccionado={sectorReporte}
+        />
+      )}
 
       <ModalSuscripcion
         abierto={suscripcionAbierta}

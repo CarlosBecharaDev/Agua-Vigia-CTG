@@ -103,11 +103,7 @@ export const BuscadorBarrios: FC<Props> = ({
       })
   }, [sectores, busqueda])
 
-  // El índice resaltado por teclado no sobrevive a un resultado que ya no existe (p.ej. si
-  // se sigue escribiendo y la lista se acorta).
-  useEffect(() => {
-    setIndiceSeleccionado(-1)
-  }, [sectoresOrdenados])
+  const indiceVisible = indiceSeleccionado < sectoresOrdenados.length ? indiceSeleccionado : -1
 
   const elegirSector = useCallback(
     (sector: Sector) => {
@@ -133,12 +129,12 @@ export const BuscadorBarrios: FC<Props> = ({
       } else if (e.key === 'ArrowUp') {
         e.preventDefault()
         setIndiceSeleccionado((i) => Math.max(i - 1, 0))
-      } else if (e.key === 'Enter' && indiceSeleccionado >= 0) {
+      } else if (e.key === 'Enter' && indiceVisible >= 0) {
         e.preventDefault()
-        elegirSector(sectoresOrdenados[indiceSeleccionado])
+        elegirSector(sectoresOrdenados[indiceVisible])
       }
     },
-    [sectoresOrdenados, indiceSeleccionado, elegirSector]
+    [sectoresOrdenados, indiceVisible, elegirSector]
   )
 
   // Mantiene la fila resaltada por teclado dentro del área visible del desplegable.
@@ -157,7 +153,10 @@ export const BuscadorBarrios: FC<Props> = ({
           placeholder="Buscar barrio..."
           aria-label="Buscar barrio"
           value={busqueda}
-          onChange={(e) => onCambiarBusqueda(e.target.value)}
+          onChange={(e) => {
+            setIndiceSeleccionado(-1)
+            onCambiarBusqueda(e.target.value)
+          }}
           onFocus={() => setAbierto(true)}
           onBlur={() => setAbierto(false)}
           onKeyDown={alPresionarTecla}
@@ -192,7 +191,7 @@ export const BuscadorBarrios: FC<Props> = ({
                       key={sector.id}
                       sector={sector}
                       indice={indice}
-                      seleccionado={indiceSeleccionado === indice}
+                      seleccionado={indiceVisible === indice}
                       onEnfocar={() => setIndiceSeleccionado(indice)}
                       onElegir={() => elegirSector(sector)}
                     />
