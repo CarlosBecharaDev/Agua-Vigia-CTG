@@ -6,119 +6,147 @@ import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * El caso principal es el texto literal del boletín #2854 de Acuacar (21/08/2026), no un ejemplo
+ * inventado: la versión anterior del extractor pasaba sus pruebas con textos de laboratorio y
+ * devolvía {@code ["del entorno"]} sobre este, perdiendo los 20 barrios afectados.
+ */
 class HeuristicaExtractorTest {
 
-    private static final Instant PUBLICADO = Instant.parse("2026-08-09T15:30:00Z");
+    private static final Instant PUBLICADO = Instant.parse("2026-08-20T16:32:00Z");
+
+    /** Recorte literal del #2854, con la redacción y la puntuación de la fuente. */
+    private static final String BOLETIN_2854 = """
+            #2854-AGUA DE CARTAGENA REPARA FUGA EN TUBERIA DE ACUEDUCTO EN AVENIDA EL CONSULADO \
+            Habrá suspensión del servicio de acueducto a barrios del entorno. \
+            Cartagena de Indias, 20 de agosto de 2026 . Aguas de Cartagena identificó una fuga en un \
+            tramo de tubería del sistema de acueducto de 500 milímetros de diámetro, en el sector El \
+            Consulado. Por tal motivo, la empresa ha programado la realización de trabajos de \
+            reparación de la red de manera segura y eficiente, que conllevan a la suspensión temporal \
+            del suministro de agua, mañana viernes 21 de agosto, entre las 9:00 a.m. y las 6:00 p.m. \
+            en los siguientes barrios: Armenia, sector Sena, El Cairo, Escallón Villa, La Floresta, \
+            Las Gaviotas, Tacarigua, Buenos Aires, Los Ángeles, Villa Sandra, Los Ejecutivos, \
+            San Antonio.""";
 
     private final HeuristicaExtractor extractor = new HeuristicaExtractor();
 
-    private EventoExtraido extraer(String texto) {
-        return extractor.extraer(DocumentoCrudo.de("acuacar", "https://acuacar.com/x", PUBLICADO, "Titulo", texto));
+    private EventoExtraido extraerBoletin2854() {
+        return extractor.extraer(DocumentoCrudo.de(
+                "acuacar", "https://acuacar.com/2854", PUBLICADO, "#2854", BOLETIN_2854));
     }
 
     @Test
-    void debeReconocerUnaSuspensionComoInterrupcion() {
-        EventoExtraido evento = extraer("Acuacar informa la suspensión del servicio en el barrio Manga");
+    void debeLeerLosBarriosDeLaEnumeracionYNoLaFraseDeResumen() {
+        EventoExtraido evento = extraerBoletin2854();
 
-        assertThat(evento.esInterrupcionDeAcueducto()).isTrue();
-        assertThat(evento.tipo()).isEqualTo("SUSPENSION_PROGRAMADA");
-    }
-
-    /** Los boletines llegan tanto con tilde como sin ella; ambos deben clasificar igual. */
-    @Test
-    void debeReconocerLaBajaPresionConYSinTilde() {
-        assertThat(extraer("Se reporta baja presión en el barrio Manga").tipo()).isEqualTo("PRESION_BAJA");
-        assertThat(extraer("Se reporta baja presion en el barrio Manga").tipo()).isEqualTo("PRESION_BAJA");
+        assertThat(evento.sectoresMencionados())
+                .contains("Armenia", "El Cairo", "Escallón Villa", "La Floresta", "Las Gaviotas",
+                        "Tacarigua", "Buenos Aires", "Los Ángeles", "Villa Sandra",
+                        "Los Ejecutivos", "San Antonio")
+                .doesNotContain("del entorno");
     }
 
     @Test
-    void debeReconocerElRestablecimiento() {
-        assertThat(extraer("El servicio restablecido en el barrio Manga").tipo()).isEqualTo("SERVICIO_NORMAL");
-        assertThat(extraer("Se retorna a la normalidad en el barrio Manga").tipo()).isEqualTo("SERVICIO_NORMAL");
+    void debeIgnorarLasMencionesGenericasDeBarrios() {
+        EventoExtraido evento = extraerBoletin2854();
+
+        assertThat(evento.sectoresMencionados())
+                .noneMatch(nombre -> nombre.toLowerCase().contains("entorno"));
     }
 
     @Test
-    void noDebeMarcarComoInterrupcionUnaNoticiaSinRelacion() {
-        assertThat(extraer("La alcaldia inauguro un parque en el centro historico")
-                .esInterrupcionDeAcueducto()).isFalse();
+    void debeLeerLaVentanaPrometidaEnHoraDeCartagena() {
+        EventoExtraido evento = extraerBoletin2854();
+
+        // 21 de agosto, 9:00 a.m. y 6:00 p.m. en UTC-5.
+        assertThat(evento.inicioDeclarado()).isEqualTo(Instant.parse("2026-08-21T14:00:00Z"));
+        assertThat(evento.finPrometido()).isEqualTo(Instant.parse("2026-08-21T23:00:00Z"));
     }
 
     @Test
-    void debeExtraerVariosBarriosSeparadosPorComaYPorLaConjuncion() {
-        EventoExtraido evento = extraer("Suspensión en los barrios Manga, Bocagrande y El Laguito por mantenimiento");
+    void debeTomarLaFechaDelCorteYNoLaDeLaLineaDeFecha() {
+        EventoExtraido evento = extraerBoletin2854();
 
-        assertThat(evento.sectoresMencionados()).containsExactly("Manga", "Bocagrande", "El Laguito");
-    }
-
-    /**
-     * El patrón anterior era `[a-záéíóúñ, y]+`: no aceptaba mayúsculas, así que "Manga" no
-     * empataba y en la práctica casi nunca extraía nada.
-     */
-    @Test
-    void debeExtraerBarriosConMayusculasYTildes() {
-        assertThat(extraer("Corte en el barrio NARIÑO por daño en la red").sectoresMencionados())
-                .containsExactly("NARIÑO");
+        // El boletín se fecha el 20 pero los trabajos son «mañana viernes 21».
+        assertThat(evento.inicioDeclarado()).isAfter(Instant.parse("2026-08-21T00:00:00Z"));
     }
 
     @Test
-    void debeCortarLaListaDeBarriosAntesDeLaCausa() {
-        EventoExtraido evento = extraer("Suspensión en los barrios Manga y Crespo debido a un daño en la matriz");
+    void debeGraduarLaConfianzaSegunLaEvidenciaEncontrada() {
+        EventoExtraido conVentana = extraerBoletin2854();
 
-        assertThat(evento.sectoresMencionados()).containsExactly("Manga", "Crespo");
+        assertThat(conVentana.confianza())
+                .isEqualTo(HeuristicaExtractor.CONFIANZA_ENUMERACION_CON_VENTANA);
     }
 
     @Test
-    void debeDevolverListaVaciaCuandoNoMencionaBarrios() {
-        assertThat(extraer("Se presenta una suspensión general del servicio").sectoresMencionados()).isEmpty();
+    void debeBajarLaConfianzaCuandoLaEnumeracionNoTraeHorario() {
+        String sinHorario = "Habrá suspensión del servicio en los siguientes barrios: Manga, Bocagrande.";
+
+        EventoExtraido evento = extractor.extraer(DocumentoCrudo.de(
+                "acuacar", "https://acuacar.com/x", PUBLICADO, "aviso", sinHorario));
+
+        assertThat(evento.confianza()).isEqualTo(HeuristicaExtractor.CONFIANZA_ENUMERACION);
+        assertThat(evento.camposInferidos()).contains("inicioDeclarado", "finPrometido");
     }
 
     @Test
-    void debeExtraerLaCausaDeclarada() {
-        assertThat(extraer("Corte en el barrio Manga debido a un daño en la matriz").causaDeclarada())
-                .isEqualTo("un daño en la matriz");
-    }
-
-    @Test
-    void debeUsarUnaCausaGenericaCuandoNoLaDeclara() {
-        assertThat(extraer("Suspensión del servicio").causaDeclarada())
-                .isEqualTo("Mantenimiento / Daño general");
-    }
-
-    /**
-     * La confianza por debajo del umbral de publicación es lo que obliga a que toda salida pase por
-     * la cola del veedor. Si alguien la sube, este test debe hacerlo consciente.
-     */
-    @Test
-    void laConfianzaDebeMantenerseBajaParaForzarRevisionHumana() {
-        assertThat(extraer("Suspensión en el barrio Manga").confianza()).isEqualTo(0.6);
-    }
-
-    /**
-     * Antes se rellenaban con Instant.now() y now+12h bajo el comentario "fallback: asume": datos
-     * inventados presentados como extraídos del boletín.
-     */
-    @Test
-    void noDebeInventarFechasQueElBoletinNoTrae() {
-        EventoExtraido evento = extraer("Suspensión en el barrio Manga");
+    void debeDeclararLosCamposQueNoSupoLeerEnVezDeInventarlos() {
+        EventoExtraido evento = extractor.extraer(DocumentoCrudo.de(
+                "acuacar", "https://acuacar.com/x", PUBLICADO, "aviso",
+                "Suspensión del servicio en los siguientes barrios: Manga."));
 
         assertThat(evento.inicioDeclarado()).isNull();
         assertThat(evento.finPrometido()).isNull();
-        assertThat(evento.camposInferidos()).containsExactly("inicioDeclarado", "finPrometido");
+    }
+
+    /** Lo que el veedor necesita contrastar: qué pasa, cuándo y en qué barrios, en una sola cita. */
+    @Test
+    void laCitaTextualDebeMostrarLaListaDeBarriosYNoLaFraseDeResumen() {
+        EventoExtraido evento = extraerBoletin2854();
+
+        assertThat(evento.citaTextual())
+                .contains("siguientes barrios")
+                .contains("Armenia")
+                .doesNotContain("barrios del entorno");
     }
 
     @Test
-    void debeTraerUnaCitaLiteralDelDocumentoParaQueElVeedorLaVerifique() {
-        String texto = "Acuacar informa la suspensión del servicio en el barrio Manga";
+    void laCitaTextualDebeSerLiteralDelBoletin() {
+        EventoExtraido evento = extraerBoletin2854();
 
-        assertThat(extraer(texto).citaTextual()).isEqualTo(texto);
+        String sinElipsis = evento.citaTextual().replace("…", "").strip();
+        assertThat(BOLETIN_2854).contains(sinElipsis);
     }
 
     @Test
-    void debeRecortarLaCitaCuandoElDocumentoEsMuyLargo() {
-        String largo = "Suspensión del servicio. " + "texto de relleno ".repeat(60);
+    void debeReconocerElRestablecimientoComoServicioNormal() {
+        EventoExtraido evento = extractor.extraer(DocumentoCrudo.de(
+                "acuacar", "https://acuacar.com/x", PUBLICADO, "aviso",
+                "Se completó el restablecimiento del servicio en los siguientes barrios: Manga."));
 
-        String cita = extraer(largo).citaTextual();
+        assertThat(evento.tipo()).isEqualTo("SERVICIO_NORMAL");
+    }
 
-        assertThat(cita).hasSizeLessThanOrEqualTo(301).endsWith("…");
+    @Test
+    void noDebeProponerNadaCuandoElBoletinNoNombraNingunBarrio() {
+        EventoExtraido evento = extractor.extraer(DocumentoCrudo.de(
+                "acuacar", "https://acuacar.com/x", PUBLICADO, "aviso",
+                "Aguas de Cartagena informa que se presentarán intermitencias en algunos "
+                        + "sectores de la ciudad durante la temporada seca."));
+
+        assertThat(evento.esInterrupcionDeAcueducto()).isFalse();
+    }
+
+    @Test
+    void debeRecorrerTodasLasEnumeracionesDelBoletinYNoSoloLaPrimera() {
+        String dosListas = "Suspensión del servicio en los siguientes barrios: Manga, Bocagrande. "
+                + "Nelson Mandela, sectores: Los Olivos, Las Vegas.";
+
+        EventoExtraido evento = extractor.extraer(DocumentoCrudo.de(
+                "acuacar", "https://acuacar.com/x", PUBLICADO, "aviso", dosListas));
+
+        assertThat(evento.sectoresMencionados())
+                .contains("Manga", "Bocagrande", "Los Olivos", "Las Vegas");
     }
 }

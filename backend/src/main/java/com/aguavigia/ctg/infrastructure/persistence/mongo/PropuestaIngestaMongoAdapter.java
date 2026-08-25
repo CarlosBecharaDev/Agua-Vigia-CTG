@@ -12,6 +12,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -35,6 +37,8 @@ public class PropuestaIngestaMongoAdapter implements PropuestaIngestaRepository 
         documento.setConfianza(propuesta.confianza());
         documento.setDetectadaEn(propuesta.detectadaEn());
         documento.setEstadoRevision(propuesta.estadoRevision().name());
+        documento.setInicioDeclarado(propuesta.inicioDeclarado());
+        documento.setFinPrometido(propuesta.finPrometido());
 
         repositorio.save(documento);
         return propuesta;
@@ -74,6 +78,18 @@ public class PropuestaIngestaMongoAdapter implements PropuestaIngestaRepository 
                 documento.getCitaTextual(),
                 documento.getConfianza(),
                 documento.getDetectadaEn(),
-                EstadoRevision.valueOf(documento.getEstadoRevision()));
+                EstadoRevision.valueOf(documento.getEstadoRevision()),
+                documento.getInicioDeclarado(),
+                documento.getFinPrometido());
+    }
+
+    @Override
+    public List<PropuestaIngesta> listarAprobadasConVentanaVigente(Instant finDesde) {
+        return repositorio
+                .findByEstadoRevisionAndInicioDeclaradoNotNullAndFinPrometidoGreaterThanEqual(
+                        EstadoRevision.APROBADA.name(), finDesde)
+                .stream()
+                .map(PropuestaIngestaMongoAdapter::aDominio)
+                .toList();
     }
 }

@@ -26,9 +26,14 @@ interface ItemBitacora {
   id: string
   titulo: string
   fecha: string
-  estado: EstadoServicio
-  tipo: TipoEventoBitacora
+  /** `null` = el backend mandó un tipo que no habla del servicio (un premio, la calidad del
+   *  agua, un programa ambiental). Antes esos caían por defecto en CORTE_PROGRAMADO y la
+   *  bitácora los anunciaba como si fueran un corte; ahora se listan como lo que son. */
+  estado: EstadoServicio | null
+  tipo: TipoEventoBitacora | string
 }
+
+const INFORMATIVO = { claro: '#6B7A85', etiqueta: 'Informativo', icono: Info } as const
 
 const ICONO_POR_ESTADO: Record<EstadoServicio, typeof AlertTriangle> = {
   SIN_SERVICIO: AlertTriangle,
@@ -73,8 +78,8 @@ function aItemBitacora(evento: EventoBitacora): ItemBitacora {
     id: evento.id,
     titulo: evento.descripcion,
     fecha: evento.timestamp,
-    estado: ESTADO_POR_TIPO[evento.tipo as TipoEventoBitacora] ?? 'CORTE_PROGRAMADO',
-    tipo: evento.tipo as TipoEventoBitacora,
+    estado: ESTADO_POR_TIPO[evento.tipo as TipoEventoBitacora] ?? null,
+    tipo: evento.tipo,
   }
 }
 
@@ -232,10 +237,13 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
               onPointerCancel={(e) => { setArrastrando(false); onPointerUp(e) }}
             >
             {itemsFiltrados.map((item) => {
-              const Icono = ICONO_POR_ESTADO[item.estado]
-              const color = COLOR_POR_ESTADO[item.estado].claro
+              const Icono = item.estado ? ICONO_POR_ESTADO[item.estado] : INFORMATIVO.icono
+              const paleta = item.estado ? COLOR_POR_ESTADO[item.estado] : INFORMATIVO
+              const color = paleta.claro
               const badgeClass =
-                item.estado === 'SIN_SERVICIO'
+                item.estado === null
+                  ? 'badge-informativo'
+                  : item.estado === 'SIN_SERVICIO'
                   ? 'badge-sin-servicio'
                   : item.estado === 'PRESION_BAJA'
                   ? 'badge-presion-baja'
@@ -248,7 +256,9 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
                   ? 'Masa crítica ciudadana'
                   : item.tipo === 'CORTE_ANUNCIADO'
                   ? 'Aviso preventivo oficial'
-                  : 'Servicio normalizado'
+                  : item.tipo === 'CORTE_RESTABLECIDO'
+                  ? 'Servicio normalizado'
+                  : 'Boletín informativo'
 
               return (
                 <div
@@ -262,7 +272,7 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
                     <div className="bitacora-tarjeta-cabecera">
                       <span className={`bitacora-badge-estado ${badgeClass}`}>
                         <Icono size={14} aria-hidden="true" />
-                        {COLOR_POR_ESTADO[item.estado].etiqueta}
+                        {paleta.etiqueta}
                       </span>
                       <time className="bitacora-tiempo-pro" dateTime={item.fecha}>
                         {formatearFechaRelativa(item.fecha)}

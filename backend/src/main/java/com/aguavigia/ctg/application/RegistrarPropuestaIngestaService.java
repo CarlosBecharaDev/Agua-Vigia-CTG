@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,7 +40,8 @@ public class RegistrarPropuestaIngestaService implements RegistrarPropuestaInges
     @Override
     public Optional<PropuestaIngesta> registrar(SectorId sectorId, EstadoServicio estadoPropuesto,
                                                  String fuente, String urlOriginal, String citaTextual,
-                                                 double confianza) {
+                                                 double confianza, Instant inicioDeclarado,
+                                                 Instant finPrometido) {
         // Un nombre extraido de una nota de prensa no tiene por que ser un barrio de Cartagena.
         // Se descarta en silencio (log a nivel debug) porque es el caso normal, no una anomalia.
         if (sectores.buscarPorId(sectorId).isEmpty()) {
@@ -61,7 +63,9 @@ public class RegistrarPropuestaIngestaService implements RegistrarPropuestaInges
                 urlOriginal,
                 citaTextual,
                 confianza,
-                reloj.ahora());
+                reloj.ahora(),
+                inicioDeclarado,
+                finPrometido);
 
         log.info("Propuesta de ingesta registrada: {} en '{}' (fuente: {})",
                 estadoPropuesto, sectorId.valor(), fuente);

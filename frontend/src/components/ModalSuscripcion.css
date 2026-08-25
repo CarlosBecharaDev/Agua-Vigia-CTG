@@ -251,6 +251,50 @@
   color: rgba(148, 163, 184, 0.6);
 }
 
+/* ── Detección de barrio por GPS ── */
+.form-suscripcion-ubicacion-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  justify-content: center;
+  padding: 0.6rem 1rem;
+  margin-bottom: 0.55rem;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(192, 132, 252, 0.3);
+  border-radius: 12px;
+  color: #d8b4fe;
+  font-size: 0.84rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.form-suscripcion-ubicacion-btn:hover:not(:disabled) {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: rgba(192, 132, 252, 0.5);
+}
+
+.form-suscripcion-ubicacion-btn:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.form-suscripcion-ubicacion-nota,
+.form-suscripcion-ubicacion-error {
+  margin: 0 0 0.55rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.form-suscripcion-ubicacion-nota {
+  color: rgba(216, 180, 254, 0.8);
+}
+
+.form-suscripcion-ubicacion-error {
+  color: #fca5a5;
+}
+
 /* ── Buscador y Lista de Barrios ── */
 .form-suscripcion-barrios-search {
   position: relative;

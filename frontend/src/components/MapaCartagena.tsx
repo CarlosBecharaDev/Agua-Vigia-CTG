@@ -308,17 +308,19 @@ export const MapaCartagena: FC<Props> = ({
             // varios tooltips pegados a la vez ("spam"). El detalle ahora es solo por click
             // — el sector seleccionado se muestra en PanelDetalleSector, en el panel lateral.
             layer.on('click', () => {
-              // Si el barrio no está en la BD, lo generamos al vuelo como CON_SERVICIO
-              const sectorClick = sector || {
+              // Un barrio del GeoJSON que el backend no conoce se muestra SIN DATO, no con agua.
+              // Antes se fabricaba aquí como CON_SERVICIO y con `actualizadoEn: new Date()`, así
+              // que el panel afirmaba «servicio normal, actualizado en este momento» sobre un
+              // barrio del que no se sabía absolutamente nada. Es el falso positivo que ADR-014
+              // prohíbe y la razón por la que `estado` es nulable en el contrato.
+              const sectorClick: Sector = sector ?? {
                 id: `geo-${normalizarNombre(nombre)}`,
-                nombre: nombre,
-                estado: 'CON_SERVICIO',
-                reportesActivos: 0,
-                actualizadoHace: 'En este momento',
-                actualizadoEn: new Date().toISOString()
-              };
+                nombre,
+                estado: null,
+                actualizadoEn: null,
+              }
 
-              onSectorSeleccionado?.(sectorClick as Sector)
+              onSectorSeleccionado?.(sectorClick)
             })
 
             layer.on('mouseover', (e) => {

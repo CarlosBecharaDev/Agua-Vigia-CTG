@@ -33,7 +33,13 @@ import java.util.List;
 public class PipelineOrquestador {
 
     private static final Logger log = LoggerFactory.getLogger(PipelineOrquestador.class);
-    private static final Duration VENTANA_DE_BUSQUEDA = Duration.ofDays(1);
+    /**
+     * Siete días, no uno. Acuacar publica cada 3–7 días: medido sobre su API el 22/08/2026, la
+     * ventana de un día devolvía 0 documentos mientras el boletín más reciente —una suspensión real
+     * en 20 barrios— tenía 34 horas. El ciclo corría cada 10 minutos contra el vacío. El
+     * deduplicador (7 días) evita que reprocesar la misma ventana genere propuestas repetidas.
+     */
+    private static final Duration VENTANA_DE_BUSQUEDA = Duration.ofDays(7);
 
     private final AcuacarApiCollector acuacarApiCollector;
     private final RssCollector rssCollector;
@@ -74,6 +80,7 @@ public class PipelineOrquestador {
         // una vez por documento que pasara el prefiltro.
         List<Sector> sectores = sectorRepository.listarTodos();
 
+        EmparejadorDeSectores emparejador = new EmparejadorDeSectores(sectores);
         for (DocumentoCrudo documento : documentos) {
             if (deduplicador.yaVistoRecientemente(documento.hash())) {
                 continue;
@@ -81,7 +88,7 @@ public class PipelineOrquestador {
             if (!PrefiltroDeterminista.posibleInterrupcionDeAcueducto(documento.texto())) {
                 continue;
             }
-            procesar(documento, sectores);
+            procesar(documento, emparejador);
         }
     }
 
@@ -116,7 +123,7 @@ public class PipelineOrquestador {
      * durante los 7 días de la ventana del deduplicador, que es el descarte silencioso que RNF006
      * prohíbe.
      */
-    private void procesar(DocumentoCrudo documento, List<Sector> sectores) {
+    private void procesar(DocumentoCrudo documento, EmparejadorDeSectores emparejador) {
         try {
             EventoExtraido evento = extractor.extraer(documento);
             if (!evento.esInterrupcionDeAcueducto()) {
@@ -124,10 +131,22 @@ public class PipelineOrquestador {
                 return;
             }
 
-            EstadoServicio estadoPropuesto = aEstadoServicio(evento.tipo());
-            for (SectorId sectorId : sectoresMencionados(evento, sectores)) {
+            EstadoServicio estadoPropuesto = aEstadoServicio(evento, reloj.ahora());
+            EmparejadorDeSectores.Resultado emparejados =
+                    emparejador.emparejar(evento.sectoresMencionados());
+
+            // RNF006: lo que la fuente nombra y el catálogo no reconoce se deja anotado. Antes
+            // desaparecía sin rastro, y con ello la única señal de que al GeoJSON le faltan barrios.
+            if (!emparejados.noReconocidos().isEmpty()) {
+                log.info("Ingesta de '{}': {} nombre(s) sin sector en el catálogo: {}",
+                        documento.fuente(), emparejados.noReconocidos().size(),
+                        emparejados.noReconocidos());
+            }
+
+            for (SectorId sectorId : emparejados.sectores()) {
                 registrarPropuesta.registrar(sectorId, estadoPropuesto, documento.fuente(),
-                        documento.urlOriginal(), evento.citaTextual(), evento.confianza());
+                        documento.urlOriginal(), evento.citaTextual(), evento.confianza(),
+                        evento.inicioDeclarado(), evento.finPrometido());
             }
             deduplicador.marcarComoVisto(documento.hash());
         } catch (Exception fallo) {
@@ -137,40 +156,26 @@ public class PipelineOrquestador {
     }
 
     /**
-     * Coincidencia exacta del nombre normalizado, no `contains`: una mención larga extraída de una
-     * nota de prensa contenía como substring el nombre de decenas de los 211 barrios sembrados, y
-     * un solo artículo podía pintar media Cartagena.
+     * Una suspensión anunciada para mañana es un CORTE_PROGRAMADO, no un SIN_SERVICIO: antes
+     * cualquier aviso caía en el `default` y el mapa pintaba de rojo barrios que en ese momento
+     * tenían agua. La distinción sale de la ventana que el boletín declara; si no la declara, se
+     * mantiene el estado del tipo de evento en vez de suponer un horario.
      */
-    private static List<SectorId> sectoresMencionados(EventoExtraido evento, List<Sector> sectores) {
-        List<SectorId> encontrados = new ArrayList<>();
-        for (String mencionado : evento.sectoresMencionados()) {
-            String normalizado = normalizarParaComparacion(mencionado);
-            sectores.stream()
-                    .filter(sector -> normalizarParaComparacion(sector.nombre()).equals(normalizado))
-                    .map(Sector::id)
-                    .forEach(encontrados::add);
-        }
-        return encontrados;
-    }
-
-    private static EstadoServicio aEstadoServicio(String tipoDeEvento) {
-        return switch (tipoDeEvento) {
+    private static EstadoServicio aEstadoServicio(EventoExtraido evento, Instant ahora) {
+        return switch (evento.tipo()) {
             case "PRESION_BAJA" -> EstadoServicio.PRESION_BAJA;
             case "SERVICIO_NORMAL" -> EstadoServicio.CON_SERVICIO;
-            default -> EstadoServicio.SIN_SERVICIO;
+            default -> {
+                Instant inicio = evento.inicioDeclarado();
+                Instant fin = evento.finPrometido();
+                if (inicio != null && ahora.isBefore(inicio)) {
+                    yield EstadoServicio.CORTE_PROGRAMADO;
+                }
+                if (fin != null && !ahora.isBefore(fin)) {
+                    yield EstadoServicio.CON_SERVICIO;
+                }
+                yield EstadoServicio.SIN_SERVICIO;
+            }
         };
-    }
-
-    private static String normalizarParaComparacion(String texto) {
-        if (texto == null) {
-            return "";
-        }
-        return texto.toLowerCase()
-                .replaceAll("[áàäâ]", "a")
-                .replaceAll("[éèëê]", "e")
-                .replaceAll("[íìïî]", "i")
-                .replaceAll("[óòöô]", "o")
-                .replaceAll("[úùüû]", "u")
-                .replaceAll("[^a-z0-9]", "");
     }
 }

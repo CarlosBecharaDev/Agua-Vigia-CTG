@@ -4,6 +4,7 @@ import com.aguavigia.ctg.domain.EstadoServicio;
 import com.aguavigia.ctg.domain.PropuestaIngesta;
 import com.aguavigia.ctg.domain.SectorId;
 
+import java.time.Instant;
 import java.util.Optional;
 
 /** M9 — lo que el pipeline de ingesta llama en vez de escribir el estado del sector. */
@@ -16,5 +17,6 @@ public interface RegistrarPropuestaIngestaUseCase {
      */
     Optional<PropuestaIngesta> registrar(SectorId sectorId, EstadoServicio estadoPropuesto,
                                           String fuente, String urlOriginal, String citaTextual,
-                                          double confianza);
+                                          double confianza, Instant inicioDeclarado,
+                                          Instant finPrometido);
 }

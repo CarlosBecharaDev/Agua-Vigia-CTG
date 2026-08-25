@@ -1,10 +1,15 @@
 import { useMemo, useState } from 'react'
 import type { FC, FormEvent } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { CheckCircle2, Mail, Search, Send, X } from 'lucide-react'
+import { CheckCircle2, LocateFixed, Mail, Search, Send, X } from 'lucide-react'
 import { crearSuscripcion } from '../api/services'
 import { normalizarErrorApi } from '../api/client'
 import type { Sector } from '../types/tipos-dominio'
+import {
+  detectarBarrioPorCoordenada,
+  emparejarSectorPorNombreBarrio,
+  obtenerCoordenadaDelNavegador,
+} from '../utils/detectarSectorPorUbicacion'
 
 interface Props {
   sectores: Sector[]
@@ -15,6 +20,9 @@ export const FormularioSuscripcion: FC<Props> = ({ sectores, onFinalizado }) => 
   const [correo, setCorreo] = useState('')
   const [sectorIds, setSectorIds] = useState<string[]>([])
   const [busqueda, setBusqueda] = useState('')
+  const [detectando, setDetectando] = useState(false)
+  const [errorUbicacion, setErrorUbicacion] = useState<string | null>(null)
+  const [barrioDetectado, setBarrioDetectado] = useState<string | null>(null)
   const opciones = useMemo(() => [...sectores].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')), [sectores])
   const opcionesVisibles = useMemo(() => {
     const termino = busqueda.trim().toLocaleLowerCase('es')
@@ -22,6 +30,25 @@ export const FormularioSuscripcion: FC<Props> = ({ sectores, onFinalizado }) => 
   }, [busqueda, opciones])
 
   const mutacion = useMutation({ mutationFn: crearSuscripcion })
+
+  const detectarUbicacion = async () => {
+    setDetectando(true)
+    setErrorUbicacion(null)
+    setBarrioDetectado(null)
+    try {
+      const coordenada = await obtenerCoordenadaDelNavegador()
+      const nombreBarrio = await detectarBarrioPorCoordenada(coordenada.latitude, coordenada.longitude)
+      if (!nombreBarrio) throw new Error('No identificamos tu barrio dentro de Cartagena. Elígelo de la lista.')
+      const sector = emparejarSectorPorNombreBarrio(opciones, nombreBarrio)
+      if (!sector) throw new Error(`Detectamos "${nombreBarrio}", pero todavía no está en la lista. Elígelo manualmente.`)
+      setSectorIds((actual) => (actual.includes(sector.id) ? actual : [...actual, sector.id]))
+      setBarrioDetectado(sector.nombre)
+    } catch (causa) {
+      setErrorUbicacion(causa instanceof Error ? causa.message : 'No pudimos detectar tu barrio.')
+    } finally {
+      setDetectando(false)
+    }
+  }
 
   const enviar = (event: FormEvent) => {
     event.preventDefault()
@@ -100,6 +127,24 @@ export const FormularioSuscripcion: FC<Props> = ({ sectores, onFinalizado }) => 
             )}
           </div>
         </div>
+
+        <button
+          type="button"
+          className="form-suscripcion-ubicacion-btn"
+          onClick={() => void detectarUbicacion()}
+          disabled={detectando}
+        >
+          <LocateFixed size={16} aria-hidden="true" />
+          <span>{detectando ? 'Detectando tu barrio…' : 'Usar mi ubicación automáticamente'}</span>
+        </button>
+        {barrioDetectado && (
+          <p className="form-suscripcion-ubicacion-nota">
+            Detectamos que estás en <strong>{barrioDetectado}</strong> y lo agregamos abajo.
+          </p>
+        )}
+        {errorUbicacion && (
+          <p className="form-suscripcion-ubicacion-error" role="alert">{errorUbicacion}</p>
+        )}
 
         {/* Buscador de barrios */}
         <div className="form-suscripcion-barrios-search">

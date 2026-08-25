@@ -761,13 +761,28 @@ export interface components {
             citaTextual?: string;
             /**
              * Format: double
-             * @description Entre 0 y 1. La heurística por expresiones regulares emite 0.6 (ADR-025)
+             * @description Entre 0 y 1, graduada según la evidencia que halló el extractor (ADR-032): 0.85 con
+             *     enumeración explícita de barrios y horario, 0.75 con enumeración sin horario, 0.45
+             *     con una mención suelta en prosa. Sirve para ordenar la cola, no para publicar solo.
              */
             confianza?: number;
             /** Format: date-time */
             detectadaEn?: string;
             /** @description PENDIENTE, APROBADA o DESCARTADA */
             estadoRevision?: string;
+            /**
+             * Format: date-time
+             * @description Inicio de la ventana que el boletín prometió. Nulo cuando el texto no la declaraba:
+             *     no se estima (ADR-006).
+             */
+            inicioDeclarado?: string | null;
+            /**
+             * Format: date-time
+             * @description Fin prometido de la misma ventana. Junto con el inicio es lo que permite que el
+             *     estado del sector evolucione solo (ADR-033) y lo que alimenta el Índice de
+             *     Cumplimiento (RF020-RF022).
+             */
+            finPrometido?: string | null;
         };
         /** @description Cierre de un corte con la hora real de restablecimiento (RF017) */
         SolicitudCierreCorte: {

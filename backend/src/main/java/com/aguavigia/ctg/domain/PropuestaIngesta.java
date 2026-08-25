@@ -24,9 +24,16 @@ public record PropuestaIngesta(
         String citaTextual,
         double confianza,
         Instant detectadaEn,
-        EstadoRevision estadoRevision) {
+        EstadoRevision estadoRevision,
+        Instant inicioDeclarado,
+        Instant finPrometido) {
 
     public PropuestaIngesta {
+        if (inicioDeclarado != null && finPrometido != null && !finPrometido.isAfter(inicioDeclarado)) {
+            throw new IllegalArgumentException(
+                    "La ventana declarada debe terminar después de empezar: " + inicioDeclarado
+                            + " → " + finPrometido);
+        }
         if (sectorId == null) {
             throw new IllegalArgumentException("La propuesta debe apuntar a un sector");
         }
@@ -52,7 +59,36 @@ public record PropuestaIngesta(
                              String fuente, String urlOriginal, String citaTextual,
                              double confianza, Instant detectadaEn) {
         this(id, sectorId, estadoPropuesto, fuente, urlOriginal, citaTextual, confianza, detectadaEn,
-                EstadoRevision.PENDIENTE);
+                EstadoRevision.PENDIENTE, null, null);
+    }
+
+    /** Con la ventana que el boletín prometió, cuando el extractor logró leerla (RF020–RF022). */
+    public PropuestaIngesta(PropuestaId id, SectorId sectorId, EstadoServicio estadoPropuesto,
+                             String fuente, String urlOriginal, String citaTextual,
+                             double confianza, Instant detectadaEn,
+                             Instant inicioDeclarado, Instant finPrometido) {
+        this(id, sectorId, estadoPropuesto, fuente, urlOriginal, citaTextual, confianza, detectadaEn,
+                EstadoRevision.PENDIENTE, inicioDeclarado, finPrometido);
+    }
+
+    /**
+     * Qué estado le corresponde al sector <b>en este instante</b> según la ventana prometida. Es lo
+     * que permite que un corte anunciado para mañana se publique como CORTE_PROGRAMADO hoy, pase a
+     * SIN_SERVICIO cuando empieza y vuelva a CON_SERVICIO cuando termina, sin que nadie lo toque a
+     * mano. Sin ventana declarada el estado no evoluciona: se queda en el que se aprobó, porque
+     * inventar el momento del cambio sería el mismo dato fabricado que `ADR-006` prohíbe.
+     */
+    public EstadoServicio estadoVigenteEn(Instant momento) {
+        if (estadoPropuesto == EstadoServicio.CON_SERVICIO || inicioDeclarado == null) {
+            return estadoPropuesto;
+        }
+        if (momento.isBefore(inicioDeclarado)) {
+            return EstadoServicio.CORTE_PROGRAMADO;
+        }
+        if (finPrometido != null && !momento.isBefore(finPrometido)) {
+            return EstadoServicio.CON_SERVICIO;
+        }
+        return estadoPropuesto;
     }
 
     /** Idempotente, igual que {@link ReporteCiudadano#aprobar()}. */
@@ -66,6 +102,6 @@ public record PropuestaIngesta(
 
     private PropuestaIngesta conRevision(EstadoRevision nueva) {
         return new PropuestaIngesta(id, sectorId, estadoPropuesto, fuente, urlOriginal, citaTextual,
-                confianza, detectadaEn, nueva);
+                confianza, detectadaEn, nueva, inicioDeclarado, finPrometido);
     }
 }

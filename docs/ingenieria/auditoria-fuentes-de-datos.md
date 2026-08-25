@@ -124,6 +124,34 @@ tiempo exacta.
 
 ---
 
+## 6b. Cartografía de barrios — OpenStreetMap / Overpass
+
+Evaluada el 2026-08-22 para cerrar la brecha de cobertura del catálogo: Acuacar nombra barrios que
+el GeoJSON catastral (211 polígonos) no trae — `Manzanares`, `Andalucía`, `La Gloria`, `Monserrate`,
+`13 de Mayo`.
+
+| Verificación | Resultado |
+|---|---|
+| `robots.txt` de `overpass-api.de` | `User-agent: * / Disallow: /api/` — **prohíbe justo el endpoint** (`/api/interpreter`). Sin cláusulas anti-IA nombradas. |
+| Espejo `overpass.kumi.systems` | Sin `robots.txt`. `/api/status` **200**, pero `/api/interpreter` devuelve **500** en toda consulta, hasta la mínima. |
+| Espejo `overpass.private.coffee` | Igual: `/api/status` 200, `/api/interpreter` 500. |
+| Espejo `overpass.osm.ch` | Sin `robots.txt` (404). **200** y JSON válido, pero es un extracto **solo de Suiza**: 0 elementos en el bbox de Cartagena. |
+| `nominatim.openstreetmap.org` | `robots.txt` prohíbe `/search`, `/lookup` y `/reverse` — las tres rutas útiles. |
+| `download.geofabrik.de` | `robots.txt` prohíbe `*.osm.pbf` y `*.shp.zip`, que son los extractos. |
+| `datos.gov.co` (catálogo Socrata) | **200**, 22 resultados para «barrios cartagena», **ninguno con geometría de barrios**. |
+
+**Veredicto:** ⏳ Reintentar — no descartada por política, sino por disponibilidad.
+**Motivo:** la instancia principal prohíbe el endpoint en su `robots.txt` y los espejos globales
+probados no responden. Se respeta el `Disallow` sin discutirlo (`CLAUDE.md` §Ética de datos, regla 1).
+**Capa del pipeline:** ninguna — sería insumo cartográfico, no una fuente de eventos.
+
+**Advertencia para quien lo retome:** conseguir los polígonos no basta. Mezclar geometría de OSM en
+una capa catastral oficial produce límites que no cierran entre sí —bordes solapados y huecos— y deja
+dos procedencias distintas indistinguibles dentro del mismo mapa. Antes de importar hay que decidir
+si la capa pasa a ser mixta y cómo se le declara eso al usuario.
+
+---
+
 ## 7. Tabla resumen — decisión por fuente
 
 | # | Fuente | Tipo | Estado | Capa del pipeline |

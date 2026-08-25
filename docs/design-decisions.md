@@ -1451,8 +1451,109 @@ sin la excepción que lo explica.
 
 ---
 
+---
+
+## ADR-032 — La confianza de la extracción se gradúa; el veedor sigue decidiendo
+
+- **Fecha:** 2026-08-22
+- **Estado:** Aceptada
+- **Decide:** D3
+
+### Contexto
+
+`ADR-028` descartó publicar automáticamente por encima de un umbral de confianza, con un argumento
+concreto y correcto en su momento:
+
+> El extractor emite un valor constante de 0.6: el umbral no distinguiría nada.
+
+Al corregir la extracción (`BUG-057` a `BUG-060`) esa premisa dejó de ser cierta. El extractor ahora
+sí distingue evidencias muy distintas entre sí: un boletín con enumeración explícita de barrios y
+ventana horaria declarada no se parece en nada a una mención suelta en prosa, y hasta ahora ambos
+salían con el mismo 0.6.
+
+Medido sobre 37 boletines reales de Acuacar (mayo–agosto 2026), los tres niveles se separan de forma
+limpia: el 100% de los boletines con enumeración identifica al menos un barrio del catálogo oficial,
+mientras que las menciones en prosa producen sobre todo nombres genéricos que el catálogo descarta.
+
+### Decisión
+
+La confianza pasa a tener tres niveles, según la evidencia que el extractor encontró de verdad:
+
+| Valor | Evidencia |
+|---|---|
+| `0.85` | Enumeración explícita de barrios **y** ventana horaria declarada |
+| `0.75` | Enumeración explícita, sin horario |
+| `0.45` | Mención en prosa, sin lista |
+
+**No se cambia la política de publicación.** Nada se publica solo: toda propuesta sigue naciendo
+`PENDIENTE` y el mapa solo se mueve cuando un veedor aprueba, exactamente como decidió `ADR-028`.
+Lo que cambia es que el número sirve para **ordenar la cola** por lo que más se sostiene, y que
+`citaTextual` ahora cita el tramo que nombra los barrios y el horario en vez de la frase de resumen,
+que era una cita literal pero inútil para contrastar.
+
+### Consecuencias
+
+- **Gana:** el veedor revisa primero lo mejor respaldado y lee una cita que de verdad le permite
+  decidir. Si el equipo quisiera más adelante reabrir la publicación automática, ahora existe la
+  señal que `ADR-028` echaba en falta.
+- **Pierde:** los tres valores son un juicio calibrado sobre 37 boletines, no una probabilidad
+  medida. No deben leerse como tal ni exponerse al público como si lo fueran.
+- **Queda pendiente:** validar los umbrales contra el conjunto dorado de 100 boletines etiquetados a
+  mano (`pipeline-ingesta-datos.md` §4), que sigue sin construirse.
+
+---
+
+## ADR-033 — El estado de un barrio evoluciona con la ventana que la fuente prometió
+
+- **Fecha:** 2026-08-22
+- **Estado:** Aceptada
+- **Decide:** D3
+
+### Contexto
+
+Un boletín dice «suspensión mañana viernes 21 de agosto, entre las 9:00 a.m. y las 6:00 p.m.». Con la
+ingesta corregida ese dato ya se lee y se guarda, pero nadie volvía a mirarlo: una propuesta aprobada
+dejaba el barrio en un estado fijo. Un corte anunciado para mañana se quedaba en `CORTE_PROGRAMADO`
+indefinidamente, y el barrio aparecía «con corte programado» semanas después de que el agua volviera.
+
+### Alternativas consideradas
+
+1. **Que el veedor cierre cada corte a mano.** Es lo que ya ocurre con los cortes oficiales, pero
+   aplicado a la ingesta multiplica el trabajo manual por cada barrio de cada boletín — 17 en un solo
+   aviso — y el estado queda mal mientras nadie entra.
+2. **Estimar la duración cuando el boletín no la declara.** Descartada: es exactamente el dato
+   inventado que `ADR-006` prohíbe y que ya se eliminó del extractor.
+3. **Aplicar solo la ventana que la fuente declaró explícitamente.**
+
+### Decisión
+
+`ActualizarEstadosPorVentanaService` barre cada minuto las propuestas **ya aprobadas** que traen
+ventana declarada y pone cada sector en el estado que le corresponde en ese instante:
+
+```
+antes del inicio → CORTE_PROGRAMADO
+dentro           → SIN_SERVICIO (o el estado propuesto)
+después del fin  → CON_SERVICIO
+```
+
+Tres restricciones que hacen que esto no contradiga `ADR-028`:
+
+- Solo actúa sobre propuestas **que un veedor ya aprobó**. No publica nada nuevo: mueve en el tiempo
+  algo que una persona ya validó.
+- **Sin ventana declarada, el sector no se toca.** No se estima ni el inicio ni el fin.
+- Solo escribe cuando el estado cambia de verdad, para no disparar correo, push y SSE en cada barrido.
+
+### Consecuencias
+
+- **Gana:** el mapa deja de envejecer solo. El ciclo «se anuncia → ocurre → termina» se refleja sin
+  intervención, que es lo que un vecino espera de un mapa «en vivo».
+- **Pierde:** si Acuacar promete una ventana y no la cumple, el mapa dirá que el servicio volvió
+  cuando no volvió. Es un riesgo real y es precisamente lo que el Índice de Cumplimiento (RF020–RF022)
+  existe para medir; la corrección vendrá de los reportes ciudadanos, no de la ingesta.
+- El barrido queda acotado a un día después del fin prometido, para no recorrer el histórico entero.
+
 <!--
-Siguiente número disponible: ADR-032
+Siguiente número disponible: ADR-034
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->
