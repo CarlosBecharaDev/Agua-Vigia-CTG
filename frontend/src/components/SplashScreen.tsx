@@ -3,19 +3,28 @@ import type { FC } from 'react'
 import { Droplet } from 'lucide-react'
 
 export const SplashScreen: FC = () => {
-  const [visible, setVisible] = useState(true)
+  const [visible, setVisible] = useState(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false
+    try {
+      if (sessionStorage.getItem('aguavigia_splash_visto')) return false
+      sessionStorage.setItem('aguavigia_splash_visto', '1')
+    } catch {
+      // El modo privado puede bloquear sessionStorage; la experiencia sigue funcionando.
+    }
+    return true
+  })
   const [fading, setFading] = useState(false)
 
   useEffect(() => {
-    // Después de 2 segundos, inicia el fade out
+    // Breve presentación solo una vez por sesión; no debe retrasar la consulta del mapa.
     const fadeTimer = setTimeout(() => {
       setFading(true)
-    }, 2000)
+    }, 600)
 
-    // Después de 2.5 segundos, desmonta completamente para no bloquear clics
+    // Se desmonta completamente para no bloquear clics ni permanecer en el árbol accesible.
     const removeTimer = setTimeout(() => {
       setVisible(false)
-    }, 2500)
+    }, 900)
 
     return () => {
       clearTimeout(fadeTimer)

@@ -208,13 +208,20 @@ export const GradientWaves: FC<Props> = ({
     const mqlReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
     let reducedMotion = mqlReducedMotion.matches
 
+    // Detección adaptativa de dispositivo táctil/móvil para no saturar GPUs pequeñas
+    const esDispositivoMovil = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 768
+    const dprOptimo = esDispositivoMovil ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.5)
+    const pasosRaymarching = esDispositivoMovil
+      ? (detail === 'high' ? 55.0 : 38.0)
+      : detailToSteps(detail)
+
     const renderer = new Renderer({
       canvas,
       webgl: 2,
       alpha: true,
       premultipliedAlpha: true,
       antialias: false,
-      dpr: Math.min(window.devicePixelRatio || 1, 2),
+      dpr: dprOptimo,
     })
     const gl = renderer.gl
     gl.clearColor(0, 0, 0, 0)
@@ -236,14 +243,14 @@ export const GradientWaves: FC<Props> = ({
         uZoom: { value: zoom },
         uHeight: { value: height },
         uFogDepth: { value: fogDepth },
-        uSteps: { value: detailToSteps(detail) },
+        uSteps: { value: pasosRaymarching },
         uBrightness: { value: brightness },
         uOpacity: { value: opacity },
         uGrain: { value: grain ? 1.0 : 0.0 },
         uGrainIntensity: { value: grainIntensity },
         uMouse: { value: new Float32Array([0.5, 0.5]) },
         uParallax: { value: parallaxStrength },
-        uEnableMouse: { value: mouseInteraction },
+        uEnableMouse: { value: mouseInteraction && !esDispositivoMovil },
         uHorizonColor: { value: new Float32Array(hexToRgb(horizonColor)) },
         uWaveColor: { value: new Float32Array(hexToRgb(waveColor)) },
         uCrestColor: { value: new Float32Array(hexToRgb(crestColor)) },
@@ -296,9 +303,15 @@ export const GradientWaves: FC<Props> = ({
     let isVisible = true
     let isPageVisible = !document.hidden
     const t0 = performance.now()
+    let ultimoRender = 0
+    const INTERVALO_FRAME_MS = 1000 / 45 // 45 FPS máx para no sobrecargar procesadores ni GPUs
 
     const loop = (t: number): void => {
       if (disposed) return
+      raf = requestAnimationFrame(loop)
+      if (t - ultimoRender < INTERVALO_FRAME_MS) return
+      ultimoRender = t
+
       program.uniforms.iTime.value = (t - t0) * 0.001
       const tx = enableMouseRef.current ? targetMouse[0] : 0.5
       const ty = enableMouseRef.current ? targetMouse[1] : 0.5
@@ -308,7 +321,6 @@ export const GradientWaves: FC<Props> = ({
       uMouse[0] = currentMouse[0]
       uMouse[1] = currentMouse[1]
       renderer.render({ scene: mesh })
-      raf = requestAnimationFrame(loop)
     }
 
     const tryStart = (): void => {
@@ -335,7 +347,8 @@ export const GradientWaves: FC<Props> = ({
     const io = new IntersectionObserver(
       ([entry]) => {
         isVisible = entry.isIntersecting
-        isVisible ? tryStart() : tryStop()
+        if (isVisible) tryStart()
+        else tryStop()
       },
       { threshold: 0 }
     )
@@ -343,7 +356,8 @@ export const GradientWaves: FC<Props> = ({
 
     const onVisibility = (): void => {
       isPageVisible = !document.hidden
-      isPageVisible ? tryStart() : tryStop()
+      if (isPageVisible) tryStart()
+      else tryStop()
     }
     document.addEventListener('visibilitychange', onVisibility)
 

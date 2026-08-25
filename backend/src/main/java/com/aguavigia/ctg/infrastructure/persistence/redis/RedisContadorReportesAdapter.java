@@ -10,16 +10,14 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.UUID;
 
 /**
  * Ventana deslizante de reportes por sector (RF009-RF011), sobre un ZSET de Redis: score = instante
  * del reporte en epoch millis, member = identificador unico del evento.
  *
- * No deduplica por HuellaDispositivo a proposito: impedir que un mismo dispositivo infle el conteo
- * es responsabilidad del rate limiting (D3-backend-infraestructura.md Sprint 2, INCR+EXPIRE en el
- * borde HTTP), no de este contador. Mezclar ambos controles en una sola estructura haria que
- * cambiar uno rompiera el otro sin avisar.
+ * El miembro del ZSET es la huella del dispositivo: varios reportes del mismo aparato actualizan
+ * su instante, pero cuentan una sola vez para el consenso. El rate limiting sigue siendo un control
+ * separado: limita la frecuencia, mientras este contador garantiza independencia de actores.
  */
 @Component
 public class RedisContadorReportesAdapter implements ContadorReportesPort {
@@ -48,11 +46,9 @@ public class RedisContadorReportesAdapter implements ContadorReportesPort {
     public void registrar(SectorId sectorId, HuellaDispositivo huella) {
         String clave = clave(sectorId);
         long ahoraMillis = reloj.ahora().toEpochMilli();
-        // huella.hash() viaja en el member solo para depuracion manual en Redis; contarRecientes
-        // no lo lee. El UUID garantiza que dos reportes en el mismo milisegundo no se pisen.
-        String miembro = huella.hash() + ":" + ahoraMillis + ":" + UUID.randomUUID();
-
-        redis.opsForZSet().add(clave, miembro, ahoraMillis);
+        // ZADD reemplaza el score del mismo miembro. De este modo un celular no puede alcanzar por
+        // si solo el umbral minimo enviando tres reportes permitidos por RF006.
+        redis.opsForZSet().add(clave, huella.hash(), ahoraMillis);
         redis.opsForZSet().removeRangeByScore(clave, 0,
                 ahoraMillis - RETENCION_MAXIMA.toMillis());
         redis.expire(clave, RETENCION_MAXIMA);

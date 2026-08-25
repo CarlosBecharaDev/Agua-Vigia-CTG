@@ -118,53 +118,100 @@ export const FormularioReporte: FC<Props> = ({ sectores, sectorPreseleccionado =
   const error = errorLocal || errorApi?.detalle
 
   return (
-    <div className="formulario-reporte">
-      <label htmlFor="sector-reporte">1. Selecciona tu barrio</label>
-      <select
-        id="sector-reporte"
-        value={sectorId}
-        onChange={(event) => { setSectorId(event.target.value); setErrorLocal(null); mutacion.reset() }}
-      >
-        <option value="">Elige un barrio</option>
-        {opciones.map((sector) => <option key={sector.id} value={sector.id}>{sector.nombre}</option>)}
-      </select>
+    <div className="form-reporte-moderno">
+      {/* Paso 1: Selección de Barrio */}
+      <div className="form-reporte-bloque">
+        <label htmlFor="sector-reporte" className="form-reporte-label">
+          <span className="form-suscripcion-chip-paso">1</span>
+          Selecciona tu barrio
+        </label>
+        <select
+          id="sector-reporte"
+          value={sectorId}
+          onChange={(event) => { setSectorId(event.target.value); setErrorLocal(null); mutacion.reset() }}
+          className="form-reporte-select"
+        >
+          <option value="">Elige un barrio de Cartagena…</option>
+          {opciones.map((sector) => <option key={sector.id} value={sector.id}>{sector.nombre}</option>)}
+        </select>
+      </div>
 
-      <fieldset disabled={!sectorId || procesando}>
-        <legend>2. ¿Cómo está el servicio ahora?</legend>
-        <div className="opciones-reporte">
-          {TIPOS.map(({ valor, etiqueta, detalle, Icono }) => (
-            <button key={valor} type="button" onClick={() => void enviar(valor)}>
-              <Icono aria-hidden="true" />
-              <span><strong>{etiqueta}</strong><small>{detalle}</small></span>
-            </button>
-          ))}
+      {/* Paso 2: Estado del Servicio */}
+      <fieldset disabled={!sectorId || procesando} className="form-reporte-bloque" style={{ border: '1px solid rgba(255, 255, 255, 0.09)' }}>
+        <legend className="form-reporte-label" style={{ padding: '0 0.5rem' }}>
+          <span className="form-suscripcion-chip-paso">2</span>
+          ¿Cómo está el servicio ahora?
+        </legend>
+        <div className="form-reporte-opciones-grid">
+          {TIPOS.map(({ valor, etiqueta, detalle, Icono }) => {
+            const claseColor = valor === 'SIN_AGUA' ? 'opcion-sin-agua' : valor === 'PRESION_BAJA' ? 'opcion-presion-baja' : 'opcion-restablecido'
+            return (
+              <button
+                key={valor}
+                type="button"
+                onClick={() => void enviar(valor)}
+                className={`form-reporte-opcion-btn ${claseColor}`}
+              >
+                <div className="form-reporte-opcion-icono">
+                  <Icono size={20} aria-hidden="true" />
+                </div>
+                <div className="form-reporte-opcion-textos">
+                  <strong>{etiqueta}</strong>
+                  <small>{detalle}</small>
+                </div>
+              </button>
+            )
+          })}
         </div>
       </fieldset>
 
-      <label className="compartir-ubicacion">
-        <input type="checkbox" checked={compartirUbicacion} onChange={(event) => setCompartirUbicacion(event.target.checked)} />
-        <LocateFixed aria-hidden="true" />
-        <span><strong>Compartir mi ubicación</strong><small>Opcional. Solo enviamos la coordenada de este reporte.</small></span>
-      </label>
+      {/* Acciones Opcionales: Ubicación y Foto */}
+      <div className="form-reporte-extras">
+        <label className="form-reporte-extra-item">
+          <input
+            type="checkbox"
+            checked={compartirUbicacion}
+            onChange={(event) => setCompartirUbicacion(event.target.checked)}
+          />
+          <LocateFixed size={18} style={{ color: '#c084fc', flexShrink: 0 }} aria-hidden="true" />
+          <div className="form-reporte-extra-textos">
+            <strong>Compartir ubicación</strong>
+            <small>Opcional (coordenada)</small>
+          </div>
+        </label>
 
-      <label className="adjuntar-foto">
-        <input
-          type="file"
-          accept={TIPOS_FOTO_ACEPTADOS.join(',')}
-          onChange={(event) => {
-            const rechazada = !elegirFoto(event.target.files?.[0] ?? null)
-            // F9 — sin esto, reintentar con el mismo archivo rechazado no disparaba onChange
-            // (mismo `value`) y no pasaba nada visible.
-            if (rechazada) event.target.value = ''
-          }}
-        />
-        <Camera aria-hidden="true" />
-        <span><strong>Adjuntar una foto</strong><small>{foto ? foto.name : 'Opcional. Ayuda al veedor a verificar el reporte.'}</small></span>
-      </label>
+        <label className="form-reporte-extra-item">
+          <input
+            type="file"
+            accept={TIPOS_FOTO_ACEPTADOS.join(',')}
+            onChange={(event) => {
+              const rechazada = !elegirFoto(event.target.files?.[0] ?? null)
+              if (rechazada) event.target.value = ''
+            }}
+          />
+          <Camera size={18} style={{ color: '#f472b6', flexShrink: 0 }} aria-hidden="true" />
+          <div className="form-reporte-extra-textos">
+            <strong>Adjuntar una foto</strong>
+            <small>{foto ? foto.name : 'Opcional (evidencia)'}</small>
+          </div>
+        </label>
+      </div>
 
-      {procesando && <p className="mensaje-campo" role="status">Enviando reporte…</p>}
-      {error && <p className="mensaje-error" role="alert">{error}</p>}
-      <p className="privacidad-reporte">No necesitas registrarte. Usamos una huella anónima para limitar abusos, no para identificarte.</p>
+      {procesando && (
+        <p style={{ color: '#d8b4fe', fontSize: '0.85rem', textAlign: 'center', margin: '0.2rem 0' }} role="status">
+          <span className="spinner" /> Enviando reporte a la comunidad…
+        </p>
+      )}
+
+      {error && (
+        <div className="form-suscripcion-error-badge" role="alert">
+          {error}
+        </div>
+      )}
+
+      <p style={{ color: 'rgba(203, 213, 225, 0.6)', fontSize: '0.74rem', textAlign: 'center', margin: '0.2rem 0 0' }}>
+        Tus reportes son 100% anónimos y ayudan a mantener informada a toda Cartagena.
+      </p>
     </div>
   )
 }

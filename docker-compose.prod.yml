@@ -12,13 +12,15 @@ services:
         required: false
     environment:
       MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE:-aguavigia}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:?Falta MONGO_ROOT_USERNAME en el .env de produccion}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?Falta MONGO_ROOT_PASSWORD en el .env de produccion}
     # En producción NO exponemos puertos de BBDD al host
     volumes:
       - mongo-data:/data/db
     networks:
       - aguavigia
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD-SHELL", "mongosh --quiet --username \"$$MONGO_INITDB_ROOT_USERNAME\" --password \"$$MONGO_INITDB_ROOT_PASSWORD\" --authenticationDatabase admin --eval \"db.adminCommand('ping')\""]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,13 +29,16 @@ services:
     image: redis:7-alpine
     container_name: aguavigia-redis
     restart: always
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Falta REDIS_PASSWORD en el .env de produccion}
+    command: ["sh", "-c", "exec redis-server --appendonly yes --requirepass \"$$REDIS_PASSWORD\""]
     # En producción NO exponemos puertos de BBDD al host
     volumes:
       - redis-data:/data
     networks:
       - aguavigia
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping | grep -q PONG"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -48,11 +53,14 @@ services:
       - path: .env
         required: true # Prod requiere variables seguras
     environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      # No heredar SPRING_PROFILES_ACTIVE=docker del .env de desarrollo: produccion debe ejecutar
+      # siempre sus validaciones estrictas de secretos y retencion.
+      SPRING_PROFILES_ACTIVE: prod
       SERVER_PORT: ${SERVER_PORT:-8080}
-      SPRING_DATA_MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/aguavigia}
+      SPRING_DATA_MONGODB_URI: ${MONGODB_URI_PROD:?Falta MONGODB_URI_PROD en el .env de produccion}
       SPRING_DATA_REDIS_HOST: ${REDIS_HOST:-redis}
       SPRING_DATA_REDIS_PORT: ${REDIS_PORT:-6379}
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:?Falta REDIS_PASSWORD en el .env de produccion}
       # application-prod.yml los declara sin default a proposito (fallar ruidosamente, no
       # conectar en silencio a localhost) — sin esto, un .env de despliegue al que se le olvido
       # MAIL_HOST/MAIL_PORT solo falla hasta que Spring arranca dentro del contenedor.

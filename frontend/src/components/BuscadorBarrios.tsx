@@ -24,7 +24,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { FC, KeyboardEvent as ReactKeyboardEvent, UIEvent as ReactUIEvent } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { Check, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import type { Sector } from '../types/tipos-dominio'
 import { COLOR_POR_ESTADO, COLOR_SIN_DATOS } from '../types/tipos-dominio'
 
@@ -35,24 +35,17 @@ interface Props {
   cargando: boolean
   error: string | null
   onSectorSeleccionado?: (sector: Sector) => void
-  /** Modo lista de mandado: no cierra el desplegable al elegir, y cada fila ya elegida se
-   *  marca con un check en vez de navegar al mapa. Lo usa el paso "ubicación" de
-   *  FormularioSuscripcion para juntar varios barrios sin reabrir el buscador cada vez. */
-  seleccionMultiple?: boolean
-  sectorIdsSeleccionados?: string[]
 }
 
 interface FilaBarrioProps {
   sector: Sector
   indice: number
   seleccionado: boolean
-  seleccionMultiple: boolean
-  agregado: boolean
   onEnfocar: () => void
   onElegir: () => void
 }
 
-const FilaBarrioAnimada: FC<FilaBarrioProps> = ({ sector, indice, seleccionado, seleccionMultiple, agregado, onEnfocar, onElegir }) => {
+const FilaBarrioAnimada: FC<FilaBarrioProps> = ({ sector, indice, seleccionado, onEnfocar, onElegir }) => {
   const ref = useRef<HTMLLIElement>(null)
   const enVista = useInView(ref, { amount: 0.5, once: false })
 
@@ -69,21 +62,15 @@ const FilaBarrioAnimada: FC<FilaBarrioProps> = ({ sector, indice, seleccionado, 
         onMouseDown={(e) => e.preventDefault()}
         onMouseEnter={onEnfocar}
         onClick={onElegir}
-        aria-label={
-          seleccionMultiple
-            ? (agregado ? `Quitar ${sector.nombre}` : `Agregar ${sector.nombre}`)
-            : `Ver ${sector.nombre} en el mapa — estado: ${(sector.estado ? COLOR_POR_ESTADO[sector.estado] : COLOR_SIN_DATOS).etiqueta}`
-        }
-        aria-pressed={seleccionMultiple ? agregado : undefined}
-        className={`lista-barrios-btn${seleccionado ? ' is-seleccionado' : ''}${agregado ? ' is-agregado' : ''}`}
+        aria-label={`Ver ${sector.nombre} en el mapa — estado: ${(sector.estado ? COLOR_POR_ESTADO[sector.estado] : COLOR_SIN_DATOS).etiqueta}`}
+        className={`lista-barrios-btn${seleccionado ? ' is-seleccionado' : ''}`}
       >
         <span
           className="lista-barrios-punto"
           style={{ backgroundColor: (sector.estado ? COLOR_POR_ESTADO[sector.estado] : COLOR_SIN_DATOS).claro }}
           aria-hidden="true"
         />
-        <span className="lista-barrios-nombre">{sector.nombre}</span>
-        {agregado && <Check size={14} className="lista-barrios-check" aria-hidden="true" />}
+        {sector.nombre}
       </button>
     </motion.li>
   )
@@ -96,8 +83,6 @@ export const BuscadorBarrios: FC<Props> = ({
   cargando,
   error,
   onSectorSeleccionado,
-  seleccionMultiple = false,
-  sectorIdsSeleccionados = [],
 }) => {
   const [abierto, setAbierto] = useState(false)
   const [indiceSeleccionado, setIndiceSeleccionado] = useState(-1)
@@ -118,18 +103,14 @@ export const BuscadorBarrios: FC<Props> = ({
       })
   }, [sectores, busqueda])
 
-  // El índice resaltado por teclado no sobrevive a un resultado que ya no existe (p.ej. si
-  // se sigue escribiendo y la lista se acorta).
-  useEffect(() => {
-    setIndiceSeleccionado(-1)
-  }, [sectoresOrdenados])
+  const indiceVisible = indiceSeleccionado < sectoresOrdenados.length ? indiceSeleccionado : -1
 
   const elegirSector = useCallback(
     (sector: Sector) => {
       onSectorSeleccionado?.(sector)
-      if (!seleccionMultiple) setAbierto(false)
+      setAbierto(false)
     },
-    [onSectorSeleccionado, seleccionMultiple]
+    [onSectorSeleccionado]
   )
 
   const alDesplazar = useCallback((e: ReactUIEvent<HTMLUListElement>) => {
@@ -148,12 +129,12 @@ export const BuscadorBarrios: FC<Props> = ({
       } else if (e.key === 'ArrowUp') {
         e.preventDefault()
         setIndiceSeleccionado((i) => Math.max(i - 1, 0))
-      } else if (e.key === 'Enter' && indiceSeleccionado >= 0) {
+      } else if (e.key === 'Enter' && indiceVisible >= 0) {
         e.preventDefault()
-        elegirSector(sectoresOrdenados[indiceSeleccionado])
+        elegirSector(sectoresOrdenados[indiceVisible])
       }
     },
-    [sectoresOrdenados, indiceSeleccionado, elegirSector]
+    [sectoresOrdenados, indiceVisible, elegirSector]
   )
 
   // Mantiene la fila resaltada por teclado dentro del área visible del desplegable.
@@ -169,10 +150,13 @@ export const BuscadorBarrios: FC<Props> = ({
         <Search size={16} aria-hidden="true" />
         <input
           type="text"
-          placeholder={seleccionMultiple ? 'Buscar y agregar barrio...' : 'Buscar barrio...'}
+          placeholder="Buscar barrio..."
           aria-label="Buscar barrio"
           value={busqueda}
-          onChange={(e) => onCambiarBusqueda(e.target.value)}
+          onChange={(e) => {
+            setIndiceSeleccionado(-1)
+            onCambiarBusqueda(e.target.value)
+          }}
           onFocus={() => setAbierto(true)}
           onBlur={() => setAbierto(false)}
           onKeyDown={alPresionarTecla}
@@ -207,9 +191,7 @@ export const BuscadorBarrios: FC<Props> = ({
                       key={sector.id}
                       sector={sector}
                       indice={indice}
-                      seleccionado={indiceSeleccionado === indice}
-                      seleccionMultiple={seleccionMultiple}
-                      agregado={seleccionMultiple && sectorIdsSeleccionados.includes(sector.id)}
+                      seleccionado={indiceVisible === indice}
                       onEnfocar={() => setIndiceSeleccionado(indice)}
                       onElegir={() => elegirSector(sector)}
                     />

@@ -9,6 +9,7 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest",
+    "test:e2e": "playwright test",
     "api:sync": "openapi-typescript ../backend/openapi.yaml -o src/api/generated/schema.ts",
     "api:check": "npm run api:sync && git diff --exit-code -- src/api/generated/schema.ts"
   },

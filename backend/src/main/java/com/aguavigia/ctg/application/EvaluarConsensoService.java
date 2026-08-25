@@ -20,7 +20,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -71,7 +73,20 @@ public class EvaluarConsensoService implements EvaluarConsensoUseCase {
             return new ResultadoConsenso(sectorId, false, null, List.of());
         }
 
-        List<ReporteCiudadano> sustento = reportes.listarRecientesPorSector(sectorId, ventanaConsenso);
+        List<ReporteCiudadano> sustento = reportes.listarRecientesPorSector(sectorId, ventanaConsenso).stream()
+                .collect(Collectors.toMap(
+                        reporte -> reporte.huella().hash(),
+                        Function.identity(),
+                        (primero, segundo) -> primero.timestamp().isAfter(segundo.timestamp()) ? primero : segundo,
+                        LinkedHashMap::new))
+                .values().stream()
+                .toList();
+
+        // Redis es un prefiltro rapido, pero Mongo contiene la evidencia moderada y duradera. Esta
+        // segunda comprobacion evita que reportes repetidos o ya descartados sostengan un cambio.
+        if (!estrategia.seAlcanzaConsenso(sustento.size(), sector)) {
+            return new ResultadoConsenso(sectorId, false, null, List.of());
+        }
         EstadoServicio nuevoEstado = estadoPorMayoria(sustento, sector.estadoActual());
 
         // Sin cambio real de estado no hay evento nuevo que anexar a la bitácora (RF028: no editar,

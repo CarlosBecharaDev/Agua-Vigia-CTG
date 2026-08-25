@@ -13,7 +13,7 @@ import { ENLACES } from '../config/navegacion'
 import type { useTheme } from '../hooks/useTheme'
 
 type ThemeProps = ReturnType<typeof useTheme>
-type SeccionPrincipal = 'mapa' | 'bitacora' | 'estadisticas'
+type SeccionPrincipal = 'mapa' | 'bitacora' | 'estadisticas' | 'veedor'
 
 interface Props {
   temaActivo: ThemeProps['temaActivo']
@@ -28,6 +28,7 @@ const DESTINO_POR_SECCION: Record<SeccionPrincipal, string> = {
   mapa: '/',
   bitacora: '/#bitacora',
   estadisticas: '/#estadisticas',
+  veedor: '/#veedor',
 }
 
 export const NavegacionFlotante: FC<Props> = ({
@@ -72,7 +73,25 @@ export const NavegacionFlotante: FC<Props> = ({
       <GooeyNav
         items={ENLACES.map(({ a, etiqueta }) => ({ href: a, label: etiqueta }))}
         activeIndex={indiceActivo}
-        onSelect={(_, href) => navigate(href)}
+        onSelect={(_, href) => {
+          if (href === '/') {
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+            if (window.location.hash) {
+              window.history.pushState(null, '', '/')
+            }
+          } else if (href.startsWith('/#')) {
+            const id = href.slice(2)
+            const el = document.getElementById(id)
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              window.history.pushState(null, '', href)
+            } else {
+              navigate(href)
+            }
+          } else {
+            navigate(href)
+          }
+        }}
       />
     </div>
 

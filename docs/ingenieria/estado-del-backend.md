@@ -81,8 +81,8 @@ romperles el trabajo.
 
 | Métrica | Valor | Cómo se comprueba |
 |---|---|---|
-| Pruebas | **457**, todas en verde (447 era el conteo de la ronda que narra este documento; subió con commits posteriores, ver nota de cabecera) | `cd backend && ./mvnw verify` |
-| Cobertura `domain/` | **91%** | JaCoCo; la build falla por debajo del 85% |
+| Pruebas | **462**, todas en verde (verificado localmente el 2026-08-22) | `cd backend && ./mvnw verify` |
+| Cobertura `domain/` | **93%** | JaCoCo; la build falla por debajo del 85% |
 | Cobertura `application/` | **99%** | ídem |
 | Cobertura `infrastructure.cache` | **100%** (era 69.6%) | JaCoCo, ver §4 de esta ronda |
 | Clases de producción | 207 | `find backend/src/main -name '*.java'` |
@@ -253,7 +253,7 @@ producción con despliegue de aula*— y están escritas para que nadie las desc
 | Qué | Por qué se dejó fuera | Cuándo deja de ser aceptable |
 |---|---|---|
 | **TLS / HTTPS** | nginx sirve solo `:80`. Exige un dominio real y un certificado, que no dependen del código | **Antes de cualquier despliegue público.** Hoy el token del veedor viaja en claro |
-| **Autenticación en MongoDB y Redis** | Ambos van sin credenciales, protegidos por la red interna de Docker y sin publicar puertos en producción | Antes de un despliegue público, o si alguna vez se publican los puertos |
+| **Autenticación local de MongoDB y Redis** | El compose de desarrollo sigue sin credenciales para facilitar el trabajo local; el compose de producción ya exige usuario/clave de Mongo y clave de Redis | Si el entorno local se expone fuera de la máquina del desarrollador |
 | **Métricas (Prometheus/Grafana)** | Solo se expone `health`. Añadir `/actuator/prometheus` sin protegerlo sería una fuga de información operativa | Cuando haya usuarios reales y haga falta diagnosticar rendimiento |
 | **Boot 4.x** | Arrastra Spring Framework 7. Se eligió 3.5.16 —que parchea las mismas CVE— por no hacer un salto mayor a días de sustentar | Cuando haya margen para probarlo |
 | **Todo `frontend/`** | Es de los compañeros | — |

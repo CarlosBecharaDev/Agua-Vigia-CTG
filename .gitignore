@@ -12,6 +12,7 @@ credentials.json
 
 # ─── Java / Spring Boot ───
 target/
+.maven-user/
 !.mvn/wrapper/maven-wrapper.jar
 *.class
 *.jar

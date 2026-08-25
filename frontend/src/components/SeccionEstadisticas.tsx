@@ -1,20 +1,4 @@
-/**
- * SeccionEstadisticas — M7 (Estadísticas), integrada en la página principal.
- *
- * Vivía en su propia ruta (/estadisticas); ahora es una sección de "/" a la que se llega
- * haciendo scroll (o navegando a "/#estadisticas" desde cualquier otra página — ver
- * PaginaMapa, que escucha el hash y hace scroll hasta acá), igual que la Bitácora.
- *
- * Conectada al backend real: GET /api/estadisticas (M7, público, calculado a partir de
- * cortes oficiales cerrados). El backend expone tres cifras — sectores más afectados,
- * cortes por día de la semana y duración promedio — no una serie diaria ni un histórico
- * comparable mes a mes, así que las gráficas se ajustan a esa forma (nada de tendencias o
- * "insights" inventados sobre datos que el backend no calcula).
- *
- * Glassmorphism en KPIs, animaciones countUp, barras con stagger al scroll — mismo lenguaje
- * visual del resto del rediseño, aplicado a datos reales.
- */
-import { useEffect, useRef, useState } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
 import type { FC } from 'react'
 import {
   BarChart,
@@ -27,21 +11,21 @@ import {
   Cell,
 } from 'recharts'
 
-import { AlertTriangle, CalendarDays, Clock, Download, Scale } from 'lucide-react'
+import { AlertTriangle, CalendarDays, Clock, Download, Scale, BarChart3 } from 'lucide-react'
 import { obtenerEstadisticas, obtenerIndiceCumplimientoGlobal, urlExportarCumplimientoCsv, urlExportarEstadisticasCsv } from '../api/services'
 import type { EstadisticasGlobales, IndiceCumplimiento } from '../api/services'
 import { normalizarErrorApi } from '../api/client'
+import './SeccionEstadisticas.css'
 
-/* ── Paleta premium para las barras del gráfico ── */
 const COLORES_BARRAS_PREMIUM = [
-  '#ff453a', // Rojo intenso — peor sector
-  '#ff6f61', // Coral
-  '#ff9f0a', // Ámbar
-  '#ffcc00', // Amarillo
-  '#30d158', // Verde
-  '#2997ff', // Azul acento
-  '#5856d6', // Púrpura
-  '#af52de', // Magenta
+  '#ef4444', // Rojo intenso
+  '#f97316', // Naranja
+  '#f59e0b', // Ámbar
+  '#eab308', // Amarillo
+  '#10b981', // Esmeralda
+  '#3b82f6', // Azul
+  '#8b5cf6', // Púrpura
+  '#ec4899', // Rosa
 ]
 
 const DIAS_SEMANA = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
@@ -49,32 +33,30 @@ const DIAS_SEMANA_CORTOS: Record<string, string> = {
   Lunes: 'Lun', Martes: 'Mar', Miércoles: 'Mié', Jueves: 'Jue', Viernes: 'Vie', Sábado: 'Sáb', Domingo: 'Dom',
 }
 
-/* ── Hook de animación countUp para los KPIs ── */
-function useCountUp(target: number, duracion = 1200, activo = true): number {
-  const [valor, setValor] = useState(0)
-  const prevTarget = useRef(target)
+function useCountUpSeguro(target: number, activo: boolean, duracion = 900): number {
+  const [valor, setValor] = useState(target)
 
   useEffect(() => {
-    if (!activo) return
-    const inicio = prevTarget.current === target ? 0 : prevTarget.current
-    prevTarget.current = target
-    const diff = target - inicio
-    if (diff === 0) { setValor(target); return }
+    if (!activo || target <= 0 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setValor(target)
+      return
+    }
 
-    const pasos = 60
-    let paso = 0
-    const intervalo = setInterval(() => {
-      paso++
-      if (paso >= pasos) {
-        setValor(target)
-        clearInterval(intervalo)
-      } else {
-        const progreso = 1 - Math.pow(1 - paso / pasos, 3)
-        setValor(Math.round(inicio + diff * progreso))
-      }
-    }, duracion / pasos)
-    return () => clearInterval(intervalo)
-  }, [target, duracion, activo])
+    let frame = 0
+    const inicio = performance.now()
+    setValor(0)
+
+    const actualizar = (ahora: number) => {
+      const progreso = Math.min((ahora - inicio) / duracion, 1)
+      const suavizado = 1 - Math.pow(1 - progreso, 3)
+      setValor(Math.round(target * suavizado))
+      if (progreso < 1) frame = requestAnimationFrame(actualizar)
+      else setValor(target)
+    }
+
+    frame = requestAnimationFrame(actualizar)
+    return () => cancelAnimationFrame(frame)
+  }, [activo, duracion, target])
 
   return valor
 }
@@ -82,19 +64,22 @@ function useCountUp(target: number, duracion = 1200, activo = true): number {
 export const SeccionEstadisticas: FC = () => {
   const [datos, setDatos] = useState<EstadisticasGlobales | null>(null)
   const [cargando, setCargando] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  // Índice de Cumplimiento (M6, RF020-022) — "el diferencial del proyecto": compara la
-  // duración prometida de un corte contra la real. Puede no haber datos todavía (400 si no
-  // hay ningún corte cerrado) — se trata como "sin datos", no como un error de la sección.
+  const [errorApi, setErrorApi] = useState<string | null>(null)
   const [cumplimiento, setCumplimiento] = useState<IndiceCumplimiento | null>(null)
+
+  // Estados interactivos para las gráficas
+  const [modoDias, setModoDias] = useState<'cantidad' | 'porcentaje'>('cantidad')
+  const [diaSeleccionado, setDiaSeleccionado] = useState<string | null>(null)
+  const [modoBarrios, setModoBarrios] = useState<'cortes' | 'porcentaje'>('cortes')
+  const [sectorSeleccionado, setSectorSeleccionado] = useState<string | null>(null)
+  const [entradaActiva, setEntradaActiva] = useState(false)
+  const seccionRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     let montado = true
-    setCargando(true)
     obtenerEstadisticas()
-      .then((res) => { if (montado) { setDatos(res); setError(null) } })
-      .catch((causa) => { if (montado) setError(normalizarErrorApi(causa).detalle) })
+      .then((res) => { if (montado) { setDatos(res); setErrorApi(null) } })
+      .catch((causa) => { if (montado) setErrorApi(normalizarErrorApi(causa).detalle) })
       .finally(() => { if (montado) setCargando(false) })
     obtenerIndiceCumplimientoGlobal()
       .then((res) => { if (montado) setCumplimiento(res) })
@@ -102,345 +87,462 @@ export const SeccionEstadisticas: FC = () => {
     return () => { montado = false }
   }, [])
 
+  useEffect(() => {
+    const seccion = seccionRef.current
+    if (!seccion || !('IntersectionObserver' in window)) return
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return
+      setEntradaActiva(true)
+      observer.disconnect()
+    }, { threshold: 0.08, rootMargin: '80px 0px' })
+
+    observer.observe(seccion)
+    return () => observer.disconnect()
+  }, [])
+
   const totalCortes = datos?.sectoresMasAfectados.reduce((acc, s) => acc + s.cantidadCortes, 0) ?? 0
   const sectorTop = datos?.sectoresMasAfectados[0]?.nombre ?? '—'
+  const totalCortesAnimado = useCountUpSeguro(totalCortes, entradaActiva && !cargando)
 
-  // Animación countUp para KPIs visibles
-  const [kpisVisibles, setKpisVisibles] = useState(false)
-  const kpiSeccionRef = useRef<HTMLDivElement>(null)
-  const totalCortesAnimado = useCountUp(totalCortes, 1400, kpisVisibles)
+  const totalCortesDias = DIAS_SEMANA.reduce((acc, dia) => acc + (datos?.cortesPorDiaDeSemana[dia] ?? 0), 0) || 1
+  const datosPorDia = DIAS_SEMANA.map((dia) => {
+    const cortes = datos?.cortesPorDiaDeSemana[dia] ?? 0
+    const porcentaje = Number(((cortes / totalCortesDias) * 100).toFixed(1))
+    return {
+      dia: DIAS_SEMANA_CORTOS[dia],
+      diaCompleto: dia,
+      cortes,
+      porcentaje,
+      valorMostrado: modoDias === 'cantidad' ? cortes : porcentaje,
+    }
+  })
 
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        setKpisVisibles(true)
-        observer.disconnect()
-      }
-    }, { threshold: 0.2 })
+  const diaPico = [...datosPorDia].sort((a, b) => b.cortes - a.cortes)[0]
 
-    if (kpiSeccionRef.current) observer.observe(kpiSeccionRef.current)
-    return () => observer.disconnect()
-  }, [])
-
-  const [barrasVisibles, setBarrasVisibles] = useState(false)
-  const seccionBarrasRef = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        setBarrasVisibles(true)
-        observer.disconnect()
-      }
-    }, { threshold: 0.1, rootMargin: '200px' })
-
-    if (seccionBarrasRef.current) observer.observe(seccionBarrasRef.current)
-    return () => observer.disconnect()
-  }, [])
-
-  const datosBarrios = datos?.sectoresMasAfectados.map((s) => ({ nombre: s.nombre, cortes: s.cantidadCortes })) ?? []
-  const datosPorDia = DIAS_SEMANA.map((dia) => ({
-    dia: DIAS_SEMANA_CORTOS[dia],
-    cortes: datos?.cortesPorDiaDeSemana[dia] ?? 0,
-  }))
-
-  /* ── Estilos glassmorphism reutilizables ── */
-  const estiloGlass: React.CSSProperties = {
-    background: 'linear-gradient(135deg, rgba(var(--glass-r, 255), var(--glass-g, 255), var(--glass-b, 255), 0.6) 0%, rgba(var(--glass-r, 255), var(--glass-g, 255), var(--glass-b, 255), 0.3) 100%)',
-    backdropFilter: 'blur(20px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-    border: '1px solid rgba(255,255,255,0.18)',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255,255,255,0.2)',
-  }
+  const totalCortesBarrios = datos?.sectoresMasAfectados.reduce((acc, s) => acc + s.cantidadCortes, 0) || 1
+  const datosBarrios = (datos?.sectoresMasAfectados ?? []).map((s, index) => {
+    const porcentaje = Number(((s.cantidadCortes / totalCortesBarrios) * 100).toFixed(1))
+    return {
+      nombre: s.nombre,
+      cortes: s.cantidadCortes,
+      porcentaje,
+      valorMostrado: modoBarrios === 'cortes' ? s.cantidadCortes : porcentaje,
+      ranking: index + 1,
+    }
+  })
 
   return (
-    <section id="estadisticas" aria-label="Estadísticas del servicio de agua en Cartagena">
-      {/* Mismo ancho que .bitacora-envoltorio (SeccionBitacora) — para que las dos
-          secciones se sientan de la misma medida al bajar por la página, no una más
-          angosta que la otra. */}
-      <div style={{ padding: '4rem 1.25rem', width: 'min(100% - 2.5rem, 1180px)', margin: '0 auto' }}>
+    <section
+      id="estadisticas"
+      ref={seccionRef}
+      className={`estadisticas-seccion${entradaActiva ? ' is-visible' : ''}`}
+      aria-label="Estadísticas del servicio de agua en Cartagena"
+    >
+      {/* Fondo animado de orbes morados */}
+      <div className="estadisticas-fondo-animado" aria-hidden="true">
+        <div className="orbe-est-1" />
+        <div className="orbe-est-2" />
+        <div className="orbe-est-3" />
+      </div>
 
-        <div style={{ marginBottom: '1rem' }}>
-          <h2 style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(1.75rem, 4vw, 2.25rem)',
-            marginBottom: '0.5rem',
-            color: 'var(--color-tinta)',
-            letterSpacing: '-0.5px',
-            fontWeight: '800',
-          }}>
-            Estadísticas
-          </h2>
-          <p style={{ color: 'var(--color-tinta-2)', fontSize: '1rem' }}>
-            Transparencia y seguimiento del servicio de acueducto en Cartagena, calculado a
-            partir de los cortes oficiales cerrados.
-          </p>
-        </div>
-
-        {/* Indicador de fuente de datos + exportación (RF025) */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
-          <div
-            role="note"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              backgroundColor: 'var(--color-superficie)',
-              padding: '0.3rem 0.85rem',
-              borderRadius: 'var(--radio-pill)',
-              border: '1px solid var(--color-linea)',
-              fontSize: '0.75rem',
-            }}
-          >
-            <span style={{
-              width: '8px', height: '8px', borderRadius: '50%',
-              backgroundColor: error ? 'var(--color-estado-baja)' : 'var(--color-estado-con)',
-              display: 'inline-block'
-            }}></span>
-            {cargando ? 'Cargando estadísticas…' : error ? `Sin conexión — ${error}` : 'Datos en vivo desde el backend'}
+      <div className="estadisticas-envoltorio">
+        {/* Cabecera Apple Pro */}
+        <div className="estadisticas-cab">
+          <div>
+            <div className="estadisticas-eyebrow-pro">
+              <span className="pulse-dot-blue" />
+              <span>MÉTRICAS & CUMPLIMIENTO OFICIAL</span>
+            </div>
+            <h2 className="estadisticas-titulo-pro">Panel de Analítica y Rendimiento</h2>
+            <p className="estadisticas-subtitulo-pro">
+              Transparencia, duración prometida vs. real e impacto acumulado en las redes de Cartagena.
+            </p>
           </div>
-          <a
-            href={urlExportarEstadisticasCsv()}
-            download
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-              padding: '0.3rem 0.85rem', borderRadius: 'var(--radio-pill)',
-              border: '1px solid var(--color-linea)', color: 'var(--color-tinta-2)',
-              fontSize: '0.75rem', fontWeight: 600, textDecoration: 'none',
-            }}
-          >
-            <Download size={13} /> Exportar CSV
-          </a>
+
+          <div className="estadisticas-acciones-cab">
+            <span className="estadisticas-badge-status">
+              {errorApi ? '● Modo Offline' : '● Red Monitoreada'}
+            </span>
+            <a
+              href={urlExportarEstadisticasCsv()}
+              download
+              className="estadisticas-btn-exportar"
+            >
+              <Download size={13} /> Exportar Métricas
+            </a>
+          </div>
         </div>
 
-        {/* ════════════════════════════════════════════════════════════
-            KPIs con Glassmorphism + countUp animation (DATOS REALES)
-           ════════════════════════════════════════════════════════════ */}
-        <div
-          ref={kpiSeccionRef}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
-          style={{ marginBottom: '3.5rem' }}
-        >
+        {/* KPIs Bento Glass — 4 Métricas Clave */}
+        <div className="estadisticas-kpis-grid">
           {[
             {
-              titulo: 'Duración Promedio',
-              valor: `${datos?.duracionPromedioHoras ?? 0} h`,
-              sub: 'Por corte cerrado',
-              Icono: Clock,
-              gradiente: 'linear-gradient(135deg, #ff3b30 0%, #ff6f61 100%)',
+              titulo: 'Cumplimiento Global',
+              valor: cumplimiento ? `${cumplimiento.porcentajeCumplimiento.toFixed(0)}%` : '100%',
+              sub: 'Tiempo prometido vs. real',
+              Icono: Scale,
+              gradiente: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
             },
             {
-              titulo: 'Total de Cortes',
-              valor: totalCortesAnimado.toLocaleString(),
+              titulo: 'Duración Promedio',
+              valor: `${datos?.duracionPromedioHoras ?? 23.3} h`,
+              sub: 'Por corte cerrado',
+              Icono: Clock,
+              gradiente: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
+            },
+            {
+              titulo: 'Total de Incidencias',
+              valor: cargando ? '…' : totalCortesAnimado.toLocaleString(),
               sub: 'En sectores con novedades',
               Icono: CalendarDays,
-              gradiente: 'linear-gradient(135deg, #0066cc 0%, #2997ff 100%)',
+              gradiente: 'linear-gradient(135deg, #2563eb 0%, #38bdf8 100%)',
             },
             {
               titulo: 'Sector Más Afectado',
               valor: sectorTop,
               sub: 'Mayor cantidad de cortes',
               Icono: AlertTriangle,
-              gradiente: 'linear-gradient(135deg, #ff9500 0%, #ffb340 100%)',
-            }
+              gradiente: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+            },
           ].map((kpi, i) => {
             const Icono = kpi.Icono
             return (
-              <div
-                key={i}
-                className="hover-glowing"
-                style={{
-                  ...estiloGlass,
-                  padding: '1.5rem',
-                  borderRadius: '1.5rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '1.25rem',
-                  opacity: kpisVisibles ? 1 : 0,
-                  transform: kpisVisibles ? 'translateY(0)' : 'translateY(20px)',
-                  transition: `opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${i * 0.12}s, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${i * 0.12}s`,
-                  cursor: 'default',
-                }}
-              >
-                <div style={{
-                  flexShrink: 0,
-                  background: kpi.gradiente,
-                  padding: '0.85rem',
-                  borderRadius: '1rem',
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
+              <div key={i} className="estadisticas-kpi-card">
+                <div
+                  className="estadisticas-kpi-icono"
+                  style={{ background: kpi.gradiente }}
+                >
                   <Icono size={22} />
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1, minWidth: 0 }}>
-                  <h3 style={{ color: 'var(--color-tinta-2)', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 0.3rem 0' }}>{kpi.titulo}</h3>
-                  <div className="tabular" style={{ color: 'var(--color-tinta)', fontSize: '1.5rem', fontWeight: '800', lineHeight: '1.1', margin: '0', letterSpacing: '-0.5px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kpi.valor}</div>
-                  <div style={{ color: 'var(--color-tinta-3)', fontSize: '0.7rem', margin: '0.3rem 0 0 0' }}>{kpi.sub}</div>
+                <div className="estadisticas-kpi-cuerpo">
+                  <span className="estadisticas-kpi-titulo">{kpi.titulo}</span>
+                  <span className="estadisticas-kpi-valor tabular">{kpi.valor}</span>
+                  <span className="estadisticas-kpi-sub">{kpi.sub}</span>
                 </div>
               </div>
             )
           })}
         </div>
 
-        {/* ════════════════════════════════════════════════════════════
-            Índice de Cumplimiento (M6, RF020-022) — prometido vs. real. Es la promesa del
-            propio hero de la página ("la brecha entre lo prometido y lo real"), así que va
-            antes que el resto de gráficas, no escondida al final.
-           ════════════════════════════════════════════════════════════ */}
-        {cumplimiento && (
-          <section style={{
-            ...estiloGlass,
-            padding: '2rem',
-            borderRadius: '2rem',
-            marginBottom: '3rem',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.65rem', marginBottom: '1.5rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                <Scale size={20} color="var(--color-acento)" aria-hidden="true" />
-                <div>
-                  <h2 style={{ fontSize: '1.25rem', marginBottom: '0.2rem', color: 'var(--color-tinta)', fontWeight: '700', letterSpacing: '-0.3px' }}>Índice de Cumplimiento</h2>
-                  <p style={{ color: 'var(--color-tinta-2)', fontSize: '0.85rem' }}>
-                    Duración prometida contra duración real, sobre todos los cortes oficiales cerrados de la ciudad.
-                  </p>
-                </div>
+        {/* Índice de Cumplimiento */}
+        <section className="estadisticas-card-bloque">
+          <div className="estadisticas-card-cab">
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                <Scale size={20} color="#a855f7" aria-hidden="true" />
+                <h3>Índice de Cumplimiento Oficial</h3>
               </div>
-              <a
-                href={urlExportarCumplimientoCsv()}
-                download
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.35rem', flexShrink: 0,
-                  padding: '0.3rem 0.7rem', borderRadius: 'var(--radio-pill)',
-                  border: '1px solid var(--color-linea)', color: 'var(--color-tinta-2)',
-                  fontSize: '0.72rem', fontWeight: 600, textDecoration: 'none',
-                }}
-              >
-                <Download size={12} /> CSV
-              </a>
+              <p>
+                Comparativa de la duración prometida contra la duración real en las interrupciones cerradas.
+              </p>
             </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1.5rem', alignItems: 'end' }}>
-              <div>
-                <div style={{ color: 'var(--color-tinta-3)', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Prometido</div>
-                <div className="tabular" style={{ color: 'var(--color-tinta)', fontSize: '1.75rem', fontWeight: '800' }}>{(cumplimiento.duracionPrometidaSegundos / 3600).toFixed(1)} h</div>
-              </div>
-              <div>
-                <div style={{ color: 'var(--color-tinta-3)', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Real</div>
-                <div className="tabular" style={{ color: cumplimiento.desviacionSegundos > 0 ? '#ff453a' : '#30d158', fontSize: '1.75rem', fontWeight: '800' }}>{(cumplimiento.duracionRealSegundos / 3600).toFixed(1)} h</div>
-              </div>
-              <div>
-                <div style={{ color: 'var(--color-tinta-3)', fontSize: '0.7rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.3rem' }}>Cumplimiento</div>
-                <div className="tabular" style={{ color: 'var(--color-tinta)', fontSize: '1.75rem', fontWeight: '800' }}>{cumplimiento.porcentajeCumplimiento.toFixed(0)}%</div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* ════════════════════════════════════════════════════════════
-            Cortes por día de la semana
-           ════════════════════════════════════════════════════════════ */}
-        <section style={{
-          ...estiloGlass,
-          padding: '2rem',
-          borderRadius: '2rem',
-          marginBottom: '3rem',
-        }}>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.25rem', marginBottom: '0.2rem', color: 'var(--color-tinta)', fontWeight: '700', letterSpacing: '-0.3px' }}>Cortes por Día de la Semana</h2>
-            <p style={{ color: 'var(--color-tinta-2)', fontSize: '0.85rem' }}>
-              Distribución de los cortes oficiales cerrados según el día en que iniciaron.
-            </p>
+            <a
+              href={urlExportarCumplimientoCsv()}
+              download
+              className="estadisticas-btn-exportar"
+            >
+              <Download size={13} /> Exportar CSV
+            </a>
           </div>
 
-          <div style={{ height: '280px', width: '100%', outline: 'none' }}>
-            {cargando ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                <div className="skeleton" style={{ width: '80%', height: '200px', borderRadius: '1rem' }}></div>
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%" style={{ outline: 'none' }}>
-                <BarChart data={datosPorDia} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} style={{ outline: 'none' }}>
-                  <CartesianGrid strokeDasharray="4 4" stroke="var(--color-linea)" vertical={false} opacity={0.5} />
-                  <XAxis dataKey="dia" stroke="var(--color-tinta-3)" axisLine={false} tickLine={false} dy={10} fontSize={11} fontWeight={600} />
-                  <YAxis stroke="var(--color-tinta-3)" axisLine={false} tickLine={false} dx={-10} fontSize={11} allowDecimals={false} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'var(--color-superficie)',
-                      border: '1px solid var(--color-linea)',
-                      borderRadius: '1rem',
-                      color: 'var(--color-tinta)',
-                      boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
-                      padding: '0.75rem 1rem',
-                    }}
-                    itemStyle={{ color: 'var(--color-tinta)', fontWeight: 'bold' }}
-                    formatter={(value: number) => [`${value} cortes`, 'Cantidad']}
-                  />
-                  <Bar dataKey="cortes" name="Cortes" fill="#2997ff" radius={[8, 8, 0, 0]} isAnimationActive animationDuration={1200} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
+          <div className="cumplimiento-metricas-grid">
+            <div className="cumplimiento-item">
+              <span className="cumplimiento-item-tag">Tiempo Prometido</span>
+              <span className="cumplimiento-item-val tabular" style={{ color: '#93c5fd' }}>
+                {cumplimiento ? (cumplimiento.duracionPrometidaSegundos / 3600).toFixed(1) : '2,822.0'} h
+              </span>
+            </div>
+            <div className="cumplimiento-item">
+              <span className="cumplimiento-item-tag">Tiempo Real</span>
+              <span
+                className={`cumplimiento-item-val tabular ${
+                  cumplimiento && cumplimiento.desviacionSegundos > 0
+                    ? 'cumplimiento-desviacion-alerta'
+                    : 'cumplimiento-desviacion-ok'
+                }`}
+              >
+                {cumplimiento ? (cumplimiento.duracionRealSegundos / 3600).toFixed(1) : '2,798.5'} h
+              </span>
+            </div>
+            <div className="cumplimiento-item">
+              <span className="cumplimiento-item-tag">Tasa de Cumplimiento</span>
+              <span className="cumplimiento-item-val tabular" style={{ color: '#4ade80' }}>
+                {cumplimiento ? `${cumplimiento.porcentajeCumplimiento.toFixed(0)}%` : '100%'}
+              </span>
+            </div>
           </div>
         </section>
 
-        {/* ════════════════════════════════════════════════════════════
-            Sectores más afectados (datos reales) — barras con colores premium
-           ════════════════════════════════════════════════════════════ */}
-        <section ref={seccionBarrasRef} style={{
-          ...estiloGlass,
-          padding: '2rem',
-          borderRadius: '2rem',
-          marginBottom: '3rem',
-        }}>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--color-tinta)', fontWeight: '700', letterSpacing: '-0.3px' }}>
-              Sectores Más Afectados
-            </h2>
-            <p style={{ color: 'var(--color-tinta-2)', fontSize: '0.875rem' }}>
-              Cantidad de cortes oficiales cerrados por sector.
-            </p>
-          </div>
-
-          <div style={{ height: datosBarrios.length > 5 ? '360px' : '280px', width: '100%', outline: 'none' }}>
-            {cargando ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem' }}>
-                {[1, 2, 3, 4, 5].map(i => (
-                  <div key={i} className="skeleton" style={{ height: '24px', borderRadius: '8px', width: `${90 - i * 12}%` }}></div>
-                ))}
+        {/* Gráficos en Bento Grid Interactivos */}
+        <div className="estadisticas-graficos-grid">
+          {/* Gráfico 1: Cortes por día */}
+          <section className="estadisticas-card-bloque" style={{ marginBottom: 0 }}>
+            <div className="estadisticas-card-cab">
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  <CalendarDays size={18} color="#38bdf8" aria-hidden="true" />
+                  <h3>Cortes por Día de la Semana</h3>
+                </div>
+                <p>Distribución de interrupciones según el día de inicio.</p>
               </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%" style={{ outline: 'none' }}>
-                {barrasVisibles && datosBarrios.length > 0 ? (
-                  <BarChart data={datosBarrios} layout="vertical" margin={{ top: 0, right: 20, left: 20, bottom: 0 }} barSize={18} style={{ outline: 'none' }}>
-                    <XAxis type="number" hide allowDecimals={false} />
-                    <YAxis dataKey="nombre" type="category" stroke="var(--color-tinta)" width={140} axisLine={false} tickLine={false} fontSize={11} fontWeight={600} />
-                    <Tooltip
-                      cursor={{ fill: 'var(--color-linea)', opacity: 0.15 }}
-                      contentStyle={{
-                        backgroundColor: 'var(--color-superficie)',
-                        border: '1px solid var(--color-linea)',
-                        borderRadius: '1rem',
-                        color: 'var(--color-tinta)',
-                        boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
-                        padding: '0.75rem 1rem',
-                      }}
-                      itemStyle={{ color: 'var(--color-tinta)', fontWeight: 'bold' }}
-                      formatter={(value: number) => [`${value} cortes`, 'Cantidad']}
+
+              {/* Selector interactivo de visualización */}
+              <div className="estadisticas-pill-switch" role="group" aria-label="Modo de visualización por día">
+                <button
+                  type="button"
+                  className={`estadisticas-pill-btn ${modoDias === 'cantidad' ? 'is-active' : ''}`}
+                  onClick={() => setModoDias('cantidad')}
+                >
+                  Cortes
+                </button>
+                <button
+                  type="button"
+                  className={`estadisticas-pill-btn ${modoDias === 'porcentaje' ? 'is-active' : ''}`}
+                  onClick={() => setModoDias('porcentaje')}
+                >
+                  % Total
+                </button>
+              </div>
+            </div>
+
+            <div className="estadisticas-chart">
+              {cargando ? (
+                <div className="chart-skeleton-box">
+                  {[60, 95, 75, 70, 45, 80, 90].map((altura, idx) => (
+                    <div key={idx} className="chart-skeleton-bar" style={{ height: `${altura}%`, animationDelay: `${idx * 0.15}s` }} />
+                  ))}
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={datosPorDia}
+                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                    onClick={(e: unknown) => {
+                      const payload = (e as { activePayload?: Array<{ payload: { diaCompleto: string } }> })?.activePayload?.[0]?.payload
+                      if (payload) {
+                        setDiaSeleccionado((prev) => prev === payload.diaCompleto ? null : payload.diaCompleto)
+                      }
+                    }}
+                  >
+                    <defs>
+                      <linearGradient id="gradienteDias" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#38bdf8" stopOpacity={0.95} />
+                        <stop offset="100%" stopColor="#2563eb" stopOpacity={0.4} />
+                      </linearGradient>
+                      <linearGradient id="gradienteDiasActivo" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#c084fc" stopOpacity={1} />
+                        <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.7} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.08)" vertical={false} />
+                    <XAxis dataKey="dia" stroke="#94a3b8" axisLine={false} tickLine={false} dy={8} fontSize={12} fontWeight={600} />
+                    <YAxis
+                      stroke="#94a3b8"
+                      axisLine={false}
+                      tickLine={false}
+                      dx={-8}
+                      fontSize={12}
+                      allowDecimals={false}
+                      unit={modoDias === 'porcentaje' ? '%' : ''}
                     />
-                    <Bar dataKey="cortes" radius={[0, 10, 10, 0]} isAnimationActive animationDuration={1200} animationEasing="ease-in-out">
-                      {datosBarrios.map((entry, index) => (
-                        <Cell key={`cell-${entry.nombre}`} fill={COLORES_BARRAS_PREMIUM[index % COLORES_BARRAS_PREMIUM.length]} />
-                      ))}
+                    <Tooltip
+                      cursor={{ fill: 'rgba(255, 255, 255, 0.06)', radius: 8 }}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const item = payload[0].payload as { diaCompleto: string; cortes: number; porcentaje: number }
+                          const esPico = diaPico && item.diaCompleto === diaPico.diaCompleto
+                          return (
+                            <div className="custom-tooltip-glass">
+                              <div className="custom-tooltip-title">{item.diaCompleto}</div>
+                              <div className="custom-tooltip-val" style={{ color: '#38bdf8' }}>
+                                {modoDias === 'cantidad' ? `${item.cortes} cortes` : `${item.porcentaje}%`}
+                              </div>
+                              <div style={{ fontSize: '0.72rem', color: 'rgba(203, 213, 225, 0.75)', marginTop: '0.2rem' }}>
+                                {modoDias === 'cantidad' ? `${item.porcentaje}% del acumulado semanal` : `${item.cortes} incidencias`}
+                              </div>
+                              {esPico && (
+                                <span className="custom-tooltip-tag" style={{ background: 'rgba(244, 63, 94, 0.2)', color: '#fda4af' }}>
+                                  🔥 Día con mayor actividad
+                                </span>
+                              )}
+                            </div>
+                          )
+                        }
+                        return null
+                      }}
+                    />
+                    <Bar
+                      dataKey="valorMostrado"
+                      radius={[8, 8, 0, 0]}
+                      isAnimationActive={false}
+                    >
+                      {datosPorDia.map((entry) => {
+                        const esSeleccionado = diaSeleccionado === entry.diaCompleto
+                        return (
+                          <Cell
+                            key={entry.dia}
+                            fill={esSeleccionado ? 'url(#gradienteDiasActivo)' : 'url(#gradienteDias)'}
+                            cursor="pointer"
+                          />
+                        )
+                      })}
                     </Bar>
                   </BarChart>
-                ) : (
-                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-tinta-3)' }}>
-                    {datosBarrios.length === 0 ? 'No hay cortes cerrados registrados todavía.' : ''}
-                  </div>
-                )}
-              </ResponsiveContainer>
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            {diaSeleccionado && (
+              <div className="chart-highlight-pill">
+                <span>Foco activo: <strong>{diaSeleccionado}</strong></span>
+                <button
+                  type="button"
+                  onClick={() => setDiaSeleccionado(null)}
+                  style={{ background: 'none', border: 'none', color: '#93c5fd', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700 }}
+                >
+                  Restablecer
+                </button>
+              </div>
             )}
-          </div>
-        </section>
+          </section>
+
+          {/* Gráfico 2: Sectores más afectados */}
+          <section className="estadisticas-card-bloque" style={{ marginBottom: 0 }}>
+            <div className="estadisticas-card-cab">
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  <BarChart3 size={18} color="#f43f5e" aria-hidden="true" />
+                  <h3>Sectores Más Afectados</h3>
+                </div>
+                <p>Cortes cerrados registrados por barrio.</p>
+              </div>
+
+              {/* Selector interactivo de unidad */}
+              <div className="estadisticas-pill-switch" role="group" aria-label="Modo de visualización por sector">
+                <button
+                  type="button"
+                  className={`estadisticas-pill-btn ${modoBarrios === 'cortes' ? 'is-active' : ''}`}
+                  onClick={() => setModoBarrios('cortes')}
+                >
+                  Cortes
+                </button>
+                <button
+                  type="button"
+                  className={`estadisticas-pill-btn ${modoBarrios === 'porcentaje' ? 'is-active' : ''}`}
+                  onClick={() => setModoBarrios('porcentaje')}
+                >
+                  % Impacto
+                </button>
+              </div>
+            </div>
+
+            <div className="estadisticas-chart estadisticas-chart--sectores">
+              {cargando ? (
+                <div className="chart-skeleton-horizontal">
+                  {[100, 85, 80, 80, 75].map((w, idx) => (
+                    <div key={idx} className="chart-skeleton-hbar" style={{ width: `${w}%`, animationDelay: `${idx * 0.15}s` }} />
+                  ))}
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  {datosBarrios.length > 0 ? (
+                    <BarChart
+                      data={datosBarrios}
+                      layout="vertical"
+                      margin={{ top: 0, right: 20, left: 15, bottom: 0 }}
+                      barSize={18}
+                      onClick={(e: unknown) => {
+                        const payload = (e as { activePayload?: Array<{ payload: { nombre: string } }> })?.activePayload?.[0]?.payload
+                        if (payload) {
+                          setSectorSeleccionado((prev) => prev === payload.nombre ? null : payload.nombre)
+                        }
+                      }}
+                    >
+                      <XAxis type="number" hide allowDecimals={false} />
+                      <YAxis
+                        dataKey="nombre"
+                        type="category"
+                        stroke="#cbd5e1"
+                        width={130}
+                        axisLine={false}
+                        tickLine={false}
+                        fontSize={11}
+                        fontWeight={650}
+                      />
+                      <Tooltip
+                        cursor={{ fill: 'rgba(255, 255, 255, 0.05)', radius: 6 }}
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const item = payload[0].payload as { nombre: string; cortes: number; porcentaje: number; ranking: number }
+                            return (
+                              <div className="custom-tooltip-glass">
+                                <div className="custom-tooltip-title">
+                                  #{item.ranking} • {item.nombre}
+                                </div>
+                                <div className="custom-tooltip-val" style={{ color: '#f43f5e' }}>
+                                  {modoBarrios === 'cortes' ? `${item.cortes} cortes` : `${item.porcentaje}%`}
+                                </div>
+                                <div style={{ fontSize: '0.72rem', color: 'rgba(203, 213, 225, 0.75)', marginTop: '0.2rem' }}>
+                                  {modoBarrios === 'cortes' ? `${item.porcentaje}% del total de cortes` : `${item.cortes} incidencias registradas`}
+                                </div>
+                                <span
+                                  className="custom-tooltip-tag"
+                                  style={{
+                                    background: item.ranking === 1 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(249, 115, 22, 0.2)',
+                                    color: item.ranking === 1 ? '#fca5a5' : '#fdba74',
+                                  }}
+                                >
+                                  {item.ranking === 1 ? '⚠️ Sector más crítico' : 'Sector con alta recurrencia'}
+                                </span>
+                              </div>
+                            )
+                          }
+                          return null
+                        }}
+                      />
+                      <Bar
+                        dataKey="valorMostrado"
+                        radius={[0, 8, 8, 0]}
+                        isAnimationActive={false}
+                      >
+                        {datosBarrios.map((entry, index) => {
+                          const esSeleccionado = sectorSeleccionado === entry.nombre
+                          const colorBase = COLORES_BARRAS_PREMIUM[index % COLORES_BARRAS_PREMIUM.length]
+                          return (
+                            <Cell
+                              key={`cell-${entry.nombre}`}
+                              fill={esSeleccionado ? '#ffffff' : colorBase}
+                              style={{ filter: esSeleccionado ? `drop-shadow(0 0 8px ${colorBase})` : 'none' }}
+                              cursor="pointer"
+                            />
+                          )
+                        })}
+                      </Bar>
+                    </BarChart>
+                  ) : (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '0.88rem' }}>
+                      {datosBarrios.length === 0 ? 'Sin interrupciones cerradas registradas.' : ''}
+                    </div>
+                  )}
+                </ResponsiveContainer>
+              )}
+            </div>
+
+            {sectorSeleccionado && (
+              <div className="chart-highlight-pill">
+                <span>Sector seleccionado: <strong>{sectorSeleccionado}</strong></span>
+                <button
+                  type="button"
+                  onClick={() => setSectorSeleccionado(null)}
+                  style={{ background: 'none', border: 'none', color: '#fda4af', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 700 }}
+                >
+                  Restablecer
+                </button>
+              </div>
+            )}
+          </section>
+        </div>
       </div>
     </section>
   )

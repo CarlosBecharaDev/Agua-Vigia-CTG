@@ -37,8 +37,6 @@ export const PanelDetalleSector: FC<Props> = ({ sector, boletines, onCerrar, onA
 
   useEffect(() => {
     let montado = true
-    setCumplimiento(null)
-    setSerie([])
     obtenerIndiceCumplimientoPorSector(sector.id).then((res) => { if (montado) setCumplimiento(res) }).catch(() => {})
     obtenerSerieCumplimiento(sector.id).then((res) => { if (montado) setSerie(res) }).catch(() => {})
     return () => { montado = false }

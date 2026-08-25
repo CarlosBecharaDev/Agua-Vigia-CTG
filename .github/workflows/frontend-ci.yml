@@ -36,12 +36,13 @@ jobs:
         run: npm run api:check
 
       - name: Tests
-        run: |
-          if node -e "process.exit(require('./package.json').scripts.test ? 0 : 1)"; then
-            npm run test -- --run
-          else
-            echo "Sin script 'test' todavia (esqueleto de Sprint 0) - se omite hasta que exista."
-          fi
+        run: npm run test -- --run
+
+      - name: Instalar Chromium para pruebas E2E
+        run: npx playwright install --with-deps chromium
+
+      - name: Pruebas E2E
+        run: npm run test:e2e
 
       - name: Build
         run: npm run build

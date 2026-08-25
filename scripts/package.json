@@ -4,7 +4,8 @@
   "type": "module",
   "description": "Scripts operativos de una sola vez (siembra de datos, migraciones puntuales). No es la aplicacion.",
   "scripts": {
-    "sembrar-sectores": "node sembrar-sectores.mjs"
+    "sembrar-sectores": "node sembrar-sectores.mjs",
+    "sembrar-cortes": "node sembrar-historico-cortes.mjs"
   },
   "dependencies": {
     "mongodb": "^6.10.0"

@@ -5,6 +5,7 @@ import { cerrarSesionVeedor, iniciarSesionVeedor } from '../api/services'
 import { normalizarErrorApi, sesionVeedor } from '../api/client'
 import { PageWrapper } from '../components/PageWrapper'
 import { PanelVeedor } from '../components/PanelVeedor'
+import '../components/ModalReporte.css'
 
 export default function PaginaVeedor() {
   const [autenticado, setAutenticado] = useState(Boolean(sesionVeedor.obtener()))
@@ -13,9 +14,6 @@ export default function PaginaVeedor() {
   const [mostrarClave, setMostrarClave] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // F1 — si el JWT vence (8h) o el backend reinicia con otro JWT_SECRET mientras el panel está
-  // abierto, el interceptor de 401 borra el token pero nadie más se enteraba: el panel seguía
-  // mostrándose como autenticado con todas las consultas fallando en silencio.
   useEffect(() => sesionVeedor.alLimpiarse(() => {
     setAutenticado(false)
     setError('La sesión venció. Inicia sesión de nuevo.')
@@ -47,21 +45,90 @@ export default function PaginaVeedor() {
 
   return (
     <PageWrapper>
-      <main id="contenido-principal" tabIndex={-1} className="pagina-estado">
-        <section className="acceso-veedor" aria-labelledby="titulo-veedor">
-          <div className="veedor-contexto">
-            <span className="estado-pagina-icono" aria-hidden="true"><ShieldCheck /></span>
-            <p className="eyebrow">Acceso restringido</p>
-            <h1 id="titulo-veedor">Ingreso del veedor</h1>
-            <p>Un espacio protegido para validar información pública con responsabilidad y trazabilidad.</p>
-            <ul><li><LockKeyhole size={16} />Sesión temporal y protegida</li><li><ShieldCheck size={16} />Acciones sujetas al contrato oficial</li></ul>
+      <main id="contenido-principal" tabIndex={-1} className="pagina-estado" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', padding: '3rem 1rem 6rem' }}>
+        <section
+          className="modal-reporte-contenedor"
+          style={{ width: 'min(100%, 480px)', maxHeight: 'none' }}
+          aria-labelledby="titulo-veedor"
+        >
+          {/* Fondo animado morado */}
+          <div className="modal-reporte-fondo-animado" aria-hidden="true">
+            <div className="orbe-rep-1" />
+            <div className="orbe-rep-2" />
           </div>
-          <form onSubmit={iniciar} className="veedor-formulario">
-            <div><span className="paso-numero">Identidad verificada</span><h2>Accede de forma segura</h2><p>La sesión dura como máximo ocho horas y se elimina al cerrar esta pestaña.</p></div>
-            <label htmlFor="clave-veedor">Clave del veedor</label>
-            <div className={`campo-con-icono campo-clave${clave ? ' con-valor' : ''}`}><KeyRound aria-hidden="true" /><input id="clave-veedor" type={mostrarClave ? 'text' : 'password'} required autoComplete="current-password" value={clave} onChange={(event) => setClave(event.target.value)} /><button type="button" aria-label={mostrarClave ? 'Ocultar clave' : 'Mostrar clave'} onClick={() => setMostrarClave((actual) => !actual)}>{mostrarClave ? <EyeOff size={18} /> : <Eye size={18} />}</button></div>
-            {error && <p className="mensaje-error" role="alert">{error}</p>}
-            <button className="boton boton-primario boton-ancho" type="submit" disabled={enviando || !clave}>{enviando ? <><span className="spinner" /> Verificando…</> : 'Iniciar sesión'}</button>
+
+          <div className="modal-reporte-cabecera" style={{ marginBottom: '1.25rem' }}>
+            <div className="modal-reporte-icono-titulo">
+              <div className="modal-reporte-badge-icono" style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#d8b4fe' }} aria-hidden="true">
+                <ShieldCheck size={26} />
+              </div>
+              <div className="modal-reporte-titulos">
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: '#c084fc', fontSize: '0.72rem', fontWeight: 750, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.2rem' }}>
+                  <LockKeyhole size={12} /> Acceso Restringido
+                </div>
+                <h1 id="titulo-veedor" style={{ fontSize: '1.45rem', margin: 0, color: '#ffffff' }}>Ingreso del Veedor</h1>
+                <p>Centro de moderación oficial y control operativo.</p>
+              </div>
+            </div>
+          </div>
+
+          <form onSubmit={iniciar} className="form-reporte-moderno">
+            <div className="form-reporte-bloque">
+              <label htmlFor="clave-veedor" className="form-reporte-label">
+                <KeyRound size={15} color="#d8b4fe" />
+                Clave del veedor
+              </label>
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <input
+                  id="clave-veedor"
+                  type={mostrarClave ? 'text' : 'password'}
+                  required
+                  autoComplete="current-password"
+                  placeholder="Introduce la clave de acceso…"
+                  value={clave}
+                  onChange={(event) => setClave(event.target.value)}
+                  className="form-suscripcion-input"
+                  style={{ paddingRight: '2.75rem', width: '100%' }}
+                />
+                <button
+                  type="button"
+                  aria-label={mostrarClave ? 'Ocultar clave' : 'Mostrar clave'}
+                  onClick={() => setMostrarClave((actual) => !actual)}
+                  style={{
+                    position: 'absolute',
+                    right: '0.75rem',
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'rgba(203, 213, 225, 0.7)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '0.25rem',
+                  }}
+                >
+                  {mostrarClave ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="form-suscripcion-error-badge" role="alert">
+                {error}
+              </div>
+            )}
+
+            <button
+              className="form-suscripcion-boton-enviar"
+              type="submit"
+              disabled={enviando || !clave}
+              style={{ marginTop: '0.5rem' }}
+            >
+              {enviando ? <><span className="spinner" /> Verificando…</> : 'Iniciar sesión'}
+            </button>
+
+            <p style={{ color: 'rgba(203, 213, 225, 0.55)', fontSize: '0.72rem', textAlign: 'center', margin: '0.5rem 0 0' }}>
+              La sesión permanece activa por un máximo de 8 horas con cifrado de grado industrial.
+            </p>
           </form>
         </section>
       </main>

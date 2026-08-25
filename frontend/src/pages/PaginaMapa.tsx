@@ -39,6 +39,7 @@ import type { useTheme } from '../hooks/useTheme'
 const PanelDetalleSector = lazy(() => import('../components/PanelDetalleSector').then((m) => ({ default: m.PanelDetalleSector })))
 const SeccionBitacora = lazy(() => import('../components/SeccionBitacora').then((m) => ({ default: m.SeccionBitacora })))
 const SeccionEstadisticas = lazy(() => import('../components/SeccionEstadisticas').then((m) => ({ default: m.SeccionEstadisticas })))
+const SeccionVeedor = lazy(() => import('../components/SeccionVeedor').then((m) => ({ default: m.SeccionVeedor })))
 
 type ThemeProps = ReturnType<typeof useTheme>
 
@@ -56,9 +57,10 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
   const [sectorReporte, setSectorReporte] = useState<string>('')
   const [busqueda, setBusqueda] = useState<string>('')
   const [filtroPanel, setFiltroPanel] = useState<'estado' | 'sector'>('estado')
+  const [direccionCarrusel, setDireccionCarrusel] = useState(1)
   const [panelColapsado, setPanelColapsado] = useState(false)
   const [busquedaBitacora, setBusquedaBitacora] = useState<string>('')
-  const [seccionActiva, setSeccionActiva] = useState<'mapa' | 'bitacora' | 'estadisticas'>('mapa')
+  const [seccionActiva, setSeccionActiva] = useState<'mapa' | 'bitacora' | 'estadisticas' | 'veedor'>('mapa')
   const [estadoDestacado, setEstadoDestacado] = useState<EstadoServicio | null>(null)
 
   const conteos = [
@@ -69,6 +71,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
   ]
 
   const alSeleccionarSector = useCallback((sector: Sector | null) => {
+    setDireccionCarrusel(sector ? 1 : -1)
     setSectorActivo(sector)
   }, [])
 
@@ -86,7 +89,16 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
   const { hash } = useLocation()
   useEffect(() => {
     if (hash) {
-      document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' })
+      const id = hash.slice(1)
+      const el = document.getElementById(id)
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } else {
+        const timer = setTimeout(() => {
+          document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 200)
+        return () => clearTimeout(timer)
+      }
     } else {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
@@ -205,7 +217,11 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
                     { href: '#por-sector', label: 'Por sector' },
                   ]}
                   activeIndex={filtroPanel === 'estado' ? 0 : 1}
-                  onSelect={(indice) => setFiltroPanel(indice === 0 ? 'estado' : 'sector')}
+                  onSelect={(indice) => {
+                    const siguiente = indice === 0 ? 'estado' : 'sector'
+                    setDireccionCarrusel(siguiente === 'sector' ? 1 : -1)
+                    setFiltroPanel(siguiente)
+                  }}
                 />
               </div>
             </div>
@@ -220,10 +236,12 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
               <CarruselSector
                 className={`carrusel-sector${filtroPanel === 'estado' && !sectorActivo ? ' carrusel-sector--centrado' : ''}`}
                 vista={sectorActivo ? 'detalle' : filtroPanel}
+                direccion={direccionCarrusel}
               >
                 {sectorActivo ? (
                   <Suspense fallback={null}>
                     <PanelDetalleSector
+                      key={sectorActivo.id}
                       sector={sectorActivo}
                       boletines={boletines}
                       onCerrar={() => alSeleccionarSector(null)}
@@ -256,24 +274,28 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
       </GradientWaves>
       </section>
 
-      <div className="zona-nebulosa">
-        <Suspense fallback={<div className="seccion-cargando" role="status">Cargando bitácora…</div>}>
-          <SeccionBitacora busqueda={busquedaBitacora} />
-        </Suspense>
+      <Suspense fallback={<div className="seccion-cargando" role="status">Cargando bitácora…</div>}>
+        <SeccionBitacora busqueda={busquedaBitacora} />
+      </Suspense>
 
-        <Suspense fallback={<div className="seccion-cargando" role="status">Cargando estadísticas…</div>}>
-          <SeccionEstadisticas />
-        </Suspense>
+      <Suspense fallback={<div className="seccion-cargando" role="status">Cargando estadísticas…</div>}>
+        <SeccionEstadisticas />
+      </Suspense>
 
-        <PieDePagina />
-      </div>
+      <Suspense fallback={<div className="seccion-cargando" role="status">Cargando veeduría…</div>}>
+        <SeccionVeedor />
+      </Suspense>
 
-      <ModalReporte
-        abierto={modalAbierto}
-        alCerrar={() => setModalAbierto(false)}
-        sectores={sectores}
-        sectorPreseleccionado={sectorReporte}
-      />
+      <PieDePagina />
+
+      {modalAbierto && (
+        <ModalReporte
+          abierto
+          alCerrar={() => setModalAbierto(false)}
+          sectores={sectores}
+          sectorPreseleccionado={sectorReporte}
+        />
+      )}
 
       <ModalSuscripcion
         abierto={suscripcionAbierta}

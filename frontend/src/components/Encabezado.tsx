@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { FC } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { Droplet, Mail, Megaphone, Menu, Waves, X } from 'lucide-react'
@@ -22,12 +22,13 @@ const TITULOS: Record<string, { seccion: string; titulo: string }> = {
 
 export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema, onAbrirSuscripcion }) => {
   const { pathname } = useLocation()
-  const [menuAbierto, setMenuAbierto] = useState(false)
+  const [menuAbiertoEn, setMenuAbiertoEn] = useState<string | null>(null)
+  const menuAbierto = menuAbiertoEn === pathname
+  const setMenuAbierto = useCallback(
+    (abierto: boolean) => setMenuAbiertoEn(abierto ? pathname : null),
+    [pathname],
+  )
   const contexto = TITULOS[pathname] ?? { seccion: 'AguaVigía', titulo: 'Página' }
-
-  useEffect(() => {
-    setMenuAbierto(false)
-  }, [pathname])
 
   useEffect(() => {
     const cerrarConEscape = (evento: KeyboardEvent) => {
@@ -35,7 +36,7 @@ export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema, onAbrirSuscr
     }
     window.addEventListener('keydown', cerrarConEscape)
     return () => window.removeEventListener('keydown', cerrarConEscape)
-  }, [])
+  }, [setMenuAbierto])
 
   return (
     <>
@@ -71,6 +72,21 @@ export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema, onAbrirSuscr
               to={a}
               end={a === '/'}
               className={({ isActive }) => `sidebar-link${isActive ? ' is-active' : ''}`}
+              onClick={(e) => {
+                if (a === '/' && window.location.pathname === '/') {
+                  e.preventDefault()
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                  setMenuAbierto(false)
+                } else if (a.startsWith('/#') && window.location.pathname === '/') {
+                  const id = a.slice(2)
+                  const el = document.getElementById(id)
+                  if (el) {
+                    e.preventDefault()
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                    setMenuAbierto(false)
+                  }
+                }
+              }}
             >
               <span className="sidebar-link-icon" aria-hidden="true"><Icono size={19} /></span>
               <span className="sidebar-link-copy"><strong>{etiqueta}</strong><small>{resumen}</small></span>
