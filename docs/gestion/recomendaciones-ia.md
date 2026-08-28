@@ -21,6 +21,7 @@
 | REC-004 | 2026-08-08 | La cobertura de pruebas del frontend está muy por debajo de la del backend | Pendiente |
 | REC-005 | 2026-08-08 | El ROSTER de `generar-dashboard.mjs` está escrito a mano, no se lee de ningún documento | Pendiente |
 | REC-006 | 2026-08-09 | `RateLimitConfig` se cuela en cualquier `@WebMvcTest` aunque no se importe, y rompe pruebas en silencio al activar reglas reales | Pendiente |
+| REC-007 | 2026-08-28 | Las ramas fusionadas se acumulan en GitHub porque falta activar el borrado automático | Pendiente |
 
 **Estado:** `Pendiente` (sin revisar) · `Validada` (el equipo está de acuerdo, puede pasar a
 ADR/issue/tarea) · `Descartada` (el equipo no está de acuerdo — deja el motivo en el detalle) ·
@@ -100,3 +101,14 @@ lo importe, y con reglas vacías nadie lo había notado. Se resolvió con
 la pena que el equipo decida si dejarlo anotado en el propio `RateLimitConfig.java` o como convención
 de plantilla para nuevos `@WebMvcTest`, para que no vuelva a morder a la próxima persona que agregue
 una regla.
+
+### REC-007 — Las ramas fusionadas se acumulan en GitHub porque falta activar el borrado automático
+
+- **Fecha:** 2026-08-28 · **Estado:** Pendiente
+
+Al auditar `https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/branches` se encontraron 4 ramas
+remotas y 11 locales completamente fusionadas a `main` (0 commits propios cada una), incluida
+`fix/consenso-desempate-2` con un worktree local aparte (`ctg-fix-consenso`) que también quedó
+huérfano. Ninguna traía trabajo pendiente, pero nadie las había borrado tras fusionar sus PRs. Vale la
+pena activar **"Automatically delete head branches"** en Settings → General → Pull Requests del repo
+para que esto no se repita cada pocos sprints.
