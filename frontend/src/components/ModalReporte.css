@@ -122,11 +122,11 @@
   flex-shrink: 0;
 }
 
-.modal-reporte-cerrar:hover {
+@media (hover: hover) and (pointer: fine) { .modal-reporte-cerrar:hover {
   background: rgba(255, 255, 255, 0.2);
   color: #fff;
   transform: scale(1.08);
-}
+} }
 
 /* ── Formulario Reporte Moderno ── */
 .form-reporte-moderno {
@@ -200,11 +200,11 @@
   text-align: left;
 }
 
-.form-reporte-opcion-btn:hover:not(:disabled) {
+@media (hover: hover) and (pointer: fine) { .form-reporte-opcion-btn:hover:not(:disabled) {
   background: rgba(168, 85, 247, 0.2);
   border-color: rgba(192, 132, 252, 0.5);
   transform: translateY(-1px);
-}
+} }
 
 .form-reporte-opcion-btn:disabled {
   opacity: 0.45;
@@ -281,10 +281,10 @@
   user-select: none;
 }
 
-.form-reporte-extra-item:hover {
+@media (hover: hover) and (pointer: fine) { .form-reporte-extra-item:hover {
   background: rgba(168, 85, 247, 0.12);
   border-color: rgba(168, 85, 247, 0.3);
-}
+} }
 
 .form-reporte-extra-textos {
   display: flex;

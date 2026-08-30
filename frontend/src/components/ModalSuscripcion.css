@@ -161,11 +161,11 @@
   flex-shrink: 0;
 }
 
-.modal-suscripcion-cerrar:hover {
+@media (hover: hover) and (pointer: fine) { .modal-suscripcion-cerrar:hover {
   background: rgba(255, 255, 255, 0.2);
   color: #fff;
   transform: scale(1.08);
-}
+} }
 
 /* ── Formulario Suscripción Modernizado ── */
 .form-suscripcion-moderno {
@@ -270,10 +270,10 @@
   transition: all 200ms ease;
 }
 
-.form-suscripcion-ubicacion-btn:hover:not(:disabled) {
+@media (hover: hover) and (pointer: fine) { .form-suscripcion-ubicacion-btn:hover:not(:disabled) {
   background: rgba(168, 85, 247, 0.2);
   border-color: rgba(192, 132, 252, 0.5);
-}
+} }
 
 .form-suscripcion-ubicacion-btn:disabled {
   opacity: 0.6;
@@ -370,10 +370,10 @@
   user-select: none;
 }
 
-.form-suscripcion-barrio-item:hover {
+@media (hover: hover) and (pointer: fine) { .form-suscripcion-barrio-item:hover {
   background: rgba(168, 85, 247, 0.15);
   border-color: rgba(168, 85, 247, 0.35);
-}
+} }
 
 .form-suscripcion-barrio-item.seleccionado {
   background: linear-gradient(135deg, rgba(147, 51, 234, 0.35), rgba(217, 70, 239, 0.25));
@@ -435,11 +435,11 @@
   transition: all 250ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.form-suscripcion-boton-enviar:hover:not(:disabled) {
+@media (hover: hover) and (pointer: fine) { .form-suscripcion-boton-enviar:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 15px 30px -5px rgba(168, 85, 247, 0.65), 0 0 25px rgba(236, 72, 153, 0.45);
   filter: brightness(1.1);
-}
+} }
 
 .form-suscripcion-boton-enviar:active:not(:disabled) {
   transform: translateY(0);

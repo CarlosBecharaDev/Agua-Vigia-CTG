@@ -75,9 +75,9 @@
   z-index: -1;
 }
 
-.gooey-nav-container nav ul li:hover {
+@media (hover: hover) and (pointer: fine) { .gooey-nav-container nav ul li:hover {
   color: #fff;
-}
+} }
 
 .gooey-nav-container nav ul li.active {
   text-shadow: none;

@@ -169,11 +169,11 @@
   transition: all 180ms ease;
 }
 
-.estadisticas-btn-exportar:hover {
+@media (hover: hover) and (pointer: fine) { .estadisticas-btn-exportar:hover {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(96, 165, 250, 0.4);
   transform: translateY(-1px);
-}
+} }
 
 /* ── Tarjetas Bento Glass para KPIs ── */
 .estadisticas-kpis-grid {
@@ -210,11 +210,11 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-.estadisticas-kpi-card:hover {
+@media (hover: hover) and (pointer: fine) { .estadisticas-kpi-card:hover {
   transform: translateY(-4px);
   border-color: rgba(96, 165, 250, 0.35);
   box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 25px -5px rgba(59, 130, 246, 0.25);
-}
+} }
 
 .estadisticas-kpi-icono {
   width: 52px;
@@ -274,9 +274,9 @@
   transition: border-color 200ms ease;
 }
 
-.estadisticas-card-bloque:hover {
+@media (hover: hover) and (pointer: fine) { .estadisticas-card-bloque:hover {
   border-color: rgba(255, 255, 255, 0.16);
-}
+} }
 
 .estadisticas-graficos-grid {
   display: grid;
@@ -406,9 +406,9 @@
   transition: all 160ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.estadisticas-pill-btn:hover {
+@media (hover: hover) and (pointer: fine) { .estadisticas-pill-btn:hover {
   color: #ffffff;
-}
+} }
 
 .estadisticas-pill-btn.is-active {
   background: rgba(255, 255, 255, 0.18);

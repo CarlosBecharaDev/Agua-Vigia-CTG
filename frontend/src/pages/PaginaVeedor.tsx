@@ -45,7 +45,7 @@ export default function PaginaVeedor() {
 
   return (
     <PageWrapper>
-      <main id="contenido-principal" tabIndex={-1} className="pagina-estado" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', padding: '3rem 1rem 6rem' }}>
+      <main id="contenido-principal" tabIndex={-1} className="pagina-estado" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80dvh', padding: '3rem 1rem 6rem' }}>
         <section
           className="modal-reporte-contenedor"
           style={{ width: 'min(100%, 480px)', maxHeight: 'none' }}
