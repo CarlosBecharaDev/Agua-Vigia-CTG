@@ -7,9 +7,10 @@ import java.time.Instant;
  *
  * Antes el pipeline llamaba directo a `SectorRepository.guardar()`, y con eso una expresión regular
  * sobre una nota de prensa cambiaba el estado público de un barrio, mandaba correo a sus
- * suscriptores y movía el mapa. Ahora deja una propuesta PENDIENTE y el mapa no se entera hasta que
- * un veedor la aprueba (`RevisarPropuestaIngestaUseCase`), que es lo que el propio Javadoc de
- * `HeuristicaExtractor` ya prometía con su confianza de 0.6.
+ * suscriptores y movía el mapa. Hoy toda detección nace como propuesta y quién la aprueba depende
+ * de su origen: la del operador oficial se publica sola ({@link #esDeFuenteOficial}), la inferida de
+ * prensa espera al veedor (`RevisarPropuestaIngestaUseCase`). El riesgo que importaba —inferir un
+ * corte de un texto ajeno y publicarlo— sigue cubierto.
  *
  * `citaTextual` y `confianza` existen para que esa decisión sea informada: el veedor ve de dónde
  * salió la afirmación antes de publicarla. Es la misma exigencia de `ADR-006` (cita verificable en
@@ -90,6 +91,18 @@ public record PropuestaIngesta(
         }
         return estadoPropuesto;
     }
+
+    /**
+     * Acuacar no es una fuente *sobre* el corte: es quien lo ejecuta. Su boletín, con cita textual y
+     * URL verificable, es el anuncio oficial, no una inferencia de una expresión regular sobre texto
+     * ajeno — que era exactamente el riesgo contra el que `ADR-028` levantó la cola de revisión. Por
+     * eso lo oficial se publica solo y la prensa (RSS) sigue esperando al veedor.
+     */
+    public boolean esDeFuenteOficial() {
+        return FUENTE_OFICIAL.equalsIgnoreCase(fuente);
+    }
+
+    private static final String FUENTE_OFICIAL = "acuacar";
 
     /** Idempotente, igual que {@link ReporteCiudadano#aprobar()}. */
     public PropuestaIngesta aprobar() {

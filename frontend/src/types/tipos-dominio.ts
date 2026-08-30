@@ -38,7 +38,14 @@ export const COLOR_POR_ESTADO: Record<EstadoServicio, { claro: string; oscuro: s
   CORTE_PROGRAMADO: { claro: '#2A628F', oscuro: '#6BA8DA', etiqueta: 'Corte programado' },
 }
 
-export const COLOR_SIN_DATOS = { claro: '#788290', oscuro: '#8B95A5', etiqueta: 'Sin datos (Pendiente verificación)' }
+/**
+ * Un barrio del que nadie ha reportado nada. Verde pálido, no gris: 211 barrios grises hacían ver
+ * el mapa averiado en vez de prudente. Pero es un verde **distinto** del de CON_SERVICIO a
+ * propósito — la ausencia de reportes no es evidencia de que haya agua, y pintarlos con el mismo
+ * verde afirmaría un "todo despejado" que nadie verificó, justo lo que prohíbe la regla 4 de ética
+ * de datos. La etiqueta dice lo que el dato es —"sin reportes"— y no lo que se supone de él.
+ */
+export const COLOR_SIN_DATOS = { claro: '#9FD8AB', oscuro: '#5E8F72', etiqueta: 'Sin reportes de falla' }
 
 /** Cuántos minutos antes de que un dato se considere "fresco" */
 export const MINUTOS_FRESCURA = 15

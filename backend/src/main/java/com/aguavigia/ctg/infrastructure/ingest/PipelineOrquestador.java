@@ -19,11 +19,11 @@ import java.util.List;
 /**
  * Orquestador principal del pipeline de Ingesta Automatizada (M9).
  *
- * **No publica: propone.** Antes llamaba `SectorRepository.guardar()` directamente, con lo que una
- * expresión regular sobre una nota de prensa cambiaba el estado público de un barrio y disparaba
- * correo, push y SSE sin que nadie lo revisara. Ahora deja una `PropuestaIngesta` PENDIENTE y el
- * mapa solo se mueve cuando un veedor la aprueba — que es lo que el Javadoc de
- * {@link HeuristicaExtractor} ya prometía con su confianza de 0.6.
+ * **No decide qué se publica: siempre entrega a `RegistrarPropuestaIngestaUseCase`**, que separa lo
+ * oficial de lo inferido. Un boletín de Acuacar sale al mapa en el acto; una nota de prensa queda
+ * PENDIENTE para el veedor. Lo que este orquestador nunca vuelve a hacer es llamar a
+ * `SectorRepository.guardar()` directamente, que es lo que permitía que una expresión regular sobre
+ * prensa cambiara el estado público de un barrio y disparara correo, push y SSE sin revisión.
  *
  * Cada colector se llama por separado y con su propio try/catch: son sitios de terceros
  * independientes y uno caído no puede impedir que se lea el otro (RNF004). `RssCollector` ya aislaba

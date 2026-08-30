@@ -86,6 +86,7 @@ Tres razones concretas, no burocráticas:
 | BUG-059 | 2026-08-22 | S2 | M9 | Aun extrayendo bien los nombres, la mitad no casaba con el catálogo: la comparación era igualdad exacta y el GeoJSON escribe los números en letras (`9 de Abril` ↔ `NUEVE DE ABRIL`), omite la preposición (`Piedra Bolívar` ↔ `PIEDRA DE BOLIVAR`) y no lleva los prefijos de tipo que sí escribe el boletín (`sector Sena`, `urbanización La Heroica`) | Cerrado — `NormalizadorDeNombres` + `EmparejadorDeSectores`, sin coincidencia aproximada; `EmparejadorDeSectoresTest` | D3 |
 | BUG-060 | 2026-08-22 | S2 | M9 | El ciclo de ingesta corría cada 10 minutos contra el vacío: `VENTANA_DE_BUSQUEDA` era de 1 día y Acuacar publica cada 3–7, así que el boletín más reciente (una suspensión real en 20 barrios) quedaba fuera por 34 horas | Cerrado — ventana de 7 días, alineada con la del deduplicador; `PipelineOrquestadorTest` | D3 |
 | BUG-061 | 2026-08-22 | S1 | M1 | Al hacer clic en un barrio que el backend no conoce, el panel afirmaba «con servicio, actualizado en este momento»: `MapaCartagena.tsx` fabricaba el sector al vuelo con `estado: 'CON_SERVICIO'` y `actualizadoEn: new Date()`, inventando un dato verificado sobre un barrio del que no se sabía nada | Cerrado — se muestra sin dato (`estado: null`), como exige ADR-014; `MapaCartagena.tsx:347` | D4 |
+| BUG-062 | 2026-08-29 | S3 | M5 | Usar el verbo HTTP equivocado contra un endpoint del veedor devuelve `500 "Error no controlado"` con stack trace completo en el log, en vez del `405` que corresponde, saltándose el formato RFC 7807 | Abierto | D3 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -99,6 +100,33 @@ Tres razones concretas, no burocráticas:
 > de detalle de sector se veía "incompleto" para muchos barrios al hacer clic en el mapa, y
 > auditando en vivo (contra `/acuacar-api` real, no datos de ejemplo) cuánta cobertura real de
 > boletines logra la extracción de nombres de barrio.
+
+### BUG-062 — Un verbo HTTP equivocado responde 500 «Error no controlado» en vez de 405
+
+- **Fecha:** 2026-08-29 · **Severidad:** S3 · **Módulo:** M5 · **Responsable:** D3
+- **Estado:** Abierto
+
+**Síntoma:** `POST /api/veedor/ingesta/propuestas/{id}/aprobar` —que solo acepta `PATCH`— responde
+`500` con cuerpo de error genérico, y `ManejadorGlobalDeErrores` lo registra a nivel `ERROR` como
+«Error no controlado» con el stack trace completo de `HttpRequestMethodNotSupportedException`. El
+`405` nunca se emite. Encontrado al publicar las 17 propuestas represadas de ADR-034: el `500` hizo
+pensar que el fallo era del servidor y no de la petición, que es el costo real de este bug.
+
+**Reproducción:** con el backend arriba y sesión de veedor válida:
+`curl -X POST -H "Authorization: Bearer $T" http://localhost:8081/api/veedor/ingesta/propuestas/<id>/aprobar`
+→ `HTTP 500`. Reproducido 1 de 1 vez. Con `-X PATCH` responde `200`.
+
+**Esperado:** `405 Method Not Allowed` en formato RFC 7807, con cabecera `Allow: PATCH` y sin stack
+trace en el log — una petición mal formada del cliente no es un error no controlado del servidor.
+CLAUDE.md exige RFC 7807 centralizado en el `@RestControllerAdvice`, y `RNF` de observabilidad no
+gana nada con el trace de un 4xx.
+
+**Causa raíz:** `ManejadorGlobalDeErrores` no declara un `@ExceptionHandler` para
+`HttpRequestMethodNotSupportedException`, así que cae en el manejador genérico de `Exception`.
+Probablemente le pase lo mismo a las demás excepciones de Spring MVC (`HttpMediaTypeNotSupported`,
+`MissingServletRequestParameter`): conviene revisarlas juntas y no solo esta.
+
+**Corrección:** pendiente.
 
 ### BUG-049 — Las imágenes de los boletines no cargaban en las tarjetas de la Bitácora
 
@@ -1683,5 +1711,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-062
+Siguiente número disponible: BUG-063
 -->

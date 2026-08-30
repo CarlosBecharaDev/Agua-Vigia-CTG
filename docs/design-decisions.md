@@ -1278,7 +1278,7 @@ antes resolver la identidad del ciudadano, que ADR-007 dejó fuera a propósito.
 ## ADR-028 — La ingesta automatizada propone; publicar es decisión del veedor
 
 - **Fecha:** 2026-08-11
-- **Estado:** Aceptada
+- **Estado:** Parcialmente reemplazada por ADR-034 — sigue rigiendo para las fuentes de prensa; ya no para los boletines de Acuacar
 - **Decide:** D3 (backend)
 
 ### Contexto
@@ -1456,7 +1456,7 @@ sin la excepción que lo explica.
 ## ADR-032 — La confianza de la extracción se gradúa; el veedor sigue decidiendo
 
 - **Fecha:** 2026-08-22
-- **Estado:** Aceptada
+- **Estado:** Parcialmente reemplazada por ADR-034 — la graduación de confianza sigue vigente; que el veedor decida ya no aplica a Acuacar
 - **Decide:** D3
 
 ### Contexto
@@ -1552,8 +1552,67 @@ Tres restricciones que hacen que esto no contradiga `ADR-028`:
   existe para medir; la corrección vendrá de los reportes ciudadanos, no de la ingesta.
 - El barrido queda acotado a un día después del fin prometido, para no recorrer el histórico entero.
 
+## ADR-034 — Los boletines de Acuacar se publican solos; la revisión del veedor queda para la prensa y los reportes ciudadanos
+
+- **Fecha:** 2026-08-29
+- **Estado:** Aceptada
+- **Decide:** Product owner, con implementación de D3
+
+### Contexto
+`ADR-028` mandó toda detección a una cola de revisión. Medido en local el 2026-08-29 con la base de
+producción de desarrollo: **17 propuestas PENDIENTE, 0 cortes, 0 eventos de bitácora, 211 barrios sin
+estado**. El mapa llevaba semanas vacío no por falta de datos sino porque nadie vaciaba la cola, y el
+único camino para hacerlo (`/veedor`) respondía `503` por dos variables sin configurar. El costo real
+de la cola no fue prudencia: fue que la plataforma no publicó nada.
+
+El argumento de `ADR-028` era que *"una expresión regular sobre una nota de prensa"* no puede mover el
+mapa sola. Ese argumento es correcto y sigue en pie **para la prensa**. Pero no describe a Acuacar:
+las 17 propuestas venían de la API oficial del operador, con `citaTextual` que enumera los barrios y
+la ventana horaria, `urlOriginal` verificable y confianza 0.85 —el nivel más alto que `ADR-032`
+reserva para boletines con enumeración explícita—. Acuacar no es una fuente *sobre* el corte: es
+quien lo ejecuta y lo anuncia.
+
+En paralelo, los 211 barrios en gris (`COLOR_SIN_DATOS`) hacían ver el mapa averiado. La petición
+inicial fue pintarlos de verde por descarte —"si nadie reporta, es que tiene agua"—, que es publicar
+un *todo despejado* que nadie verificó y choca de frente con la regla 4 de ética de datos.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Mantener `ADR-028` intacta | Ninguna publicación sin humano | Demostrado: el mapa se queda vacío. La cola no se vacía sola |
+| Publicar todo automático (Acuacar + prensa) | Mapa siempre lleno | Reintroduce exactamente el riesgo que `ADR-028` cerró: una regex sobre prensa moviendo el mapa |
+| **Publicar solo lo oficial** | Acuacar es el operador, con cita y URL; la prensa sigue revisada | Un error del propio boletín se publica sin filtro |
+| Sin datos → verde pleno | Mapa uniforme y vivo | Afirma servicio en 211 barrios sin verificar. Un barrio sin agua donde nadie reportó saldría "con agua" |
+| **Sin datos → verde pálido, "Sin reportes de falla"** | Mapa vivo sin afirmar lo que no se sabe | Un tercer verde que hay que saber leer; el color por sí solo puede leerse como "todo bien" |
+
+### Decisión
+Lo que viene de Acuacar (`PropuestaIngesta.esDeFuenteOficial()`) se publica en el acto, delegando en
+el mismo `RevisarPropuestaIngestaUseCase` que usa el panel. Lo que viene de prensa (RSS) y los
+reportes ciudadanos siguen esperando al veedor. Los barrios sin dato pasan de gris a verde pálido
+`#9FD8AB` con la etiqueta **"Sin reportes de falla"** — que describe el dato, no lo que se supone de él.
+
+### Consecuencias
+- El mapa se llena solo con lo oficial: las 17 propuestas represadas se publicaron y dejaron 17
+  eventos de bitácora y 17 barrios en `CON_SERVICIO`.
+- **El veedor deja de ser cuello de botella y pasa a ser moderador de lo ciudadano**, que es donde su
+  criterio aporta: el reporte anónimo es lo que nadie más puede validar.
+- Se acepta un riesgo nuevo y real: **si Acuacar publica un boletín equivocado, ese error llega al
+  mapa sin filtro humano** y dispara correo, push y SSE. Se mitiga con la trazabilidad —cada estado
+  publicado conserva `citaTextual` y `urlOriginal`— pero no se elimina.
+- Publicar automático reusa el caso de uso del veedor a propósito: el camino automático y el manual
+  no pueden divergir, y la guarda de estado repetido y el evento de bitácora valen para ambos.
+- El verde pálido depende de que la leyenda se lea. `DESIGN.md` §2 ya exige que el color nunca vaya
+  solo, y `InsigniaEstado` siempre muestra la etiqueta; si esa regla se rompe, este verde miente.
+
+### Cómo se revierte
+Quitar la rama `esDeFuenteOficial()` de `RegistrarPropuestaIngestaService` devuelve todo a la cola:
+es un `if`, y las propuestas siguen naciendo `PENDIENTE`. Lo ya publicado **no** se revierte solo —
+la bitácora es de solo anexado (`RF028`) y los eventos emitidos quedan. Volver atrás exige además
+restaurar `ADR-028` y `ADR-032` a *Aceptada*. El color es un cambio de una constante.
+
 <!--
-Siguiente número disponible: ADR-034
+Siguiente número disponible: ADR-035
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->
