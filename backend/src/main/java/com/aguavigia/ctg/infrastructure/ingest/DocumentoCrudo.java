@@ -20,7 +20,19 @@ public record DocumentoCrudo(
         Instant publicadoEn,
         String titulo,
         String texto,
-        String hash) {
+        String hash,
+        /**
+         * Portada del boletín, cuando la fuente la trae. Se captura aquí y no en el navegador
+         * porque el cliente solo puede pedirle a Acuacar los boletines más recientes: con cinco
+         * años de bitácora, todo lo anterior a esa tanda se quedaría sin foto para siempre.
+         */
+        String imagenUrl) {
+
+    /** Para las fuentes que no traen portada (RSS de prensa). */
+    public DocumentoCrudo(String fuente, String urlOriginal, Instant publicadoEn, String titulo,
+                           String texto, String hash) {
+        this(fuente, urlOriginal, publicadoEn, titulo, texto, hash, null);
+    }
 
     public DocumentoCrudo {
         if (fuente == null || fuente.isBlank()) {
@@ -33,8 +45,13 @@ public record DocumentoCrudo(
 
     public static DocumentoCrudo de(String fuente, String urlOriginal, Instant publicadoEn,
                                      String titulo, String texto) {
+        return de(fuente, urlOriginal, publicadoEn, titulo, texto, null);
+    }
+
+    public static DocumentoCrudo de(String fuente, String urlOriginal, Instant publicadoEn,
+                                     String titulo, String texto, String imagenUrl) {
         return new DocumentoCrudo(fuente, urlOriginal, publicadoEn, titulo, texto,
-                calcularHash(titulo, texto));
+                calcularHash(titulo, texto), imagenUrl);
     }
 
     private static String calcularHash(String titulo, String texto) {

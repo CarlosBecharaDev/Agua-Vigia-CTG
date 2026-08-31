@@ -6,6 +6,7 @@ import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.port.in.RegistrarPropuestaIngestaUseCase;
 import com.aguavigia.ctg.domain.port.out.RelojPort;
 import com.aguavigia.ctg.domain.port.out.SectorRepository;
+import com.aguavigia.ctg.infrastructure.persistence.mongo.MarcaDeIngestaMongoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -35,6 +36,7 @@ class PipelineOrquestadorTest {
     private SectorRepository sectores;
     private RegistrarPropuestaIngestaUseCase registrarPropuesta;
     private EstadoColectorRegistry estadoColectores;
+    private MarcaDeIngestaMongoRepository marcas;
     private RelojPort reloj;
 
     private PipelineOrquestador orquestador;
@@ -48,19 +50,22 @@ class PipelineOrquestadorTest {
         sectores = mock(SectorRepository.class);
         registrarPropuesta = mock(RegistrarPropuestaIngestaUseCase.class);
         reloj = mock(RelojPort.class);
+        marcas = mock(MarcaDeIngestaMongoRepository.class);
         // Real y no mock: es un contador en memoria sin dependencias, y así el test puede
         // comprobar de verdad lo que RNF007 exige reportar.
         estadoColectores = new EstadoColectorRegistry(() -> AHORA);
+
+        given(marcas.findById(anyString())).willReturn(Optional.empty());
 
         given(reloj.ahora()).willReturn(AHORA);
         given(acuacar.obtenerDesde(any())).willReturn(List.of());
         given(rss.obtenerDesde(any())).willReturn(List.of());
         given(deduplicador.yaVistoRecientemente(any())).willReturn(false);
-        given(registrarPropuesta.registrar(any(), any(), anyString(), any(), any(), anyDouble(), any(), any()))
+        given(registrarPropuesta.registrar(any(), any(), anyString(), any(), any(), anyDouble(), any(), any(), any(), any(), any()))
                 .willReturn(Optional.empty());
 
         orquestador = new PipelineOrquestador(acuacar, rss, deduplicador, extractor, sectores,
-                registrarPropuesta, estadoColectores, reloj);
+                registrarPropuesta, estadoColectores, marcas, reloj);
     }
 
     private DocumentoCrudo documento(String texto) {
@@ -100,7 +105,7 @@ class PipelineOrquestadorTest {
 
         verify(registrarPropuesta).registrar(eq(new SectorId("manga")), eq(EstadoServicio.SIN_SERVICIO),
                 eq("acuacar"), eq("https://acuacar.com/x"), eq("cita del boletin"), eq(0.6),
-                any(), any());
+                any(), any(), any(), any(), any());
     }
 
     @Test
@@ -112,7 +117,7 @@ class PipelineOrquestadorTest {
 
         orquestador.ejecutarCiclo();
 
-        verify(registrarPropuesta, never()).registrar(any(), any(), anyString(), any(), any(), anyDouble(), any(), any());
+        verify(registrarPropuesta, never()).registrar(any(), any(), anyString(), any(), any(), anyDouble(), any(), any(), any(), any(), any());
     }
 
     // --- Aislamiento de fallos (RNF004) ---
@@ -127,7 +132,7 @@ class PipelineOrquestadorTest {
 
         orquestador.ejecutarCiclo();
 
-        verify(registrarPropuesta).registrar(eq(new SectorId("manga")), any(), anyString(), any(), any(), anyDouble(), any(), any());
+        verify(registrarPropuesta).registrar(eq(new SectorId("manga")), any(), anyString(), any(), any(), anyDouble(), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -137,7 +142,7 @@ class PipelineOrquestadorTest {
 
         orquestador.ejecutarCiclo();
 
-        verify(registrarPropuesta, never()).registrar(any(), any(), anyString(), any(), any(), anyDouble(), any(), any());
+        verify(registrarPropuesta, never()).registrar(any(), any(), anyString(), any(), any(), anyDouble(), any(), any(), any(), any(), any());
     }
 
     // --- Salud por colector (RNF007) ---
@@ -207,7 +212,7 @@ class PipelineOrquestadorTest {
     void noDebeMarcarComoVistoUnDocumentoQueFalloAlProcesarse() {
         hayUnDocumentoSobre("Corte en Manga por daño en la red", List.of("Manga"),
                 List.of(new Sector(new SectorId("manga"), "Manga", 1000, EstadoServicio.CON_SERVICIO)));
-        given(registrarPropuesta.registrar(any(), any(), anyString(), any(), any(), anyDouble(), any(), any()))
+        given(registrarPropuesta.registrar(any(), any(), anyString(), any(), any(), anyDouble(), any(), any(), any(), any(), any()))
                 .willThrow(new RuntimeException("Mongo caído"));
 
         orquestador.ejecutarCiclo();
@@ -235,7 +240,7 @@ class PipelineOrquestadorTest {
 
         orquestador.ejecutarCiclo();
 
-        verify(registrarPropuesta, never()).registrar(any(), any(), anyString(), any(), any(), anyDouble(), any(), any());
+        verify(registrarPropuesta, never()).registrar(any(), any(), anyString(), any(), any(), anyDouble(), any(), any(), any(), any(), any());
     }
 
     @Test
@@ -245,7 +250,7 @@ class PipelineOrquestadorTest {
 
         orquestador.ejecutarCiclo();
 
-        verify(registrarPropuesta, never()).registrar(any(), any(), anyString(), any(), any(), anyDouble(), any(), any());
+        verify(registrarPropuesta, never()).registrar(any(), any(), anyString(), any(), any(), anyDouble(), any(), any(), any(), any(), any());
         verify(deduplicador, never()).marcarComoVisto(anyString());
     }
 }
