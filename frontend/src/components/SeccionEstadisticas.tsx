@@ -28,6 +28,10 @@ const COLORES_BARRAS_PREMIUM = [
   '#ec4899', // Rosa
 ]
 
+/** Lo que se muestra cuando todavía no hay con qué calcular una métrica. Nunca un número: un
+ *  dato inventado en el Índice de Cumplimiento destruye la única razón para creerle a la app. */
+const SIN_DATOS = 'Sin datos'
+
 const DIAS_SEMANA = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
 const DIAS_SEMANA_CORTOS: Record<string, string> = {
   Lunes: 'Lun', Martes: 'Mar', Miércoles: 'Mié', Jueves: 'Jue', Viernes: 'Vie', Sábado: 'Sáb', Domingo: 'Dom',
@@ -179,14 +183,17 @@ export const SeccionEstadisticas: FC = () => {
           {[
             {
               titulo: 'Cumplimiento Global',
-              valor: cumplimiento ? `${cumplimiento.porcentajeCumplimiento.toFixed(0)}%` : '100%',
+              // SIN_DATOS y no '100%': cuando no hay cortes cerrados, la API responde "No hay
+              // cortes cerrados todavía" y mostrar un cumplimiento perfecto inventa justo la cifra
+              // que esta plataforma existe para contrastar. Es S1 por la regla de datos falsos.
+              valor: cumplimiento ? `${cumplimiento.porcentajeCumplimiento.toFixed(0)}%` : SIN_DATOS,
               sub: 'Tiempo prometido vs. real',
               Icono: Scale,
               gradiente: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
             },
             {
               titulo: 'Duración Promedio',
-              valor: `${datos?.duracionPromedioHoras ?? 23.3} h`,
+              valor: datos?.duracionPromedioHoras ? `${datos.duracionPromedioHoras} h` : SIN_DATOS,
               sub: 'Por corte cerrado',
               Icono: Clock,
               gradiente: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
@@ -250,7 +257,7 @@ export const SeccionEstadisticas: FC = () => {
             <div className="cumplimiento-item">
               <span className="cumplimiento-item-tag">Tiempo Prometido</span>
               <span className="cumplimiento-item-val tabular" style={{ color: '#93c5fd' }}>
-                {cumplimiento ? (cumplimiento.duracionPrometidaSegundos / 3600).toFixed(1) : '2,822.0'} h
+                {cumplimiento ? `${(cumplimiento.duracionPrometidaSegundos / 3600).toFixed(1)} h` : SIN_DATOS}
               </span>
             </div>
             <div className="cumplimiento-item">
@@ -262,13 +269,13 @@ export const SeccionEstadisticas: FC = () => {
                     : 'cumplimiento-desviacion-ok'
                 }`}
               >
-                {cumplimiento ? (cumplimiento.duracionRealSegundos / 3600).toFixed(1) : '2,798.5'} h
+                {cumplimiento ? `${(cumplimiento.duracionRealSegundos / 3600).toFixed(1)} h` : SIN_DATOS}
               </span>
             </div>
             <div className="cumplimiento-item">
               <span className="cumplimiento-item-tag">Tasa de Cumplimiento</span>
               <span className="cumplimiento-item-val tabular" style={{ color: '#4ade80' }}>
-                {cumplimiento ? `${cumplimiento.porcentajeCumplimiento.toFixed(0)}%` : '100%'}
+                {cumplimiento ? `${cumplimiento.porcentajeCumplimiento.toFixed(0)}%` : SIN_DATOS}
               </span>
             </div>
           </div>
