@@ -87,6 +87,7 @@ Tres razones concretas, no burocráticas:
 | BUG-060 | 2026-08-22 | S2 | M9 | El ciclo de ingesta corría cada 10 minutos contra el vacío: `VENTANA_DE_BUSQUEDA` era de 1 día y Acuacar publica cada 3–7, así que el boletín más reciente (una suspensión real en 20 barrios) quedaba fuera por 34 horas | Cerrado — ventana de 7 días, alineada con la del deduplicador; `PipelineOrquestadorTest` | D3 |
 | BUG-061 | 2026-08-22 | S1 | M1 | Al hacer clic en un barrio que el backend no conoce, el panel afirmaba «con servicio, actualizado en este momento»: `MapaCartagena.tsx` fabricaba el sector al vuelo con `estado: 'CON_SERVICIO'` y `actualizadoEn: new Date()`, inventando un dato verificado sobre un barrio del que no se sabía nada | Cerrado — se muestra sin dato (`estado: null`), como exige ADR-014; `MapaCartagena.tsx:347` | D4 |
 | BUG-062 | 2026-08-29 | S3 | M5 | Usar el verbo HTTP equivocado contra un endpoint del veedor devuelve `500 "Error no controlado"` con stack trace completo en el log, en vez del `405` que corresponde, saltándose el formato RFC 7807 | Abierto | D3 |
+| BUG-063 | 2026-08-31 | S1 | M6/M7 | La sección de estadísticas mostraba un Índice de Cumplimiento del 100% y unas duraciones de 2.822 h prometidas contra 2.798,5 h reales cuando la API respondía «No hay cortes cerrados todavía»: eran cinco literales escritos a mano como valor por defecto | Cerrado — se muestra «Sin datos»; `SeccionEstadisticas.tsx` | D4 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -100,6 +101,32 @@ Tres razones concretas, no burocráticas:
 > de detalle de sector se veía "incompleto" para muchos barrios al hacer clic en el mapa, y
 > auditando en vivo (contra `/acuacar-api` real, no datos de ejemplo) cuánta cobertura real de
 > boletines logra la extracción de nombres de barrio.
+
+### BUG-063 — La página afirmaba un cumplimiento del 100% sin ningún corte cerrado
+
+- **Fecha:** 2026-08-31 · **Severidad:** S1 · **Módulo:** M6/M7 · **Responsable:** D4
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** el Panel de Analítica mostraba «CUMPLIMIENTO GLOBAL 100%», «DURACIÓN PROMEDIO 23,3 h»,
+«TIEMPO PROMETIDO 2.822,0 h», «TIEMPO REAL 2.798,5 h» y «TASA DE CUMPLIMIENTO 100%» — con la base de
+datos en 0 cortes cerrados y `/api/cumplimiento` respondiendo `400 "No hay cortes cerrados todavía"`.
+Un vecino que abriera la página leía que Acuacar cumple sus promesas al 100%. Nadie lo había medido.
+
+**Reproducción:** con 0 cortes cerrados, abrir `/#estadisticas`. Reproducido 1 de 1 vez. Encontrado
+mirando la página en el navegador, no por una prueba: ninguna cubría el caso "sin datos".
+
+**Esperado:** «Sin datos». El Índice de Cumplimiento es la tesis del proyecto; una cifra inventada
+ahí vale menos que ninguna. Regla especial de este registro: un Índice equivocado es S1 siempre.
+
+**Causa raíz:** cinco valores por defecto escritos a mano en `SeccionEstadisticas.tsx`, del tipo
+`cumplimiento ? ... : '100%'` y `datos?.duracionPromedioHoras ?? 23.3`. No era un cálculo mal hecho:
+era texto de maqueta que se quedó como respaldo para cuando no hubiera datos, y el estado "sin
+datos" resultó ser el estado normal.
+
+**Corrección:** una constante `SIN_DATOS` sustituye a los cinco literales. Verificado en pantalla:
+los tres indicadores del Índice muestran «Sin datos». Se registra como aviso: el backend llevaba
+toda la sesión cuidando no fabricar `finReal` (`ADR-036`) y la interfaz lo fabricaba igual en la
+última línea — el cuidado tiene que llegar hasta el píxel, no solo hasta la API.
 
 ### BUG-062 — Un verbo HTTP equivocado responde 500 «Error no controlado» en vez de 405
 
@@ -1711,5 +1738,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-063
+Siguiente número disponible: BUG-064
 -->

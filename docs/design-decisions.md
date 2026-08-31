@@ -563,7 +563,7 @@ es de responsabilidad, no de código — no hay archivos que mover ni módulos q
 ## ADR-014 — Un sector sin dato verificado se publica con estado nulo, no como `CON_SERVICIO`
 
 - **Fecha:** 2026-08-08
-- **Estado:** Aceptada
+- **Estado:** Parcialmente reemplazada por ADR-035 — el contrato sigue transmitiendo `estado: null`; lo que cambia es cómo lo presenta el frontend
 - **Decide:** Backend – Infraestructura (D3)
 
 ### Contexto
@@ -1611,8 +1611,188 @@ es un `if`, y las propuestas siguen naciendo `PENDIENTE`. Lo ya publicado **no**
 la bitácora es de solo anexado (`RF028`) y los eventos emitidos quedan. Volver atrás exige además
 restaurar `ADR-028` y `ADR-032` a *Aceptada*. El color es un cambio de una constante.
 
+## ADR-035 — Sin corte anunciado ni reporte vigente, el barrio se muestra con servicio
+
+- **Fecha:** 2026-08-30
+- **Estado:** Aceptada
+- **Decide:** Product owner, con implementación de D4
+
+### Contexto
+`ADR-014` decidió lo contrario y su argumento era correcto **en su momento**: el 2026-08-08 no
+existía la ingesta, ningún proceso miraba a Acuacar, y los 211 barrios estaban sin estado por
+ausencia de sistema. En ese mundo, pintar de verde era afirmar sobre un vacío, y `BUG-061` (S1) se
+cerró quitando justamente el `sector?.estado ?? 'CON_SERVICIO'` del mapa.
+
+El supuesto cambió. Desde `ADR-034` el colector revisa la API de Acuacar cada 10 minutos sobre una
+ventana de 7 días y **publica sin intervención**. La ausencia de aviso dejó de ser "no tenemos
+sistema" y pasó a ser una señal que se mantiene sola. Verificado el 2026-08-30 sobre los 40
+boletines más recientes: 7 hablan de suspensión del servicio, y no solo de mantenimiento programado
+—incluyen trabajo reactivo como *"repara fuga en tubería"* y *"avanza en la reparación de la
+conducción"*—, así que Acuacar no publica únicamente lo planificado.
+
+Hay además un segundo canal correctivo que `ADR-014` no tenía: el reporte ciudadano moderado por el
+veedor, que puede sacar a un barrio del verde sin esperar a que Acuacar diga nada.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Mantener `ADR-014` (gris "sin datos") | No afirma nada sin verificar | 194 de 211 barrios en gris permanente: el mapa se lee como app rota, no como app prudente |
+| Verde pálido distinto, "Sin reportes de falla" | Mapa vivo sin igualar lo sabido con lo supuesto | Obliga al lector a distinguir dos verdes; y si la premisa es que Acuacar cubre los cortes, la distinción no describe nada real |
+| **Verde de `CON_SERVICIO`, sin marca de tiempo** | Coincide con el modelo real: el barrio tiene agua salvo aviso del operador o reporte ciudadano | Un corte que Acuacar aún no publicó y que nadie reportó se ve verde |
+
+### Decisión
+`COLOR_SIN_DATOS` pasa a los valores y la etiqueta de `CON_SERVICIO`. **No se fabrica
+`actualizadoEn`**: el backend sigue mandando `estado: null` y `actualizadoEn: null`, así que
+`useFrescura` sigue diciendo *"sin datos"*. El resaltado del mapa trata el nulo como `CON_SERVICIO`
+(`MapaCartagena.tsx`, `estadoEfectivo`) para que filtrar por *Con servicio* no atenúe justo a los
+barrios que esta regla considera con agua.
+
+### Consecuencias
+- **Gana:** el mapa comunica el estado real de la ciudad en vez de un gris que nadie sabía leer.
+- **Pierde y hay que decirlo:** **un corte que Acuacar no haya publicado todavía y que ningún
+  ciudadano haya reportado se muestra verde.** Es el riesgo que `ADR-014` quiso evitar y no
+  desaparece; se acota con la ingesta cada 10 minutos y con el reporte ciudadano, no se elimina.
+- **El contrato no cambia:** `estado` sigue siendo anulable y el backend sigue sin inventar nada.
+  Esto es una decisión de presentación, y por eso `ADR-014` queda *parcialmente* reemplazada.
+- **`BUG-061` sigue cerrado y su corrección intacta:** su defecto real era `actualizadoEn: new
+  Date()`, que afirmaba una verificación inexistente. Eso no vuelve.
+- **Límite conocido:** un barrio del GeoJSON ausente del catálogo del backend no lo vigila la
+  ingesta, así que ahí el verde no estaría respaldado. Hoy no ocurre —verificado el 2026-08-30: 211
+  en el GeoJSON, 211 en el catálogo, 0 de diferencia— y el mapa además lo dibujaría al 15% de opacidad.
+  Si esa cifra deja de ser 0, esta decisión debe revisarse.
+
+### Cómo se revierte
+Devolver `COLOR_SIN_DATOS` a un color y etiqueta propios y quitar `estadoEfectivo` de
+`calcularEstiloFeature`. Son dos cambios de presentación y ningún dato guardado cambia, porque
+ninguno se fabricó.
+
+## ADR-036 — La ingesta crea el corte pero nunca su hora real de restablecimiento
+
+- **Fecha:** 2026-08-31
+- **Estado:** Aceptada
+- **Decide:** Product owner, con implementación de D3
+
+### Contexto
+Las estadísticas (M7) y el Índice de Cumplimiento (M6) agregan sobre la colección `cortes`, que la
+ingesta nunca alimentaba: solo la llenaba el veedor a mano. Con 1.106 propuestas aprobadas y 0
+cortes, `sectoresMasAfectados` y `cortesPorDiaDeSemana` salían vacíos aunque hubiera datos de sobra.
+
+Al crear el corte aparece la tentación evidente: el boletín trae `inicioDeclarado` y `finPrometido`,
+así que rellenar `finReal = finPrometido` deja las tres métricas completas de inmediato.
+
+**Eso sería una mentira, y de la peor clase para este proyecto.** El Índice de Cumplimiento existe
+para comparar lo prometido con lo real; igualarlos por defecto da **100% de cumplimiento
+permanente**, que es exactamente la afirmación que la plataforma existe para poder contrastar.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| No crear cortes desde la ingesta | Nada que discutir | Las estadísticas se quedan vacías con 1.106 propuestas disponibles |
+| Crear el corte con `finReal = finPrometido` | Las tres métricas se llenan solas | Cumplimiento del 100% inventado. Destruye la tesis del proyecto |
+| **Crear el corte sin `finReal`** | Se puebla lo que sí se sabe; lo que no se sabe se queda vacío y se nota | `duracionPromedioHoras` y el Índice siguen sin datos hasta que alguien confirme la hora real |
+
+### Decisión
+Al aprobar una propuesta con ventana declarada se crea un `CorteAgua` con `OrigenCorte.INGESTA_IA`
+y estado `ANUNCIADO`. **`finReal` se deja nulo.** El corte queda abierto hasta que el consenso
+ciudadano o el veedor confirmen cuándo volvió el agua.
+
+El id del corte se deriva del boletín y su ventana, no de un UUID nuevo: un boletín nombra muchos
+barrios y genera una propuesta por cada uno, y sin esa clave la estadística se inflaba con un corte
+por barrio en vez de uno por evento.
+
+### Consecuencias
+- `sectoresMasAfectados` y `cortesPorDiaDeSemana` se pueblan con datos reales.
+- **`duracionPromedioHoras` y `/api/cumplimiento` siguen vacíos, y es correcto que lo estén.** El
+  endpoint responde *"No hay cortes cerrados todavía"* porque de verdad no los hay.
+- La interfaz debe decir "Sin datos" y nunca un número: ver `BUG-063`, que es justo lo que pasó.
+- Queda cubierto por `RevisarPropuestaIngestaServiceTest.debeRegistrarElCorteDelBoletinCuandoDeclaraVentana`,
+  que falla si alguien rellena `finReal` desde la ingesta.
+
+### Cómo se revierte
+Quitar la llamada a `registrarCorteDelBoletin`. Los cortes ya creados no se borran solos; habría que
+eliminar los de origen `INGESTA_IA` a mano.
+
+## ADR-037 — «Sectores más afectados» cuenta menciones en avisos, no cortes con duración medida
+
+- **Fecha:** 2026-08-31
+- **Estado:** Aceptada
+- **Decide:** Product owner, con implementación de D3
+
+### Contexto
+Un `CorteAgua` exige ventana completa (inicio + fin prometido). Medido sobre los 100 boletines más
+recientes de Acuacar el 30/08/2026: **18 anuncian suspensión del servicio, los 18 traen la fecha,
+pero solo 5 declaran el rango horario**. Es decir, ~5% de los boletines pueden generar un corte.
+
+Contra la colección `cortes`, el top de sectores se calculaba sobre 3 registros: no representaba la
+ciudad ni de lejos, y desde luego no los cinco años de historia que el equipo quería mostrar.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Dejarlo contra `cortes` | El número significa "cortes con duración medida" | Se calcula sobre 3 registros; el ranking no dice nada |
+| Inventar la ventana que falta | Habría muchos más cortes | Dato fabricado; contamina además el Índice de Cumplimiento |
+| **Contar propuestas aprobadas** | 1.106 menciones desde 2020: cubre los cinco años | Cambia lo que el número significa, y hay que decirlo donde se muestre |
+
+### Decisión
+`EstadisticasMongoAdapter.calcularGlobales` agrega `propuestas_ingesta` con `estadoRevision:
+APROBADA` en vez de `cortes`. El número pasa a ser **«veces que el barrio apareció en un aviso de
+corte»**, no «cortes con duración medida».
+
+### Consecuencias
+- El ranking cubre cinco años y sí representa a la ciudad.
+- **Cambia el significado de la cifra**, así que el rótulo donde se muestre tiene que decirlo. Hoy
+  la sección dice "Cortes cerrados registrados por barrio", que ya no describe lo que cuenta —
+  queda pendiente corregir ese texto.
+- Una propuesta sin aprobar no cuenta: nadie ha confirmado que ese aviso sea real.
+- La otra cifra —cortes con duración medida— sigue viviendo en el Índice de Cumplimiento, que sigue
+  exigiendo ventana real (`ADR-036`).
+
+### Cómo se revierte
+Volver a agregar sobre `CorteAguaDocumento` y restaurar el `unwind` por `sectoresAfectados`.
+
+## ADR-038 — Las portadas de Acuacar se sirven por proxy propio, no enlazadas directo
+
+- **Fecha:** 2026-08-31
+- **Estado:** Aceptada
+- **Decide:** D4, verificado contra el sitio real
+
+### Contexto
+Las tarjetas de la bitácora muestran la portada del boletín. Enlazarla directo a
+`acuacar.com/wp-content/uploads/…` no funciona: **el sitio bloquea el hotlinking**. Verificado el
+31/08/2026 sobre la misma imagen — responde `200 image/jpeg` sin cabecera `Referer` y **`403` con un
+`Referer` de otro dominio**. Por eso todas las pruebas con `curl` pasaban y el navegador fallaba
+siempre, y por eso costó tanto encontrarlo.
+
+Aparte, `_embed=wp:featuredmedia` **no devuelve nada si `_fields` recorta `_links`**: WordPress
+construye `_embedded` a partir de los enlaces del recurso. Sin `_links` el boletín llega sin imagen
+y sin ningún error que lo delate.
+
+### Decisión
+El colector captura la URL de la portada al ingerir (tamaño `medium`, no el original de varios MB) y
+viaja con el evento hasta la API. El navegador la pide por `/acuacar-media/`, que `nginx.conf` y
+`vite.config.ts` proxean sin mandar `Referer`.
+
+El bloque de nginx usa `location ^~` a propósito: más abajo hay un `location ~* \.(jpg|png|…)$` para
+los assets propios, y en nginx las expresiones regulares ganan sobre los prefijos — sin `^~` la
+portada caía en ese bloque, se buscaba en el disco local y devolvía 404.
+
+### Consecuencias
+- **Gana:** la portada funciona para cualquier evento, también los de 2020. La alternativa —que el
+  navegador pidiera los boletines recientes y cruzara por URL— solo cubría los últimos 100.
+- **Pierde:** el proxy queda acotado a `/wp-content/uploads/`. Abrirlo a todo el dominio lo
+  convertiría en un proxy abierto hacia acuacar.com.
+- Se respeta la ética de datos: el proxy se identifica con el `User-Agent` del proyecto y no
+  disfraza nada; lo único que omite es el `Referer`.
+
+### Cómo se revierte
+Volver a apuntar `src` a la URL de acuacar.com y borrar los dos bloques de proxy. La portada dejará
+de verse, que es el estado del que se venía.
+
 <!--
-Siguiente número disponible: ADR-035
+Siguiente número disponible: ADR-039
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->
