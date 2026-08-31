@@ -69,7 +69,8 @@ public class ActualizarEstadosPorVentanaService implements ActualizarEstadosPorV
 
             sectores.guardar(sector.conEstado(queCorresponde));
             registrarEvento.registrar(EventoBitacoraFactory.detectadoPorIngesta(
-                    propuesta.sectorId(), queCorresponde, propuesta.fuente(), ahora));
+                    propuesta.sectorId(), sector.nombre(), queCorresponde, propuesta.fuente(),
+                    propuesta.urlOriginal(), propuesta.imagenUrl(), propuesta.tituloOriginal(), ahora));
             cambiados++;
 
             log.info("Ventana declarada aplicada: '{}' pasa a {} (fuente: {})",

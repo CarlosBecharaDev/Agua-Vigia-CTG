@@ -18,5 +18,8 @@ public interface RegistrarPropuestaIngestaUseCase {
     Optional<PropuestaIngesta> registrar(SectorId sectorId, EstadoServicio estadoPropuesto,
                                           String fuente, String urlOriginal, String citaTextual,
                                           double confianza, Instant inicioDeclarado,
-                                          Instant finPrometido);
+                                          Instant finPrometido,
+                                          String imagenUrl,
+                                          Instant publicadoEn,
+                                          String tituloOriginal);
 }

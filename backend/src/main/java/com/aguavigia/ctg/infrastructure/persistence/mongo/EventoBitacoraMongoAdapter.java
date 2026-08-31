@@ -1,6 +1,7 @@
 package com.aguavigia.ctg.infrastructure.persistence.mongo;
 
 import com.aguavigia.ctg.domain.CorteId;
+import com.aguavigia.ctg.domain.EstadoServicio;
 import com.aguavigia.ctg.domain.EventoBitacora;
 import com.aguavigia.ctg.domain.EventoId;
 import com.aguavigia.ctg.domain.Pagina;
@@ -32,6 +33,9 @@ public class EventoBitacoraMongoAdapter implements EventoBitacoraRepository {
         documento.setCorteId(evento.corteId() != null ? evento.corteId().valor() : null);
         documento.setTimestamp(evento.timestamp());
         documento.setDescripcion(evento.descripcion());
+        documento.setEstado(evento.estado() != null ? evento.estado().name() : null);
+        documento.setUrlOriginal(evento.urlOriginal());
+        documento.setImagenUrl(evento.imagenUrl());
 
         repositorio.save(documento);
         return evento;
@@ -57,6 +61,9 @@ public class EventoBitacoraMongoAdapter implements EventoBitacoraRepository {
                 documento.getSectorId() != null ? new SectorId(documento.getSectorId()) : null,
                 documento.getCorteId() != null ? new CorteId(documento.getCorteId()) : null,
                 documento.getTimestamp(),
-                documento.getDescripcion());
+                documento.getDescripcion(),
+                documento.getEstado() != null ? EstadoServicio.valueOf(documento.getEstado()) : null,
+                documento.getUrlOriginal(),
+                documento.getImagenUrl());
     }
 }

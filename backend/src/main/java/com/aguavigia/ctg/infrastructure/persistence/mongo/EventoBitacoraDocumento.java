@@ -27,4 +27,10 @@ public class EventoBitacoraDocumento {
     private String corteId;
     private Instant timestamp;
     private String descripcion;
+    /** Nulo en los eventos que no hablan del estado del servicio. */
+    private String estado;
+    /** Boletín o nota que respalda el evento, cuando la fuente lo trae. */
+    private String urlOriginal;
+    /** Portada del boletín, para que la bitácora no dependa de pedírsela a Acuacar. */
+    private String imagenUrl;
 }

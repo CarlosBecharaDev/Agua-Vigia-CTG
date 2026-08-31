@@ -1,5 +1,6 @@
 package com.aguavigia.ctg.application;
 
+import com.aguavigia.ctg.domain.EstadoRevision;
 import com.aguavigia.ctg.domain.EstadoServicio;
 import com.aguavigia.ctg.domain.PropuestaId;
 import com.aguavigia.ctg.domain.PropuestaIngesta;
@@ -50,7 +51,8 @@ public class RegistrarPropuestaIngestaService implements RegistrarPropuestaInges
     public Optional<PropuestaIngesta> registrar(SectorId sectorId, EstadoServicio estadoPropuesto,
                                                  String fuente, String urlOriginal, String citaTextual,
                                                  double confianza, Instant inicioDeclarado,
-                                                 Instant finPrometido) {
+                                                 Instant finPrometido, String imagenUrl,
+                                                 Instant publicadoEn, String tituloOriginal) {
         // Un nombre extraido de una nota de prensa no tiene por que ser un barrio de Cartagena.
         // Se descarta en silencio (log a nivel debug) porque es el caso normal, no una anomalia.
         if (sectores.buscarPorId(sectorId).isEmpty()) {
@@ -73,8 +75,12 @@ public class RegistrarPropuestaIngestaService implements RegistrarPropuestaInges
                 citaTextual,
                 confianza,
                 reloj.ahora(),
+                EstadoRevision.PENDIENTE,
                 inicioDeclarado,
-                finPrometido);
+                finPrometido,
+                imagenUrl,
+                publicadoEn,
+                tituloOriginal);
 
         PropuestaIngesta guardada = propuestas.guardar(propuesta);
 

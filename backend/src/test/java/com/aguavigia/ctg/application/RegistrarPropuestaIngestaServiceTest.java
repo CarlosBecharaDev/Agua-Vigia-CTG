@@ -53,7 +53,7 @@ class RegistrarPropuestaIngestaServiceTest {
 
     private Optional<PropuestaIngesta> registrar(String fuente) {
         return servicio.registrar(MANGA, EstadoServicio.SIN_SERVICIO, fuente,
-                "https://acuacar.com/x", "cita del boletin", 0.6, null, null);
+                "https://acuacar.com/x", "cita del boletin", 0.6, null, null, null, null, null);
     }
 
     private Optional<PropuestaIngesta> registrar() {

@@ -39,6 +39,9 @@ public class PropuestaIngestaMongoAdapter implements PropuestaIngestaRepository 
         documento.setEstadoRevision(propuesta.estadoRevision().name());
         documento.setInicioDeclarado(propuesta.inicioDeclarado());
         documento.setFinPrometido(propuesta.finPrometido());
+        documento.setImagenUrl(propuesta.imagenUrl());
+        documento.setPublicadoEn(propuesta.publicadoEn());
+        documento.setTituloOriginal(propuesta.tituloOriginal());
 
         repositorio.save(documento);
         return propuesta;
@@ -80,7 +83,10 @@ public class PropuestaIngestaMongoAdapter implements PropuestaIngestaRepository 
                 documento.getDetectadaEn(),
                 EstadoRevision.valueOf(documento.getEstadoRevision()),
                 documento.getInicioDeclarado(),
-                documento.getFinPrometido());
+                documento.getFinPrometido(),
+                documento.getImagenUrl(),
+                documento.getPublicadoEn(),
+                documento.getTituloOriginal());
     }
 
     @Override
