@@ -1,13 +1,19 @@
 ﻿import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Eye, EyeOff, KeyRound, LockKeyhole, ShieldCheck } from 'lucide-react'
+import { Eye, EyeOff, KeyRound, LockKeyhole, ShieldCheck, X } from 'lucide-react'
 import { cerrarSesionVeedor, iniciarSesionVeedor } from '../api/services'
 import { normalizarErrorApi, sesionVeedor } from '../api/client'
 import { PanelVeedor } from './PanelVeedor'
 import './ModalReporte.css'
 import './SeccionVeedor.css'
 
-export function SeccionVeedor() {
+interface Props {
+  /** El ingreso es emergente: lo abre "Ir al panel" desde el llamado a la veeduría. */
+  loginAbierto: boolean
+  onCerrarLogin: () => void
+}
+
+export function SeccionVeedor({ loginAbierto, onCerrarLogin }: Props) {
   const [autenticado, setAutenticado] = useState(Boolean(sesionVeedor.obtener()))
   const [clave, setClave] = useState('')
   const [enviando, setEnviando] = useState(false)
@@ -19,6 +25,13 @@ export function SeccionVeedor() {
     setError('La sesión venció. Inicia sesión de nuevo.')
   }), [])
 
+  useEffect(() => {
+    if (!loginAbierto) return
+    const alPulsar = (e: KeyboardEvent) => { if (e.key === 'Escape') onCerrarLogin() }
+    window.addEventListener('keydown', alPulsar)
+    return () => window.removeEventListener('keydown', alPulsar)
+  }, [loginAbierto, onCerrarLogin])
+
   const iniciar = async (event: FormEvent) => {
     event.preventDefault()
     setError(null)
@@ -27,6 +40,7 @@ export function SeccionVeedor() {
       await iniciarSesionVeedor(clave)
       setClave('')
       setAutenticado(true)
+      onCerrarLogin()
     } catch (causa) {
       setError(normalizarErrorApi(causa).detalle)
     } finally {
@@ -39,15 +53,39 @@ export function SeccionVeedor() {
     setAutenticado(false)
   }
 
-  return (
-    <section id="veedor" className="seccion-veedor-root">
-      {autenticado ? (
+  // El panel autenticado necesita toda la página; el ingreso, en cambio, es un trámite corto y
+  // por eso pasa a ser emergente. Se separan porque son dos cosas distintas, no dos estados de una.
+  if (autenticado) {
+    return (
+      <section id="panel-veedor" className="seccion-veedor-root">
         <PanelVeedor onCerrarSesion={cerrar} />
-      ) : (
+      </section>
+    )
+  }
+
+  if (!loginAbierto) return null
+
+  return (
+    <div
+      className="veedor-modal-fondo"
+      role="presentation"
+      // Solo cierra si el clic nace y muere en el fondo: arrastrar desde dentro del formulario
+      // hasta fuera no debe cerrar lo que se estaba escribiendo.
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onCerrarLogin() }}
+    >
+      <div className="veedor-modal-caja" role="dialog" aria-modal="true" aria-labelledby="titulo-veedor">
+        <button
+          type="button"
+          className="veedor-modal-cerrar"
+          onClick={onCerrarLogin}
+          aria-label="Cerrar el ingreso del veedor"
+        >
+          <X size={18} aria-hidden="true" />
+        </button>
         <div className="seccion-veedor-contenido">
           <div
             className="modal-reporte-contenedor"
-            style={{ width: 'min(100%, 480px)', maxHeight: 'none', position: 'relative' }}
+            style={{ width: 'min(100%, 480px)', maxHeight: 'none', position: 'relative', background: 'transparent', border: 0, boxShadow: 'none' }}
             aria-labelledby="titulo-veedor"
           >
             {/* Fondo animado morado */}
@@ -131,7 +169,7 @@ export function SeccionVeedor() {
             </form>
           </div>
         </div>
-      )}
-    </section>
+      </div>
+    </div>
   )
 }

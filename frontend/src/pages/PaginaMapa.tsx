@@ -23,6 +23,7 @@ import { BuscadorBarrios } from '../components/BuscadorBarrios'
 import { CarruselSector } from '../components/CarruselSector/CarruselSector'
 import { ModalReporte } from '../components/ModalReporte'
 import { ModalSuscripcion } from '../components/ModalSuscripcion'
+import { LlamadoVeedor } from '../components/LlamadoVeedor'
 import { NavegacionFlotante } from '../components/NavegacionFlotante'
 import { GooeyNav } from '../components/GooeyNav/GooeyNav'
 import { PanelProyecto } from '../components/PanelProyecto'
@@ -54,6 +55,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
   const [sectorActivo, setSectorActivo] = useState<Sector | null>(null)
   const [modalAbierto, setModalAbierto] = useState(false)
   const [suscripcionAbierta, setSuscripcionAbierta] = useState(false)
+  const [loginVeedorAbierto, setLoginVeedorAbierto] = useState(false)
   const [sectorReporte, setSectorReporte] = useState<string>('')
   const [busqueda, setBusqueda] = useState<string>('')
   const [filtroPanel, setFiltroPanel] = useState<'estado' | 'sector'>('estado')
@@ -104,31 +106,51 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
     }
   }, [hash])
 
-  // Sombrea el enlace del navbar según la sección visible al hacer scroll, no solo al
-  // hacer click — "activa" es la sección cuyo borde superior ya cruzó la franja justo
-  // debajo del navbar fijo (rootMargin negativo arriba). El corte al -55% abajo evita que
-  // dos secciones cuenten como "visibles" a la vez mientras una reemplaza a la otra.
+  // Sombrea el enlace del navbar según la sección visible, al hacer scroll y no solo al pulsar.
+  // Se calcula cuál es la activa en vez de dejar que gane la última que avisó.
+  //
+  // Antes esto lo resolvía un IntersectionObserver que hacía `setSeccionActiva` por cada entrada
+  // que entrara en cuadro. Con varias secciones cruzando la franja durante un desplazamiento
+  // suave, el resultado dependía del orden en que el navegador entregaba las entradas, y "Panel
+  // veedor" se quedaba encendido después de pulsar otro enlace. Ahora la respuesta sale de la
+  // posición real: la última sección cuyo borde superior ya pasó por debajo del navbar.
   useEffect(() => {
-    const secciones: Array<{ id: string; seccion: 'mapa' | 'bitacora' | 'estadisticas' }> = [
+    const secciones: Array<{ id: string; seccion: 'mapa' | 'bitacora' | 'estadisticas' | 'veedor' }> = [
       { id: 'mapa', seccion: 'mapa' },
       { id: 'bitacora', seccion: 'bitacora' },
       { id: 'estadisticas', seccion: 'estadisticas' },
+      { id: 'veedor', seccion: 'veedor' },
     ]
-    const observador = new IntersectionObserver(
-      (entradas) => {
-        entradas.forEach((entrada) => {
-          if (!entrada.isIntersecting) return
-          const encontrada = secciones.find((s) => s.id === entrada.target.id)
-          if (encontrada) setSeccionActiva(encontrada.seccion)
-        })
-      },
-      { rootMargin: '-64px 0px -55% 0px', threshold: 0 }
-    )
-    secciones.forEach(({ id }) => {
-      const el = document.getElementById(id)
-      if (el) observador.observe(el)
-    })
-    return () => observador.disconnect()
+
+    let pendiente = false
+    const recalcular = () => {
+      pendiente = false
+      let activa: typeof secciones[number]['seccion'] = 'mapa'
+      for (const { id, seccion } of secciones) {
+        const el = document.getElementById(id)
+        // 120px tiene que ir por encima del `scroll-margin-top: 110px` de las anclas (index.css):
+        // al saltar a una sección, esta queda con su borde a 110px, y con un umbral menor el
+        // navbar seguía marcando la sección anterior justo después de pulsar su enlace.
+        if (el && el.getBoundingClientRect().top <= 120) activa = seccion
+      }
+      setSeccionActiva(activa)
+    }
+
+    // rAF y no un temporizador: el cálculo lee `getBoundingClientRect`, así que conviene hacerlo
+    // justo antes de pintar y una sola vez por cuadro, no una vez por evento de scroll.
+    const alDesplazar = () => {
+      if (pendiente) return
+      pendiente = true
+      requestAnimationFrame(recalcular)
+    }
+
+    recalcular()
+    window.addEventListener('scroll', alDesplazar, { passive: true })
+    window.addEventListener('resize', alDesplazar)
+    return () => {
+      window.removeEventListener('scroll', alDesplazar)
+      window.removeEventListener('resize', alDesplazar)
+    }
   }, [])
 
   return (
@@ -282,8 +304,16 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
         <SeccionEstadisticas />
       </Suspense>
 
+      <LlamadoVeedor
+        onSuscribirse={() => setSuscripcionAbierta(true)}
+        onAbrirPanel={() => setLoginVeedorAbierto(true)}
+      />
+
       <Suspense fallback={<div className="seccion-cargando" role="status">Cargando veeduría…</div>}>
-        <SeccionVeedor />
+        <SeccionVeedor
+          loginAbierto={loginVeedorAbierto}
+          onCerrarLogin={() => setLoginVeedorAbierto(false)}
+        />
       </Suspense>
 
       <PieDePagina />

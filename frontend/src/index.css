@@ -24,6 +24,14 @@
   --color-tinta-2: #526a70;
   --color-tinta-3: #789095;
   --color-marino: #082f3c;
+  /* El pie es azul oscuro en ambos temas: `--color-marino` se invierte a menta claro en oscuro
+     (ver el bloque de tema oscuro) y arrastraba el pie a blanco. Se elige un azul profundo, no el
+     teal de `--color-marino`, para que el pie cierre la página en vez de competir con ella. */
+  --color-pie: #04121c;
+  /* Dos peldaños por encima del pie: suficiente para que las capas se distingan al moverse,
+     sin que ninguna se lea como una franja de otro color. */
+  --color-pie-ola-fondo: #0d2537;
+  --color-pie-ola-media: #08192697;
   --color-acento: #087f8c;
   --color-acento-vivo: #0796a5;
   --color-acento-suave: #dcefee;
@@ -214,7 +222,8 @@ p { max-width: 65ch; }
   .app-header { height:68px; }.header-contenido { width:calc(100% - 28px);grid-template-columns:1fr auto; }.nav-principal,.boton-reporte-header,.selector-tema-texto { display:none; }.pagina-inicio { width:calc(100% - 28px);padding:2rem 0 7rem; }.estado-compacto { grid-template-columns:1fr;gap:1.5rem; }.estado-compacto h1 { font-size:clamp(2.5rem,9vw,4rem); }.resumen-compacto { min-width:0;width:100%; }.barra-contexto { flex-wrap:wrap; }.estado-conexion { order:3;width:100%;text-align:center; }.selector-vista { display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:.75rem;padding:4px;border:1px solid var(--color-linea);border-radius:var(--radio-base);background:var(--color-superficie-2); }.selector-vista button { display:flex;align-items:center;justify-content:center;gap:.5rem;border:0;border-radius:8px;background:transparent;color:var(--color-tinta-2);cursor:pointer;font-weight:650; }.selector-vista button.activo { background:var(--color-elevado);color:var(--color-acento);box-shadow:0 1px 3px rgba(0,0,0,.1); }.centro-monitoreo { display:block;min-height:0; }.tarjeta-mapa,.panel-barrios { display:none; }.tarjeta-mapa.vista-mapa { display:flex;min-height:650px; }.panel-barrios.vista-lista { display:flex;height:650px; }.marco-mapa { min-height:555px; }.bloque-suscripcion { margin-top:.8rem; }.suscripcion-grid { grid-template-columns:1fr; }.suscripcion-pasos { margin-left:64px; }.proximamente-contenido,.reportar-contenido { grid-template-columns:1fr; }.proximamente-visual,.reportar-preview { min-height:330px; }.acceso-veedor { grid-template-columns:1fr; }.veedor-contexto { padding:2rem; }.veedor-contexto ul { display:none; }.veedor-formulario { padding:2rem; }.pagina-estado { min-height:calc(100dvh - 68px);padding:2rem 0 7rem; }.nav-movil { position:fixed;z-index:var(--z-mobile-nav);display:grid;grid-template-columns:repeat(5,1fr);left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));padding:5px;border:1px solid var(--color-linea);border-radius:16px;background:color-mix(in srgb,var(--color-elevado) 94%,transparent);box-shadow:var(--sombra-elevada);backdrop-filter:blur(14px); }.nav-movil .nav-enlace { min-width:0;min-height:52px;padding:.3rem;flex-direction:column;gap:.15rem;border-radius:11px;font-size:.62rem; }.nav-movil .nav-enlace span { display:block; }.nav-movil .nav-reportar { color:var(--color-coral); }.nav-movil .nav-reportar.activo { background:color-mix(in srgb,var(--color-coral) 12%,var(--color-elevado)); }.mapa-detalle { bottom:4rem; }
 }
 @media (max-width: 560px) { .pagina-inicio,.pagina-estado { width:calc(100% - 20px); }.header-acciones > .hover-glowing { display:none!important; }.marca-icono { width:38px;height:38px; }.resumen-compacto div { padding:.9rem .7rem; }.resumen-compacto dd { font-size:1.45rem; }.cabecera-panel { min-height:auto;align-items:flex-start;flex-direction:column;padding:1rem; }.leyenda-mapa { justify-content:flex-start; }.tarjeta-mapa.vista-mapa { min-height:610px; }.marco-mapa { min-height:485px; }.mapa-status { max-width:calc(100% - 2rem); }.mapa-pie > span:first-child { display:none; }.mapa-pie { justify-content:center; }.cabecera-barrios { padding:1rem; }.formulario-suscripcion { padding:1rem; }.suscripcion-intro { gap:.75rem; }.suscripcion-icono { width:42px;height:42px; }.suscripcion-pasos { margin-left:0;max-width:none; }.paso-formulario { padding:1rem; }.suscripcion-confirmacion { align-items:stretch;flex-direction:column; }.suscripcion-confirmacion .boton { width:100%; }.proximamente-visual { min-height:300px;padding:1rem; }.grafica-placeholder { height:170px;gap:.35rem; }.preview-opciones { grid-template-columns:1fr; }.preview-opciones span { min-height:48px; }.estado-pagina { padding:2rem 1.2rem; }.estado-recurso { align-items:flex-start;flex-wrap:wrap; }.estado-recurso .boton { margin-left:0;width:100%; }.sector-boton { padding-right:.7rem; }.sector-frescura { position:static;transform:none;padding:0 .65rem .65rem 1.8rem; }.sector-item { display:flex;flex-direction:column; }.suscripcion-exito { padding:1.25rem;align-items:flex-start; } }
-@media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important; }.leaflet-fade-anim .leaflet-tile,.leaflet-zoom-anim .leaflet-zoom-animated { transition:none!important; } }
+@media (prefers-reduced-motion: reduce) {
+  .pie-ola-capa { animation: none !important; } *,*::before,*::after { animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important; }.leaflet-fade-anim .leaflet-tile,.leaflet-zoom-anim .leaflet-zoom-animated { transition:none!important; } }
 @media (max-width: 899px) { .nav-movil .nav-enlace { width:auto; }.nav-movil .nav-enlace.activo { background:var(--color-superficie-3); } }
 
 /* Primer viewport: el mapa y el estado operativo aparecen sin atravesar un hero alto. */
@@ -3524,6 +3533,9 @@ select {
    "chrome" fijo, como .app-sidebar, no responde al claro/oscuro.
    ═══════════════════════════════════════════════════════════ */
 
+/* ── Olas del pie ──────────────────────────────────────────────────────────────
+   Cada capa es el mismo trazo repetido dos veces y desplazado un 50%: al llegar al
+   final, la copia ya ocupa su sitio y el ciclo no da tirón. */
 .pie-olas {
   position: relative;
   height: 70px;
@@ -3546,13 +3558,15 @@ select {
   height: 100%;
 }
 
+/* Velocidades distintas y una en sentido contrario: es el desfase, no la velocidad,
+   lo que hace que se lea como agua y no como una cinta deslizándose. */
 .pie-ola-capa--fondo {
-  opacity: 0.35;
+  opacity: 0.5;
   animation: pie-ola-desliza 22s linear infinite;
 }
 
 .pie-ola-capa--media {
-  opacity: 0.55;
+  opacity: 0.7;
   animation: pie-ola-desliza 14s linear infinite reverse;
 }
 
@@ -3560,6 +3574,7 @@ select {
   animation: pie-ola-desliza 9s linear infinite;
 }
 
+/* `translateX` y no `left`: corre en la GPU y no obliga a recalcular la disposición. */
 @keyframes pie-ola-desliza {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
@@ -3567,9 +3582,9 @@ select {
 
 .pie-pagina {
   position: relative;
-  margin-top: -1px; /* cierra cualquier línea de 1px que deje el redondeo del navegador bajo .pie-olas */
+  margin-top: -1px; /* cierra la línea de 1px que deja el redondeo del navegador bajo .pie-olas */
   padding: 1.75rem 1.25rem 2rem;
-  background: var(--color-marino);
+  background: var(--color-pie);
   color: #cfe6e8;
 }
 
@@ -3688,7 +3703,6 @@ select {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pie-ola-capa { animation: none !important; }
 }
 
 /* Fallback de Suspense para las secciones con carga diferida de PaginaMapa (Bitácora,
@@ -3699,4 +3713,26 @@ select {
   text-align: center;
   color: var(--color-tinta-3);
   font-size: 0.9rem;
+}
+
+/* El navbar es fijo y termina en 74px, así que una sección que salta a `top: 0` queda con su
+   encabezado escondido detrás. `scroll-margin-top` es la forma nativa de decírselo al navegador:
+   vale igual para el clic del navbar, para un enlace con `#` y para el botón "atrás".
+ 
+   Solo lo necesita la veeduría. La bitácora y las estadísticas ya reservan 5,5rem de respiro
+   propio, más que suficiente para librar el navbar: añadirles el anclaje encima les dejaba 125px
+   de hueco antes del primer texto. La tarjeta de la veeduría, en cambio, empieza casi pegada al
+   borde de su sección y sí quedaba tapada. */
+#veedor,
+#panel-veedor {
+  scroll-margin-top: 110px;
+}
+
+@media (max-width: 640px) {
+  /* En móvil el navbar es más bajo y la pantalla más corta: reservar 110px se comería
+     media sección. */
+  #veedor,
+  #panel-veedor {
+    scroll-margin-top: 84px;
+  }
 }
