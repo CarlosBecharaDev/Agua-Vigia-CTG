@@ -1,4 +1,5 @@
 import type { components } from './generated/schema'
+import type { EstadoServicio } from '../types/tipos-dominio'
 import { apiClient, sesionVeedor } from './client'
 import { obtenerHuellaDispositivo } from '../utils/huellaDispositivo'
 
@@ -20,9 +21,22 @@ type SolicitudCorteApi = components['schemas']['SolicitudCorte']
 export type SolicitudCorte = Required<Pick<SolicitudCorteApi, 'sectoresAfectados' | 'inicio' | 'finPrometido' | 'causa'>>
 export type CorteOficial = components['schemas']['CorteRespuesta']
 type EventoBitacoraApi = components['schemas']['EventoBitacoraRespuesta']
-export type TipoEventoBitacora = 'CORTE_ANUNCIADO' | 'CORTE_CONFIRMADO_POR_CIUDADANOS' | 'CORTE_RESTABLECIDO'
+/** Los cuatro de `TipoEvento` en el backend. Faltaba CORTE_DETECTADO_POR_INGESTA, y por eso todo
+ *  lo que publica la ingesta caía en el cajón "informativo", sin color ni filtro. */
+export type TipoEventoBitacora =
+  | 'CORTE_ANUNCIADO'
+  | 'CORTE_CONFIRMADO_POR_CIUDADANOS'
+  | 'CORTE_RESTABLECIDO'
+  | 'CORTE_DETECTADO_POR_INGESTA'
 export type EventoBitacora = Required<Pick<EventoBitacoraApi, 'id' | 'tipo' | 'timestamp' | 'descripcion'>> &
-  Pick<EventoBitacoraApi, 'sectorId' | 'corteId'>
+  Pick<EventoBitacoraApi, 'sectorId' | 'corteId'> & {
+    /** Estado que afirma el evento. Nulo cuando el evento no habla del servicio. */
+    estado?: EstadoServicio | null
+    /** Boletín que respalda el evento — de aquí sale el enlace "Leer documento". */
+    urlOriginal?: string | null
+    /** Portada del boletín, capturada por el colector al ingerir. */
+    imagenUrl?: string | null
+  }
 
 // --- Interfaces del Índice de Cumplimiento (M6, RF020-RF025) ---
 export interface IndiceCumplimiento {

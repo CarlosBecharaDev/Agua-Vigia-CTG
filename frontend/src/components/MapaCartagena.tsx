@@ -16,7 +16,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { Locate } from 'lucide-react'
 import type { EstadoServicio, Sector } from '../types/tipos-dominio'
-import { COLOR_POR_ESTADO } from '../types/tipos-dominio'
+import { COLOR_POR_ESTADO, COLOR_SIN_DATOS } from '../types/tipos-dominio'
 import { EtiquetaFrescura } from './EtiquetaFrescura'
 import { obtenerGeoJSONBarrios } from '../data/barriosCartagena'
 import { volarABounds } from '../utils/mapaLeaflet'
@@ -65,10 +65,14 @@ function calcularEstiloFeature(
   estadoDestacado: EstadoServicio | null
 ): L.PathOptions {
   const estado = sector?.estado
-  const color = estado ? COLOR_POR_ESTADO[estado].claro : '#ccc'
+  // ADR-035: sin corte anunciado por Acuacar ni reporte vigente, el barrio se muestra con servicio.
+  // Vale también para el resaltado: si no lo tratáramos como CON_SERVICIO aquí, filtrar por "Con
+  // servicio" atenuaría justo a los barrios que la regla considera con agua.
+  const estadoEfectivo: EstadoServicio | undefined = sector ? (estado ?? 'CON_SERVICIO') : undefined
+  const color = estado ? COLOR_POR_ESTADO[estado].claro : COLOR_SIN_DATOS.claro
   const esActivo = !!(sectorActivo && sector && sectorActivo.id === sector.id)
   const enFoco = estadoDestacado !== null
-  const esDestacado = !!(estado && estado === estadoDestacado)
+  const esDestacado = !!(estadoEfectivo && estadoEfectivo === estadoDestacado)
   const atenuado = enFoco && !esDestacado
 
   return {
@@ -77,7 +81,7 @@ function calcularEstiloFeature(
     color: esDestacado ? color : '#ffffff',
     weight: esDestacado ? 3 : esActivo ? 2 : 1,
     opacity: atenuado ? 0.18 : esActivo || esDestacado ? 1 : 0.7,
-    className: esDestacado ? `barrio-destacado barrio-destacado-${estado}` : esActivo ? 'barrio-seleccionado' : '',
+    className: esDestacado ? `barrio-destacado barrio-destacado-${estadoEfectivo}` : esActivo ? 'barrio-seleccionado' : '',
   }
 }
 
@@ -232,13 +236,17 @@ export const MapaCartagena: FC<Props> = ({
     const actualizarCapaBase = () => {
       capaBaseRef.current?.remove()
       const oscuro = usarMapaOscuro()
+      // Esri y no CARTO en el tema oscuro: `basemaps.cartocdn.com` pasó a exigir clave y hoy
+      // devuelve teselas con la marca de agua "API KEY REQUIRED" estampada sobre el mapa
+      // (verificado el 2026-08-30: la tesela responde 200 con la marca, no un 401). El canvas
+      // gris oscuro de Esri no pide clave y su atribución exige nombrar también a HERE y Garmin.
       capaBaseRef.current = L.tileLayer(
         oscuro
-          ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+          ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
           : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         {
           attribution: oscuro
-            ? '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>'
+            ? '© <a href="https://www.esri.com">Esri</a>, HERE, Garmin, © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             : '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
           maxZoom: 19,
         },

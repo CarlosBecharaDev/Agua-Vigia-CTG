@@ -3,7 +3,9 @@
 .bitacora-seccion {
   position: relative;
   background: linear-gradient(180deg, #050814 0%, #0a0f24 50%, #070a18 100%);
-  padding: 4.5rem 0 4.75rem;
+  /* Arriba respira más que abajo a propósito: separa la bitácora del mapa, que termina en un
+     borde duro, mientras que abajo el degradado de la sección ya hace de transición. */
+  padding: 5.5rem 0 3.25rem;
   color: #f8fafc;
   overflow: hidden;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -37,8 +39,8 @@
   align-items: flex-end;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: 1.25rem;
+  margin-bottom: 1.4rem;
 }
 
 .bitacora-eyebrow-pro {
@@ -73,21 +75,19 @@
 
 .bitacora-titulo-pro {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-  font-size: clamp(2rem, 3.8vw, 2.75rem);
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.15;
-  margin: 0 0 0.6rem;
-  background: linear-gradient(180deg, #ffffff 30%, rgba(255, 255, 255, 0.75) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  margin: 0 0 0.45rem;
+  color: #f8fafc;
 }
 
 .bitacora-subtitulo-pro {
   color: rgba(226, 232, 240, 0.75);
-  font-size: 1rem;
-  line-height: 1.6;
-  max-width: 48ch;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  max-width: 56ch;
   margin: 0;
   font-weight: 400;
 }
@@ -126,7 +126,7 @@
   backdrop-filter: blur(14px);
   width: fit-content;
   flex-wrap: wrap;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.9rem;
 }
 
 .bitacora-filtro-btn {
@@ -206,14 +206,14 @@
   flex: 0 0 auto;
   width: calc((100% - 2.5rem) / 3);
   min-width: 290px;
-  min-height: 220px;
+  min-height: 180px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   background: rgba(15, 23, 42, 0.7);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 24px;
-  padding: 1.4rem;
+  padding: 1.15rem;
   backdrop-filter: blur(18px);
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px -5px rgba(15, 23, 42, 0.4);
   transition: all 280ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -390,4 +390,223 @@
   .bitacora-seccion.is-visible .bitacora-tarjeta-pro {
     animation: none;
   }
+}
+
+/* Portada del boletín que respalda el evento. `aspect-ratio` fijo para que las tarjetas de una
+   misma fila no bailen mientras las imágenes llegan a distinto ritmo. */
+.bitacora-portada {
+  width: 100%;
+  aspect-ratio: 16 / 7;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 0.7rem;
+  background: var(--color-superficie-3);
+}
+
+/* Marco de la portada: contiene la imagen y el número del boletín superpuesto. */
+.bitacora-portada-marco {
+  position: relative;
+  margin-bottom: 0.85rem;
+}
+
+.bitacora-numero-boletin {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  /* Fondo propio y no solo sombra de texto: la portada puede ser clara u oscura y el número
+     tiene que leerse igual sobre cualquiera de las dos. */
+  background: rgba(8, 12, 20, 0.72);
+  color: #f1f5f9;
+  font: 650 0.68rem/1.4 var(--font-util);
+  letter-spacing: 0.04em;
+  backdrop-filter: blur(4px);
+}
+
+.bitacora-leer-documento {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.42rem 0.8rem;
+  border: 1px solid var(--color-linea);
+  border-radius: var(--radio-base);
+  color: var(--color-acento);
+  font: 650 0.74rem var(--font-util);
+  text-decoration: none;
+  transition: background-color 160ms ease-out, border-color 160ms ease-out;
+}
+
+/* Sin gate el hover se queda pegado al tocar en un móvil (ver el resto de la hoja). */
+@media (hover: hover) and (pointer: fine) {
+  .bitacora-leer-documento:hover {
+    border-color: var(--color-acento);
+    background: var(--color-acento-suave);
+  }
+}
+
+.bitacora-leer-documento:active {
+  transform: scale(0.97);
+}
+
+/* Las tarjetas crecieron al llevar portada: se igualan a la más alta para que la fila no quede
+   escalonada, y el carrusel gana aire abajo para que el borde y su resplandor no se recorten. */
+.bitacora-carrusel-pro {
+  align-items: stretch;
+  padding-bottom: 1.25rem;
+}
+
+/* La fecha absoluta ("8 de julio de 2026") es más larga que "hace 2 h" y se partía en dos líneas
+   junto a la insignia de estado. */
+.bitacora-tiempo-pro {
+  white-space: nowrap;
+}
+
+/* El estado vacío ocupa lo mismo que la fila de tarjetas (medido: 422px con la meta incluida).
+   Sin esto, filtrar por "Sin servicio" cuando no hay ninguno colapsaba el carrusel y toda la
+   página de abajo saltaba hacia arriba — el usuario perdía el sitio donde estaba mirando. */
+.bitacora-envoltorio .bitacora-vacio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 423px;
+  margin: 0;
+  text-align: center;
+}
+
+/* En móvil la tarjeta es más baja, así que reservar 422px dejaría un hueco enorme. */
+@media (max-width: 640px) {
+  .bitacora-envoltorio .bitacora-vacio {
+    min-height: 340px;
+  }
+}
+
+/* ── Estado vacío ──────────────────────────────────────────────────────────────
+   Entra con una animación CSS y no con JS: es movimiento predeterminado, y CSS
+   corre fuera del hilo principal, así que no pierde cuadros mientras la página
+   sigue cargando el mapa y las portadas.
+   Propósito: evitar el salto brusco al cambiar de filtro — el carrusel desaparece
+   y algo tiene que ocupar su lugar de forma legible. Curva y duración salen de los
+   tokens del proyecto (--ease, --motion-ui = 220ms), no de un sistema paralelo. */
+.bitacora-envoltorio .bitacora-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 423px;
+  margin: 0;
+  padding: 0 1.5rem;
+  text-align: center;
+}
+
+.bitacora-vacio-icono,
+.bitacora-vacio-titulo,
+.bitacora-vacio-texto {
+  /* Nunca desde scale(0): nada en el mundo real aparece de la nada. */
+  animation: bitacora-vacio-entrada var(--motion-ui) var(--ease) both;
+}
+
+/* Escalonado corto (60ms): encadena los tres sin que el bloque se sienta lento. */
+.bitacora-vacio-titulo { animation-delay: 60ms; }
+.bitacora-vacio-texto { animation-delay: 120ms; }
+
+@keyframes bitacora-vacio-entrada {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.bitacora-vacio-icono {
+  color: #a855f7;
+  opacity: 0.85;
+}
+
+.bitacora-vacio-titulo {
+  margin: 0;
+  color: #f1f5f9;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.bitacora-vacio-texto {
+  margin: 0;
+  max-width: 46ch;
+  color: rgba(203, 213, 225, 0.72);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+/* Movimiento reducido: se conserva la aparición, que ayuda a entender el cambio,
+   y se quita el desplazamiento, que es lo que provoca malestar. */
+@media (prefers-reduced-motion: reduce) {
+  .bitacora-vacio-icono,
+  .bitacora-vacio-titulo,
+  .bitacora-vacio-texto {
+    animation: bitacora-vacio-aparecer var(--motion-ui) var(--ease) both;
+  }
+  @keyframes bitacora-vacio-aparecer {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}
+
+@media (max-width: 640px) {
+  .bitacora-envoltorio .bitacora-vacio {
+    min-height: 340px;
+  }
+}
+
+/* ── Flechas del carrusel ──────────────────────────────────────────────────────
+   El marco es el ancla de posicionamiento; no puede ser el propio carrusel porque
+   ese se desplaza, y las flechas viajarían con el contenido. */
+.bitacora-carrusel-marco {
+  position: relative;
+}
+
+.bitacora-flecha {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  /* -50% del propio alto: centra sin depender del tamaño del botón. */
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(15, 23, 42, 0.88);
+  color: #f1f5f9;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.7);
+  transition: background-color var(--motion-fast) var(--ease),
+              border-color var(--motion-fast) var(--ease);
+}
+
+/* Pegadas al borde del contenedor: fuera de las tarjetas, no encima de ellas. */
+.bitacora-flecha-izq { left: -21px; }
+.bitacora-flecha-der { right: -21px; }
+
+@media (hover: hover) and (pointer: fine) {
+  .bitacora-flecha:hover {
+    background: rgba(30, 41, 59, 0.95);
+    border-color: rgba(192, 132, 252, 0.45);
+  }
+}
+
+/* Retroalimentación de pulsación: confirma que la interfaz escuchó el clic. */
+.bitacora-flecha:active {
+  transform: translateY(-50%) scale(0.94);
+}
+
+.bitacora-flecha:focus-visible {
+  outline: 2px solid #c084fc;
+  outline-offset: 3px;
+}
+
+/* En pantallas táctiles el gesto natural es deslizar, y las flechas taparían la
+   tarjeta en un ancho donde solo cabe una. */
+@media (max-width: 640px) {
+  .bitacora-flecha { display: none; }
 }

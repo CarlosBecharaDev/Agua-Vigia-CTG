@@ -146,6 +146,19 @@ export default defineConfig({
         },
         rewrite: (path) => path.replace(/^\/acuacar-api/, ''),
       },
+      // Mismo proxy que `nginx.conf` da en producción. acuacar.com devuelve 403 a las imágenes
+      // pedidas con un `Referer` de otro dominio, así que el <img> del navegador no puede ir
+      // directo: se piden desde el servidor, que no manda esa cabecera.
+      '/acuacar-media': {
+        target: 'https://www.acuacar.com/wp-content/uploads',
+        changeOrigin: true,
+        secure: false,
+        headers: {
+          'User-Agent': 'AguaVigiaCTG-Bot/1.0 (+rafasarmiento777@gmail.com)',
+          'Referer': '',
+        },
+        rewrite: (path) => path.replace(/^\/acuacar-media/, ''),
+      },
     },
   },
   build: {
