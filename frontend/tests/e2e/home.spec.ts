@@ -59,5 +59,8 @@ test('el logo principal conserva su tamaño original y no tiene recuadro', async
   const logo = page.locator('.panel-proyecto-logo')
   await expect(logo).toBeVisible()
   await expect(page.locator('.panel-proyecto-logo-box')).toHaveCount(0)
-  await expect(logo).toHaveCSS('width', '150px')
+  // 195px desde e465a23, que agrandó el logo al centrar el panel de bienvenida. El test se quedó
+  // en los 150px anteriores y dejó el CI en rojo sin que nadie lo mirara. Lo que la prueba vigila
+  // no es la cifra en sí, sino que el logo conserve su tamaño de diseño y no vuelva el recuadro.
+  await expect(logo).toHaveCSS('width', '195px')
 })

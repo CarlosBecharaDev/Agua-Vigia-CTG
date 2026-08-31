@@ -88,6 +88,7 @@ Tres razones concretas, no burocráticas:
 | BUG-061 | 2026-08-22 | S1 | M1 | Al hacer clic en un barrio que el backend no conoce, el panel afirmaba «con servicio, actualizado en este momento»: `MapaCartagena.tsx` fabricaba el sector al vuelo con `estado: 'CON_SERVICIO'` y `actualizadoEn: new Date()`, inventando un dato verificado sobre un barrio del que no se sabía nada | Cerrado — se muestra sin dato (`estado: null`), como exige ADR-014; `MapaCartagena.tsx:347` | D4 |
 | BUG-062 | 2026-08-29 | S3 | M5 | Usar el verbo HTTP equivocado contra un endpoint del veedor devuelve `500 "Error no controlado"` con stack trace completo en el log, en vez del `405` que corresponde, saltándose el formato RFC 7807 | Abierto | D3 |
 | BUG-063 | 2026-08-31 | S1 | M6/M7 | La sección de estadísticas mostraba un Índice de Cumplimiento del 100% y unas duraciones de 2.822 h prometidas contra 2.798,5 h reales cuando la API respondía «No hay cortes cerrados todavía»: eran cinco literales escritos a mano como valor por defecto | Cerrado — se muestra «Sin datos»; `SeccionEstadisticas.tsx` | D4 |
+| BUG-064 | 2026-08-31 | S3 | CI | El Frontend CI llevaba tres commits en rojo: `e465a23` agrandó el logo del panel de bienvenida de 150 a 195 px y la prueba E2E se quedó exigiendo el valor viejo | Cerrado — aserción alineada con el diseño vigente; `home.spec.ts:65` | D4 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -101,6 +102,29 @@ Tres razones concretas, no burocráticas:
 > de detalle de sector se veía "incompleto" para muchos barrios al hacer clic en el mapa, y
 > auditando en vivo (contra `/acuacar-api` real, no datos de ejemplo) cuánta cobertura real de
 > boletines logra la extracción de nombres de barrio.
+
+### BUG-064 — El Frontend CI llevaba tres commits en rojo por una prueba desactualizada
+
+- **Fecha:** 2026-08-31 · **Severidad:** S3 · **Módulo:** CI · **Responsable:** D4
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** `Frontend CI` fallaba con `expect(locator).toHaveCSS('width') Expected: "150px"
+Received: "195px"` en *"el logo principal conserva su tamaño original y no tiene recuadro"*. El
+Backend CI y la Sala de control pasaban: 6 de 7 comprobaciones en verde y una X roja en `main`.
+
+**Reproducción:** `npx playwright test tests/e2e/home.spec.ts`. Reproducido 3 de 3 ejecuciones en CI,
+con sus dos reintentos cada una.
+
+**Esperado:** verde. Un CI que lleva días en rojo deja de avisar de nada — el equipo aprende a
+ignorar la X y el siguiente fallo real pasa desapercibido.
+
+**Causa raíz:** `e465a23` («centrar el panel de bienvenida») cambió `.panel-proyecto-logo` de 150 a
+195 px a propósito, pero no actualizó la prueba que fijaba el valor anterior. No es un defecto del
+producto: es una prueba que quedó describiendo un diseño que ya no existe. Se detectó tres commits
+después, al revisar por qué GitHub marcaba «6/7».
+
+**Corrección:** aserción a 195 px, con la referencia al commit que lo cambió para que la próxima vez
+se entienda de dónde sale la cifra. `home.spec.ts:65`. Verificado en local: los 4 E2E en verde.
 
 ### BUG-063 — La página afirmaba un cumplimiento del 100% sin ningún corte cerrado
 
@@ -1738,5 +1762,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-064
+Siguiente número disponible: BUG-065
 -->
