@@ -4,6 +4,27 @@
  */
 
 export interface paths {
+    "/api/veedor/usuarios/invitaciones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Invitar a una persona con un rol ya decidido
+         * @description Crea la cuenta en INVITADA y le envia un enlace para que fije su clave. Al
+         *     aceptarlo queda ACTIVA sin necesitar otra aprobacion.
+         */
+        post: operations["invitar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/veedor/sesion": {
         parameters: {
             query?: never;
@@ -14,10 +35,100 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Iniciar sesion como veedor
-         * @description Devuelve un token JWT valido por 8 horas (RNF011) si la clave es correcta.
+         * Iniciar sesion en el panel del veedor
+         * @description Devuelve un token JWT valido por 8 horas (RNF011) junto con el rol y los permisos
+         *     ya resueltos. Si la cuenta tiene segundo factor y no se envio `codigoTotp`, la
+         *     respuesta es 401 con type `segundo-factor-requerido`: hay que reintentar con el
+         *     codigo, no es un error de credencial.
          */
         post: operations["iniciarSesion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/veedor/sesion/cierre": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cerrar sesion
+         * @description Revoca en el servidor todas las sesiones vivas de la cuenta, no solo la de este
+         *     navegador. Un token copiado antes del cierre deja de servir en el acto.
+         */
+        post: operations["cerrar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/veedor/segundo-factor/confirmacion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirmar el alta con un codigo de la app
+         * @description Devuelve una sesion nueva de alcance COMPLETO. Es lo que permite que un ADMIN
+         *     recien sembrado pase de su sesion restringida al panel sin volver a escribir la
+         *     clave que acaba de escribir.
+         */
+        post: operations["confirmar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/veedor/segundo-factor/baja": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Desactivar el segundo factor de la propia cuenta
+         * @description Exige un codigo valido: si bastara con la sesion, un token robado podria quitar
+         *     de en medio justamente la defensa que impide usarlo. Un ADMIN no puede
+         *     desactivarlo, su rol lo exige.
+         */
+        post: operations["desactivar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/veedor/segundo-factor/alta": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Empezar el alta: genera el secreto y devuelve el QR
+         * @description El secreto queda guardado sin confirmar y todavia no se exige al entrar. Solo
+         *     empieza a hacerlo tras confirmar un codigo valido. El secreto se muestra una
+         *     sola vez: no hay endpoint para volver a leerlo.
+         */
+        post: operations["iniciar"];
         delete?: never;
         options?: never;
         head?: never;
@@ -121,7 +232,7 @@ export interface paths {
          * Confirmar un reporte
          * @description Permite a otro vecino confirmar un reporte ciudadano (M11).
          */
-        post: operations["confirmar"];
+        post: operations["confirmar_1"];
         delete?: never;
         options?: never;
         head?: never;
@@ -142,6 +253,202 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/cuentas/verificacion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirmar el correo con el token del enlace
+         * @description Pasa la cuenta a PENDIENTE_APROBACION. Sigue sin poder entrar hasta que un ADMIN la apruebe.
+         */
+        post: operations["verificarCorreo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cuentas/restablecimiento": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pedir el enlace para restablecer la clave
+         * @description Responde 202 siempre, exista o no la cuenta. Ver el javadoc de esta clase.
+         */
+        post: operations["pedirRestablecimiento"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cuentas/registro": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Solicitar una cuenta del panel
+         * @description Crea la cuenta en PENDIENTE_VERIFICACION y envia el enlace de confirmacion.
+         *     Registrarse no concede ningun permiso: hace falta verificar el correo y que un
+         *     ADMIN apruebe. Responde 202 aunque el correo ya tenga cuenta, para no revelar
+         *     que direcciones estan registradas.
+         */
+        post: operations["registrarse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cuentas/invitacion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Aceptar una invitacion fijando la clave
+         * @description Deja la cuenta ACTIVA con el rol que eligio quien invito. No hace falta otra aprobacion.
+         */
+        post: operations["aceptar"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cuentas/clave": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Fijar la clave nueva con el token del enlace
+         * @description Cambia la clave y revoca todas las sesiones abiertas de esa cuenta.
+         */
+        post: operations["fijarClave"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/veedor/usuarios/{id}/suspension": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Suspender una cuenta activa
+         * @description Revoca sus sesiones al instante: no espera a que caduque su token.
+         */
+        patch: operations["suspender"];
+        trace?: never;
+    };
+    "/api/veedor/usuarios/{id}/rechazo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Denegar una solicitud de acceso */
+        patch: operations["rechazar"];
+        trace?: never;
+    };
+    "/api/veedor/usuarios/{id}/reactivacion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Devolver el acceso a una cuenta suspendida */
+        patch: operations["reactivar"];
+        trace?: never;
+    };
+    "/api/veedor/usuarios/{id}/permisos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Cambiar rol y ajustes de permisos de una cuenta
+         * @description Revoca las sesiones vivas de esa persona, tanto si los permisos se amplian como
+         *     si se recortan: el token los lleva dentro y una sesion abierta seguiria usando
+         *     los anteriores.
+         */
+        patch: operations["cambiarPermisos"];
+        trace?: never;
+    };
+    "/api/veedor/usuarios/{id}/aprobacion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Aprobar una cuenta que ya verifico su correo, asignandole permisos */
+        patch: operations["aprobar"];
         trace?: never;
     };
     "/api/veedor/reportes/{id}/descartar": {
@@ -175,7 +482,7 @@ export interface paths {
         options?: never;
         head?: never;
         /** Aprobar un reporte */
-        patch: operations["aprobar"];
+        patch: operations["aprobar_1"];
         trace?: never;
     };
     "/api/veedor/ingesta/propuestas/{id}/descartar": {
@@ -216,7 +523,7 @@ export interface paths {
          * @description Aplica el estado propuesto al sector y anexa el evento a la bitácora pública
          *     (RF026). Es el único camino por el que la ingesta llega al mapa.
          */
-        patch: operations["aprobar_1"];
+        patch: operations["aprobar_2"];
         trace?: never;
     };
     "/api/veedor/cortes/{id}/cierre": {
@@ -233,7 +540,49 @@ export interface paths {
         options?: never;
         head?: never;
         /** Cerrar un corte con la hora real de restablecimiento (RF017) */
-        patch: operations["cerrar"];
+        patch: operations["cerrar_1"];
+        trace?: never;
+    };
+    "/api/veedor/yo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Datos de la cuenta que tiene la sesion
+         * @description Lo usa el frontend al recargar para saber que puede pintar sin volver a pedir la
+         *     clave. Devuelve el estado vigente en la base de datos, no lo que dice el token.
+         */
+        get: operations["yo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/veedor/usuarios": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar cuentas, mas recientes primero
+         * @description Paginado, con el total y el enlace a la siguiente pagina en `X-Total-Count` y
+         *     `Link`. `estado` filtra por PENDIENTE_APROBACION para ver solo la cola de altas.
+         */
+        get: operations["listar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/veedor/reportes/pendientes": {
@@ -316,6 +665,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/veedor/auditoria": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Bitacora de auditoria de cuentas, mas recientes primero
+         * @description Solo anexado: no hay forma de editar ni borrar un asiento desde la API.
+         */
+        get: operations["auditoria"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v2/requests.json": {
         parameters: {
             query?: never;
@@ -352,7 +721,7 @@ export interface paths {
          *     según el `Accept` de quien pide — el mismo enlace del correo abre bien tanto en un
          *     navegador como desde un cliente de API.
          */
-        get: operations["confirmar_1"];
+        get: operations["confirmar_2"];
         put?: never;
         post?: never;
         delete?: never;
@@ -585,7 +954,7 @@ export interface paths {
          *     sigue siendo un arreglo JSON, así que un cliente que las ignore no se rompe.
          *     Por defecto 50 eventos; el máximo por página es 200.
          */
-        get: operations["listar"];
+        get: operations["listar_1"];
         put?: never;
         post?: never;
         delete?: never;
@@ -598,10 +967,73 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description Invitacion emitida por un ADMIN: crea la cuenta con su rol y manda el enlace */
+        SolicitudInvitacion: {
+            correo?: string;
+            nombre?: string;
+            /** @description ADMIN, VEEDOR u OBSERVADOR */
+            rol: string;
+        };
+        /** @description Cuenta del panel, tal como la ve un ADMIN */
+        UsuarioRespuesta: {
+            id?: string;
+            correo?: string;
+            nombre?: string;
+            /** @description PENDIENTE_VERIFICACION, PENDIENTE_APROBACION, INVITADA, ACTIVA, SUSPENDIDA o RECHAZADA */
+            estado?: string;
+            rol?: string;
+            permisosEfectivos?: string[];
+            permisosConcedidos?: string[];
+            permisosRevocados?: string[];
+            segundoFactorActivo?: boolean;
+            /** Format: date-time */
+            creadoEn?: string;
+            /** Format: date-time */
+            actualizadoEn?: string;
+        };
         /** @description Credencial de acceso al panel del veedor */
         CredencialVeedor: {
-            /** @description Clave de acceso del veedor */
+            /**
+             * @description Correo de la cuenta
+             * @example veedor@ejemplo.org
+             */
+            correo?: string;
+            /** @description Clave de la cuenta */
             clave?: string;
+            /**
+             * @description Codigo de 6 digitos de la app de autenticacion. Se omite en el primer intento; si la
+             *     cuenta tiene segundo factor, la respuesta 401 con type `segundo-factor-requerido`
+             *     indica que hay que reintentar incluyendolo.
+             */
+            codigoTotp?: string;
+        };
+        /** @description Sesion emitida para el panel del veedor (RNF011: expira en 8 horas) */
+        SesionVeedor: {
+            /** @description Token JWT. Se envia como 'Authorization: Bearer <token>' */
+            token?: string;
+            usuarioId?: string;
+            nombre?: string;
+            correo?: string;
+            /** @description ADMIN, VEEDOR u OBSERVADOR */
+            rol?: string;
+            /** @description Permisos efectivos ya resueltos: rol mas concedidos menos revocados */
+            permisos?: string[];
+            /**
+             * @description COMPLETO, o ALTA_SEGUNDO_FACTOR cuando la cuenta es ADMIN y todavia no dio de alta su
+             *     TOTP. Con ese alcance el token solo sirve para /api/veedor/segundo-factor.
+             */
+            alcance?: string;
+        };
+        /** @description Codigo de 6 digitos de la app de autenticacion */
+        SolicitudCodigo: {
+            codigo?: string;
+        };
+        /** @description Datos para dar de alta el segundo factor. El secreto solo se muestra aqui, una vez. */
+        AltaSegundoFactorRespuesta: {
+            /** @description URI otpauth:// para pintar el QR */
+            uri?: string;
+            /** @description El mismo secreto en Base32, para teclearlo si la camara falla */
+            secreto?: string;
         };
         /** @description Registro de un corte oficial por el veedor (RF016) */
         SolicitudCorte: {
@@ -730,6 +1162,34 @@ export interface components {
             presionPsi?: number;
             coordenada?: components["schemas"]["IotCoordenada"];
         };
+        /** @description Pedir el enlace de restablecimiento. Responde siempre 202, exista o no la cuenta. */
+        SolicitudRestablecer: {
+            correo?: string;
+        };
+        /** @description Solicitud de acceso al panel. No concede nada: exige verificar el correo y que un ADMIN apruebe. */
+        SolicitudRegistro: {
+            correo?: string;
+            /** @description Nombre con el que apareceras en la auditoria del panel */
+            nombre?: string;
+            /** @description Minimo 12 caracteres. La politica completa vive en ClaveEnClaro. */
+            clave?: string;
+        };
+        /** @description Fijar clave desde un enlace de un solo uso (invitacion o restablecimiento) */
+        SolicitudFijarClave: {
+            /** @description Token que venia en el enlace del correo */
+            token?: string;
+            clave?: string;
+        };
+        /**
+         * @description Rol de base mas los ajustes por persona. Los permisos del rol se aplican solos; `concedidos`
+         *     anade sobre ellos y `revocados` quita. Un permiso en las dos listas es un error y se rechaza.
+         */
+        SolicitudPermisos: {
+            /** @description ADMIN, VEEDOR u OBSERVADOR */
+            rol?: string;
+            concedidos?: string[];
+            revocados?: string[];
+        };
         /** @description Reporte ciudadano en la cola de moderación del veedor (RF018) */
         ReporteModeracionRespuesta: {
             id?: string;
@@ -820,6 +1280,18 @@ export interface components {
              * @description Ciclos seguidos fallando. Desde 3, el colector se reporta caído en /actuator/health
              */
             fallosConsecutivos?: number;
+        };
+        /** @description Asiento de la bitacora de auditoria de cuentas: quien le hizo que a quien */
+        EventoAuditoriaRespuesta: {
+            id?: string;
+            accion?: string;
+            /** @description Nulo cuando actua el sistema o alguien sin sesion */
+            autorCorreo?: string;
+            sujetoCorreo?: string;
+            detalle?: string;
+            ip?: string;
+            /** Format: date-time */
+            ocurrioEn?: string;
         };
         /** @description service_request de Open311 GeoReport v2 */
         Open311Response: {
@@ -956,7 +1428,7 @@ export interface components {
         /** @description Evento de la bitácora pública, de solo anexado (RF026-RF028) */
         EventoBitacoraRespuesta: {
             id?: string;
-            /** @description CORTE_ANUNCIADO, CORTE_CONFIRMADO_POR_CIUDADANOS o CORTE_RESTABLECIDO */
+            /** @description CORTE_ANUNCIADO, CORTE_CONFIRMADO_POR_CIUDADANOS, CORTE_RESTABLECIDO o CORTE_DETECTADO_POR_INGESTA */
             tipo?: string;
             /** @description Nulo si el evento no está atado a un sector */
             sectorId?: string;
@@ -965,6 +1437,12 @@ export interface components {
             /** Format: date-time */
             timestamp?: string;
             descripcion?: string;
+            /** @description Estado del servicio que afirma el evento: CON_SERVICIO, SIN_SERVICIO, PRESION_BAJA o CORTE_PROGRAMADO. Nulo si el evento no habla del servicio — presentarlo entonces como informativo, sin color de estado. */
+            estado?: string;
+            /** @description Boletín o nota que respalda el evento. Nulo si la fuente no lo trae. */
+            urlOriginal?: string;
+            /** @description Portada del boletín. Nula si la fuente no la trae. */
+            imagenUrl?: string;
         };
     };
     responses: never;
@@ -975,6 +1453,39 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    invitar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitudInvitacion"];
+            };
+        };
+        responses: {
+            /** @description Invitacion enviada */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioRespuesta"];
+                };
+            };
+            /** @description Ya existe una cuenta con ese correo */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioRespuesta"];
+                };
+            };
+        };
+    };
     iniciarSesion: {
         parameters: {
             query?: never;
@@ -994,25 +1505,159 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": Record<string, never>;
+                    "application/json": components["schemas"]["SesionVeedor"];
                 };
             };
-            /** @description Credencial incorrecta */
+            /** @description Credencial incorrecta, o falta el segundo factor */
             401: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": Record<string, never>;
+                    "application/json": components["schemas"]["SesionVeedor"];
                 };
             };
-            /** @description El servidor no tiene configurada la credencial del veedor */
-            503: {
+            /** @description La cuenta existe pero no esta habilitada para entrar */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "*/*": Record<string, never>;
+                    "application/json": components["schemas"]["SesionVeedor"];
+                };
+            };
+            /** @description Cuenta bloqueada por intentos fallidos */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SesionVeedor"];
+                };
+            };
+            /** @description Demasiados intentos desde esta IP */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SesionVeedor"];
+                };
+            };
+        };
+    };
+    cerrar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    confirmar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitudCodigo"];
+            };
+        };
+        responses: {
+            /** @description Segundo factor activo; sesion nueva emitida */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SesionVeedor"];
+                };
+            };
+            /** @description El codigo no coincide */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SesionVeedor"];
+                };
+            };
+            /** @description No hay un alta en curso */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SesionVeedor"];
+                };
+            };
+        };
+    };
+    desactivar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitudCodigo"];
+            };
+        };
+        responses: {
+            /** @description Segundo factor desactivado */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description El codigo no coincide */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description El rol ADMIN exige segundo factor */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    iniciar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AltaSegundoFactorRespuesta"];
                 };
             };
         };
@@ -1194,7 +1839,7 @@ export interface operations {
             };
         };
     };
-    confirmar: {
+    confirmar_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -1262,6 +1907,287 @@ export interface operations {
             };
         };
     };
+    verificarCorreo: {
+        parameters: {
+            query: {
+                token: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Correo confirmado */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Enlace invalido, vencido o ya usado */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    pedirRestablecimiento: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitudRestablecer"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    registrarse: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitudRegistro"];
+            };
+        };
+        responses: {
+            /** @description Solicitud recibida; revisa tu correo */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Correo mal formado o clave que no cumple la politica */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    aceptar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitudFijarClave"];
+            };
+        };
+        responses: {
+            /** @description Cuenta activa; ya puedes iniciar sesion */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Enlace invalido o clave que no cumple la politica */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    fijarClave: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitudFijarClave"];
+            };
+        };
+        responses: {
+            /** @description Clave cambiada */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Enlace invalido, vencido o ya usado */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    suspender: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Cuenta suspendida */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioRespuesta"];
+                };
+            };
+            /** @description Es el unico ADMIN activo, o el ADMIN se administra a si mismo */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioRespuesta"];
+                };
+            };
+        };
+    };
+    rechazar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioRespuesta"];
+                };
+            };
+        };
+    };
+    reactivar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioRespuesta"];
+                };
+            };
+        };
+    };
+    cambiarPermisos: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitudPermisos"];
+            };
+        };
+        responses: {
+            /** @description Permisos actualizados */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioRespuesta"];
+                };
+            };
+            /** @description Dejaria al sistema sin ningun ADMIN activo */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioRespuesta"];
+                };
+            };
+        };
+    };
+    aprobar: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitudPermisos"];
+            };
+        };
+        responses: {
+            /** @description Cuenta activa */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioRespuesta"];
+                };
+            };
+            /** @description La cuenta no esta esperando aprobacion, o el ADMIN se administra a si mismo */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioRespuesta"];
+                };
+            };
+        };
+    };
     descartar: {
         parameters: {
             query?: never;
@@ -1293,7 +2219,7 @@ export interface operations {
             };
         };
     };
-    aprobar: {
+    aprobar_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -1355,7 +2281,7 @@ export interface operations {
             };
         };
     };
-    aprobar_1: {
+    aprobar_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -1395,7 +2321,7 @@ export interface operations {
             };
         };
     };
-    cerrar: {
+    cerrar_1: {
         parameters: {
             query?: never;
             header?: never;
@@ -1435,6 +2361,50 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetail"];
+                };
+            };
+        };
+    };
+    yo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioRespuesta"];
+                };
+            };
+        };
+    };
+    listar: {
+        parameters: {
+            query?: {
+                estado?: string;
+                pagina?: number;
+                tamano?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UsuarioRespuesta"][];
                 };
             };
         };
@@ -1545,6 +2515,29 @@ export interface operations {
             };
         };
     };
+    auditoria: {
+        parameters: {
+            query?: {
+                pagina?: number;
+                tamano?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventoAuditoriaRespuesta"][];
+                };
+            };
+        };
+    };
     getRequests: {
         parameters: {
             query?: never;
@@ -1565,7 +2558,7 @@ export interface operations {
             };
         };
     };
-    confirmar_1: {
+    confirmar_2: {
         parameters: {
             query: {
                 token: string;
@@ -1895,7 +2888,7 @@ export interface operations {
             };
         };
     };
-    listar: {
+    listar_1: {
         parameters: {
             query?: {
                 pagina?: number;

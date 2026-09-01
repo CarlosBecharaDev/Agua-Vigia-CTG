@@ -1,9 +1,14 @@
 package com.aguavigia.ctg.api.error;
 
+import com.aguavigia.ctg.domain.CredencialInvalidaException;
+import com.aguavigia.ctg.domain.CuentaBloqueadaException;
+import com.aguavigia.ctg.domain.CuentaNoHabilitadaException;
 import com.aguavigia.ctg.domain.LimiteReportesExcedidoException;
+import com.aguavigia.ctg.domain.SegundoFactorRequeridoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -63,6 +68,72 @@ public class ManejadorGlobalDeErrores {
         ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.TOO_MANY_REQUESTS, e.getMessage());
         problema.setTitle("Límite de reportes excedido");
         problema.setType(URI.create(BASE_TIPO + "limite-reportes-excedido"));
+        return problema;
+    }
+
+    /**
+     * Correo inexistente, clave equivocada o codigo TOTP invalido. Los tres dan el mismo 401 y el
+     * mismo texto: distinguirlos convertiria el login en un oraculo de que correos tienen cuenta.
+     */
+    @ExceptionHandler(CredencialInvalidaException.class)
+    public ProblemDetail credencialInvalida(CredencialInvalidaException e) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
+        problema.setTitle("Credencial invalida");
+        problema.setType(URI.create(BASE_TIPO + "credencial-invalida"));
+        return problema;
+    }
+
+    /**
+     * 401 con `type` propio, no 400: la clave era correcta y falta el segundo paso. El frontend
+     * distingue por ese type para pedir el codigo en vez de acusar de clave incorrecta.
+     */
+    @ExceptionHandler(SegundoFactorRequeridoException.class)
+    public ProblemDetail segundoFactorRequerido(SegundoFactorRequeridoException e) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
+        problema.setTitle("Segundo factor requerido");
+        problema.setType(URI.create(BASE_TIPO + "segundo-factor-requerido"));
+        return problema;
+    }
+
+    /**
+     * 403 y no 401: la credencial era correcta, lo que falla es el estado de la cuenta. Aqui si se
+     * explica el motivo — solo se llega tras acertar la clave, asi que quien lo lee ya demostro ser
+     * el dueno de la cuenta.
+     */
+    @ExceptionHandler(CuentaNoHabilitadaException.class)
+    public ProblemDetail cuentaNoHabilitada(CuentaNoHabilitadaException e) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, e.getMessage());
+        problema.setTitle("Cuenta no habilitada");
+        problema.setType(URI.create(BASE_TIPO + "cuenta-no-habilitada"));
+        problema.setProperty("estado", e.estado().name());
+        return problema;
+    }
+
+    /**
+     * 423 Locked y no el 429 del limite por IP: son dos frenos distintos y el frontend tiene que
+     * poder decirlos con palabras distintas. 429 es "esta maquina va muy rapido"; esto es "esta
+     * cuenta esta cerrada un rato".
+     */
+    @ExceptionHandler(CuentaBloqueadaException.class)
+    public ProblemDetail cuentaBloqueada(CuentaBloqueadaException e) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.LOCKED, e.getMessage());
+        problema.setTitle("Cuenta bloqueada temporalmente");
+        problema.setType(URI.create(BASE_TIPO + "cuenta-bloqueada"));
+        problema.setProperty("segundosRestantes", e.esperaRestante().toSeconds());
+        return problema;
+    }
+
+    /**
+     * Sin esto, un `@PreAuthorize` que no se cumple sale por el catch-all de abajo y responde 500:
+     * el `accessDeniedHandler` de SecurityConfig solo cubre lo que rechaza la cadena de filtros, no
+     * lo que rechaza la seguridad a nivel de metodo.
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ProblemDetail accesoDenegado(AccessDeniedException e) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN,
+                "Tu cuenta no tiene permiso para esta accion.");
+        problema.setTitle("Acceso denegado");
+        problema.setType(URI.create(BASE_TIPO + "acceso-denegado"));
         return problema;
     }
 

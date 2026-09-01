@@ -53,6 +53,12 @@ aguavigia:
       - ruta: /api/iot/presion
         limite: 60
         ventana-segundos: 60
+      # Alta y recuperacion de cuentas: son publicos por necesidad (nadie tiene sesion todavia)
+      # y cada llamada puede acabar en un correo saliente. El limite es por IP igual que el resto;
+      # el freno por cuenta, que es el que para el ataque distribuido, vive en aguavigia.cuentas.
+      - ruta: /api/cuentas/**
+        limite: 10
+        ventana-segundos: 600
   mantenimiento:
     fotos-huerfanas:
       # Reconciliacion disco-vs-Mongo: borra archivos en data/fotos que ningun reporte referencia.
@@ -73,9 +79,22 @@ aguavigia:
     # (ver su comentario), para que el resto del backend no dependa de esto para levantar.
     secret: ${JWT_SECRET:}
   veedor:
-    # Hash BCrypt de la clave del veedor (RF019). Vacio por defecto: el login del veedor responde
-    # 503 hasta que se configure, en vez de arrancar con una clave por defecto insegura.
+    # Hash BCrypt de la clave del veedor. Desde ADR-039 ya no es una credencial compartida: es la
+    # clave con la que SembradorAdminInicial crea la PRIMERA cuenta ADMIN, junto con
+    # aguavigia.cuentas.admin-inicial-correo. En cuanto existe alguna cuenta deja de usarse.
     password-hash: ${VEEDOR_PASSWORD_HASH:}
+  cuentas:
+    # Correo del primer ADMIN. Vacio por defecto: sin el no se siembra nadie y el panel queda sin
+    # acceso, que es preferible a inventar una cuenta con un correo que nadie controla.
+    admin-inicial-correo: ${ADMIN_INICIAL_CORREO:}
+    # Bloqueo por cuenta, complementario al limite por IP de ADR-018: aquel no ve el ataque
+    # repartido entre muchas IPs contra un mismo correo, que es el barato de montar.
+    maximo-intentos: 5
+    ventana-intentos-minutos: 15
+    bloqueo-minutos: 15
+    # Nombre que la app de autenticacion muestra junto al codigo. Sin tilde a proposito: algunas
+    # apps no normalizan UTF-8 en la etiqueta del otpauth:// y lo pintan roto.
+    emisor-totp: AguaVigia CTG
   iot:
     # Clave compartida para /api/iot/presion (header X-IoT-Key), mismo patron que JWT_SECRET y
     # VEEDOR_PASSWORD_HASH: vacia por defecto, el endpoint responde 503 hasta que se configure.

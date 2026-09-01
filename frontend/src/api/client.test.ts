@@ -7,7 +7,9 @@ function errorConEstado(status: number) {
 
 describe('normalización RFC 7807', () => {
   it.each([
-    [401, /clave no es correcta/i],
+    [401, /correo o la clave/i],
+    [403, /no tiene acceso/i],
+    [423, /bloqueada/i],
     [409, /ya existe/i],
     [429, /demasiados intentos/i],
     [503, /todavía no está configurada/i],

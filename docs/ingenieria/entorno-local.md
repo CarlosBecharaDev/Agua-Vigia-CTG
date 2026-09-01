@@ -27,7 +27,9 @@ Con esto el mapa, los reportes, las suscripciones, la bitácora, las estadístic
 | Variable | Para qué sirve | Si está vacía |
 |---|---|---|
 | `JWT_SECRET` | Firma el token de sesión del veedor (RNF011, HS256, mínimo 32 bytes) | `POST /api/veedor/sesion` responde `503` — *"El servidor no tiene configurado JWT_SECRET"* |
-| `VEEDOR_PASSWORD_HASH` | Hash BCrypt de la clave del veedor — **nunca la clave en texto plano** | `POST /api/veedor/sesion` responde `503` — *"El servidor no tiene configurada VEEDOR_PASSWORD_HASH"* |
+| `VEEDOR_PASSWORD_HASH` | Hash BCrypt de la clave del **primer administrador** — **nunca la clave en texto plano**. Desde `ADR-039` ya no es una credencial compartida: solo siembra esa primera cuenta y deja de usarse en cuanto existe alguna | Sin ella no se siembra ningún administrador y el panel queda sin acceso |
+| `ADMIN_INICIAL_CORREO` | Correo con el que se crea ese primer administrador. En local, `veedor@aguavigia.local` | Sin él tampoco se siembra: el arranque lo dice en el log y sigue |
+| `APP_URL_PUBLICA` | Base desde la que se arman los enlaces que salen por correo. Debe apuntar al **sitio**, no a la API: en local, `http://localhost:5173` | Los correos llevan a respuestas JSON en vez de a una pantalla |
 
 Ambas se leen en `VeedorAuthController.java` (`backend/src/main/java/.../api/VeedorAuthController.java`).
 Son credenciales de **desarrollo local**, no de producción: el perfil `prod` exige las suyas
@@ -41,6 +43,8 @@ Para desarrollo local, todo el equipo puede compartir la misma clave. Pega esto 
 ```bash
 JWT_SECRET=jHZczrMtY+dNWbYoCFZe3ZOvDUl8j7rWqVDeEeLMfIQ=
 VEEDOR_PASSWORD_HASH=$$2a$$10$$IUf9Q.qBPoWuaiCNq9PEVusG7eHYzMP4IAnUjNcl7RiMSwp46MKPu
+ADMIN_INICIAL_CORREO=veedor@aguavigia.local
+APP_URL_PUBLICA=http://localhost:5173
 ```
 
 Clave del veedor para entrar al panel (`/veedor`): **`AguaVigia-Dev-2026`**
@@ -89,7 +93,7 @@ Pega el resultado en `.env` — **recuerda escapar cada `$` del hash como `$$`**
 
 ```bash
 curl -s -X POST -H "Content-Type: application/json" \
-  -d '{"clave":"AguaVigia-Dev-2026"}' \
+  -d '{"correo":"veedor@aguavigia.local","clave":"AguaVigia-Dev-2026"}' \
   http://localhost:8081/api/veedor/sesion
 ```
 

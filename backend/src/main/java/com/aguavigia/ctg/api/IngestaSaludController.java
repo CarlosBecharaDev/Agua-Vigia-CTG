@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,6 +43,7 @@ public class IngestaSaludController {
             @ApiResponse(responseCode = "200", description = "Estado generado"),
             @ApiResponse(responseCode = "401", description = "Falta el token del veedor")
     })
+    @PreAuthorize("hasAuthority('PERM_VER_PANEL')")
     @GetMapping
     public List<SaludColectorRespuesta> salud() {
         return estadoColectores.estados().stream()

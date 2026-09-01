@@ -3,6 +3,7 @@ package com.aguavigia.ctg.api;
 import com.aguavigia.ctg.api.error.ManejadorGlobalDeErrores;
 import com.aguavigia.ctg.infrastructure.config.SecurityConfig;
 import com.aguavigia.ctg.infrastructure.ingest.EstadoColectorRegistry;
+import com.aguavigia.ctg.domain.Permiso;
 import com.aguavigia.ctg.infrastructure.security.JwtProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,9 @@ class IngestaSaludControllerTest {
     @MockitoBean
     private JwtProvider jwtProvider;
 
+    @MockitoBean
+    private com.aguavigia.ctg.domain.port.out.RevocacionSesionPort revocacion;
+
     @MockitoBean(name = "redisTemplate")
     private RedisTemplate<String, String> redisTemplateMock;
 
@@ -48,7 +52,8 @@ class IngestaSaludControllerTest {
 
     @Test
     void debeExponerLaSaludDeCadaColectorAlVeedor() throws Exception {
-        given(jwtProvider.validarYObtenerSujeto("token-de-veedor")).willReturn(Optional.of("veedor"));
+        given(jwtProvider.validar("token-de-veedor"))
+                .willReturn(Optional.of(AutenticacionDePrueba.sesionCon(Permiso.VER_PANEL)));
         EstadoColectorRegistry real = new EstadoColectorRegistry(
                 () -> java.time.Instant.parse("2026-08-09T15:30:00Z"));
         real.registrarExito("acuacar", 7);

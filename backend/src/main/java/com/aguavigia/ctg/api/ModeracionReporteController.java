@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,6 +54,7 @@ public class ModeracionReporteController {
             description = """
                     Paginado, con el total y el enlace a la siguiente página en las cabeceras
                     `X-Total-Count` y `Link`. Por defecto 50; el máximo por página es 200.""")
+    @PreAuthorize("hasAuthority('PERM_VER_PANEL')")
     @GetMapping("/pendientes")
     public ResponseEntity<List<ReporteModeracionRespuesta>> listarPendientes(
             @RequestParam(required = false) Integer pagina,
@@ -72,6 +74,7 @@ public class ModeracionReporteController {
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ProblemDetail.class)))
     })
+    @PreAuthorize("hasAuthority('PERM_MODERAR_REPORTES')")
     @PatchMapping("/{id}/aprobar")
     public ReporteModeracionRespuesta aprobar(@PathVariable String id) {
         return mapper.aRespuesta(moderarReporte.aprobar(new ReporteId(id)));
@@ -84,6 +87,7 @@ public class ModeracionReporteController {
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ProblemDetail.class)))
     })
+    @PreAuthorize("hasAuthority('PERM_MODERAR_REPORTES')")
     @PatchMapping("/{id}/descartar")
     public ReporteModeracionRespuesta descartar(@PathVariable String id) {
         return mapper.aRespuesta(moderarReporte.descartar(new ReporteId(id)));

@@ -140,3 +140,23 @@ el navegador recalcula layout y repinta en cada hover, en vez de quedarse en la 
 usuario objetivo de esta plataforma. La corrección no es mecánica —hay que mirar qué propiedad
 cambia de verdad en cada regla y nombrarla— así que conviene repartirla por componente y no
 intentarla de una sola pasada.
+
+### REC-010 — `CLAUDE.md` sigue declarando "Sprint 0 · ANDAMIAJE, se prohíbe la funcionalidad" sobre un backend ya terminado
+
+- **Fecha:** 2026-08-31 · **Estado:** Pendiente
+
+`CLAUDE.md` §Estado actual dice *"Sprint 0 · Fase: ANDAMIAJE. Se permite estructura de proyecto,
+configuración, infraestructura, tokens visuales y rutas vacías. Se prohíbe la funcionalidad: si el
+código implementa un `RF`, no va en el Sprint 0"*. El repositorio contradice eso de forma frontal: el
+`README` declara backend y bases de datos completos salvo RF041, con 601 pruebas en verde, y
+`docs/gestion/registro-de-implementaciones.md` lista los PRs de M1 a M14 ya fusionados.
+
+Importa porque ese archivo se declara a sí mismo fuente de verdad —*"Si algo de este archivo
+contradice una suposición, gana este archivo"*— y lo lee el agente en cada sesión. Un agente que lo
+obedezca al pie de la letra se negará a escribir la funcionalidad que el equipo le pida, o preguntará
+por cada caso de frontera de una fase que terminó hace sprints. Se paga en cada sesión de las cinco
+personas.
+
+Basta actualizar §Estado actual al sprint real y a su entregable pendiente. Conviene que lo haga
+quien lleva la gestión del sprint, no el agente: es el estado del proyecto, no un detalle técnico.
+

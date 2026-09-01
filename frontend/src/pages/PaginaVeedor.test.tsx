@@ -3,6 +3,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import PaginaVeedor from './PaginaVeedor'
+import { sesionVeedor } from '../api/client'
+import type { SesionVeedor } from '../api/client'
 
 const api = vi.hoisted(() => ({
   iniciarSesionVeedor: vi.fn(),
@@ -22,8 +24,36 @@ const api = vi.hoisted(() => ({
 
 vi.mock('../api/services', () => ({
   ...api,
-  cerrarSesionVeedor: () => sessionStorage.removeItem('aguavigia_veedor_token'),
+  cerrarSesionVeedor: async () => sessionStorage.removeItem('aguavigia_veedor_sesion'),
 }))
+
+/**
+ * Desde ADR-039 la sesion guardada lleva rol y permisos, no solo el token: el panel decide con
+ * ellos que pinta. Sembrarla asi es lo que haria un login real.
+ */
+const SESION_DE_PRUEBA = {
+  token: 'token-prueba',
+  usuarioId: 'u-1',
+  nombre: 'Veedor de prueba',
+  correo: 'veedor@aguavigia.test',
+  rol: 'VEEDOR',
+  permisos: ['VER_PANEL', 'MODERAR_REPORTES', 'GESTIONAR_CORTES', 'REVISAR_INGESTA'],
+  alcance: 'COMPLETO',
+}
+
+/**
+ * Pasa por `sesionVeedor.guardar` y no por sessionStorage a pelo: guardar emite el evento que
+ * useSesionVeedor escucha, y sin el la pantalla no se entera de que ya hay sesion (F1 en client.ts).
+ */
+function sembrarSesion() {
+  sesionVeedor.guardar(SESION_DE_PRUEBA as SesionVeedor)
+}
+
+function ingresar() {
+  fireEvent.change(screen.getByLabelText(/^correo$/i), { target: { value: 'veedor@aguavigia.test' } })
+  fireEvent.change(screen.getByLabelText(/^clave$/i), { target: { value: 'clave-larga-y-variada' } })
+  fireEvent.click(screen.getByRole('button', { name: /iniciar sesión/i }))
+}
 
 function renderizar() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
@@ -44,21 +74,29 @@ afterEach(() => {
 
 describe('PaginaVeedor', () => {
   it('inicia sesión y carga la cola real de moderación', async () => {
-    api.iniciarSesionVeedor.mockImplementation(async () => sessionStorage.setItem('aguavigia_veedor_token', 'token-prueba'))
+    api.iniciarSesionVeedor.mockImplementation(async () => {
+      sembrarSesion()
+      return SESION_DE_PRUEBA
+    })
     api.listarReportesPendientes.mockResolvedValue({ items: [{ id: 'r1', sectorId: 'manga', tipo: 'SIN_AGUA', timestamp: '2026-08-09T10:00:00Z', estadoModeracion: 'PENDIENTE' }], totalCount: 1 })
     api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [{ id: 'manga', nombre: 'MANGA', estado: null, actualizadoEn: null }] })
     renderizar()
 
-    fireEvent.change(screen.getByLabelText(/clave del veedor/i), { target: { value: 'secreta' } })
-    fireEvent.click(screen.getByRole('button', { name: /iniciar sesión/i }))
+    ingresar()
 
-    await waitFor(() => expect(api.iniciarSesionVeedor).toHaveBeenCalledWith('secreta'))
+    await waitFor(() =>
+      expect(api.iniciarSesionVeedor).toHaveBeenCalledWith(
+        'veedor@aguavigia.test',
+        'clave-larga-y-variada',
+        undefined,
+      ),
+    )
     expect(await screen.findByRole('heading', { name: /centro operativo del veedor/i })).toBeInTheDocument()
     expect(await screen.findByText('SIN AGUA')).toBeInTheDocument()
   })
 
   it('aprueba un reporte usando la API protegida', async () => {
-    sessionStorage.setItem('aguavigia_veedor_token', 'token-prueba')
+    sembrarSesion()
     api.listarReportesPendientes.mockResolvedValue({ items: [{ id: 'r1', sectorId: 'manga', tipo: 'SIN_AGUA', timestamp: '2026-08-09T10:00:00Z', estadoModeracion: 'PENDIENTE' }], totalCount: 1 })
     api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [] })
     api.moderarReporte.mockResolvedValue({ id: 'r1', estadoModeracion: 'APROBADO' })
@@ -69,7 +107,7 @@ describe('PaginaVeedor', () => {
   })
 
   it('avisa cuando la cola de moderación tiene más pendientes de los que caben en una página', async () => {
-    sessionStorage.setItem('aguavigia_veedor_token', 'token-prueba')
+    sembrarSesion()
     api.listarReportesPendientes.mockResolvedValue({
       items: [{ id: 'r1', sectorId: 'manga', tipo: 'SIN_AGUA', timestamp: '2026-08-09T10:00:00Z', estadoModeracion: 'PENDIENTE' }],
       totalCount: 250,
@@ -81,7 +119,7 @@ describe('PaginaVeedor', () => {
   })
 
   it('registra un corte oficial para los barrios seleccionados', async () => {
-    sessionStorage.setItem('aguavigia_veedor_token', 'token-prueba')
+    sembrarSesion()
     api.listarReportesPendientes.mockResolvedValue({ items: [], totalCount: 0 })
     api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [{ id: 'manga', nombre: 'MANGA', estado: null, actualizadoEn: null }] })
     api.crearCorteOficial.mockResolvedValue({ id: 'c1', estado: 'ABIERTO' })
@@ -102,7 +140,7 @@ describe('PaginaVeedor', () => {
   })
 
   it('muestra el detalle y el índice de cumplimiento de un corte restablecido', async () => {
-    sessionStorage.setItem('aguavigia_veedor_token', 'token-prueba')
+    sembrarSesion()
     api.listarReportesPendientes.mockResolvedValue({ items: [], totalCount: 0 })
     api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [{ id: 'manga', nombre: 'MANGA', estado: null, actualizadoEn: null }] })
     api.listarCortesPorSector.mockResolvedValue([{ id: 'c1', causa: 'Mantenimiento', estado: 'RESTABLECIDO', finPrometido: '2026-08-09T12:00:00Z' }])
@@ -125,7 +163,7 @@ describe('PaginaVeedor', () => {
   })
 
   it('no ofrece "marcar restablecido" para un corte que ya está restablecido', async () => {
-    sessionStorage.setItem('aguavigia_veedor_token', 'token-prueba')
+    sembrarSesion()
     api.listarReportesPendientes.mockResolvedValue({ items: [], totalCount: 0 })
     api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [{ id: 'manga', nombre: 'MANGA', estado: null, actualizadoEn: null }] })
     api.listarCortesPorSector.mockResolvedValue([{ id: 'c1', causa: 'Mantenimiento', estado: 'RESTABLECIDO', finPrometido: '2026-08-09T12:00:00Z' }])
@@ -141,9 +179,8 @@ describe('PaginaVeedor', () => {
   it('explica un 503 sin simular el ingreso', async () => {
     api.iniciarSesionVeedor.mockRejectedValue({ isAxiosError: true, response: { status: 503, data: {} } })
     renderizar()
-    fireEvent.change(screen.getByLabelText(/clave del veedor/i), { target: { value: 'secreta' } })
-    fireEvent.click(screen.getByRole('button', { name: /iniciar sesión/i }))
+    ingresar()
     expect(await screen.findByRole('alert')).toHaveTextContent(/todavía no está configurada/i)
-    expect(screen.getByLabelText(/clave del veedor/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^clave$/i)).toBeInTheDocument()
   })
 })

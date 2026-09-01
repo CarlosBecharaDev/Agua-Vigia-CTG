@@ -18,6 +18,12 @@ const TITULOS: Record<string, { seccion: string; titulo: string }> = {
   '/': { seccion: 'Monitoreo', titulo: 'Mapa en vivo' },
   '/reportar': { seccion: 'Participación', titulo: 'Reportar novedad' },
   '/veedor': { seccion: 'Operación', titulo: 'Panel veedor' },
+  '/veedor/cuentas': { seccion: 'Operación', titulo: 'Cuentas y permisos' },
+  '/cuentas/registro': { seccion: 'Acceso', titulo: 'Solicitar una cuenta' },
+  '/cuentas/olvide-mi-clave': { seccion: 'Acceso', titulo: 'Restablecer la clave' },
+  '/cuentas/verificar': { seccion: 'Acceso', titulo: 'Confirmar correo' },
+  '/cuentas/invitacion': { seccion: 'Acceso', titulo: 'Aceptar invitación' },
+  '/cuentas/restablecer': { seccion: 'Acceso', titulo: 'Elegir clave nueva' },
 }
 
 export const Encabezado: FC<Props> = ({ temaActivo, onAlternarTema, onAbrirSuscripcion }) => {

@@ -664,7 +664,7 @@ y el contrato no cambian.
 ## ADR-016 — El panel del veedor usa una sola credencial compartida, no cuentas individuales
 
 - **Fecha:** 2026-08-08
-- **Estado:** Aceptada
+- **Estado:** Reemplazada por ADR-039
 - **Decide:** Backend – Infraestructura (D3)
 
 ### Contexto
@@ -1791,8 +1791,109 @@ portada caía en ese bloque, se buscaba en el disco local y devolvía 404.
 Volver a apuntar `src` a la URL de acuacar.com y borrar los dos bloques de proxy. La portada dejará
 de verse, que es el estado del que se venía.
 
+
+## ADR-039 — El panel del veedor usa cuentas individuales con rol y ajustes de permisos por persona
+
+- **Fecha:** 2026-08-31
+- **Estado:** Aceptada
+- **Decide:** Equipo (petición del titular del producto), sobre backend y frontend
+- **Reemplaza a:** `ADR-016`
+
+### Contexto
+
+`ADR-016` eligió una credencial compartida y dejó escrito su propio costo: *"ninguna acción del panel
+queda atribuida a una persona concreta"*, y señaló que migrar a cuentas individuales exigiría una
+entidad de dominio. También dejó abierto que `POST /api/veedor/sesion` no tenía freno contra fuerza
+bruta; `ADR-018` cerró la mitad de ese hueco con un límite por IP, que no ve el ataque repartido
+entre muchas direcciones contra un mismo correo.
+
+El equipo pide ahora lo que aquella ADR aplazó: que cada persona se registre con su correo, y que un
+administrador decida desde el panel quién entra y qué puede hacer. `RF019` solo exige *"autenticación
+con token"* y `RNF011` fija la expiración en 8 horas — ninguno de los dos dice nada sobre el modelo de
+cuentas, así que esto es requisito nuevo (`RF042`–`RF046`), no una reinterpretación.
+
+Verificado en local el 2026-08-31 sobre el stack de `docker compose`: el flujo completo —siembra del
+primer administrador, alta de TOTP con un código calculado fuera del sistema, registro abierto,
+verificación por correo, aprobación con permisos recortados, suspensión y revocación— funciona de
+punta a punta.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Seguir con la credencial compartida (`ADR-016`) | Cero trabajo | No atribuye ninguna acción a nadie; una filtración obliga a rotar la clave de las cinco personas a la vez |
+| Solo invitación del administrador | Superficie mínima; nadie llega sin que alguien lo llame | No es lo que el equipo pidió, y obliga a un administrador disponible para cada alta |
+| Solo auto-registro sin aprobación | El alta no depende de nadie | Registro abierto = panel de moderación abierto. Inaceptable |
+| **Auto-registro + invitación, ambos con aprobación o rol asignado** (elegida) | Cubre las dos formas de entrar; en ninguna se concede acceso sin decisión humana | Dos flujos de alta y dos tipos de token que mantener |
+| Roles fijos sin ajustes | Imposible dejar a alguien mal configurado | No permite el caso real de "veedor que no cierra cortes" |
+| **Roles como paquete de permisos + ajustes por persona** (elegida) | El día a día es elegir un rol; el caso raro se resuelve sin inventar un rol nuevo | Para saber qué puede hacer alguien hay que resolver rol + excepciones, no basta con leer el rol |
+
+### Decisión
+
+Entidad `Usuario` en `domain/`, con `EstadoCuenta` (verificación → aprobación → activa, más invitada,
+suspendida y rechazada), `RolVeedor` (`ADMIN`, `VEEDOR`, `OBSERVADOR`) y `PermisosEfectivos`
+(rol + concedidos − revocados). **La autorización se comprueba siempre contra un `Permiso` concreto**
+vía `@PreAuthorize`, nunca contra el rol: añadir un rol no obliga a repasar cada endpoint.
+
+`VEEDOR_PASSWORD_HASH` deja de ser una credencial compartida y pasa a ser la semilla del primer
+administrador (`SembradorAdminInicial`, junto con `ADMIN_INICIAL_CORREO`); en cuanto existe alguna
+cuenta, deja de usarse.
+
+Cinco medidas sostienen la parte de seguridad, y cada una cubre un agujero distinto:
+
+1. **Enumeración.** Registro, login y "olvidé mi clave" responden igual exista o no la cuenta. El
+   login además gasta el mismo tiempo (`CifradorClavePort.gastarTiempoEquivalente`), porque con
+   mensajes idénticos y tiempos distintos el cronómetro sigue delatando qué correos existen.
+2. **Fuerza bruta por cuenta.** Bloqueo tras 5 fallos en 15 minutos (`ControlIntentosPort`, Redis),
+   complementario al límite por IP de `ADR-018`. La clave es el correo, también cuando no existe.
+3. **Revocación inmediata.** El token lleva los permisos dentro para no leer Mongo en cada petición;
+   a cambio, suspender, rechazar, cambiar permisos —también al ampliarlos— o cerrar sesión escribe un
+   instante de corte en Redis, y el filtro rechaza todo token anterior. Sin esa pareja de medidas,
+   meter los permisos en el token sería un error.
+4. **Segundo factor obligatorio para `ADMIN`** (TOTP, RFC 6238, implementado sin dependencia nueva).
+   Un administrador sin TOTP entra con una sesión de alcance `ALTA_SEGUNDO_FACTOR` que solo abre el
+   alta: negarle la entrada lo dejaría fuera para siempre, y darle sesión completa haría que
+   "obligatorio" no significara nada.
+5. **Guardas de integridad.** Nadie se administra a sí mismo, y no se puede suspender ni despromover
+   al último `ADMIN` activo — eso deja el sistema sin nadie capaz de otorgar permisos, y no se
+   arregla desde la aplicación.
+
+Todo cambio de acceso queda en una bitácora de auditoría de solo anexado (`auditoria_cuentas`), que
+es exactamente la carencia que `ADR-016` se reprochó.
+
+### Consecuencias
+
+- **Gana:** cada acción del panel queda atribuida a una persona con nombre y correo — evidencia
+  directa para el Capítulo IV. Una filtración afecta a una cuenta, no a las cinco. Un `OBSERVADOR`
+  puede acompañar la moderación sin poder ejecutarla.
+- **Pierde:** la superficie crece mucho. Diez casos de uso nuevos, tres colecciones de Mongo, dos
+  claves de Redis, dos plantillas de correo y cinco pantallas. Es la parte del sistema con más
+  código por requisito.
+- **Pierde:** el reparto de fallo abierto/cerrado es deliberadamente asimétrico y hay que recordarlo.
+  Con Redis caído, el bloqueo por intentos falla **abierto** (la cuenta sigue protegida por su clave)
+  pero la revocación falla **cerrado** (el panel deja de aceptar sesiones). Las dos decisiones están
+  justificadas en el javadoc de su adaptador; leer una y suponer la otra lleva a conclusiones falsas.
+- **Pierde:** un token emitido dentro del mismo segundo en que se revocó sobrevive, porque el `iat`
+  de un JWT tiene precisión de segundo. Redondear hacia arriba mataría el token que la propia persona
+  acaba de obtener al volver a entrar. El margen es de un segundo y está documentado en el filtro.
+- **Condiciona:** los permisos viajan dentro del token, así que **cualquier** cambio de permisos debe
+  revocar sesiones. Quien añada una vía nueva para cambiarlos y olvide la revocación deja a esa
+  persona operando con los permisos viejos hasta 8 horas.
+- **Condiciona:** `CONFIGURAR_SEGUNDO_FACTOR` no se puede revocar. `PermisosEfectivos` lo rechaza al
+  construir, porque es la única puerta que dejaría a un `ADMIN` sin forma de entrar.
+- **Condiciona:** los enlaces de los correos apuntan al frontend (`APP_URL_PUBLICA`), no a la API. Si
+  esa variable apunta al backend, los correos llevan a respuestas JSON.
+
+### Cómo se revierte
+
+No se revierte a `ADR-016` sin perder las cuentas ya creadas. Lo que sí se puede desactivar por
+partes: dejar `ADMIN_INICIAL_CORREO` vacío desactiva la siembra; bajar el rol del único `ADMIN` a
+`VEEDOR` desactiva de hecho la gestión de cuentas; y quitar `exigeSegundoFactor()` de `RolVeedor`
+apaga el TOTP obligatorio sin tocar nada más. Volver a una clave compartida exigiría reponer el
+`VeedorAuthController` anterior y aceptar que la auditoría deje de atribuir acciones.
+
 <!--
-Siguiente número disponible: ADR-039
+Siguiente número disponible: ADR-040
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->

@@ -10,6 +10,7 @@ import com.aguavigia.ctg.domain.TipoEvento;
 import com.aguavigia.ctg.domain.port.out.EventoBitacoraRepository;
 import com.aguavigia.ctg.infrastructure.config.SecurityConfig;
 import com.aguavigia.ctg.infrastructure.security.JwtProvider;
+import com.aguavigia.ctg.domain.port.out.RevocacionSesionPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -38,6 +39,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({EventoBitacoraApiMapperImpl.class, SecurityConfig.class})
 @TestPropertySource(properties = "aguavigia.rate-limit.reglas=")
 class BitacoraControllerTest {
+
+    // SecurityConfig construye JwtAuthenticationFilter con este puerto: el filtro consulta la
+    // revocacion en cada peticion con token (ADR-039). Sin el bean, el contexto del slice no carga.
+    @MockitoBean
+    private RevocacionSesionPort revocacion;
 
     private static final Instant TIMESTAMP = Instant.parse("2026-08-09T20:00:00Z");
 

@@ -19,4 +19,13 @@ public record CorreoElectronico(String valor) {
             throw new IllegalArgumentException("El correo '" + valor + "' no tiene un formato válido");
         }
     }
+
+    /**
+     * Minúsculas y sin espacios alrededor. La identidad de acceso de una cuenta es el correo, y
+     * sin esto `Ana@x.com` y `ana@x.com` serían dos cuentas distintas para el sistema y la misma
+     * para el servidor de correo — dos personas creyendo tener la misma cuenta.
+     */
+    public CorreoElectronico normalizado() {
+        return new CorreoElectronico(valor.strip().toLowerCase(java.util.Locale.ROOT));
+    }
 }

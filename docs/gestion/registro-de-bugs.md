@@ -89,6 +89,7 @@ Tres razones concretas, no burocráticas:
 | BUG-062 | 2026-08-29 | S3 | M5 | Usar el verbo HTTP equivocado contra un endpoint del veedor devuelve `500 "Error no controlado"` con stack trace completo en el log, en vez del `405` que corresponde, saltándose el formato RFC 7807 | Abierto | D3 |
 | BUG-063 | 2026-08-31 | S1 | M6/M7 | La sección de estadísticas mostraba un Índice de Cumplimiento del 100% y unas duraciones de 2.822 h prometidas contra 2.798,5 h reales cuando la API respondía «No hay cortes cerrados todavía»: eran cinco literales escritos a mano como valor por defecto | Cerrado — se muestra «Sin datos»; `SeccionEstadisticas.tsx` | D4 |
 | BUG-064 | 2026-08-31 | S3 | CI | El Frontend CI llevaba tres commits en rojo: `e465a23` agrandó el logo del panel de bienvenida de 150 a 195 px y la prueba E2E se quedó exigiendo el valor viejo | Cerrado — aserción alineada con el diseño vigente; `home.spec.ts:65` | D4 |
+| BUG-065 | 2026-09-01 | S2 | M15 | El panel de cuentas era ilegible en tema claro: heredaba el fondo claro del sitio y pintaba encima el texto claro que su CSS fijaba para superficie oscura | Cerrado — el panel pinta su propia superficie oscura, como `.panel-veedor-root`; `Cuentas.css` | D4 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -102,6 +103,32 @@ Tres razones concretas, no burocráticas:
 > de detalle de sector se veía "incompleto" para muchos barrios al hacer clic en el mapa, y
 > auditando en vivo (contra `/acuacar-api` real, no datos de ejemplo) cuánta cobertura real de
 > boletines logra la extracción de nombres de barrio.
+
+### BUG-065 — El panel de cuentas se veía en blanco sobre blanco en tema claro
+
+- **Fecha:** 2026-09-01 · **Severidad:** S2 · **Módulo:** M15 · **Responsable:** D4
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** en tema claro, `/veedor/cuentas` mostraba el encabezado, los filtros, las cabeceras de
+la tabla y los correos en un tono casi idéntico al fondo. Los datos estaban ahí y el DOM era
+correcto —`.cuentas-tabla tbody` devolvía las dos filas con su texto—, pero no se leían.
+
+**Reproducción:** con el tema claro activo (el que trae por defecto la portada), entrar como ADMIN a
+`/veedor/cuentas`. Reproducido en captura de Playwright a 1360×1000. En tema oscuro no se ve.
+
+**Esperado:** el panel legible en los dos temas, como exige `RNF012` (contraste WCAG AA en tema
+claro y oscuro).
+
+**Causa raíz:** `Cuentas.css` fijaba colores de texto claros (`#f8fafc`, `rgba(226,232,240,…)`)
+asumiendo una superficie oscura, pero `.cuentas-panel` no pintaba ninguna: heredaba el fondo del
+sitio, que en tema claro es claro. Las otras pantallas de cuentas no lo sufrían porque viven dentro
+de `.modal-reporte-contenedor`, que sí trae su propia superficie oscura — por eso el defecto solo
+apareció en la única pantalla que no usa esa tarjeta.
+
+**Corrección:** `.cuentas-panel` pinta su propio degradado oscuro y fija `color`, exactamente como
+ya hacía `.panel-veedor-root` para el centro de operaciones — que es oscuro por decisión de diseño,
+no por seguir el tema. `Cuentas.css`. Verificado con captura en tema claro: encabezado, filtros,
+tabla y auditoría legibles.
 
 ### BUG-064 — El Frontend CI llevaba tres commits en rojo por una prueba desactualizada
 
@@ -1762,5 +1789,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-065
+Siguiente número disponible: BUG-066
 -->

@@ -1,24 +1,9 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { useSesionVeedor } from '../hooks/useSesionVeedor'
 import type { FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-  Activity,
-  Check,
-  ChevronDown,
-  ChevronUp,
-  ClipboardCheck,
-  Droplets,
-  LogOut,
-  Plus,
-  Radar,
-  RefreshCw,
-  Scale,
-  X,
-  Search,
-  CheckCircle2,
-  AlertTriangle,
-  Clock,
-} from 'lucide-react'
+import { Activity, AlertTriangle, Check, CheckCircle2, ChevronDown, ChevronUp, ClipboardCheck, Clock, Droplets, LogOut, Plus, Radar, RefreshCw, Scale, Search, Users, X } from 'lucide-react'
 import {
   aprobarPropuestaIngesta,
   cerrarCorteOficial,
@@ -35,6 +20,7 @@ import {
 } from '../api/services'
 import { normalizarErrorApi } from '../api/client'
 import './PanelVeedor.css'
+import './Cuentas.css'
 
 interface Props {
   onCerrarSesion: () => void
@@ -45,6 +31,7 @@ function fechaLocalAISO(valor: string): string {
 }
 
 export function PanelVeedor({ onCerrarSesion }: Props) {
+  const { puede } = useSesionVeedor()
   const queryClient = useQueryClient()
   const [sectorFiltro, setSectorFiltro] = useState('')
   const [busquedaBarrios, setBusquedaBarrios] = useState('')
@@ -155,9 +142,18 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
               Modera reportes ciudadanos en tiempo real, audita cortes oficiales y supervisa la ingesta de datos.
             </p>
           </div>
-          <button type="button" className="panel-veedor-btn-logout" onClick={onCerrarSesion}>
-            <LogOut size={16} /> Cerrar Sesión
-          </button>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+            {/* Solo se pinta para quien puede: si el frontend se equivocara, el backend responde
+                403 igual — esto decide qué se muestra, no qué se permite. */}
+            {puede('GESTIONAR_USUARIOS') && (
+              <Link to="/veedor/cuentas" className="cuentas-btn cuentas-btn-principal">
+                <Users size={15} /> Cuentas y permisos
+              </Link>
+            )}
+            <button type="button" className="panel-veedor-btn-logout" onClick={onCerrarSesion}>
+              <LogOut size={16} /> Cerrar Sesión
+            </button>
+          </div>
         </header>
 
         {error && (

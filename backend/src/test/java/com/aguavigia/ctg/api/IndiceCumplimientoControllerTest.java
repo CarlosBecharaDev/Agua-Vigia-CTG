@@ -8,6 +8,7 @@ import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.port.in.CalcularCumplimientoUseCase;
 import com.aguavigia.ctg.infrastructure.config.SecurityConfig;
 import com.aguavigia.ctg.infrastructure.security.JwtProvider;
+import com.aguavigia.ctg.domain.port.out.RevocacionSesionPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -41,6 +42,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({CumplimientoApiMapperImpl.class, ManejadorGlobalDeErrores.class, SecurityConfig.class})
 @TestPropertySource(properties = "aguavigia.rate-limit.reglas=")
 class IndiceCumplimientoControllerTest {
+
+    // SecurityConfig construye JwtAuthenticationFilter con este puerto: el filtro consulta la
+    // revocacion en cada peticion con token (ADR-039). Sin el bean, el contexto del slice no carga.
+    @MockitoBean
+    private RevocacionSesionPort revocacion;
 
     @Autowired
     private MockMvc mockMvc;
