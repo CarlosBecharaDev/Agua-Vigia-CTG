@@ -9,15 +9,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.net.URI;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Errores de la API en formato RFC 7807, centralizados (CLAUDE.md § Arquitectura).
@@ -147,6 +159,88 @@ public class ManejadorGlobalDeErrores {
         problema.setProperty("errores", e.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .toList());
+        return problema;
+    }
+
+    /**
+     * BUG-062 — sin esto, pedir una ruta con el verbo equivocado caia en el catch-all: 405 nunca se
+     * emitia y el log guardaba un stack trace de «Error no controlado» por una peticion que el
+     * cliente formo mal. La cabecera `Allow` no es decorativa: es lo unico que le dice a quien
+     * integra cual era el verbo correcto sin tener que abrir el contrato.
+     */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ProblemDetail> metodoNoPermitido(HttpRequestMethodNotSupportedException e) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.METHOD_NOT_ALLOWED,
+                "El metodo " + e.getMethod() + " no esta permitido en esta ruta.");
+        problema.setTitle("Metodo no permitido");
+        problema.setType(URI.create(BASE_TIPO + "metodo-no-permitido"));
+
+        HttpHeaders cabeceras = new HttpHeaders();
+        Set<HttpMethod> permitidos = e.getSupportedHttpMethods();
+        if (permitidos != null && !permitidos.isEmpty()) {
+            cabeceras.setAllow(permitidos);
+            problema.setProperty("metodosPermitidos", permitidos.stream().map(HttpMethod::name).toList());
+        }
+        return new ResponseEntity<>(problema, cabeceras, HttpStatus.METHOD_NOT_ALLOWED);
+    }
+
+    /** Cuerpo enviado con un `Content-Type` que la ruta no sabe leer: 415, no 500. */
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ProblemDetail> tipoDeContenidoNoSoportado(HttpMediaTypeNotSupportedException e) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                "El tipo de contenido enviado no es compatible con esta ruta.");
+        problema.setTitle("Tipo de contenido no soportado");
+        problema.setType(URI.create(BASE_TIPO + "tipo-de-contenido-no-soportado"));
+
+        HttpHeaders cabeceras = new HttpHeaders();
+        List<MediaType> soportados = e.getSupportedMediaTypes();
+        if (!soportados.isEmpty()) {
+            cabeceras.setAccept(soportados);
+            problema.setProperty("tiposSoportados", soportados.stream().map(MediaType::toString).toList());
+        }
+        return new ResponseEntity<>(problema, cabeceras, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+    }
+
+    /** Falta un parametro de consulta declarado obligatorio. */
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ProblemDetail parametroFaltante(MissingServletRequestParameterException e) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+                "Falta el parametro obligatorio '" + e.getParameterName() + "'.");
+        problema.setTitle("Peticion invalida");
+        problema.setType(URI.create(BASE_TIPO + "peticion-invalida"));
+        return problema;
+    }
+
+    /** M10 — un multipart sin la parte esperada (subir evidencia sin adjuntar el archivo). */
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ProblemDetail parteFaltante(MissingServletRequestPartException e) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+                "Falta la parte '" + e.getRequestPartName() + "' en el formulario enviado.");
+        problema.setTitle("Peticion invalida");
+        problema.setType(URI.create(BASE_TIPO + "peticion-invalida"));
+        return problema;
+    }
+
+    /**
+     * JSON mal formado, vacio o con un valor que ningun convertidor acepta. El mensaje original no
+     * viaja al cliente: trae nombres de clases y rutas del paquete interno.
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ProblemDetail cuerpoIlegible(HttpMessageNotReadableException e) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+                "El cuerpo de la peticion no se pudo leer: se espera un JSON valido.");
+        problema.setTitle("Peticion invalida");
+        problema.setType(URI.create(BASE_TIPO + "peticion-invalida"));
+        return problema;
+    }
+
+    /** Un valor de ruta o de consulta que no encaja con su tipo declarado (`?pagina=abc`). */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ProblemDetail tipoDeParametroInvalido(MethodArgumentTypeMismatchException e) {
+        ProblemDetail problema = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+                "El valor de '" + e.getName() + "' no tiene el formato esperado.");
+        problema.setTitle("Peticion invalida");
+        problema.setType(URI.create(BASE_TIPO + "peticion-invalida"));
         return problema;
     }
 

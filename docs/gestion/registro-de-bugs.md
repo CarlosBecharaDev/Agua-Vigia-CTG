@@ -86,7 +86,7 @@ Tres razones concretas, no burocráticas:
 | BUG-059 | 2026-08-22 | S2 | M9 | Aun extrayendo bien los nombres, la mitad no casaba con el catálogo: la comparación era igualdad exacta y el GeoJSON escribe los números en letras (`9 de Abril` ↔ `NUEVE DE ABRIL`), omite la preposición (`Piedra Bolívar` ↔ `PIEDRA DE BOLIVAR`) y no lleva los prefijos de tipo que sí escribe el boletín (`sector Sena`, `urbanización La Heroica`) | Cerrado — `NormalizadorDeNombres` + `EmparejadorDeSectores`, sin coincidencia aproximada; `EmparejadorDeSectoresTest` | D3 |
 | BUG-060 | 2026-08-22 | S2 | M9 | El ciclo de ingesta corría cada 10 minutos contra el vacío: `VENTANA_DE_BUSQUEDA` era de 1 día y Acuacar publica cada 3–7, así que el boletín más reciente (una suspensión real en 20 barrios) quedaba fuera por 34 horas | Cerrado — ventana de 7 días, alineada con la del deduplicador; `PipelineOrquestadorTest` | D3 |
 | BUG-061 | 2026-08-22 | S1 | M1 | Al hacer clic en un barrio que el backend no conoce, el panel afirmaba «con servicio, actualizado en este momento»: `MapaCartagena.tsx` fabricaba el sector al vuelo con `estado: 'CON_SERVICIO'` y `actualizadoEn: new Date()`, inventando un dato verificado sobre un barrio del que no se sabía nada | Cerrado — se muestra sin dato (`estado: null`), como exige ADR-014; `MapaCartagena.tsx:347` | D4 |
-| BUG-062 | 2026-08-29 | S3 | M5 | Usar el verbo HTTP equivocado contra un endpoint del veedor devuelve `500 "Error no controlado"` con stack trace completo en el log, en vez del `405` que corresponde, saltándose el formato RFC 7807 | Abierto | D3 |
+| BUG-062 | 2026-08-29 | S3 | M5 | Usar el verbo HTTP equivocado contra un endpoint del veedor devuelve `500 "Error no controlado"` con stack trace completo en el log, en vez del `405` que corresponde, saltándose el formato RFC 7807 | Cerrado | D3 |
 | BUG-063 | 2026-08-31 | S1 | M6/M7 | La sección de estadísticas mostraba un Índice de Cumplimiento del 100% y unas duraciones de 2.822 h prometidas contra 2.798,5 h reales cuando la API respondía «No hay cortes cerrados todavía»: eran cinco literales escritos a mano como valor por defecto | Cerrado — se muestra «Sin datos»; `SeccionEstadisticas.tsx` | D4 |
 | BUG-064 | 2026-08-31 | S3 | CI | El Frontend CI llevaba tres commits en rojo: `e465a23` agrandó el logo del panel de bienvenida de 150 a 195 px y la prueba E2E se quedó exigiendo el valor viejo | Cerrado — aserción alineada con el diseño vigente; `home.spec.ts:65` | D4 |
 | BUG-065 | 2026-09-01 | S2 | M15 | El panel de cuentas era ilegible en tema claro: heredaba el fondo claro del sitio y pintaba encima el texto claro que su CSS fijaba para superficie oscura | Cerrado — el panel pinta su propia superficie oscura, como `.panel-veedor-root`; `Cuentas.css` | D4 |
@@ -182,7 +182,7 @@ toda la sesión cuidando no fabricar `finReal` (`ADR-036`) y la interfaz lo fabr
 ### BUG-062 — Un verbo HTTP equivocado responde 500 «Error no controlado» en vez de 405
 
 - **Fecha:** 2026-08-29 · **Severidad:** S3 · **Módulo:** M5 · **Responsable:** D3
-- **Estado:** Abierto
+- **Estado:** Cerrado — corregido el 2026-09-01
 
 **Síntoma:** `POST /api/veedor/ingesta/propuestas/{id}/aprobar` —que solo acepta `PATCH`— responde
 `500` con cuerpo de error genérico, y `ManejadorGlobalDeErrores` lo registra a nivel `ERROR` como
@@ -204,7 +204,26 @@ gana nada con el trace de un 4xx.
 Probablemente le pase lo mismo a las demás excepciones de Spring MVC (`HttpMediaTypeNotSupported`,
 `MissingServletRequestParameter`): conviene revisarlas juntas y no solo esta.
 
-**Corrección:** pendiente.
+**Corrección:** `ManejadorGlobalDeErrores` gana seis `@ExceptionHandler` para las excepciones de
+protocolo de Spring MVC que hasta ahora salían todas por el catch-all de `Exception`:
+`HttpRequestMethodNotSupportedException` → **405** con cabecera `Allow` y la propiedad
+`metodosPermitidos`; `HttpMediaTypeNotSupportedException` → **415** con cabecera `Accept`;
+`MissingServletRequestParameterException`, `MissingServletRequestPartException` (M10: multipart sin
+la foto), `HttpMessageNotReadableException` (JSON mal formado) y `MethodArgumentTypeMismatchException`
+(`?pagina=abc`) → **400** en RFC 7807. Ninguno registra a nivel `ERROR` ni devuelve el mensaje de la
+excepción original: un 4xx es un error del cliente y el mensaje de Spring trae nombres de clases
+internas.
+
+Se revisaron juntas como pedía la causa raíz, no solo la del síntoma. **Pruebas:**
+`IngestaRevisionControllerTest.debeResponder405ConLaCabeceraAllowSiSeUsaElVerboEquivocado()` —la
+reproducción exacta del bug, con sesión de veedor válida— y
+`debeResponder400SiLaPaginaNoEsUnNumero()`; en `ReporteControllerTest`,
+`debeResponder405ConLaCabeceraAllowSiSeConsultaLaRutaDeReportesConGet()`,
+`debeResponder415SiElCuerpoNoViajaComoJson()`,
+`debeResponder400EnFormatoRfc7807SiElJsonEstaMalFormado()` y
+`debeResponder400SiElMultipartLlegaSinLaFoto()`. **Verificado en vivo** contra el stack levantado
+(`docker compose up -d --build --wait`): `GET http://localhost:8081/api/reportes` → `405` con
+`Allow: POST` y cuerpo `application/problem+json`.
 
 ### BUG-049 — Las imágenes de los boletines no cargaban en las tarjetas de la Bitácora
 

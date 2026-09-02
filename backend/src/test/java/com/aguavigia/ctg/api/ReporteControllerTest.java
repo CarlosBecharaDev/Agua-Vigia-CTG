@@ -29,7 +29,10 @@ import java.time.Instant;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -142,6 +145,42 @@ class ReporteControllerTest {
                         .content("""
                                 {"sectorId":"bocagrande","tipo":"SIN_AGUA"}"""))
                 .andExpect(status().isBadRequest());
+    }
+
+    /** BUG-062 — un verbo que la ruta no expone es error del cliente (405), no del servidor (500). */
+    @Test
+    void debeResponder405ConLaCabeceraAllowSiSeConsultaLaRutaDeReportesConGet() throws Exception {
+        mockMvc.perform(get("/api/reportes"))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(header().string("Allow", "POST"))
+                .andExpect(jsonPath("$.title").value("Metodo no permitido"));
+    }
+
+    /** BUG-062 — mismo origen: sin manejador, un Content-Type ajeno tambien salia por el 500. */
+    @Test
+    void debeResponder415SiElCuerpoNoViajaComoJson() throws Exception {
+        mockMvc.perform(post("/api/reportes")
+                        .contentType("text/plain")
+                        .content("sin agua en bocagrande"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(jsonPath("$.title").value("Tipo de contenido no soportado"));
+    }
+
+    @Test
+    void debeResponder400EnFormatoRfc7807SiElJsonEstaMalFormado() throws Exception {
+        mockMvc.perform(post("/api/reportes")
+                        .contentType("application/json")
+                        .content("{\"sectorId\":"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Peticion invalida"));
+    }
+
+    /** M10 — subir evidencia sin adjuntar el archivo respondia 500 en vez de decir que falta. */
+    @Test
+    void debeResponder400SiElMultipartLlegaSinLaFoto() throws Exception {
+        mockMvc.perform(multipart("/api/reportes/r1/foto"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Peticion invalida"));
     }
 
     @Test
