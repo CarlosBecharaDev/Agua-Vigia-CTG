@@ -49,6 +49,9 @@ APP_URL_PUBLICA=http://localhost:5173
 
 Clave del veedor para entrar al panel (`/veedor`): **`AguaVigia-Dev-2026`**
 
+⚠️ **La clave sola ya no basta.** Desde `ADR-039` la cuenta sembrada es `ADMIN`, y el rol `ADMIN`
+exige segundo factor: la primera sesión solo sirve para activarlo. Sigue el §3.1.
+
 Después de pegarlo:
 
 ```bash
@@ -67,6 +70,40 @@ servidor sí tenía la variable configurada. Verificar que llegó bien:
 docker exec aguavigia-backend printenv VEEDOR_PASSWORD_HASH
 # debe imprimir exactamente: $2a$10$IUf9Q.qBPoWuaiCNq9PEVusG7eHYzMP4IAnUjNcl7RiMSwp46MKPu
 ```
+
+### 3.1 El segundo factor, sin app de autenticación
+
+La pantalla de alta muestra un QR **y el secreto en texto** debajo («si la cámara no coopera,
+escribe este código a mano»). Ese secreto es todo lo que hace falta: el TOTP es el estándar de
+siempre (RFC 6238, HMAC-SHA1, 6 dígitos, franjas de 30 s), así que sirve cualquier generador —una
+app de teléfono, un gestor de contraseñas de escritorio, o el script del repositorio.
+
+```bash
+node scripts/codigo-totp.mjs <EL_SECRETO_QUE_MUESTRA_LA_PANTALLA>
+```
+
+No rodea el segundo factor: calcula lo mismo que la app, sobre un secreto que la propia pantalla te
+acaba de dar. Que sea el mismo código que espera el backend está anclado por los dos lados a los
+vectores del apéndice B del RFC — `TotpAdapterTest` en el backend y `--autoprueba` en el script:
+
+```bash
+node scripts/codigo-totp.mjs --autoprueba
+```
+
+**Solo para cuentas de desarrollo.** Un secreto de producción tecleado en la terminal queda en el
+historial del shell; para esas cuentas, una app o un gestor de contraseñas.
+
+**Si heredaste una base donde el admin ya tiene el TOTP activado** —lo activó otra persona u otra
+sesión, y nadie tiene ya ese secreto— la cuenta no se recupera: se vuelve a sembrar. El sembrador
+solo actúa cuando **no queda ninguna cuenta** (`SembradorAdminInicial.sembrarSiNoHayNadie`), así que
+hay que vaciar la colección entera, no solo el admin:
+
+```bash
+docker exec aguavigia-mongo mongosh aguavigia --quiet --eval "db.usuarios.deleteMany({})"
+docker restart aguavigia-backend
+```
+
+Borra únicamente las cuentas del panel: reportes, boletines y cortes quedan intactos.
 
 ## 4. La vía propia — generar tu propia clave
 
