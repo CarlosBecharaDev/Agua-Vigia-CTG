@@ -10,6 +10,13 @@ interface Props {
   onIngreso: (sesion: SesionVeedor) => void
   /** Mensaje heredado de la pantalla anterior, p. ej. "la sesión venció". */
   avisoInicial?: string | null
+  /**
+   * Presentes cuando el ingreso vive dentro del modal: solicitar cuenta y recuperar la clave
+   * cambian de vista ahí mismo en vez de navegar. Ausentes en la ruta `/veedor`, donde sí toca
+   * cambiar de pantalla porque no hay modal del que salir.
+   */
+  onSolicitarCuenta?: () => void
+  onOlvideClave?: () => void
 }
 
 /**
@@ -20,7 +27,12 @@ interface Props {
  * El código no se pide de entrada. Se pide solo cuando el backend responde que hace falta, para que
  * quien no tiene segundo factor no vea un campo que no le toca.
  */
-export function FormularioIngreso({ onIngreso, avisoInicial }: Props) {
+export function FormularioIngreso({
+  onIngreso,
+  avisoInicial,
+  onSolicitarCuenta,
+  onOlvideClave,
+}: Props) {
   const [correo, setCorreo] = useState('')
   const [clave, setClave] = useState('')
   const [codigo, setCodigo] = useState('')
@@ -171,21 +183,25 @@ export function FormularioIngreso({ onIngreso, avisoInicial }: Props) {
         )}
       </button>
 
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '0.35rem 1rem',
-          justifyContent: 'center',
-          marginTop: '0.85rem',
-        }}
-      >
-        <Link to="/cuentas/registro" className="enlace-cuenta">
-          Solicitar una cuenta
-        </Link>
-        <Link to="/cuentas/olvide-mi-clave" className="enlace-cuenta">
-          Olvidé mi clave
-        </Link>
+      <div className="cuenta-enlaces cuenta-enlaces-fila">
+        {onSolicitarCuenta ? (
+          <button type="button" className="enlace-cuenta" onClick={onSolicitarCuenta}>
+            Solicitar una cuenta
+          </button>
+        ) : (
+          <Link to="/cuentas/registro" className="enlace-cuenta">
+            Solicitar una cuenta
+          </Link>
+        )}
+        {onOlvideClave ? (
+          <button type="button" className="enlace-cuenta" onClick={onOlvideClave}>
+            Olvidé mi clave
+          </button>
+        ) : (
+          <Link to="/cuentas/olvide-mi-clave" className="enlace-cuenta">
+            Olvidé mi clave
+          </Link>
+        )}
       </div>
 
       <p

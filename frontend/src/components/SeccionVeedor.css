@@ -97,3 +97,39 @@
   .veedor-modal-fondo,
   .veedor-modal-caja { animation: veedor-fondo-entra var(--motion-ui) var(--ease) both; }
 }
+
+/* La tarjeta del modal reusa el contenedor del modal de reporte, pero sin su propio fondo ni
+   borde: el marco ya lo pone .veedor-modal-caja, y superponer dos bordes se ve como un error. */
+.veedor-modal-tarjeta {
+  width: min(100%, 480px);
+  max-height: none;
+  position: relative;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.veedor-modal-cabecera { margin-bottom: 1.25rem; }
+
+.veedor-modal-badge {
+  background: rgba(168, 85, 247, 0.2);
+  color: #d8b4fe;
+}
+
+.veedor-modal-antetitulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #c084fc;
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
+.veedor-modal-titulo {
+  font-size: 1.45rem;
+  margin: 0;
+  color: #ffffff;
+}

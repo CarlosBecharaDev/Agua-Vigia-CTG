@@ -90,6 +90,7 @@ Tres razones concretas, no burocráticas:
 | BUG-063 | 2026-08-31 | S1 | M6/M7 | La sección de estadísticas mostraba un Índice de Cumplimiento del 100% y unas duraciones de 2.822 h prometidas contra 2.798,5 h reales cuando la API respondía «No hay cortes cerrados todavía»: eran cinco literales escritos a mano como valor por defecto | Cerrado — se muestra «Sin datos»; `SeccionEstadisticas.tsx` | D4 |
 | BUG-064 | 2026-08-31 | S3 | CI | El Frontend CI llevaba tres commits en rojo: `e465a23` agrandó el logo del panel de bienvenida de 150 a 195 px y la prueba E2E se quedó exigiendo el valor viejo | Cerrado — aserción alineada con el diseño vigente; `home.spec.ts:65` | D4 |
 | BUG-065 | 2026-09-01 | S2 | M15 | El panel de cuentas era ilegible en tema claro: heredaba el fondo claro del sitio y pintaba encima el texto claro que su CSS fijaba para superficie oscura | Cerrado — el panel pinta su propia superficie oscura, como `.panel-veedor-root`; `Cuentas.css` | D4 |
+| BUG-066 | 2026-09-02 | S2 | M15 | Desde el ingreso emergente del veedor, «Solicitar una cuenta» y «Olvidé mi clave» navegaban a `/cuentas/*`: cerraban la portada y mandaban al usuario a otra pantalla para pedirle lo mismo que ya tenía delante | Cerrado — las tres vistas viven en el mismo modal; `SeccionVeedor.tsx` | D4 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -103,6 +104,40 @@ Tres razones concretas, no burocráticas:
 > de detalle de sector se veía "incompleto" para muchos barrios al hacer clic en el mapa, y
 > auditando en vivo (contra `/acuacar-api` real, no datos de ejemplo) cuánta cobertura real de
 > boletines logra la extracción de nombres de barrio.
+
+### BUG-066 — Pedir una cuenta o recuperar la clave sacaba al usuario de la portada
+
+- **Fecha:** 2026-09-02 · **Severidad:** S2 · **Módulo:** M15 · **Responsable:** D4
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** con el ingreso emergente abierto, pulsar «Solicitar una cuenta» u «Olvidé mi clave»
+cambiaba de ruta a `/cuentas/registro` o `/cuentas/olvide-mi-clave`. El modal desaparecía, la
+portada se perdía y el usuario aterrizaba en una pantalla distinta —con otro encabezado y otro
+marco— para escribir un correo. Reportado por el usuario como «me lleva directamente al panel
+veedor».
+
+**Reproducción:** consistente. Portada → «Ir al panel» → cualquiera de los dos enlaces del pie del
+formulario.
+
+**Esperado:** conseguir acceso al panel es un solo trámite; sus tres pasos —entrar, pedir cuenta,
+recuperar clave— ocurren en la misma pestaña emergente, sin cambiar de ruta.
+
+**Causa raíz:** `FormularioIngreso` resolvía los dos accesos con `<Link>` a rutas sueltas. Esas
+rutas nacieron para aterrizar desde los enlaces del correo (`/cuentas/verificar`, `/invitacion`,
+`/restablecer`) y se reutilizaron como entrada, que es un caso distinto: ahí el usuario **ya está**
+en la app y no hay nada que abrir.
+
+**Corrección:** los dos formularios se extrajeron a `FormularioSolicitarCuenta.tsx` y
+`FormularioOlvideClave.tsx`, y `SeccionVeedor` los monta en una tercera vista del propio modal
+(`ingreso` | `registro` | `olvide`), con su cabecera —icono, antetítulo, título— cambiando con la
+vista. `PaginaRegistroCuenta` y `PaginaOlvideClave` quedan como envoltorios de esos mismos
+componentes: las rutas siguen sirviendo a quien llegue por enlace directo o marcador, sin duplicar
+el formulario. `EnlaceAlIngreso` decide si «Volver al ingreso» es un botón que cambia de vista o un
+`<Link>`, según dónde viva.
+
+**Pruebas:** `SeccionVeedor.test.tsx` (6) monta el modal dentro de un `MemoryRouter` con una ruta
+comodín que pinta «SALIÓ DE LA PORTADA»: si alguna de las dos vistas volviera a navegar, la prueba
+lo delata.
 
 ### BUG-065 — El panel de cuentas se veía en blanco sobre blanco en tema claro
 

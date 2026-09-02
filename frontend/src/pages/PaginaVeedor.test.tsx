@@ -55,6 +55,14 @@ function ingresar() {
   fireEvent.click(screen.getByRole('button', { name: /iniciar sesión/i }))
 }
 
+/**
+ * El panel abre en la cola de Reportes: es lo que espera una decisión humana. Todo lo de cortes
+ * vive tras su pestaña, así que las pruebas de esa área navegan primero, igual que una persona.
+ */
+async function irAPestanaCortes() {
+  fireEvent.click(await screen.findByRole('button', { name: /cortes oficiales/i }))
+}
+
 function renderizar() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
   return render(<QueryClientProvider client={client}><MemoryRouter><PaginaVeedor /></MemoryRouter></QueryClientProvider>)
@@ -124,6 +132,7 @@ describe('PaginaVeedor', () => {
     api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [{ id: 'manga', nombre: 'MANGA', estado: null, actualizadoEn: null }] })
     api.crearCorteOficial.mockResolvedValue({ id: 'c1', estado: 'ABIERTO' })
     renderizar()
+    await irAPestanaCortes()
 
     fireEvent.click(await screen.findByRole('checkbox', { name: 'MANGA' }))
     fireEvent.change(screen.getByLabelText(/^inicio$/i), { target: { value: '2026-08-09T10:00' } })
@@ -152,6 +161,7 @@ describe('PaginaVeedor', () => {
       sectorId: null, duracionPrometidaSegundos: 7200, duracionRealSegundos: 10800, desviacionSegundos: 3600, porcentajeCumplimiento: 66.7,
     })
     renderizar()
+    await irAPestanaCortes()
 
     await screen.findByRole('option', { name: 'MANGA' })
     fireEvent.change(screen.getByLabelText(/consultar barrio/i), { target: { value: 'manga' } })
@@ -168,12 +178,78 @@ describe('PaginaVeedor', () => {
     api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [{ id: 'manga', nombre: 'MANGA', estado: null, actualizadoEn: null }] })
     api.listarCortesPorSector.mockResolvedValue([{ id: 'c1', causa: 'Mantenimiento', estado: 'RESTABLECIDO', finPrometido: '2026-08-09T12:00:00Z' }])
     renderizar()
+    await irAPestanaCortes()
 
     await screen.findByRole('option', { name: 'MANGA' })
     fireEvent.change(screen.getByLabelText(/consultar barrio/i), { target: { value: 'manga' } })
 
     await screen.findByText('Mantenimiento')
     expect(screen.queryByRole('button', { name: /marcar restablecido/i })).not.toBeInTheDocument()
+  })
+
+  /**
+   * Un OBSERVADOR solo tiene VER_PANEL. Antes el panel consultaba las tres colas igual y el
+   * backend respondía 403 a cada una: se abría con un muro de errores rojos que no eran un fallo
+   * de nada. Ahora ni se piden, y se explica qué le falta a la cuenta.
+   */
+  it('no consulta ninguna cola ni ofrece pestañas a quien solo puede ver el panel', async () => {
+    sesionVeedor.guardar({ ...SESION_DE_PRUEBA, rol: 'OBSERVADOR', permisos: ['VER_PANEL'] } as SesionVeedor)
+    api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [] })
+    renderizar()
+
+    expect(await screen.findByText(/no tiene colas asignadas/i)).toBeInTheDocument()
+    expect(api.listarReportesPendientes).not.toHaveBeenCalled()
+    expect(api.listarPropuestasIngesta).not.toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: /cortes oficiales/i })).not.toBeInTheDocument()
+  })
+
+  it('solo ofrece la pestaña del area que la cuenta puede trabajar', async () => {
+    sesionVeedor.guardar({ ...SESION_DE_PRUEBA, permisos: ['VER_PANEL', 'MODERAR_REPORTES'] } as SesionVeedor)
+    api.listarReportesPendientes.mockResolvedValue({ items: [], totalCount: 0 })
+    api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [] })
+    renderizar()
+
+    expect(await screen.findByRole('button', { name: /^reportes$/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /cortes oficiales/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /ingesta/i })).not.toBeInTheDocument()
+  })
+
+  /** El backend identifica los sectores por id; quien modera piensa en nombres de barrio. */
+  it('nombra el barrio del reporte en vez de mostrar su id tecnico', async () => {
+    sembrarSesion()
+    api.listarReportesPendientes.mockResolvedValue({
+      items: [{ id: 'r1', sectorId: 'manga', tipo: 'SIN_AGUA', timestamp: '2026-08-09T10:00:00Z' }],
+      totalCount: 1,
+    })
+    api.obtenerSectores.mockResolvedValue({
+      generadoEn: '2026-08-09T10:00:00Z',
+      sectores: [{ id: 'manga', nombre: 'MANGA', estado: null, actualizadoEn: null }],
+    })
+    renderizar()
+
+    expect(await screen.findByText('MANGA')).toBeInTheDocument()
+  })
+
+  /** Cuánto trabajo hay encima, sin abrir ninguna cola. */
+  it('resume cuantos reportes esperan sin tener que entrar a la cola', async () => {
+    sembrarSesion()
+    api.listarReportesPendientes.mockResolvedValue({ items: [], totalCount: 7 })
+    api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [] })
+    renderizar()
+
+    const resumen = await screen.findByRole('region', { name: /resumen de la operación/i })
+    await waitFor(() => expect(resumen).toHaveTextContent('7'))
+  })
+
+  /** Sin barrio elegido no se puede saber cuántos cortes hay abiertos: se dice, no se inventa un 0. */
+  it('no afirma cero cortes abiertos mientras no se elija un barrio', async () => {
+    sembrarSesion()
+    api.listarReportesPendientes.mockResolvedValue({ items: [], totalCount: 0 })
+    api.obtenerSectores.mockResolvedValue({ generadoEn: '2026-08-09T10:00:00Z', sectores: [] })
+    renderizar()
+
+    const resumen = await screen.findByRole('region', { name: /resumen de la operación/i })
+    expect(resumen).toHaveTextContent(/elige un barrio/i)
   })
 
   it('explica un 503 sin simular el ingreso', async () => {

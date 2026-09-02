@@ -84,7 +84,7 @@
   font-weight: 650;
   cursor: pointer;
   backdrop-filter: blur(10px);
-  transition: all 180ms ease;
+  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) { .panel-veedor-btn-logout:hover {
@@ -120,7 +120,7 @@
   font-size: 0.85rem;
   font-weight: 650;
   cursor: pointer;
-  transition: all 180ms ease;
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) { .panel-veedor-tab-btn:hover {
@@ -194,7 +194,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: all 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: border-color 220ms cubic-bezier(0.16, 1, 0.3, 1), transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @media (hover: hover) and (pointer: fine) { .tarjeta-moderacion-item:hover {
@@ -259,7 +259,7 @@
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 180ms ease;
+  transition: background-color 180ms ease, border-color 180ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) { .btn-mod-aprobar:hover:not(:disabled) {
@@ -280,7 +280,7 @@
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 180ms ease;
+  transition: background-color 180ms ease, border-color 180ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) { .btn-mod-descartar:hover:not(:disabled) {
@@ -298,7 +298,7 @@
   color: #ffffff;
   font-size: 0.9rem;
   outline: none;
-  transition: all 180ms ease;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
 }
 
 .panel-veedor-input:focus {
@@ -368,12 +368,7 @@
 
 /* ── Reglas Responsivas para Móvil ── */
 @media (max-width: 768px) {
-  .panel-veedor-grid-bento {
-    grid-template-columns: 1fr;
-    gap: 1.25rem;
-  }
-
-  .panel-veedor-cabecera {
+  .panel-veedor-topbar {
     flex-direction: column;
     align-items: flex-start;
     gap: 1.25rem;
@@ -382,10 +377,9 @@
   .panel-veedor-acciones-cab {
     width: 100%;
     justify-content: space-between;
-    flex-wrap: wrap;
   }
 
-  .panel-veedor-card {
+  .panel-veedor-seccion-card {
     padding: 1.25rem 1rem;
     border-radius: 20px;
   }
@@ -411,10 +405,6 @@
 }
 
 @media (max-width: 480px) {
-  .panel-veedor-envoltorio {
-    width: min(100% - 1.25rem, 1200px);
-  }
-
   .panel-veedor-stats-bar {
     flex-direction: column;
     width: 100%;
@@ -432,4 +422,271 @@
   .btn-mod-aprobar, .btn-mod-descartar {
     width: 100%;
   }
+}
+
+/* ── Resumen de la operación ──
+   Cuánto trabajo hay encima antes de abrir ninguna cola. Los valores que no se pueden calcular
+   viajan como «—» y nunca como 0: un cero afirma que la cola está vacía, y no saberlo es otra cosa. */
+.panel-veedor-stats-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.panel-veedor-stat-item {
+  flex: 1 1 220px;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1.15rem 1.25rem;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  backdrop-filter: blur(20px);
+}
+
+.panel-veedor-kpi-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.panel-veedor-kpi-titulo {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(203, 213, 225, 0.75);
+}
+
+.panel-veedor-kpi-valor {
+  display: block;
+  font-size: 1.65rem;
+  font-weight: 780;
+  line-height: 1.15;
+  color: #ffffff;
+}
+
+.panel-veedor-kpi-sub {
+  display: block;
+  font-size: 0.72rem;
+  color: rgba(203, 213, 225, 0.6);
+}
+
+/* ── Cabecera y secciones ── */
+.panel-veedor-acciones-cab {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.panel-veedor-error { margin-bottom: 1.5rem; }
+
+.panel-veedor-seccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.panel-veedor-seccion-desc {
+  color: rgba(203, 213, 225, 0.7);
+  font-size: 0.85rem;
+  margin: 0;
+  max-width: 62ch;
+}
+
+.panel-veedor-btn-actualizar {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.75rem;
+}
+
+.panel-veedor-cargando { color: #94a3b8; }
+
+.panel-veedor-tenue {
+  color: rgba(203, 213, 225, 0.62);
+  font-size: 0.75rem;
+}
+
+.panel-veedor-tenue-bloque {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Estados vacíos ──
+   Una cola vacía no es un hueco: se dice por qué está vacía, igual que en la Bitácora. */
+.panel-veedor-vacio {
+  text-align: center;
+  padding: 2.75rem 1rem;
+  color: #94a3b8;
+}
+
+.panel-veedor-vacio strong {
+  display: block;
+  color: #f8fafc;
+  margin: 0.5rem 0 0.2rem;
+  font-size: 1rem;
+}
+
+.panel-veedor-vacio p {
+  margin: 0 auto;
+  font-size: 0.82rem;
+  max-width: 46ch;
+}
+
+.panel-veedor-aviso-truncado {
+  margin-bottom: 1rem;
+  font-size: 0.82rem;
+}
+
+.panel-veedor-lista {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.panel-veedor-campo { margin-bottom: 1.25rem; }
+
+.panel-veedor-campo .form-reporte-label { margin-bottom: 0.35rem; }
+
+/* ── Cortes ── */
+.corte-accordion-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.corte-accordion-titulo strong {
+  font-size: 0.98rem;
+  color: #f8fafc;
+}
+
+.corte-accordion-acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.btn-compacto {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.74rem;
+}
+
+.corte-detalle-etiqueta {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.corte-detalle-valor {
+  font-weight: 600;
+  color: #f1f5f9;
+  font-size: 0.85rem;
+}
+
+.corte-cumplimiento {
+  grid-column: 1 / -1;
+  margin-top: 0.5rem;
+  padding: 0.65rem;
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: #f1f5f9;
+}
+
+.corte-cumplimiento strong { color: #d8b4fe; }
+
+/* ── Formulario de registro ── */
+.panel-veedor-form-corte {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.panel-veedor-multiselect-cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.panel-veedor-buscador {
+  position: relative;
+  width: 220px;
+  display: flex;
+  align-items: center;
+}
+
+.panel-veedor-buscador svg {
+  position: absolute;
+  left: 0.65rem;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.panel-veedor-input-buscador {
+  padding-left: 2rem;
+  padding-right: 0.5rem;
+  font-size: 0.78rem;
+  min-height: 34px;
+}
+
+.corte-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.panel-veedor-btn-registrar {
+  max-width: 280px;
+  margin-top: 0.5rem;
+}
+
+/* ── Ingesta ── */
+.panel-veedor-colectores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.badge-propuesta {
+  background: rgba(59, 130, 246, 0.18);
+  color: #bfdbfe;
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.badge-confianza {
+  font-size: 0.68rem;
+  padding: 0.2rem 0.5rem;
+}
+
+.propuesta-cita {
+  margin: 0;
+  padding: 0.65rem;
+  background: rgba(0, 0, 0, 0.25);
+  border-left: 3px solid #a855f7;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: #e2e8f0;
+}
+
+@media (max-width: 640px) {
+  .panel-veedor-buscador { width: 100%; }
+  .panel-veedor-multiselect-cab { align-items: stretch; }
 }
