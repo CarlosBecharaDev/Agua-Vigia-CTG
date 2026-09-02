@@ -11,6 +11,15 @@ class IntersectionObserverMock {
 // @ts-expect-error -- stub mínimo solo para el entorno de test, no implementa la interfaz completa
 globalThis.IntersectionObserver = IntersectionObserverMock
 
+// Tampoco implementa ResizeObserver — lo necesita el carrusel de SeccionBitacora, que mide el
+// desbordamiento para decidir si las flechas deben existir.
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+globalThis.ResizeObserver = ResizeObserverMock
+
 const memoria = new Map<string, string>()
 const almacenamientoPruebas: Storage = {
   get length() { return memoria.size },

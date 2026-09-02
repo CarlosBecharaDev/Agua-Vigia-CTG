@@ -18,7 +18,7 @@
 | REC-001 | 2026-08-08 | Formalizar quién es Rafael Sarmiento (`sarmientordev`) | Resuelta |
 | REC-002 | 2026-08-08 | BUG-005 (PRs sin revisor) sigue abierto y el patrón no mejora | Pendiente |
 | REC-003 | 2026-08-08 | C2 (contrato OpenAPI) es el cuello de botella real ahora mismo | Resuelta |
-| REC-004 | 2026-08-08 | La cobertura de pruebas del frontend está muy por debajo de la del backend | Pendiente |
+| REC-004 | 2026-08-08 | La cobertura de pruebas del frontend está muy por debajo de la del backend | En curso |
 | REC-005 | 2026-08-08 | El ROSTER de `generar-dashboard.mjs` está escrito a mano, no se lee de ningún documento | Pendiente |
 | REC-006 | 2026-08-09 | `RateLimitConfig` se cuela en cualquier `@WebMvcTest` aunque no se importe, y rompe pruebas en silencio al activar reglas reales | Pendiente |
 | REC-007 | 2026-08-28 | Las ramas fusionadas se acumulan en GitHub porque falta activar el borrado automático | Pendiente |
@@ -74,12 +74,32 @@ frontend al contrato real y los cierre — pero eso ya no es un bloqueo de C2, e
 
 ### REC-004 — La cobertura de pruebas del frontend está muy por debajo de la del backend
 
-- **Fecha:** 2026-08-08 · **Estado:** Pendiente
+- **Fecha:** 2026-08-08 · **Estado:** En curso
 
 El backend tiene 23 pruebas reales, incluido ArchUnit protegiendo la Regla de Oro. El frontend tiene
 2 (`InsigniaEstado.test.tsx`, `PaginaVeedor.test.tsx`) contra 20 archivos de componentes. `RNF017`
 pide ≥70% de cobertura — vale la pena empezar a cerrar esa brecha antes de que el Sprint 2 traiga más
 superficie de UI todavía sin probar.
+
+**Avance del 2026-09-01** — cifras verificadas corriendo las dos suites, no las de agosto: backend
+**632** pruebas, frontend **81** (eran 63) en 17 archivos contra **50** componentes y páginas. La
+brecha sigue abierta, así que la recomendación no se cierra; lo que se hizo fue cubrir primero la
+superficie donde ya hubo bugs de *afirmar lo que no se sabe*, que es el principio del proyecto:
+
+| Archivo nuevo | Qué invariante protege |
+|---|---|
+| `SeccionEstadisticas.test.tsx` (4) | `BUG-063` (S1): con la API sin cortes cerrados, las cinco métricas dicen «Sin datos» y no 100% ni ceros |
+| `SeccionBitacora.test.tsx` (6) | Un evento que no habla del servicio se lista como «Informativo» y no como corte; el estado del evento manda sobre el deducido del tipo; `BUG-049` (portadas por el proxy `/acuacar-media/`); fecha real del boletín |
+| `EditorPermisos.test.tsx` (8) | M15: no se ofrece revocar `CONFIGURAR_SEGUNDO_FACTOR`; concesiones y revocaciones se deducen bien del rol; cambiar de rol no arrastra ajustes previos |
+
+También se agregó un stub de `ResizeObserver` a `src/setupTests.ts`, junto al de
+`IntersectionObserver` que ya estaba: jsdom no implementa ninguno de los dos y el carrusel de la
+Bitácora no se podía montar sin él.
+
+**Lo siguiente, por tamaño y por riesgo:** `PanelVeedor.tsx` (620 líneas), `PaginaCuentas.tsx` (469)
+y `PaginaMapa.tsx` (338) siguen sin una sola prueba. Para poder afirmar el ≥70% de `RNF017` con un
+número y no con una impresión, hace falta además `@vitest/coverage-v8`, que hoy no es dependencia
+del proyecto — decisión del equipo, no se agregó por cuenta propia.
 
 ### REC-005 — El ROSTER de `generar-dashboard.mjs` está escrito a mano, no se lee de ningún documento
 
