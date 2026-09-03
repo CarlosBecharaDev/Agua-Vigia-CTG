@@ -91,6 +91,8 @@ Tres razones concretas, no burocráticas:
 | BUG-064 | 2026-08-31 | S3 | CI | El Frontend CI llevaba tres commits en rojo: `e465a23` agrandó el logo del panel de bienvenida de 150 a 195 px y la prueba E2E se quedó exigiendo el valor viejo | Cerrado — aserción alineada con el diseño vigente; `home.spec.ts:65` | D4 |
 | BUG-065 | 2026-09-01 | S2 | M15 | El panel de cuentas era ilegible en tema claro: heredaba el fondo claro del sitio y pintaba encima el texto claro que su CSS fijaba para superficie oscura | Cerrado — el panel pinta su propia superficie oscura, como `.panel-veedor-root`; `Cuentas.css` | D4 |
 | BUG-066 | 2026-09-02 | S2 | M15 | Desde el ingreso emergente del veedor, «Solicitar una cuenta» y «Olvidé mi clave» navegaban a `/cuentas/*`: cerraban la portada y mandaban al usuario a otra pantalla para pedirle lo mismo que ya tenía delante | Cerrado — las tres vistas viven en el mismo modal; `SeccionVeedor.tsx` | D4 |
+| BUG-067 | 2026-09-03 | S2 | M1 | En pantallas ≤480px el navbar flotante de la portada se quedaba sin marca: un hueco vacío a la izquierda de la barra | Cerrado — la regla que oculta el texto del logo se acotó al otro encabezado; `index.css` + `home.spec.ts` | D4 |
+| BUG-068 | 2026-09-03 | S3 | CI | La prueba E2E del ingreso del veedor lleva fallando desde `69f64de`: busca el campo «Clave del veedor» en `/veedor`, y ese ingreso se movió al modal de la portada | Abierto | D4 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -104,6 +106,27 @@ Tres razones concretas, no burocráticas:
 > de detalle de sector se veía "incompleto" para muchos barrios al hacer clic en el mapa, y
 > auditando en vivo (contra `/acuacar-api` real, no datos de ejemplo) cuánta cobertura real de
 > boletines logra la extracción de nombres de barrio.
+
+### BUG-068 — La prueba E2E del ingreso del veedor busca un campo que ya no existe
+
+- **Fecha:** 2026-09-03 · **Severidad:** S3 · **Módulo:** CI · **Responsable:** D4
+- **Estado:** Abierto
+
+**Síntoma:** `npx playwright test` falla en «el acceso del veedor inicia cerrado y permite mostrar
+la clave»: `getByLabel('Clave del veedor')` no encuentra nada en `/veedor` y la prueba agota su
+espera. Las otras cinco pasan.
+
+**Reproducción:** consistente, 3 de 3, en Chromium contra el dev server. Se reprodujo también con
+el árbol limpio en `main` (`git stash`), así que no lo introdujo ningún cambio en curso.
+
+**Esperado:** la suite E2E en verde. El CI de frontend la corre y lleva en rojo desde entonces.
+
+**Causa raíz probable —sin confirmar—:** `69f64de` («resolver cuenta y clave en el mismo modal»)
+movió el ingreso del veedor al modal de la portada y `/veedor` dejó de pintar ese formulario con
+esa etiqueta. Es el mismo patrón de BUG-064: el diseño avanzó y la aserción se quedó.
+
+**Corrección:** pendiente. Es de M15, no de quien lo encontró — se detectó de paso al agregar las
+pruebas de la barra de navegación de teléfono.
 
 ### BUG-066 — Pedir una cuenta o recuperar la clave sacaba al usuario de la portada
 
@@ -1843,5 +1866,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-066
+Siguiente número disponible: BUG-069
 -->

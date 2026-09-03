@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, FC, PointerEvent as ReactPointerEvent } from 'react'
 import { listarBitacora } from '../api/services'
 import type { EventoBitacora, TipoEventoBitacora } from '../api/services'
 import { normalizarErrorApi } from '../api/client'
 import { COLOR_POR_ESTADO } from '../types/tipos-dominio'
 import type { EstadoServicio } from '../types/tipos-dominio'
-import { RefreshCw, CheckCircle2, AlertTriangle, Info, Radio, ExternalLink, Search, CalendarCheck, Inbox, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useConsultaMedios } from '../hooks/useConsultaMedios'
+import { CheckCircle2, AlertTriangle, Info, Radio, ExternalLink, Search, CalendarCheck, Inbox, ChevronLeft, ChevronRight } from 'lucide-react'
 import './SeccionBitacora.css'
 
 /** Respaldo para los eventos que no traen `estado` propio. La ingesta sí lo trae, y por eso no
@@ -172,26 +173,13 @@ function aItemBitacora(evento: EventoBitacora): ItemBitacora {
   }
 }
 
-export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
+const SeccionBitacoraBase: FC<Props> = ({ busqueda = '' }) => {
   const [items, setItems] = useState<ItemBitacora[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filtro, setFiltro] = useState<'TODOS' | EstadoServicio>('TODOS')
   const [entradaActiva, setEntradaActiva] = useState(false)
   const seccionRef = useRef<HTMLElement>(null)
-
-  const cargarEventos = useCallback(async () => {
-    setCargando(true)
-    try {
-      const eventos = await listarBitacora(40)
-      setItems(eventos.map(aItemBitacora))
-      setError(null)
-    } catch (causa) {
-      setError(normalizarErrorApi(causa).detalle)
-    } finally {
-      setCargando(false)
-    }
-  }, [])
 
   useEffect(() => {
     let montado = true
@@ -237,6 +225,11 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
   const [arrastrando, setArrastrando] = useState(false)
   const [puedeIzquierda, setPuedeIzquierda] = useState(false)
   const [puedeDerecha, setPuedeDerecha] = useState(false)
+
+  // Por debajo de 640px las flechas dejan de flotar sobre los costados de la tarjeta (no hay
+  // margen fuera de ella) y bajan a un paginador debajo del carrusel. Ahí sí se dibujan
+  // siempre: si desaparecieran al llegar a un extremo, la fila entera daría un salto.
+  const flechasAbajo = useConsultaMedios('(max-width: 640px)')
 
   /**
    * Qué flechas tienen sentido ahora mismo. El margen de 4px absorbe el redondeo subpíxel del
@@ -318,10 +311,6 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
               y restablecimientos comunitarios en Cartagena.
             </p>
           </div>
-          <button onClick={cargarEventos} disabled={cargando} className="bitacora-actualizar-pro">
-            <RefreshCw size={15} className={cargando ? 'animate-spin' : ''} />
-            {cargando ? 'Sincronizando…' : 'Actualizar feed'}
-          </button>
         </div>
 
         {/* Filtros Segmentados */}
@@ -361,26 +350,6 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
             {/* Las flechas solo existen si hay a dónde ir en ese sentido: una flecha que no lleva
                 a ninguna parte es peor que ninguna flecha. Se ocultan del lector de pantalla
                 porque el carrusel ya se recorre con el teclado. */}
-            {puedeIzquierda && (
-              <button
-                type="button"
-                className="bitacora-flecha bitacora-flecha-izq"
-                onClick={() => desplazar(-1)}
-                aria-label="Ver boletines anteriores"
-              >
-                <ChevronLeft size={20} aria-hidden="true" />
-              </button>
-            )}
-            {puedeDerecha && (
-              <button
-                type="button"
-                className="bitacora-flecha bitacora-flecha-der"
-                onClick={() => desplazar(1)}
-                aria-label="Ver más boletines"
-              >
-                <ChevronRight size={20} aria-hidden="true" />
-              </button>
-            )}
             <div
               ref={carruselRef}
               className={`bitacora-carrusel-pro${arrastrando ? ' is-arrastrando' : ''}`}
@@ -487,6 +456,34 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
               )
             })}
             </div>
+
+            {/* `display: contents` en escritorio: los dos botones siguen siendo hijos absolutos
+                del marco y se pegan a sus costados como siempre. En teléfono el envoltorio se
+                convierte en la fila del paginador. */}
+            <div className="bitacora-flechas">
+              {(puedeIzquierda || flechasAbajo) && (
+                <button
+                  type="button"
+                  className="bitacora-flecha bitacora-flecha-izq"
+                  onClick={() => desplazar(-1)}
+                  disabled={!puedeIzquierda}
+                  aria-label="Ver boletines anteriores"
+                >
+                  <ChevronLeft size={20} aria-hidden="true" />
+                </button>
+              )}
+              {(puedeDerecha || flechasAbajo) && (
+                <button
+                  type="button"
+                  className="bitacora-flecha bitacora-flecha-der"
+                  onClick={() => desplazar(1)}
+                  disabled={!puedeDerecha}
+                  aria-label="Ver más boletines"
+                >
+                  <ChevronRight size={20} aria-hidden="true" />
+                </button>
+              )}
+            </div>
             </div>
           </>
         )}
@@ -494,3 +491,8 @@ export const SeccionBitacora: FC<Props> = ({ busqueda = '' }) => {
     </section>
   )
 }
+
+/* Su única prop es una cadena, así que memo la salta en cualquier re-render de la página que
+   no cambie la búsqueda — el de colapsar la columna de sectores, por ejemplo, que antes la
+   obligaba a volver a pintar sus cuarenta tarjetas por nada. */
+export const SeccionBitacora = memo(SeccionBitacoraBase)

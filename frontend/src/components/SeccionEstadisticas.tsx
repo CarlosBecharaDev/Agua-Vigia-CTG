@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react'
+﻿import { memo, useEffect, useRef, useState } from 'react'
 import type { FC } from 'react'
 import {
   BarChart,
@@ -65,7 +65,7 @@ function useCountUpSeguro(target: number, activo: boolean, duracion = 900): numb
   return valor
 }
 
-export const SeccionEstadisticas: FC = () => {
+const SeccionEstadisticasBase: FC = () => {
   const [datos, setDatos] = useState<EstadisticasGlobales | null>(null)
   const [cargando, setCargando] = useState(true)
   const [errorApi, setErrorApi] = useState<string | null>(null)
@@ -554,3 +554,9 @@ export const SeccionEstadisticas: FC = () => {
     </section>
   )
 }
+
+/* No recibe props, así que memo la deja fuera de los re-renders de PaginaMapa. Importa porque
+   monta las gráficas de Recharts: al colapsar la columna de sectores —un cambio de estado de
+   la página que no la toca— se volvían a renderizar enteras, y la animación del panel perdía
+   sus primeros cuadros esperando a que terminaran. */
+export const SeccionEstadisticas = memo(SeccionEstadisticasBase)

@@ -17,7 +17,7 @@
 import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
 import type { FC } from 'react'
 import { useLocation } from 'react-router-dom'
-import { MapPin, Menu } from 'lucide-react'
+import { ChevronDown, MapPin, Menu } from 'lucide-react'
 import { MapaCartagena } from '../components/MapaCartagena'
 import { BuscadorBarrios } from '../components/BuscadorBarrios'
 import { CarruselSector } from '../components/CarruselSector/CarruselSector'
@@ -32,6 +32,8 @@ import { PieDePagina } from '../components/PieDePagina'
 import { TarjetasEstadoMapa } from '../components/TarjetasEstadoMapa'
 import type { EstadoServicio, Sector } from '../types/tipos-dominio'
 import { useDatosEnVivo } from '../hooks/useDatosEnVivo'
+import { useConsultaMedios } from '../hooks/useConsultaMedios'
+import { desplazarAlMapa } from '../utils/desplazarAlMapa'
 import type { useTheme } from '../hooks/useTheme'
 
 // Cargados aparte del bundle de esta página, no antes de que haga falta: los tres arrastran
@@ -43,6 +45,10 @@ const SeccionEstadisticas = lazy(() => import('../components/SeccionEstadisticas
 const SeccionVeedor = lazy(() => import('../components/SeccionVeedor').then((m) => ({ default: m.SeccionVeedor })))
 
 type ThemeProps = ReturnType<typeof useTheme>
+
+// El mismo corte con el que index.css oculta `.panel-proyecto`: por debajo de 1024px ya no
+// cabe flotando junto al mapa, así que el panel se monta como portada, encima del hero.
+const CORTE_PORTADA = '(max-width: 1024px)'
 
 interface Props {
   temaActivo: ThemeProps['temaActivo']
@@ -64,6 +70,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
   const [busquedaBitacora, setBusquedaBitacora] = useState<string>('')
   const [seccionActiva, setSeccionActiva] = useState<'mapa' | 'bitacora' | 'estadisticas' | 'veedor'>('mapa')
   const [estadoDestacado, setEstadoDestacado] = useState<EstadoServicio | null>(null)
+  const hayPortada = useConsultaMedios(CORTE_PORTADA)
 
   const conteos = [
     { estado: 'SIN_SERVICIO' as const, n: sectores.filter(s => s.estado === 'SIN_SERVICIO').length },
@@ -167,6 +174,22 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
         }}
       />
 
+      {/* Portada de teléfono y tableta. En escritorio este mismo panel flota a la izquierda,
+          DENTRO del hero, y se ve a la vez que el mapa; por debajo de 1024px no cabe al lado,
+          así que pasa a ser la primera pantalla y el mapa queda a un scroll. Va montado aquí
+          y no dentro de GradientWaves porque el contenedor de las olas es `inset: 0` sobre el
+          hero: meter contenido en flujo ahí obligaría a estirar el shader a dos pantallas, y
+          en un gama media eso se paga en cada cuadro (DESIGN.md §8). */}
+      {hayPortada && (
+        <section className="portada-movil" aria-label="AguaVigía CTG">
+          <PanelProyecto onSuscribirse={() => setSuscripcionAbierta(true)} />
+          <button type="button" className="portada-movil-bajar" onClick={desplazarAlMapa}>
+            <span>Ver el mapa</span>
+            <ChevronDown size={16} aria-hidden="true" />
+          </button>
+        </section>
+      )}
+
       {/* GradientWaves es el fondo del hero; el recuadro unificado (mapa + panel de sectores)
           va anidado DENTRO de su contenedor para que el pointermove del efecto siga
           llegando aunque el div de Leaflet lo cubra visualmente por completo — el evento
@@ -174,7 +197,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
           unas esquinas — no dos piezas flotando por separado. */}
       <section id="mapa" className="mapa-vista-completa" aria-label="Mapa en vivo">
       <GradientWaves>
-        <PanelProyecto onSuscribirse={() => setSuscripcionAbierta(true)} />
+        {!hayPortada && <PanelProyecto onSuscribirse={() => setSuscripcionAbierta(true)} />}
 
         <div className={`panel-mapa-unificado${panelColapsado ? ' panel-mapa-unificado--colapsado' : ''}`}>
           <div className="mapa-lienzo-completo">

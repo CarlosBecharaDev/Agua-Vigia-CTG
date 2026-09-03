@@ -3,13 +3,21 @@
  * completo". Reemplaza el sidebar+topbar de Encabezado SOLO en "/": una barra horizontal
  * fija arriba, flotando sobre el mapa a pantalla completa. Las demás páginas siguen usando
  * Encabezado sin cambios.
+ *
+ * En teléfono la barra de arriba se queda con la marca, el tema y "Reportar ahora", y los
+ * enlaces de sección se mudan a NavegacionInferior: el riel de GooeyNav necesita ancho para
+ * las cuatro etiquetas y por debajo de 768px no lo hay.
  */
+import { useCallback } from 'react'
 import type { FC } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Search, Megaphone } from 'lucide-react'
 import { SelectorTema } from './SelectorTema'
 import { GooeyNav } from './GooeyNav/GooeyNav'
+import { NavegacionInferior } from './NavegacionInferior/NavegacionInferior'
 import { ENLACES } from '../config/navegacion'
+import { useConsultaMedios } from '../hooks/useConsultaMedios'
+import { desplazarAlMapa } from '../utils/desplazarAlMapa'
 import type { useTheme } from '../hooks/useTheme'
 
 type ThemeProps = ReturnType<typeof useTheme>
@@ -31,6 +39,11 @@ const DESTINO_POR_SECCION: Record<SeccionPrincipal, string> = {
   veedor: '/#veedor',
 }
 
+// El mismo corte que usan las reglas móviles de `.navbar-superior` en index.css. Se decide
+// en JS y no solo con CSS para no dejar en el DOM dos navegaciones a la vez: un lector de
+// pantalla anunciaría los mismos cuatro destinos dos veces.
+const CORTE_MOVIL = '(max-width: 768px)'
+
 export const NavegacionFlotante: FC<Props> = ({
   temaActivo,
   onAlternarTema,
@@ -40,6 +53,7 @@ export const NavegacionFlotante: FC<Props> = ({
   onReportar,
 }) => {
   const navigate = useNavigate()
+  const esMovil = useConsultaMedios(CORTE_MOVIL)
 
   // NavLink solo compara pathname: "/", "/#estadisticas" y "/#bitacora" resuelven todos a
   // pathname "/", así que su isActive automático los marcaría activos a los tres a la vez.
@@ -51,7 +65,31 @@ export const NavegacionFlotante: FC<Props> = ({
     ENLACES.findIndex(({ a }) => DESTINO_POR_SECCION[seccionActiva] === a)
   )
 
+  const irA = useCallback(
+    (_indice: number, href: string) => {
+      if (href === '/') {
+        desplazarAlMapa()
+        if (window.location.hash) {
+          window.history.pushState(null, '', '/')
+        }
+      } else if (href.startsWith('/#')) {
+        const id = href.slice(2)
+        const el = document.getElementById(id)
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          window.history.pushState(null, '', href)
+        } else {
+          navigate(href)
+        }
+      } else {
+        navigate(href)
+      }
+    },
+    [navigate]
+  )
+
   return (
+  <>
   <header className="navbar-superior" role="banner">
     <Link to="/" id="logo-aguavigia" className="navbar-marca" aria-label="AguaVigía CTG — inicio">
       <span className="navbar-marca-copy">AguaVigía</span>
@@ -69,31 +107,15 @@ export const NavegacionFlotante: FC<Props> = ({
       />
     </div>
 
-    <div className="navbar-enlaces">
-      <GooeyNav
-        items={ENLACES.map(({ a, etiqueta }) => ({ href: a, label: etiqueta }))}
-        activeIndex={indiceActivo}
-        onSelect={(_, href) => {
-          if (href === '/') {
-            window.scrollTo({ top: 0, behavior: 'smooth' })
-            if (window.location.hash) {
-              window.history.pushState(null, '', '/')
-            }
-          } else if (href.startsWith('/#')) {
-            const id = href.slice(2)
-            const el = document.getElementById(id)
-            if (el) {
-              el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-              window.history.pushState(null, '', href)
-            } else {
-              navigate(href)
-            }
-          } else {
-            navigate(href)
-          }
-        }}
-      />
-    </div>
+    {!esMovil && (
+      <div className="navbar-enlaces">
+        <GooeyNav
+          items={ENLACES.map(({ a, etiqueta }) => ({ href: a, label: etiqueta }))}
+          activeIndex={indiceActivo}
+          onSelect={irA}
+        />
+      </div>
+    )}
 
     <div className="navbar-acciones">
       <SelectorTema temaActivo={temaActivo} onAlternar={onAlternarTema} />
@@ -103,5 +125,8 @@ export const NavegacionFlotante: FC<Props> = ({
       </button>
     </div>
   </header>
+
+  {esMovil && <NavegacionInferior items={ENLACES} activeIndex={indiceActivo} onSelect={irA} />}
+  </>
   )
 }

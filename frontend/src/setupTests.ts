@@ -20,6 +20,22 @@ class ResizeObserverMock {
 }
 globalThis.ResizeObserver = ResizeObserverMock
 
+// jsdom tampoco implementa matchMedia, y lo consultan useConsultaMedios (qué navegación y qué
+// portada se montan) y todo lo que respeta prefers-reduced-motion. Por defecto nada coincide:
+// las pruebas corren en la variante de escritorio y con animación. Quien necesite otra cosa lo
+// sobrescribe en su propio archivo (ver Encabezado.test.tsx).
+const consultaMediosPruebas = (consulta: string): MediaQueryList => ({
+  matches: false,
+  media: consulta,
+  onchange: null,
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  addListener: () => {},
+  removeListener: () => {},
+  dispatchEvent: () => false,
+})
+globalThis.matchMedia = consultaMediosPruebas
+
 const memoria = new Map<string, string>()
 const almacenamientoPruebas: Storage = {
   get length() { return memoria.size },

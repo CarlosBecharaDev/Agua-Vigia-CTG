@@ -54,6 +54,11 @@
   --ease: cubic-bezier(.2, .75, .25, 1);
   --motion-fast: 140ms; --motion-ui: 220ms; --motion-page: 340ms;
   --z-header: 1200; --z-mobile-nav: 1300; --z-map-ui: 900;
+  /* Alto de la píldora de pestañas del pie (NavegacionInferior, solo ≤768px) y el hueco que
+     hay que dejarle debajo del contenido: su alto + los 0.6rem que la separan del borde +
+     0.7rem de aire + la franja del gesto de inicio del teléfono. */
+  --alto-nav-inferior: 60px;
+  --hueco-nav-inferior: calc(var(--alto-nav-inferior) + 1.3rem + env(safe-area-inset-bottom, 0px));
   --foco-outline: 3px solid rgba(8, 127, 140, .72); --foco-offset: 3px;
 }
 
@@ -798,8 +803,10 @@ select {
     justify-content: center !important;
   }
 
-  /* Logo: solo icono de gota */
-  #logo-aguavigia span {
+  /* Logo: solo icono de gota. La excepción es el navbar flotante de la página principal,
+     donde la marca es SOLO ese texto (no hay icono al lado): ahí esta regla no dejaba
+     ninguna marca, solo un hueco a la izquierda de la barra. */
+  #logo-aguavigia:not(.navbar-marca) span {
     display: none !important;
   }
 
@@ -2855,7 +2862,6 @@ select {
 }
 
 @media (max-width: 1024px) {
-  .panel-proyecto { display: none; }
   .panel-mapa-unificado {
     left: 1rem;
     right: 1rem;
@@ -2863,9 +2869,96 @@ select {
   }
 }
 
+/* ── Portada de teléfono y tableta ──
+   Por debajo de 1024px el panel del proyecto no cabe flotando junto al mapa, así que pasa a
+   ser la primera pantalla y el mapa queda a un scroll. Quien monta esto es PaginaMapa según
+   el mismo corte; acá solo se le quita el posicionamiento absoluto que usa en escritorio y
+   se compacta para 360px. */
+.portada-movil {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  justify-items: center;
+  align-items: center;
+  row-gap: 1rem;
+  min-height: 100dvh;
+  padding: calc(5rem + env(safe-area-inset-top, 0px)) 1rem 1.5rem;
+  /* El mismo negro violáceo del hero (#060010) con el halo morado que allí pinta el shader
+     de las olas: la portada y el mapa tienen que leerse como una superficie continua, no
+     como dos pantallas de proyectos distintos. */
+  background:
+    radial-gradient(130% 78% at 50% 96%, rgba(116, 74, 198, 0.72) 0%, rgba(58, 32, 108, 0.45) 40%, transparent 72%),
+    #060010;
+}
+
+.portada-movil .panel-proyecto {
+  position: static;
+  width: 100%;
+  max-width: 420px;
+}
+
+.portada-movil .panel-proyecto-card {
+  width: 100%;
+  padding: 0;
+}
+
+.portada-movil .panel-proyecto-marca {
+  margin-top: 0;
+  margin-bottom: 1.1rem;
+  gap: 0.7rem;
+}
+
+/* El antetítulo se retira en la portada: aquí es la pantalla entera del proyecto y ya lo
+   dicen el título y el eslogan. En escritorio se conserva, donde el panel compite con el mapa
+   al lado y necesita anunciarse. */
+.portada-movil .panel-proyecto-eyebrow { display: none; }
+
+.portada-movil .panel-proyecto-logo { width: min(130px, 38vw); }
+.portada-movil .panel-proyecto-titulo { font-size: clamp(1.9rem, 9.5vw, 2.4rem); }
+.portada-movil .panel-proyecto-slogan { font-size: clamp(1rem, 4.4vw, 1.15rem); margin-bottom: 0.7rem; }
+.portada-movil .panel-proyecto-copy { font-size: 0.86rem; margin-bottom: 1.15rem; }
+.portada-movil .panel-proyecto-suscripcion { padding-top: 1rem; gap: 0.75rem; }
+
+/* El mapa dejó de ser lo primero que se ve, así que hay que decir dónde quedó. Es un botón
+   de verdad y no una flecha decorativa: pulsarlo baja hasta el mapa (DESIGN.md §5, voz
+   activa — dice exactamente qué pasa). */
+.portada-movil-bajar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 44px;
+  padding: 0 0.95rem;
+  color: rgba(226, 232, 240, 0.72);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radio-pill);
+  font-family: var(--font-cuerpo);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Se mueve la punta de flecha, no el botón: un objetivo táctil que nunca se está quieto es
+   más difícil de acertar (y bloquea el clic de las pruebas automatizadas, que esperan a que
+   el elemento se estabilice). */
+.portada-movil-bajar svg {
+  animation: portada-bajar-latir 2.4s ease-in-out infinite;
+}
+
+@keyframes portada-bajar-latir {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+
+@media (max-width: 768px) {
+  /* Sitio para la píldora de pestañas del pie, que flota sobre esta pantalla. */
+  .portada-movil { padding-bottom: var(--hueco-nav-inferior); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .panel-proyecto-marca { opacity: 1; animation: none; }
   .panel-proyecto-logo { animation: none; }
+  .portada-movil-bajar svg { animation: none; }
 }
 
 /* ── Panel de sectores (resumen + lista accesible) — columna interna del recuadro único ── */
@@ -2890,8 +2983,14 @@ select {
   border-left: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 0;
   box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.06);
-  transition: flex-basis 460ms cubic-bezier(0.16, 1, 0.3, 1), opacity 260ms ease,
-    border-color 300ms ease;
+  /* El desvanecido va con retraso al ABRIR y sin retraso al CERRAR (ver el modificador
+     --colapsado). Abrir y cerrar no son el mismo gesto: al abrir, el contenido debe aparecer
+     cuando ya hay sitio para él —si entra a la vez que el hueco crece, se ve amontonarse—; al
+     cerrar tiene que irse primero, para que lo que encoja sea una superficie vacía y no un
+     texto aplastándose. */
+  transition: flex-basis 460ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 300ms ease 170ms,
+    border-color 300ms ease 170ms;
 }
 
 /* min-width:0 deshace el mínimo automático de los flex items (por defecto se calcula del
@@ -2914,6 +3013,9 @@ select {
   overflow: hidden;
   opacity: 0;
   border-left-color: transparent;
+  transition: flex-basis 460ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 190ms ease,
+    border-color 190ms ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3010,27 +3112,47 @@ select {
 } }
 
 @media (max-width: 768px) {
+  /* `bottom` deja sitio para la píldora de pestañas del pie (NavegacionInferior): sin eso
+     tapa el final de la columna de sectores, que aquí llega hasta el borde del hero. */
   .panel-mapa-unificado {
     top: 4.25rem;
     left: 0.5rem;
     right: 0.5rem;
-    bottom: 0.75rem;
+    bottom: var(--hueco-nav-inferior);
     width: auto;
     flex-direction: column;
     border-radius: 22px;
   }
 
+  /* En columna, el que manda el reparto es el mapa: la hoja va con `flex: 1 1 0` y ocupa
+     exactamente lo que le sobre. Así el colapso se anima moviendo UNA sola cosa —el
+     flex-basis del mapa, de 34vh a 100%— y la hoja lo sigue sola. Animar el flex-basis de la
+     hoja no serviría: en este eje su base es `auto`, y de `auto` a `0px` no hay interpolación
+     posible, el navegador salta. */
   .mapa-lienzo-completo {
     flex: 0 0 34vh;
     width: 100%;
     height: auto;
+    /* Curva pareja y no la de salida rápida del resto del panel: `cubic-bezier(0.16,1,0.3,1)`
+       cubre el 95% del recorrido en el primer tercio, y en un movimiento de ~400px de alto
+       eso se lee como un salto con una cola larga en vez de un desplazamiento. */
+    transition: flex-basis 520ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .panel-mapa-unificado--colapsado .mapa-lienzo-completo {
+    flex-basis: 100%;
   }
 
   .hoja-sectores {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     border-left: none;
     border-top: 1px solid var(--color-linea);
     min-height: 0;
+  }
+
+  /* Acá la costura con el mapa es el borde de arriba, no el de la izquierda. */
+  .panel-mapa-unificado--colapsado .hoja-sectores {
+    border-top-color: transparent;
   }
 
   .hoja-sectores-cab {
@@ -3121,6 +3243,16 @@ select {
     justify-content: space-between;
   }
 
+  /* La marca se centra en el hueco que queda a su izquierda —del borde de la barra al
+     interruptor de tema— en vez de quedar pegada al borde. Acá no hay buscador ni riel de
+     enlaces, así que sin esto ese espacio se veía vacío y la palabra descolgada en la
+     esquina. */
+  .navbar-marca {
+    flex: 1 1 auto;
+    justify-content: center;
+    min-width: 0;
+  }
+
   .navbar-marca-copy {
     font-size: 0.95rem;
   }
@@ -3129,17 +3261,20 @@ select {
     display: none;
   }
 
-  .navbar-reportar span {
-    display: none;
+  /* Con su texto, no reducido a un círculo con un megáfono: es la acción principal del
+     producto (RF de reporte ciudadano) y un icono suelto no dice qué hace. Cabe: a 360px la
+     barra queda en marca + tema + botón con etiqueta, sin desbordar. */
+  .navbar-reportar {
+    gap: 0.35rem;
+    min-height: 38px;
+    padding: 0 0.75rem;
+    font-size: 0.78rem;
   }
 
-  .navbar-reportar {
-    padding: 0;
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    border-radius: 9999px;
-    justify-content: center;
+  /* Sitio para la píldora de pestañas del pie, para que el pie de la página no quede
+     permanentemente debajo de ella. */
+  .pagina-principal {
+    padding-bottom: var(--hueco-nav-inferior);
   }
 }
 

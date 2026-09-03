@@ -277,15 +277,38 @@ export const MapaCartagena: FC<Props> = ({
   // ResizeObserver lo dispara automáticamente cada vez que el contenedor cambia, sin que
   // este componente necesite saber POR QUÉ cambió (colapsar la columna, redimensionar la
   // ventana, cualquier causa futura).
+  //
+  // Va agrupado en un requestAnimationFrame y con `pan: false`. El observador dispara en
+  // CADA cuadro mientras el marco se anima al colapsar la columna, e invalidateSize recoloca
+  // todas las capas y pide teselas nuevas: llamarlo treinta veces seguidas hundía la
+  // animación a ~12 cuadros por segundo, que es lo que se percibía como un salto brusco y no
+  // como una transición. Con el agrupado se hace como mucho una vez por cuadro pintado, y
+  // `pan: false` le ahorra además recentrar la vista en cada una — el centro no cambia,
+  // cambia el tamaño. Al asentarse se repite una última vez con las opciones completas para
+  // quedar con la medida definitiva.
   useEffect(() => {
     const contenedor = contenedorRef.current
     if (!contenedor) return
 
+    let cuadro = 0
+    let reposo: ReturnType<typeof setTimeout> | undefined
+
     const ro = new ResizeObserver(() => {
-      mapaRef.current?.invalidateSize()
+      if (!cuadro) {
+        cuadro = requestAnimationFrame(() => {
+          cuadro = 0
+          mapaRef.current?.invalidateSize({ pan: false })
+        })
+      }
+      clearTimeout(reposo)
+      reposo = setTimeout(() => mapaRef.current?.invalidateSize(), 160)
     })
     ro.observe(contenedor)
-    return () => ro.disconnect()
+    return () => {
+      ro.disconnect()
+      if (cuadro) cancelAnimationFrame(cuadro)
+      clearTimeout(reposo)
+    }
   }, [])
 
   // Cargar GeoJSON y colorear polígonos

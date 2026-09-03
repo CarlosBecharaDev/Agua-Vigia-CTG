@@ -1,0 +1,122 @@
+/* NavegacionInferior — píldora de pestañas al pie, solo teléfono.
+   Mismo vidrio oscuro que `.navbar-superior` (index.css) a propósito: son la misma pieza de
+   chrome, una arriba y otra abajo, y sobre el hero negro las dos tienen que leerse igual. */
+
+.nav-inferior {
+  position: fixed;
+  left: 0.6rem;
+  right: 0.6rem;
+  bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
+  z-index: 1200;
+  height: var(--alto-nav-inferior);
+
+  /* La luz es turquesa fija y no un token de tema: la barra es oscura en los dos temas, así
+     que el acento claro (#087f8c) se apagaría contra ella. Es el mismo acento del tema
+     oscuro, que es el que este fondo pide. Un solo color para las cuatro pestañas —
+     DESIGN.md §2 reserva verde/rojo/ámbar/gris para el estado del servicio. */
+  --luz-nav: #78d9db;
+
+  /* pan-y: el desplazamiento vertical de la página sigue siendo del navegador; el
+     horizontal es nuestro, que es como se arrastra la luz de una pestaña a otra. */
+  touch-action: pan-y;
+
+  /* Más opaca que `.navbar-superior`: aquella solo flota sobre el hero, y esta pasa por
+     encima de la Bitácora y las Estadísticas, que son texto. Con el mismo 0.62 las etiquetas
+     de las pestañas competían con los titulares que se transparentaban por detrás. */
+  background: linear-gradient(155deg, rgba(24, 24, 32, 0.86) 0%, rgba(11, 11, 16, 0.78) 100%);
+  backdrop-filter: blur(20px) saturate(175%);
+  -webkit-backdrop-filter: blur(20px) saturate(175%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  box-shadow:
+    0 -14px 36px -14px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  animation: nav-inferior-subir 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes nav-inferior-subir {
+  from { opacity: 0; transform: translateY(140%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* `overflow: visible` para que el resplandor del trazo no se recorte contra la caja del
+   SVG; el halo se hace con drop-shadow y no con un segundo trazo borroso porque un filtro
+   de desenfoque sobre un path que cambia cada cuadro se repinta entero en cada uno. */
+.nav-inferior-luz {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  stroke: var(--luz-nav);
+  filter:
+    drop-shadow(0 0 4px color-mix(in srgb, var(--luz-nav) 70%, transparent))
+    drop-shadow(0 0 12px color-mix(in srgb, var(--luz-nav) 40%, transparent));
+}
+
+.nav-inferior-lista {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav-inferior-lista li {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.nav-inferior-pestana {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  width: 100%;
+  height: 100%;
+  /* DESIGN.md §7: 44px mínimo. La barra mide 60 y la pestaña la ocupa entera. */
+  min-height: 44px;
+  padding: 0 0.15rem;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.55);
+  transition: color 0.28s ease;
+}
+
+.nav-inferior-pestana--activa { color: #fff; }
+
+.nav-inferior-pestana:focus-visible {
+  outline: 2px solid var(--luz-nav);
+  outline-offset: -3px;
+  border-radius: 16px;
+}
+
+/* 36px de lado: es la caja que el anillo rodea (r = 18 en NavegacionInferior.tsx, que mide
+   el centro real de este nodo). Cambiar uno sin el otro descentra la luz. */
+.nav-inferior-icono {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+}
+
+.nav-inferior-etiqueta {
+  max-width: 100%;
+  overflow: hidden;
+  font-family: var(--font-cuerpo);
+  font-size: clamp(0.54rem, 2.7vw, 0.65rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-inferior { animation: none; }
+  .nav-inferior-pestana { transition: none; }
+}
