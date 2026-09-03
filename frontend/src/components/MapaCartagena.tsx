@@ -9,12 +9,12 @@
  *
  * Leaflet requiere que su CSS se importe antes de crear el mapa.
  */
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { FC } from 'react'
 // (No se requiere Link aquí)
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { Locate } from 'lucide-react'
+import { Locate, Minus, Plus } from 'lucide-react'
 import type { EstadoServicio, Sector } from '../types/tipos-dominio'
 import { COLOR_POR_ESTADO, COLOR_SIN_DATOS } from '../types/tipos-dominio'
 import { EtiquetaFrescura } from './EtiquetaFrescura'
@@ -99,6 +99,14 @@ export const MapaCartagena: FC<Props> = ({
   const capaRef = useRef<L.GeoJSON | null>(null)
   const capaBaseRef = useRef<L.TileLayer | null>(null)
   const destacadoLayerRef = useRef<L.LayerGroup | null>(null)
+
+  // Nivel de zoom actual, solo para apagar el botón que ya no puede hacer nada.
+  const [zoom, setZoom] = useState(ZOOM_INICIAL)
+
+  // Aviso del gesto: en táctil el mapa arranca sordo al arrastre de un dedo, porque ese mismo
+  // gesto es el que desplaza la página, y hay que decir cómo soltarlo. El bloqueo en sí no
+  // vive en el estado de React sino en una clase del contenedor (ver el efecto más abajo).
+  const [aviso, setAviso] = useState<'oculto' | 'pista' | 'libre'>('oculto')
 
   // Índice de sectores por nombre normalizado para lookup O(1)
   const indiceSectores = useRef<Map<string, Sector>>(new Map())
@@ -226,6 +234,8 @@ export const MapaCartagena: FC<Props> = ({
       preferCanvas: true, // Renderizar capas vectoriales en Canvas HTML5 para 60fps fluidos en móviles
     })
 
+    mapa.on('zoomend', () => setZoom(mapa.getZoom()))
+
     L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(mapa)
 
     // La capa base cambia entre claro/oscuro según el tema activo, para que el mapa nunca
@@ -311,6 +321,116 @@ export const MapaCartagena: FC<Props> = ({
     }
   }, [])
 
+  // Arrastre de un dedo: bloqueado hasta que se mantiene pulsado.
+  //
+  // El mapa ocupa el alto del hero, así que en teléfono el mismo gesto que lo panea es el que
+  // desplaza la página, y ganaba siempre el mapa: Leaflet pone `touch-action: none` en su
+  // contenedor y el dedo se quedaba atrapado moviendo Cartagena en vez de bajar a la Bitácora.
+  //
+  // No se desactiva `map.dragging`: se dejan pasar los `touchstart` —para que Leaflet apunte
+  // el punto de partida— y se detienen los `touchmove` en fase de CAPTURA, antes de que
+  // lleguen al listener que Leaflet tiene puesto en `document`. Así, cuando el temporizador
+  // suelta el bloqueo a mitad del gesto, el arrastre arranca desde el punto original y sin
+  // salto, en vez de exigir levantar el dedo y volver a empezar.
+  //
+  // El desplazamiento de la página se corta con `preventDefault`, no con `touch-action`: el
+  // navegador fija el touch-action al EMPEZAR el gesto y no vuelve a mirarlo, así que
+  // cambiar la clase a mitad de una pulsación larga no lo desharía — la página se seguiría
+  // desplazando durante todo ese gesto. Por eso el listener es no pasivo. La clase sigue
+  // existiendo para los gestos SIGUIENTES, que sí arrancan ya desbloqueados.
+  //
+  // Con dos dedos no se interviene: el pellizco para hacer zoom no compite con nada.
+  useEffect(() => {
+    const contenedor = contenedorRef.current
+    if (!contenedor) return
+    if (!window.matchMedia('(pointer: coarse)').matches) return
+
+    const RETENCION_MS = 400
+    const TOLERANCIA_PX = 12
+    const GRACIA_MS = 1600
+
+    // classList y no la prop `className` del JSX: Leaflet agrega las suyas al mismo nodo
+    // (leaflet-container, leaflet-grab, leaflet-touch-drag...) y React, al re-renderizar,
+    // reescribe el atributo entero y se las lleva por delante — con ellas se iba el fondo,
+    // el cursor y el propio touch-action que esto quiere ajustar.
+    const marcarBloqueo = (bloqueado: boolean) =>
+      contenedor.classList.toggle('mapa-gesto-bloqueado', bloqueado)
+    marcarBloqueo(true)
+
+    let libre = false
+    let retencion: ReturnType<typeof setTimeout> | undefined
+    let recaida: ReturnType<typeof setTimeout> | undefined
+    let ocultarAviso: ReturnType<typeof setTimeout> | undefined
+    let inicio: { x: number; y: number } | null = null
+
+    const alTocar = (e: TouchEvent) => {
+      clearTimeout(recaida)
+      if (e.touches.length !== 1) return
+      inicio = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+      if (!libre) {
+        setAviso('pista')
+        clearTimeout(ocultarAviso)
+        ocultarAviso = setTimeout(() => setAviso('oculto'), 2600)
+      }
+      clearTimeout(retencion)
+      retencion = setTimeout(() => {
+        libre = true
+        marcarBloqueo(false)
+        setAviso('libre')
+        clearTimeout(ocultarAviso)
+        ocultarAviso = setTimeout(() => setAviso('oculto'), 1800)
+        navigator.vibrate?.(12)
+      }, RETENCION_MS)
+    }
+
+    const alMover = (e: TouchEvent) => {
+      if (e.touches.length > 1) return
+      if (libre) {
+        // Ya desbloqueado: el mapa se queda con el gesto y la página no se mueve.
+        if (e.cancelable) e.preventDefault()
+        return
+      }
+      if (inicio) {
+        const d = Math.hypot(e.touches[0].clientX - inicio.x, e.touches[0].clientY - inicio.y)
+        // Se movió antes de tiempo: está desplazando la página, no queriendo mover el mapa.
+        if (d > TOLERANCIA_PX) clearTimeout(retencion)
+      }
+      e.stopPropagation()
+    }
+
+    const alSoltar = () => {
+      clearTimeout(retencion)
+      inicio = null
+      if (!libre) return
+      // Un margen tras levantar el dedo: encadenar dos arrastres no debería costar dos
+      // pulsaciones largas.
+      clearTimeout(recaida)
+      recaida = setTimeout(() => {
+        libre = false
+        marcarBloqueo(true)
+      }, GRACIA_MS)
+    }
+
+    const pasivo = { capture: true, passive: true } as const
+    // El de `touchmove` NO puede ser pasivo: es el único que llama a preventDefault.
+    const activo = { capture: true, passive: false } as const
+    contenedor.addEventListener('touchstart', alTocar, pasivo)
+    contenedor.addEventListener('touchmove', alMover, activo)
+    contenedor.addEventListener('touchend', alSoltar, pasivo)
+    contenedor.addEventListener('touchcancel', alSoltar, pasivo)
+
+    return () => {
+      contenedor.removeEventListener('touchstart', alTocar, pasivo)
+      contenedor.removeEventListener('touchmove', alMover, activo)
+      contenedor.removeEventListener('touchend', alSoltar, pasivo)
+      contenedor.removeEventListener('touchcancel', alSoltar, pasivo)
+      clearTimeout(retencion)
+      clearTimeout(recaida)
+      clearTimeout(ocultarAviso)
+      marcarBloqueo(false)
+    }
+  }, [])
+
   // Cargar GeoJSON y colorear polígonos
   useEffect(() => {
     const mapa = mapaRef.current
@@ -385,6 +505,37 @@ export const MapaCartagena: FC<Props> = ({
         aria-label="Mapa interactivo de sectores de Cartagena con estado del servicio de agua"
         style={{ height: '100%', width: '100%' }}
       />
+
+      {/* Solo aparece en pantallas táctiles, porque solo ahí existe el bloqueo (ver el efecto
+          del arrastre). `role="status"` y no un `alert`: informa, no interrumpe. */}
+      {aviso !== 'oculto' && (
+        <p className={`mapa-aviso-gesto mapa-aviso-gesto--${aviso}`} role="status">
+          {aviso === 'pista' ? 'Mantén pulsado para mover el mapa' : 'Ya puedes arrastrar el mapa'}
+        </p>
+      )}
+
+      <div className="mapa-controles-inferior-izquierda">
+        <button
+          type="button"
+          className="panel-glass mapa-boton-zoom"
+          aria-label="Acercar el mapa"
+          title="Acercar"
+          disabled={zoom >= (mapaRef.current?.getMaxZoom() ?? 19)}
+          onClick={() => mapaRef.current?.zoomIn()}
+        >
+          <Plus size={18} aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          className="panel-glass mapa-boton-zoom"
+          aria-label="Alejar el mapa"
+          title="Alejar"
+          disabled={zoom <= (mapaRef.current?.getMinZoom() ?? 0)}
+          onClick={() => mapaRef.current?.zoomOut()}
+        >
+          <Minus size={18} aria-hidden="true" />
+        </button>
+      </div>
 
       {/* Frescura de los datos + botón "centrar mapa" — apilados, abajo a la derecha del recuadro */}
       <div className="mapa-controles-inferior-derecha">

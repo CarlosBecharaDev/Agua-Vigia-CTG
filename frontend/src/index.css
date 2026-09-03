@@ -2694,6 +2694,89 @@ select {
   gap: 0.5rem;
 }
 
+/* ── Bloqueo del arrastre de un dedo (solo táctil, ver MapaCartagena) ──
+   Leaflet deja el contenedor en `touch-action: none` cuando el arrastre y el pellizco están
+   activos, y con eso la página no se puede desplazar empezando encima del mapa. Mientras el
+   gesto está bloqueado se cambia a `pan-y`: el navegador se queda con el desplazamiento
+   vertical y el pellizco (dos dedos) sigue llegando al mapa. La cadena de cuatro clases es
+   para ganarle en especificidad a la regla de leaflet.css, que tiene tres. */
+.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom.mapa-gesto-bloqueado {
+  touch-action: pan-y;
+}
+
+/* Aviso del gesto. Arriba y centrado: abajo están la atribución, los botones de zoom y la
+   etiqueta de frescura. */
+.mapa-aviso-gesto {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  margin: 0;
+  max-width: calc(100% - 1.5rem);
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radio-pill);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(12, 12, 17, 0.82);
+  backdrop-filter: blur(10px);
+  color: #f1f5f9;
+  font-family: var(--font-cuerpo);
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: mapa-aviso-entrar 220ms var(--ease) both;
+}
+
+.mapa-aviso-gesto--libre {
+  border-color: rgba(120, 217, 219, 0.45);
+  color: #78d9db;
+}
+
+@keyframes mapa-aviso-entrar {
+  from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mapa-aviso-gesto { animation: none; }
+}
+
+/* Botones de zoom — abajo a la izquierda, por encima de la atribución de las teselas. */
+.mapa-controles-inferior-izquierda {
+  position: absolute;
+  bottom: 1.9rem;
+  left: 0.75rem;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.mapa-boton-zoom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  color: var(--color-tinta-2);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color var(--transicion), transform var(--transicion), opacity var(--transicion);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .mapa-boton-zoom:hover:not(:disabled) { color: var(--color-tinta); transform: scale(1.06); }
+}
+
+.mapa-boton-zoom:active:not(:disabled) { transform: scale(0.94); }
+
+.mapa-boton-zoom:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
 .mapa-boton-centrar {
   display: flex;
   align-items: center;
