@@ -2083,8 +2083,56 @@ bajar el umbral de contraste de §7 o dejar de usarlos como color de texto.
 
 ---
 
+## ADR-043 — Allowlist de gitleaks acotado al valor de la semilla TOTP de prueba del RFC 6238
+
+- **Fecha:** 2026-09-04
+- **Estado:** Aceptada
+- **Decide:** sesión de actualización y análisis del proyecto
+
+### Contexto
+El job "Escaneo de secretos" (`gitleaks`) quedó en rojo en `main` desde el merge del
+[PR #152](https://github.com/CarlosBecharaDev/Agua-Vigia-CTG/pull/152) (`c56afcb`). Verificado con
+`gh run view 33874369838 --log-failed`: el hallazgo es la regla `generic-api-key` sobre
+`backend/src/test/java/com/aguavigia/ctg/infrastructure/security/TotpAdapterTest.java:106`,
+introducido en el commit `df216373` (2026-09-01).
+
+El valor marcado es `GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ` — la codificación Base32 de la cadena
+`"12345678901234567890"`, que es la semilla de prueba oficial de los vectores de test del RFC 4226
+§B.1 / RFC 6238, reutilizada en el propio test de este proyecto (`SEMILLA_DEL_RFC`,
+`TotpAdapterTest.java`) para verificar que `uriDeAlta(...)` arma bien el `otpauth://` con
+`secret=`, `issuer=`, `digits=` y `period=`. No es una clave que exista fuera de ese test: no abre
+ninguna cuenta real ni corresponde a `JWT_SECRET`/`VEEDOR_PASSWORD_HASH`/`ANTHROPIC_API_KEY` ni a
+ningún secreto de `.env`.
+
+### Alternativas consideradas
+| Opción | A favor | En contra |
+|---|---|---|
+| Dejar el CI en rojo | Cero cambios | Mismo riesgo que `ADR-031`: entrena a ignorar el gate |
+| Cambiar el valor del test por otro inventado | El scanner no tiene nada que marcar | Deja de probar contra el vector oficial del RFC — si `TotpAdapter` alguna vez rompiera el caso de RFC, el test ya no lo detectaría con la misma autoridad |
+| `paths` en `.gitleaks.toml` que excluye todo `TotpAdapterTest.java` (mismo patrón de `ADR-031`) | Simple, consistente con la excepción ya existente | Más ancho de lo necesario: ese archivo podría ganar un secreto real distinto en el futuro y quedaría fuera del radar |
+| `regexes` en `.gitleaks.toml` que excluye solo ese valor exacto, en cualquier archivo | Tan acotado como es posible — no exime ningún archivo ni ninguna otra cadena | Si el mismo valor apareciera alguna vez como parte de un secreto real (improbable: es un vector público del RFC), tampoco se detectaría |
+
+### Decisión
+Agregar `regexes` al `[allowlist]` de `.gitleaks.toml` con el valor literal
+`GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ`, sin tocar `paths` (que sigue acotado solo a
+`docs/ingenieria/entorno-local.md`, `ADR-031`). El test no se modifica.
+
+### Consecuencias
+- **Gana:** el job "Escaneo de secretos" vuelve a verde sin ocultar el motivo, y sin ampliar la
+  superficie de la excepción existente — `TotpAdapterTest.java` sigue escaneado por completo salvo
+  por esta cadena puntual.
+- **Pierde:** nada de valor real — el vector es público (RFC 4226/6238) y no protege ningún acceso.
+- **Condiciona:** cualquier otro test que reutilice el mismo vector de RFC en el futuro queda cubierto
+  por la misma regla, sin necesidad de una entrada nueva.
+
+### Cómo se revierte
+Quitar la entrada de `regexes` en `.gitleaks.toml`. Si para entonces `TotpAdapterTest.java` ya no usa
+`SEMILLA_DEL_RFC`, revertir no reabre ningún hallazgo.
+
+---
+
 <!--
-Siguiente número disponible: ADR-043
+Siguiente número disponible: ADR-044
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->
