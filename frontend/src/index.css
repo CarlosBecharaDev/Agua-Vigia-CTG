@@ -39,7 +39,7 @@
   --color-coral-hover: #c64c42;
   --color-estado-con: #1c7f55;
   --color-estado-sin: #ae3428;
-  --color-estado-baja: #a87310;
+  --color-estado-baja: #94640c;
   --color-estado-prog: #2a628f;
   --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-cuerpo: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -85,11 +85,6 @@
 
     --sombra-suave: 0 4px 20px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15);
     --sombra-elevada: 0 12px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
-
-    --color-estado-con:   #30d158;
-    --color-estado-sin:   #ff453a;
-    --color-estado-baja:  #ff9f0a;
-    --color-estado-prog:  #98989d;
 
     color-scheme: dark;
   }
@@ -387,11 +382,6 @@ p { max-width: 65ch; }
   --nebulosa-2: rgba(38, 54, 120, 0.08);
   --nebulosa-3: rgba(30, 120, 150, 0.09);
   --nebulosa-4: rgba(84, 198, 202, 0.12);
-
-  --color-estado-con:    #34c759;
-  --color-estado-sin:    #ff3b30;
-  --color-estado-baja:   #ff9500;
-  --color-estado-prog:   #8e8e93;
 
   color-scheme: light;
 }
@@ -2630,10 +2620,10 @@ select {
   --glass-r: 28;
   --glass-g: 28;
   --glass-b: 30;
-  --color-estado-con: #30d158;
-  --color-estado-sin: #ff453a;
-  --color-estado-baja: #ff9f0a;
-  --color-estado-prog: #98989d;
+  --color-estado-con: #4fbf89;
+  --color-estado-sin: #e2695b;
+  --color-estado-baja: #d9a63c;
+  --color-estado-prog: #6ba8da;
   color-scheme: dark;
 }
 

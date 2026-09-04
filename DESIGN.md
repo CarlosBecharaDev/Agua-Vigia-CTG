@@ -24,12 +24,21 @@ Cualquier elemento que compita con esa respuesta sobra. Cualquier elemento que l
 
 Todo el producto gira alrededor de cuatro estados. Son la única jerarquía cromática que importa.
 
-| Estado | Color | Uso | Nunca |
-|---|---|---|---|
-| **Con servicio** | Verde `#34c759` (claro) / `#30d158` (oscuro) | Sector operando normal | No usar verde para "éxito" genérico de la interfaz |
-| **Sin servicio** | Rojo `#ff453a` (ambos temas) | Corte confirmado | No usar rojo para errores de formulario |
-| **Presión baja** | Ámbar `#ff9f0a` (ambos temas) | Servicio degradado | No usar ámbar para advertencias de la interfaz |
-| **Corte programado** | Gris `#98989d` (ambos temas) | Anunciado, aún no iniciado | No usar este gris para texto secundario genérico |
+| Estado | Claro | Oscuro | Uso | Nunca |
+|---|---|---|---|---|
+| **Con servicio** | `#1c7f55` | `#4fbf89` | Sector operando normal | No usar verde para "éxito" genérico de la interfaz |
+| **Sin servicio** | `#ae3428` | `#e2695b` | Corte confirmado | No usar rojo para errores de formulario |
+| **Presión baja** | `#94640c` | `#d9a63c` | Servicio degradado | No usar ámbar para advertencias de la interfaz |
+| **Corte programado** | `#2a628f` | `#6ba8da` | Anunciado, aún no iniciado | No usar este gris para texto secundario genérico |
+
+Los cuatro son más oscuros en el tema claro que la paleta viva de la que salieron (`#34c759`,
+`#ff453a`, `#ff9f0a`, `#98989d`): esa versión daba entre 2.0:1 y 3.3:1 sobre superficie clara y no
+pasaba el AA que exige §7. Medido y decidido en `ADR-042`.
+
+**Una sola fuente por token.** Estos valores viven en `--color-estado-*` de `frontend/src/index.css`
+y en `COLOR_POR_ESTADO` de `frontend/src/types/tipos-dominio.ts` — el CSS pinta la leyenda y el TS
+pinta los polígonos del mapa. **Si divergen, el mismo estado sale de un color en el mapa y de otro
+en la leyenda, y el color deja de significar algo.** Cambiarlos es cambiar los dos a la vez.
 
 **Regla estricta:** estos cuatro colores están reservados para el estado del servicio. La interfaz
 usa el acento turquesa para todo lo demás. Si un botón de "guardar" es verde, el mapa pierde su
@@ -45,15 +54,18 @@ solo es un refuerzo, no el mensaje.
 
 ```
 Acento turquesa   #087f8c  (claro)   #54c6ca  (oscuro)
-Acento vivo       #0a9cab            #78d9db
-Acento suave      #d9f1f0            #153f44
-Tinta             #12333d            #edf8f7
-Tinta secundaria  #5d7379            #a7bdbd
-Tinta terciaria   #8da0a4            #71898c
-Línea             #dce8e8            #234a4f
-Superficie        #ffffff            #102f36
-Fondo             #f3f8f7            #071f26
+Acento vivo       #0796a5            #78d9db
+Acento suave      #dcefee            #153f44
+Tinta             #102f39            #eef8f7
+Tinta secundaria  #526a70            #aac0c0
+Tinta terciaria   #789095            #789296
+Línea             #d8e5e3            #24454b
+Superficie        #fbfdfc            #0c2830
+Fondo             #f2f7f6            #061c23
 ```
+
+Fuente única: `:root` de `frontend/src/index.css`. Esta tabla es su copia legible — si difieren,
+manda el CSS y esta tabla es el defecto.
 
 Los neutros tienen un sesgo azulado sutil, no son grises puros. Es una decisión: el gris neutro se lee
 como plantilla sin criterio; un neutro con temperatura se lee como elegido.
@@ -68,12 +80,13 @@ como plantilla sin criterio; un neutro con temperatura se lee como elegido.
 
 | Rol | Familia | Uso |
 |---|---|---|
-| Display | `ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif` | Titulares, cifras grandes |
-| Cuerpo | `system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` | Todo el texto corrido |
-| Utilidad | `ui-monospace, "Cascadia Mono", Consolas, monospace` | Códigos (RF001), horas, etiquetas, datos tabulares |
+| Display | `-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif` | Titulares, cifras grandes |
+| Cuerpo | `-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif` | Todo el texto corrido |
+| Utilidad | `ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace` | Códigos (RF001), horas, etiquetas, datos tabulares |
 
-**Serif para titulares** porque el proyecto es un documento cívico, un informe ciudadano — no una
-app de startup. La serif le da autoridad de reporte público.
+**Ninguna familia se nombra si no se carga.** El proyecto no trae webfonts, así que un token que
+diga `Inter` cae en silencio a la siguiente de la pila: se lee como una decisión tipográfica que en
+realidad nunca ocurre. Solo pilas de sistema.
 
 **Nada de webfonts por CDN.** La política de seguridad de contenido las bloquea y caen en silencio a
 una fuente de sistema. Se usan pilas de fuentes locales.
