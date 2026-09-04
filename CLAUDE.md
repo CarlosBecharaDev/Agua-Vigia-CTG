@@ -19,9 +19,13 @@ vacío de información que multiplica el daño. Toda decisión de alcance se juz
 
 ## Estado actual
 
-**Sprint 0 · Fase: ANDAMIAJE.** Se permite estructura de proyecto, configuración, infraestructura,
-tokens visuales y rutas vacías. Se prohíbe la funcionalidad: **si el código implementa un `RF`, no va
-en el Sprint 0** (`ADR-009`). Ante un caso de frontera, pregunta antes de escribirlo.
+**Sprint 0 y 1 cerrados; Sprint 2 abierto.** El andamiaje terminó: M1–M15 están construidos, backend
+y frontend conectados, y `ADR-009` ya no aplica — implementar un `RF` es el trabajo normal ahora.
+Falta `RF041` (webhook real de WhatsApp/Telegram), que depende de credenciales de terceros.
+**563 pruebas de backend** (16 exigen Docker y no corren sin él) **y 95 de frontend**.
+
+⚠️ **La gestión de sprints va por detrás del código:** `sprint-2.md` sigue abierto y el repositorio
+ya entregó M10–M15. Antes de planear, contrasta contra el código, no contra la tabla.
 
 **7 sprints: Sprint 0 (preparación) + Sprints 1–6. Un sprint no cierra por calendario: cierra cuando
 su entregable se demuestra funcionando.** Los 7 entregables, en `docs/gestion/README.md`.
@@ -30,8 +34,8 @@ su entregable se demuestra funcionando.** Los 7 entregables, en `docs/gestion/RE
 
 ## Stack
 
-**Backend** Spring Boot 3.4 · Java 21 · Maven · MongoDB (documentos + geoespacial `2dsphere`) ·
-Redis (caché, rate limiting, ventana de consenso, pub/sub) · Anthropic Java SDK, modelo `claude-opus-5`
+**Backend** Spring Boot 3.5.16 · Java 21 · Maven · MongoDB (documentos + geoespacial `2dsphere`) ·
+Redis (caché, rate limiting, ventana de consenso, pub/sub). **Sin SDK de IA**: se descartó en `ADR-025`
 **Frontend** React 19 · Vite · TypeScript · Tailwind · Leaflet/react-leaflet · Recharts · TanStack Query
 **Infraestructura** Docker multi-etapa + docker compose · GitHub Actions
 
@@ -130,12 +134,13 @@ afirmar que una fuente está bloqueada o disponible, verifícalo con una petici�
 ```
 /                       CLAUDE.md · DESIGN.md · MEMORY.md · README.md · .mcp.json
 .claude/                skills/ · agents/ · settings.json
-docs/                   brief.md · product-requirements.md (36 RF, 20 RNF) · design-decisions.md (ADR)
+openspec/               specs/ — qué hace el sistema hoy, validable con `openspec validate` (`ADR-040`)
+docs/                   brief.md · product-requirements.md (46 RF, 25 RNF) · design-decisions.md (ADR)
 docs/equipo/            Titulares D1–D5, tareas por sprint y secuencia de trabajo
 docs/ingenieria/        Pipeline de datos, auditoría de fuentes, matriz de trazabilidad
 docs/gestion/           Scrum, bitácora, bugs, implementaciones, bloqueos y compuertas
 docs/informe-metodologico/ · docs/anexos/   Los 4 capítulos y los 6 anexos académicos
-frontend/               React 19 + Vite — esqueleto de Sprint 0 · backend/ lo crea D2 (Sprint 0)
+frontend/ · backend/    React 19 + Vite · Spring Boot — ambos completos y conectados
 ```
 
 ---
@@ -143,12 +148,8 @@ frontend/               React 19 + Vite — esqueleto de Sprint 0 · backend/ lo
 ## Formato académico obligatorio
 
 Plantilla del Tecnológico Comfenalco: **4 capítulos + 6 anexos + referencias APA 7**. No inventes
-secciones ni las renombres — el docente evalúa contra esa plantilla.
-
-⚠️ **La plantilla oficial aún no está en el repositorio**: el índice de
-`docs/informe-metodologico/README.md` es una reconstrucción y validarla es tarea bloqueante de D1.
-
-Enfoque investigativo: **proyectiva, mixta**, validada con **Alfa de Cronbach ≥ 0.75**.
+secciones ni las renombres — el docente evalúa contra esa plantilla. Enfoque **proyectivo, mixto**,
+validado con **Alfa de Cronbach ≥ 0.75**. Detalle y estado en `docs/informe-metodologico/README.md`.
 
 ---
 
@@ -182,6 +183,7 @@ No es opcional: es parte de la definición de terminado y el insumo del Capítul
 | Se encuentra un bug (aunque se arregle en el acto) | `docs/gestion/registro-de-bugs.md` | `registrar-bug` |
 | Termina una sesión de trabajo con IA | `docs/gestion/bitacora-sesiones.md` | `cerrar-sesion` |
 | Se elige entre alternativas técnicas | `docs/design-decisions.md` | `registrar-decision` |
+| Cambia el comportamiento del sistema | `openspec/specs/<capacidad>/spec.md`, en el mismo PR | `/opsx:propose` |
 | Se verifica una fuente de datos | `docs/ingenieria/auditoria-fuentes-de-datos.md` | `verificar-fuente` |
 | Una tarea no puede avanzar por falta del insumo de otro rol | `docs/gestion/registro-de-bloqueos.md` **+ aviso en el chat** | `registrar-bloqueo` |
 | Avanza un compromiso del sprint (entregado o a medias) | `docs/gestion/sprint-N.md` §2 — `✅`/`🟡` al inicio del Entregable | — |

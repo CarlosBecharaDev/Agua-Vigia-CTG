@@ -142,7 +142,7 @@ Todos medibles. Un RNF sin métrica y umbral no es verificable y no cuenta.
 
 | ID | Requisito | Verificación |
 |---|---|---|
-| RNF017 | La cobertura de pruebas en `domain/` y `application/` debe ser **≥ 70%**. *(Deuda Técnica: actualmente la validación estricta fue removida por baja cobertura en puertos).* | JaCoCo en CI |
+| RNF017 | La cobertura de pruebas en `domain/` y `application/` debe ser **≥ 70%**. El umbral que la build exige es **85%**, y no 70, porque un umbral 20 puntos por debajo del valor real no protege de nada — justificado en el `pom.xml`. | JaCoCo con `check` en fase `verify`: la build falla por debajo del 85% |
 | RNF018 | La build debe fallar si se viola una regla de arquitectura. | ArchUnit en CI |
 | RNF019 | La precisión del clasificador de IA sobre el conjunto dorado debe ser **≥ 90%**. | Descartado (No esta vez) |
 | RNF020 | El sistema completo debe levantarse en una máquina limpia con **un solo comando**. | `docker compose up` |

@@ -7,6 +7,10 @@
 > descartó. **Léelo antes de proponer alternativas.**
 >
 > Para agregar una entrada: usa la skill `registrar-decision`.
+>
+> **Aquí vive el *porqué*, no el *qué*.** El comportamiento del sistema se especifica en
+> `openspec/specs/` y se valida con `openspec validate --specs` (`ADR-040`). Un ADR no repite
+> lo que hace el sistema; una spec no repite por qué se decidió así.
 
 ---
 
@@ -1892,8 +1896,195 @@ partes: dejar `ADMIN_INICIAL_CORREO` vacío desactiva la siembra; bajar el rol d
 apaga el TOTP obligatorio sin tocar nada más. Volver a una clave compartida exigiría reponer el
 `VeedorAuthController` anterior y aceptar que la auditoría deje de atribuir acciones.
 
+
+## ADR-040 — Adoptar OpenSpec como capa de especificación viva, sin mover la bitácora de decisiones
+
+- **Fecha:** 2026-09-04
+- **Estado:** Aceptada
+- **Decide:** Equipo completo
+
+### Contexto
+El repositorio describe lo que el sistema hace en cuatro sitios a la vez: `docs/product-requirements.md`
+(los RF y RNF), `docs/ingenieria/matriz-trazabilidad.md` (RF → prueba), `backend/openapi.yaml` (el
+contrato HTTP) y los nombres de las 563 pruebas. Ninguno de los cuatro es ejecutable como
+especificación: nada falla si el código y el requisito se separan, y ya ocurrió — `RNF017` decía en
+el PRD que la validación estricta de cobertura «fue removida» mientras el `pom.xml` la exigía al 85%.
+
+Además, el trabajo entra al repositorio sin un artefacto previo que diga qué se va a cambiar y por
+qué. Las decisiones se registran aquí *después*, y los bugs en `registro-de-bugs.md` *después*. Falta
+el paso de antes.
+
+### Alternativas consideradas
+| Opción | A favor | En contra |
+|---|---|---|
+| Seguir solo con el PRD y la matriz | Cero herramienta nueva; el equipo ya lo conoce | Nada verifica que el documento y el código digan lo mismo; ya se desincronizaron |
+| Migrar los ADR a un archivo por decisión bajo `docs/adr/` | Archivos más cortos, menos conflictos de merge | Rompe las ~200 referencias `ADR-0XX` del repositorio y la skill `registrar-decision`, a cambio de comodidad |
+| Adoptar OpenSpec y mover los ADR dentro | Un solo sitio para todo | La bitácora append-only y los ADR ya funcionan; moverlos es riesgo sin ganancia |
+| Adoptar OpenSpec solo como capa de especificación | Specs validables por CLI y un flujo de propuesta antes del código; no toca lo que ya sirve | Dos directorios que el equipo debe distinguir |
+
+### Decisión
+Se adopta OpenSpec en `openspec/`, con las trece capacidades ya construidas capturadas como specs
+vivas y validadas con `openspec validate --specs`. Los ADR **se quedan** en este archivo, append-only
+y con su numeración intacta.
+
+El reparto es: **`openspec/specs/` dice qué hace el sistema hoy** (comportamiento observable, en
+`WHEN`/`THEN`); **`docs/design-decisions.md` dice por qué se decidió así** (contexto, alternativas
+descartadas, cómo se revierte); **`docs/product-requirements.md` sigue siendo el SRS académico** con
+los identificadores `RF`/`RNF` que el docente evalúa. Cada spec cita los `RF` y los `ADR` que la
+sostienen, y ningún dato se duplica: la spec no repite el porqué, el ADR no repite el comportamiento.
+
+Un cambio de comportamiento entra por `openspec/changes/` antes de tocar el código; si además elige
+entre alternativas técnicas, deja su ADR aquí.
+
+### Consecuencias
+- **Gana:** la especificación deja de ser prosa y pasa a ser un artefacto validable; el desfase entre
+  documento y código se vuelve detectable con un comando en vez de con una lectura atenta.
+- **Gana:** el trabajo tiene un artefacto de «antes», que era el hueco del protocolo actual.
+- **Pierde:** una herramienta más que instalar (`openspec`, global de npm) y un directorio más que
+  entender al entrar al proyecto.
+- **Condiciona:** los `RF` y `RNF` del PRD siguen siendo la numeración oficial ante el docente. Las
+  specs los citan, no los reemplazan ni los renumeran.
+- **Condiciona:** una spec que se separa del código es un defecto, igual que una prueba que miente.
+  Quien cambie comportamiento actualiza su spec en el mismo PR.
+
+### Cómo se revierte
+Borrar `openspec/`, las seis skills `openspec-*` de `.claude/skills/` y `.agents/skills/`, y los
+comandos `opsx:*`. Nada más depende de ello: ni la build, ni el CI, ni el contrato OpenAPI. Los ADR y
+el PRD quedan como estaban.
+
+---
+
+## ADR-041 — El rediseño «carta náutica» se archiva; la paleta oficial sigue siendo la de DESIGN.md
+
+- **Fecha:** 2026-09-04
+- **Estado:** Aceptada
+- **Decide:** Frontend
+
+### Contexto
+La rama `rediseno/frontend-premium` sostenía un rediseño completo del frontend —fondo crema
+`#EDE7D8`, acento `#14657A`, tipografía serif de display, «cuaderno de sondas», «brecha»— hecho sobre
+una base que quedó 35 commits por detrás de `origin/main`. En ese mismo intervalo, `origin/main`
+construyó M15 (cuentas individuales, roles, TOTP, verificación de correo), la ingesta precisa de
+Acuacar y las tarjetas de bitácora: 13.050 líneas de funcionalidad nueva contra 3.574 líneas
+puramente visuales.
+
+Al fusionar, chocaron 16 archivos. El choque no era técnico sino de producto: dos lenguajes visuales
+distintos para el mismo sistema.
+
+### Alternativas consideradas
+| Opción | A favor | En contra |
+|---|---|---|
+| Que gane la carta náutica y portar M15 encima | Preserva el trabajo visual completo | Reconstruir a mano pantallas de cuentas, roles y TOTP ya probadas; máximo riesgo de romper funcionalidad verificada |
+| Híbrido: función de `origin/main` con piel de carta náutica | Conserva ambas cosas en teoría | Las pantallas nuevas de M15 no tienen estilos de carta náutica; quedarían a medio vestir, y habría que reescribir `DESIGN.md` |
+| Que gane `origin/main` | Merge limpio; conserva toda la funcionalidad; su paleta ya es la que `DESIGN.md` declara oficial | Se descarta el trabajo visual de seis commits |
+
+### Decisión
+En los 16 archivos en conflicto —y en `frontend/` entero, porque `origin/main` seguía usando los
+componentes que la otra rama había retirado (`GooeyNav`, `SplashScreen`, `PanelProyecto`,
+`WaterField`, `StrokeText`)— gana `origin/main`. El rediseño «carta náutica» queda archivado en el
+tag `archivo/PUNTO-DE-PARTIDA-2026-09-04`.
+
+`DESIGN.md` §3 sigue siendo la paleta oficial: acento turquesa `#087f8c` en claro y `#54c6ca` en
+oscuro, sobre fondo `#f3f8f7`.
+
+### Consecuencias
+- **Gana:** una sola identidad visual, coherente con el documento que la declara, y ninguna
+  funcionalidad perdida.
+- **Pierde:** seis commits de trabajo visual que no llegan a producción. Recuperables desde el tag,
+  como propuesta con su propio ADR si el equipo la retoma.
+- **Condiciona:** el token `--font-cuerpo` no debe volver a nombrar `Inter`. `DESIGN.md` §9 la
+  descarta explícitamente y, además, el proyecto no carga webfonts: nombrarla solo produce una fuente
+  que nunca se aplica.
+
+---
+
+
+## ADR-042 — Los cuatro colores de estado se fijan en una sola pareja de valores, elegida por contraste
+
+- **Fecha:** 2026-09-04
+- **Estado:** Aceptada
+- **Decide:** Frontend
+
+### Contexto
+Los cuatro colores de estado son «la única jerarquía cromática que importa» (`DESIGN.md` §2), y
+estaban definidos en **seis sitios con cinco valores distintos** para el mismo estado:
+
+| Dónde | «con servicio» |
+|---|---|
+| `:root` de `index.css` | `#1c7f55` |
+| `@media (prefers-color-scheme: dark)`, primer bloque | `#30d158` |
+| `:root[data-theme="dark"]` | `#4fbf89` |
+| `@media dark` con `:not([data-theme="light"])`, segundo bloque | `#4fbf89` |
+| `:root[data-theme="light"]` | `#34c759` |
+| `.panel-mapa-unificado` (isla oscura) | `#30d158` |
+| `COLOR_POR_ESTADO` de `tipos-dominio.ts` | `#34c759` claro / `#4FBF89` oscuro |
+
+Tres consecuencias, todas comprobadas en el navegador con el dev server:
+
+1. **El tema claro cambiaba de colores según cómo se llegara a él.** Con el sistema en claro y sin
+   tocar el interruptor salía `#1c7f55`; al pulsar «claro», `#34c759`. El mismo tema, dos paletas.
+2. **El primer bloque `@media dark` era CSS muerto.** El segundo tiene la misma consulta, mayor
+   especificidad y viene después, así que sus cuatro valores nunca llegaban a aplicarse.
+3. **El mapa y su leyenda discrepaban.** Los polígonos se pintan desde `tipos-dominio.ts` y la
+   leyenda desde el CSS: en el tema claro por defecto, el mapa decía `#34c759` y la leyenda
+   `#1c7f55` para el mismo estado.
+
+Al medir el contraste apareció el fondo del asunto: **los valores de `DESIGN.md` §2 no pasaban el
+AA que el propio `DESIGN.md` §7 exige.** Sobre superficie clara `#fbfdfc`:
+
+| Estado | Valor §2 | Contraste | Valor de `:root` | Contraste |
+|---|---|---|---|---|
+| Con servicio | `#34c759` | **2.17:1** | `#1c7f55` | 4.88:1 |
+| Sin servicio | `#ff453a` | **3.33:1** | `#ae3428` | 6.19:1 |
+| Presión baja | `#ff9f0a` | **2.01:1** | `#a87310` | **4.01:1** |
+| Corte programado | `#98989d` | **2.81:1** | `#2a628f` | 6.34:1 |
+
+Es el peor escenario posible para este producto: el usuario que describe `DESIGN.md` §1 está de pie,
+en la calle, con el sol en la pantalla.
+
+### Alternativas consideradas
+| Opción | A favor | En contra |
+|---|---|---|
+| Dejar los valores de §2 y bajar el listón de contraste | La paleta viva se ve mejor en una captura | Contradice §7 y falla justo con el sol de Cartagena, que es el caso de uso real |
+| Usar la paleta viva solo como relleno y otra para texto | Cada uso con su color óptimo | Dos verdes para «con servicio»; el vecino no sabe que uno es relleno y otro texto |
+| Fijar una sola pareja por estado, elegida por contraste | Un color = un estado, en todo el producto y en ambos temas | Los tonos claros son menos vivos que la paleta de la que salieron |
+
+### Decisión
+Una sola pareja de valores por estado, la que pasa AA, replicada en exactamente dos sitios que deben
+moverse juntos: `--color-estado-*` en `index.css` y `COLOR_POR_ESTADO` en `tipos-dominio.ts`.
+
+| Estado | Claro | Oscuro |
+|---|---|---|
+| Con servicio | `#1c7f55` | `#4fbf89` |
+| Sin servicio | `#ae3428` | `#e2695b` |
+| Presión baja | `#94640c` | `#d9a63c` |
+| Corte programado | `#2a628f` | `#6ba8da` |
+
+El ámbar claro pasa de `#a87310` a `#94640c`: el anterior daba 4.01:1 y no llegaba al umbral. El
+nuevo da 5.03:1 sobre superficie y 4.75:1 sobre el fondo de página.
+
+Se eliminan las tres redefiniciones sobrantes: el bloque muerto de `@media dark`, la del interruptor
+`[data-theme="light"]` y la de la isla oscura de `.panel-mapa-unificado`, que ahora heredan. `DESIGN.md`
+§2 queda actualizado con estos valores y con la medición que los sostiene.
+
+### Consecuencias
+- **Gana:** un color significa un estado, y significa lo mismo en el mapa, en la leyenda, en las dos
+  formas de llegar a cada tema y dentro del panel del mapa.
+- **Gana:** los cuatro estados pasan AA como texto en ambos temas, que es lo que §7 pedía y no se
+  cumplía.
+- **Pierde:** los tonos del tema claro son más apagados que los de la paleta viva de Apple de la que
+  salieron. Es el precio de que se lean con sol.
+- **Condiciona:** `index.css` y `tipos-dominio.ts` son ahora una pareja. Cambiar uno sin el otro
+  vuelve a partir el mapa de su leyenda, y ninguna prueba lo detecta hoy.
+
+### Cómo se revierte
+Se revierte cambiando los cuatro valores en los dos archivos. Volver a los de §2 exigiría además
+bajar el umbral de contraste de §7 o dejar de usarlos como color de texto.
+
+---
+
 <!--
-Siguiente número disponible: ADR-040
+Siguiente número disponible: ADR-043
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->

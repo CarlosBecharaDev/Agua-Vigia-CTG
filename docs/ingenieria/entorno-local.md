@@ -146,7 +146,7 @@ VEEDOR_PASSWORD_HASH`); un `401` significa que la clave no coincide con el hash 
 | `INGESTA_INTERVALO_MS` | Cada cuánto corre el ciclo de ingesta automatizada (M9), en milisegundos | Bajarlo si necesitas ver una propuesta de ingesta sin esperar 10 minutos |
 | `IOT_KEY` | Clave que deben mandar los sensores IoT (M13) en `POST /api/iot/presion` | Solo si vas a probar ese endpoint — vacía, responde 503 y el resto de la app sigue igual |
 | `MONGODB_URI`, `REDIS_HOST/PORT`, `MAIL_HOST/PORT` | Ya apuntan a los servicios de `docker-compose.yml` | No tocar salvo que cambies la topología de contenedores |
-| `VITE_API_BASE_URL` | Base de la API que consume el frontend (`/api`, mismo origen vía proxy) | No tocar — `docs/frontend/INTEGRACION-BACKEND.md` explica por qué |
+| `VITE_API_BASE_URL` | Base de la API que consume el frontend (`/api`, mismo origen vía proxy) | No tocar — `frontend/INTEGRACION-BACKEND.md` explica por qué |
 
 ---
 
