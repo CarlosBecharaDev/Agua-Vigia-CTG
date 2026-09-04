@@ -91,8 +91,8 @@ Tres razones concretas, no burocráticas:
 | BUG-064 | 2026-08-31 | S3 | CI | El Frontend CI llevaba tres commits en rojo: `e465a23` agrandó el logo del panel de bienvenida de 150 a 195 px y la prueba E2E se quedó exigiendo el valor viejo | Cerrado — aserción alineada con el diseño vigente; `home.spec.ts:65` | D4 |
 | BUG-065 | 2026-09-01 | S2 | M15 | El panel de cuentas era ilegible en tema claro: heredaba el fondo claro del sitio y pintaba encima el texto claro que su CSS fijaba para superficie oscura | Cerrado — el panel pinta su propia superficie oscura, como `.panel-veedor-root`; `Cuentas.css` | D4 |
 | BUG-066 | 2026-09-02 | S2 | M15 | Desde el ingreso emergente del veedor, «Solicitar una cuenta» y «Olvidé mi clave» navegaban a `/cuentas/*`: cerraban la portada y mandaban al usuario a otra pantalla para pedirle lo mismo que ya tenía delante | Cerrado — las tres vistas viven en el mismo modal; `SeccionVeedor.tsx` | D4 |
-| BUG-067 | 2026-09-04 | S2 | — (dependencias) | `tomcat-embed-core` 10.1.55, que fija Spring Boot 3.5.16, arrastra tres CVE críticos y dejó el escaneo del CI en rojo desde el 2026-09-03 | Cerrado — `tomcat.version` fijado a 10.1.59 en `backend/pom.xml` | D5 |
-| BUG-068 | 2026-09-04 | S3 | CI | El E2E buscaba la etiqueta «Clave del veedor», que el rediseño de M15 renombró a «Clave»: Frontend CI en rojo desde el 2026-09-01 | Cerrado — `tests/e2e/home.spec.ts` usa la etiqueta real | D5 |
+| BUG-069 | 2026-09-04 | S2 | — (dependencias) | `tomcat-embed-core` 10.1.55, que fija Spring Boot 3.5.16, arrastra tres CVE críticos y dejó el escaneo del CI en rojo desde el 2026-09-03 | Cerrado — `tomcat.version` fijado a 10.1.59 en `backend/pom.xml` | D5 |
+| BUG-070 | 2026-09-04 | S3 | CI | El E2E buscaba la etiqueta «Clave del veedor», que el rediseño de M15 renombró a «Clave»: Frontend CI en rojo desde el 2026-09-01 | Cerrado — `tests/e2e/home.spec.ts` usa la etiqueta real | D5 |
 | BUG-067 | 2026-09-03 | S2 | M1 | En pantallas ≤480px el navbar flotante de la portada se quedaba sin marca: un hueco vacío a la izquierda de la barra | Cerrado — la regla que oculta el texto del logo se acotó al otro encabezado; `index.css` + `home.spec.ts` | D4 |
 | BUG-068 | 2026-09-03 | S3 | CI | La prueba E2E del ingreso del veedor lleva fallando desde `69f64de`: busca el campo «Clave del veedor» en `/veedor`, y ese ingreso se movió al modal de la portada | Abierto | D4 |
 
@@ -130,7 +130,11 @@ esa etiqueta. Es el mismo patrón de BUG-064: el diseño avanzó y la aserción 
 **Corrección:** pendiente. Es de M15, no de quien lo encontró — se detectó de paso al agregar las
 pruebas de la barra de navegación de teléfono.
 
-### BUG-067 — Tres CVE críticos en Tomcat dejaron el escaneo de dependencias en rojo
+### BUG-069 — Tres CVE críticos en Tomcat dejaron el escaneo de dependencias en rojo
+
+*(Registrado originalmente como `BUG-067` en el commit `cdc7021`, sin ver que ese número ya estaba
+tomado por el bug del navbar de portada (commit `41d9a09`, un día antes). Renumerado a `BUG-069` el
+2026-09-04 al detectar la colisión — mismo patrón que `BL-006`; el contenido no cambia.)*
 
 - **Fecha:** 2026-09-04 · **Severidad:** S2 · **Módulo:** — (dependencias) · **Responsable:** D5
 - **Estado:** Cerrado — corregido en el acto
@@ -165,7 +169,11 @@ que antes del cambio.
 
 ---
 
-### BUG-068 — El E2E buscaba una etiqueta que el rediseño de M15 había renombrado
+### BUG-070 — El E2E buscaba una etiqueta que el rediseño de M15 había renombrado
+
+*(Registrado originalmente como `BUG-068` en el commit `cdc7021`, colisionando con el bug de la
+prueba E2E del ingreso del veedor (commit `41d9a09`, un día antes, todavía Abierto). Renumerado a
+`BUG-070` el 2026-09-04 al detectar la colisión — mismo patrón que `BL-006`; el contenido no cambia.)*
 
 - **Fecha:** 2026-09-04 · **Severidad:** S3 · **Módulo:** CI · **Responsable:** D5
 - **Estado:** Cerrado — corregido en el acto
@@ -1927,5 +1935,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-069
+Siguiente número disponible: BUG-071
 -->
