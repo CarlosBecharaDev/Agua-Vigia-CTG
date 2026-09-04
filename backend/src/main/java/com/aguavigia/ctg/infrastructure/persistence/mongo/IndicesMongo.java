@@ -72,6 +72,28 @@ public class IndicesMongo {
             indicesPropuestas.ensureIndex(new CompoundIndexDefinition(
                     new Document("sectorId", 1).append("estadoPropuesto", 1).append("estadoRevision", 1)));
             log.info("Indices de `propuestas_ingesta` asegurados: estadoRevision+detectadaEn y sectorId+estadoPropuesto+estadoRevision");
+
+            // El correo es la identidad de acceso: el indice unico es la unica garantia real de
+            // que no haya dos cuentas con el mismo. Comprobarlo antes de insertar deja una ventana
+            // entre la lectura y la escritura por la que dos registros a la vez pasan los dos.
+            var indicesUsuarios = mongoTemplate.indexOps(UsuarioDocumento.class);
+            indicesUsuarios.ensureIndex(new Index().on("correo", Sort.Direction.ASC).unique());
+            indicesUsuarios.ensureIndex(new CompoundIndexDefinition(
+                    new Document("rol", 1).append("estado", 1)));
+            indicesUsuarios.ensureIndex(new Index().on("estado", Sort.Direction.ASC));
+            log.info("Indices de `usuarios` asegurados: correo (unico), rol+estado y estado");
+
+            // TTL sobre expiraEn: Mongo borra solo el token vencido. Sin esto la coleccion crece
+            // con hashes que ya no valen para nada (TokenCuenta.estaVigente los rechaza igual).
+            var indicesTokens = mongoTemplate.indexOps(TokenCuentaDocumento.class);
+            indicesTokens.ensureIndex(new Index().on("usuarioId", Sort.Direction.ASC));
+            indicesTokens.ensureIndex(new Index().on("expiraEn", Sort.Direction.ASC)
+                    .expire(java.time.Duration.ZERO));
+            log.info("Indices de `tokens_cuenta` asegurados: usuarioId y expiraEn (TTL)");
+
+            var indicesAuditoria = mongoTemplate.indexOps(EventoAuditoriaDocumento.class);
+            indicesAuditoria.ensureIndex(new Index().on("ocurrioEn", Sort.Direction.DESC));
+            log.info("Indices de `auditoria_cuentas` asegurados: ocurrioEn");
         } catch (DataAccessException noHayMongo) {
             // El backend no debe caerse porque Mongo no este disponible al arrancar (DoD de D3,
             // punto 2). Se registra y se sigue: las consultas fallaran con su propio error.

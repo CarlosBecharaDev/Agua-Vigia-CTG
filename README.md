@@ -8,8 +8,8 @@ AguaVigía cruza los avisos oficiales con reportes ciudadanos georreferenciados 
 > Tecnología en Desarrollo de Software · Cartagena de Indias D.T. y C. · 2026
 
 **Estado actual:** Backend y Bases de Datos completos salvo RF041 (webhook real de
-WhatsApp/Telegram), que depende de credenciales de terceros. **457 pruebas** de backend y **54** de
-frontend en verde, con **91.5%** de cobertura en `domain/` y **99.2%** en `application/`. El detalle
+WhatsApp/Telegram), que depende de credenciales de terceros. **462 pruebas** de backend y **54** de
+frontend en verde, con **93.0%** de cobertura en `domain/` y **98.9%** en `application/`. El detalle
 requisito por requisito, con el nombre de la prueba que sostiene cada uno, está en la
 [matriz de trazabilidad](docs/ingenieria/matriz-trazabilidad.md). Frontend y backend conectados de
 punta a punta y verificados en local el 2026-08-12 (`docker compose up -d --build --wait`): mapa,
@@ -54,6 +54,7 @@ El proyecto está construido bajo una estricta **Arquitectura Limpia (Puertos y 
 | **M12** | API Abierta Open311 | Estándar internacional para consumo de datos cívicos. |
 | **M13** | Integración IoT Pasiva | Telemetría en tiempo real desde sensores de presión locales. |
 | **M14** | Alertas Push | La cadena evento → caso de uso → puerto está cableada y probada; el adaptador que llama al proveedor real (RF041) sigue pendiente porque exige credenciales de WhatsApp Business o Telegram. Hoy registra en el log. |
+| **M15** | Cuentas y permisos | Cuentas individuales del panel (RF042-RF046). Registro abierto con verificación de correo y aprobación de un administrador, o invitación directa con rol asignado. Roles (ADMIN/VEEDOR/OBSERVADOR) como paquetes de permisos, con ajustes por persona; segundo factor TOTP obligatorio para ADMIN; revocación inmediata de sesiones y bitácora de auditoría. Reemplaza la credencial compartida de `ADR-016` — ver `ADR-039`. |
 
 ---
 
@@ -67,10 +68,15 @@ El proyecto está completamente contenerizado. Solo necesitas tener un motor de 
    # Si deseas habilitar Webhooks (M14) y envío de correos, configura el .env.
    ```
    El mapa, los reportes y las estadísticas funcionan así, sin nada más. El **panel del
-   veedor** (`/veedor`) necesita dos variables que `.env.example` deja vacías a propósito
-   (`JWT_SECRET`, `VEEDOR_PASSWORD_HASH`) — ver
+   veedor** (`/veedor`) necesita tres variables que `.env.example` deja vacías a propósito
+   (`JWT_SECRET`, `VEEDOR_PASSWORD_HASH`, `ADMIN_INICIAL_CORREO`) — ver
    [`docs/ingenieria/entorno-local.md`](docs/ingenieria/entorno-local.md) para la clave de
    equipo lista para copiar.
+
+   Con la base de datos vacía, al arrancar se crea **una sola cuenta**: el administrador de
+   `ADMIN_INICIAL_CORREO`, con la clave cuyo hash está en `VEEDOR_PASSWORD_HASH` (`ADR-039`).
+   Esa cuenta es `ADMIN`, y el rol `ADMIN` exige segundo factor: su primera sesión solo sirve
+   para escanear el QR y activarlo. A partir de ahí, cada quien tiene su propio correo y clave.
 
 2. **Levantar los servicios:**
    ```bash
@@ -95,7 +101,7 @@ el backend responda con cabeceras CORS — no las manda).
 
 ## 🧪 Pruebas y Aseguramiento de Calidad (QA)
 
-El backend de AguaVigía cuenta con **457 pruebas unitarias y de integración**, y la build falla si la
+El backend de AguaVigía cuenta con **462 pruebas unitarias y de integración**, y la build falla si la
 cobertura de `domain/` o `application/` baja del 85% (RNF017) o si se viola una capa de la
 arquitectura (RNF018, ArchUnit).
 

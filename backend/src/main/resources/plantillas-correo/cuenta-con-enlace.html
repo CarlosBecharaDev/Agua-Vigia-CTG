@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{{titulo}}</title>
+<style>
+  :root { color-scheme: light dark; supported-color-schemes: light dark; }
+
+  @media only screen and (max-width: 620px) {
+    .marco      { width: 100% !important; }
+    .relleno    { padding-left: 24px !important; padding-right: 24px !important; }
+    .titular    { font-size: 26px !important; line-height: 32px !important; }
+    .boton a    { display: block !important; text-align: center !important; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .fondo      { background-color: #061418 !important; }
+    .superficie { background-color: #0C2027 !important; }
+    .linea      { border-color: #1B3B45 !important; }
+    .tinta      { color: #E4EFEF !important; }
+    .tinta-2    { color: #9DB8BE !important; }
+    .tinta-3    { color: #6B8C94 !important; }
+    .acento     { color: #45BFCB !important; }
+    .boton-bg   { background-color: #45BFCB !important; }
+    .boton-tx   { color: #061418 !important; }
+    .caja       { background-color: #10262E !important; }
+  }
+</style>
+</head>
+
+<body class="fondo" style="margin:0; padding:0; background-color:#EEF3F3; -webkit-font-smoothing:antialiased;">
+
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0; mso-hide:all;">
+    {{preencabezado}}
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="fondo" style="background-color:#EEF3F3;">
+    <tr>
+      <td align="center" style="padding:32px 12px;">
+
+        <table role="presentation" class="marco superficie" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:600px; background-color:#FFFFFF; border-radius:14px; overflow:hidden;">
+
+          <tr>
+            <td class="relleno" style="padding:32px 40px 8px;">
+              <p class="acento" style="margin:0; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:12px; line-height:18px; letter-spacing:0.08em; text-transform:uppercase; font-weight:700; color:#127D8A;">
+                AguaVigía CTG · Panel del veedor
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="relleno" style="padding:8px 40px 4px;">
+              <h1 class="titular tinta" style="margin:0; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:28px; line-height:34px; font-weight:800; color:#0B2C33;">
+                {{titulo}}
+              </h1>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="relleno" style="padding:16px 40px 0;">
+              <p class="tinta-2" style="margin:0; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:15px; line-height:25px; color:#3E585F;">
+                Hola, {{nombre}}.
+              </p>
+              <p class="tinta-2" style="margin:14px 0 0; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:15px; line-height:25px; color:#3E585F;">
+                {{mensaje}}
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="relleno boton" style="padding:28px 40px 8px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td class="boton-bg" style="background-color:#0E7C8B; border-radius:10px;">
+                    <a class="boton-tx" href="{{urlAccion}}" style="display:inline-block; padding:14px 28px; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:15px; font-weight:700; color:#FFFFFF; text-decoration:none;">
+                      {{textoBoton}}
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="relleno" style="padding:14px 40px 0;">
+              <p class="tinta-3" style="margin:0; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:13px; line-height:21px; color:#6E878D;">
+                Este enlace vence en {{vigencia}} y sirve una sola vez. Si el botón no funciona, copia esta dirección en tu navegador:
+              </p>
+              <p class="tinta-3" style="margin:8px 0 0; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12px; line-height:19px; word-break:break-all; color:#6E878D;">
+                {{urlAccion}}
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="relleno linea" style="padding:24px 40px 28px; border-top:1px solid #C9D9D8; margin-top:24px;">
+              <p class="tinta-3" style="margin:0 0 10px; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:12px; line-height:19px; color:#6E878D;">
+                Si no esperabas este correo, ignóralo: sin abrir el enlace no se hace ningún cambio en ninguna cuenta.
+              </p>
+              <p class="tinta-3" style="margin:0; font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; font-size:12px; line-height:19px; color:#6E878D;">
+                AguaVigía CTG · Proyecto ciudadano de monitoreo del acueducto · Cartagena de Indias
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

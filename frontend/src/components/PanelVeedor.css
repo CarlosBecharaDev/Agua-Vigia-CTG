@@ -1,702 +1,717 @@
-/* ═══════════════════════════════════════════════════════════════════════
-   LA MESA DE CORRECCIONES — panel del veedor y pantalla de acceso
-   ═══════════════════════════════════════════════════════════════════════
-   Todo lo de aquí se compone con las primitivas de la carta declaradas en
-   index.css (.rotulo-carta, .rotulo-hidrografico, .sonda, .zona-sin-sondar,
-   .reticula-carta) y con sus tokens. Este archivo no define colores nuevos:
-   si algo necesita un color, sale de una variable del sistema.
+/* ── Apple-Grade Pro Panel Veedor — Centro de Operaciones y Moderación ── */
 
-   Sustituye a la versión de tarjetas redondeadas con sombra e iconos en
-   cuadros de color: aquel panel se leía como una landing de producto y aquí
-   nadie viene a que le vendan nada — viene a despachar dos colas de trabajo
-   lo más rápido posible. De ahí las decisiones de este archivo: hojas de
-   papel en vez de tarjetas, filas de libro registro en vez de tarjetas
-   sueltas, rótulos y cifras en vez de iconos de adorno.
-   ═══════════════════════════════════════════════════════════════════════ */
-
-.panel-veedor {
-  width: min(100% - 2rem, 1320px);
-  margin: 0 auto;
-  padding: clamp(1.25rem, 3vw, 2.25rem) 0 4rem;
+.panel-veedor-root {
+  /* dvh y no vh: en móvil `100vh` mide la ventana con la barra de URL retraída, así que el
+     panel queda más alto que la pantalla y su fondo se corta al desplazar. */
+  min-height: 100dvh;
+  background: linear-gradient(180deg, #050814 0%, #0a0f24 50%, #070a18 100%);
+  color: #f8fafc;
+  padding: 2.5rem 1rem 5rem;
 }
 
-/* ── Cabecera de la mesa ────────────────────────────────────────────────
-   Un título de trabajo, no un hero: el veedor entra aquí varias veces al
-   día y cada píxel que ocupe el encabezado es un reporte menos que ve sin
-   hacer scroll. Por eso el h1 baja de 3.5rem a poco más de 2rem. */
-.mesa-cabecera {
+.panel-veedor-contenedor {
+  width: min(100% - 1.5rem, 1280px);
+  margin: 0 auto;
+}
+
+/* ── Cabecera y Barra de Estado ── */
+.panel-veedor-topbar {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 3px double var(--color-linea-fuerte);
+  padding-bottom: 1.75rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.mesa-rotulo {
-  margin-bottom: 0.5rem;
-  color: var(--color-tinta-2);
+.panel-veedor-badge-activo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  color: #86efac;
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.65rem;
 }
 
-.mesa-cabecera h1 {
-  font-size: clamp(1.75rem, 3vw, 2.35rem);
-  letter-spacing: -0.025em;
+.panel-veedor-badge-activo .pulse-dot-green {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #4ade80;
+  animation: pulse-glow-green 2s infinite ease-in-out;
 }
 
-.mesa-lema {
-  margin-top: 0.35rem;
-  color: var(--color-tinta-2);
+@keyframes pulse-glow-green {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.panel-veedor-titulo {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  font-size: clamp(1.85rem, 3.5vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  margin: 0 0 0.4rem 0;
+}
+
+.panel-veedor-subtitulo {
+  color: rgba(203, 213, 225, 0.75);
   font-size: 0.95rem;
+  margin: 0;
 }
 
-.mesa-salir {
-  flex: 0 0 auto;
-  min-height: 44px;
+.panel-veedor-btn-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.15rem;
+  border-radius: 9999px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  font-size: 0.82rem;
+  font-weight: 650;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
 
-/* ── La regla de la mesa ────────────────────────────────────────────────
-   Qué hay pendiente hoy, en tres lecturas. Es lo primero que se mira al
-   sentarse, así que va inmediatamente bajo el título y usa cifras de sonda:
-   tabulares, para que no bailen cuando la cola cambia en vivo. */
-.mesa-regla {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin: 1rem 0;
-  border: 1px solid var(--color-linea);
-  border-radius: 3px;
-  background: var(--color-superficie);
+@media (hover: hover) and (pointer: fine) { .panel-veedor-btn-logout:hover {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: rgba(239, 68, 68, 0.5);
+  transform: translateY(-1px);
+} }
+
+/* ── Píldoras de Navegación Segmentada (Tabs) ── */
+.panel-veedor-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  backdrop-filter: blur(16px);
+  width: fit-content;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
 }
 
-.mesa-regla > div {
-  padding: 0.7rem 1rem;
-  border-left: 1px solid var(--color-linea);
+.panel-veedor-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.15rem;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(226, 232, 240, 0.75);
+  font-size: 0.85rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
 
-.mesa-regla > div:first-child { border-left: 0; }
+@media (hover: hover) and (pointer: fine) { .panel-veedor-tab-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+} }
 
-.mesa-regla dt {
-  color: var(--color-tinta-2);
-  font-size: 0.62rem;
+.panel-veedor-tab-btn.is-active {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
-.mesa-regla dd {
-  margin-top: 0.2rem;
-  color: var(--color-tinta);
-  font-size: 1.55rem;
-  font-weight: 600;
-  line-height: 1.1;
+.panel-veedor-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: rgba(168, 85, 247, 0.35);
+  color: #f3e8ff;
+  font-size: 0.7rem;
+  font-weight: 800;
 }
 
-/* Un colector caído deja la carta envejeciendo sin que nadie se entere: se
-   avisa con el rojo de babor del sistema, no con la magenta — esa está
-   reservada a la brecha entre lo prometido y lo real. */
-.mesa-regla dd.mesa-regla-alerta { color: var(--color-estado-sin); }
+/* ── Tarjeta Contenedora Principal ── */
+.panel-veedor-seccion-card {
+  position: relative;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 2rem;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.5);
+  margin-bottom: 2rem;
+}
 
-/* ── Retícula de hojas ──────────────────────────────────────────────────
-   Dos hojas por fila mientras quepan. El panel vive dentro del shell de
-   trabajo, que ya se lleva la banda lateral, así que el corte a una sola
-   columna llega antes que en el resto del producto. */
-.mesa-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.panel-veedor-seccion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-/* El registro y el asiento nuevo no tienen por qué medir lo mismo: cada hoja
-   ocupa lo que necesita, como dos papeles distintos sobre la misma mesa. */
-.mesa-grid-cortes {
-  grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
-  align-items: start;
+.panel-veedor-seccion-header h2 {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  margin: 0;
 }
 
-/* ── La hoja ────────────────────────────────────────────────────────────
-   Papel de carta: esquinas casi rectas (3 px), filete de un punto y nada de
-   sombras difusas. Lo que separa una hoja de otra es el aire, no el relieve. */
-.hoja {
+/* ── Lista de Moderación y Tarjetas ── */
+.panel-veedor-grid-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.tarjeta-moderacion-item {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 1.4rem;
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  padding: 1rem 1.15rem 1.15rem;
-  border: 1px solid var(--color-linea);
-  border-radius: 3px;
-  background: var(--color-superficie);
-  box-shadow: var(--sombra-suave);
-}
-
-/* Doble filete bajo el título, como el recuadro de una carta impresa.
-   Sale de una sola propiedad y ahorra el elemento decorativo que tendría
-   que existir para dibujarlo a mano. */
-.hoja-cabecera {
-  display: flex;
-  align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.9rem;
-  padding-bottom: 0.7rem;
-  border-bottom: 3px double var(--color-linea);
+  transition: border-color 220ms cubic-bezier(0.16, 1, 0.3, 1), transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.hoja-fuente {
-  margin-bottom: 0.35rem;
-  color: var(--color-tinta-2);
-  font-size: 0.62rem;
+@media (hover: hover) and (pointer: fine) { .tarjeta-moderacion-item:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+} }
+
+.moderacion-cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
-.hoja-cabecera h2 {
-  font-size: 1.3rem;
-  letter-spacing: -0.02em;
+.moderacion-badge-tipo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 750;
+  background: rgba(168, 85, 247, 0.16);
+  border: 1px solid rgba(192, 132, 252, 0.35);
+  color: #e9d5ff;
 }
 
-.hoja-cargando {
-  padding: 0.75rem 0;
-  color: var(--color-tinta-2);
-  font-size: 0.84rem;
+.moderacion-tiempo {
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 0.72rem;
+  color: rgba(203, 213, 225, 0.6);
 }
 
-/* ── Botonera de la carta ───────────────────────────────────────────────
-   Un solo botón base para todo el panel. Contorno fino y relleno solo en
-   hover: en una mesa con dos colas de decisiones, veinte botones rellenos
-   compiten entre sí y ninguno destaca. 44 px de alto: la mano también
-   despacha esta cola desde el teléfono. */
-.boton-carta {
+.moderacion-sector {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 0.4rem;
+}
+
+.moderacion-acciones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.btn-mod-aprobar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  min-height: 44px;
-  min-width: 44px;
-  padding: 0 0.8rem;
-  border: 1px solid var(--color-linea-fuerte);
-  border-radius: 3px;
-  background: var(--color-superficie);
-  color: var(--color-tinta);
+  padding: 0.5rem 0.85rem;
+  border-radius: 12px;
+  background: rgba(34, 197, 94, 0.18);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  color: #86efac;
+  font-size: 0.8rem;
+  font-weight: 700;
   cursor: pointer;
-  font-family: var(--font-cuerpo);
-  font-size: 0.8rem;
-  font-weight: 600;
-  white-space: nowrap;
-  transition: background var(--motion-fast) var(--ease), color var(--motion-fast) var(--ease), border-color var(--motion-fast) var(--ease);
+  transition: background-color 180ms ease, border-color 180ms ease;
 }
 
-.boton-carta:hover:not(:disabled) {
-  border-color: var(--color-tinta-2);
-  background: var(--color-superficie-2);
-}
+@media (hover: hover) and (pointer: fine) { .btn-mod-aprobar:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.3);
+  border-color: rgba(34, 197, 94, 0.6);
+} }
 
-.boton-carta:disabled { cursor: not-allowed; opacity: 0.5; }
-
-.boton-carta:focus-visible { outline: var(--foco-outline); outline-offset: 2px; }
-
-.boton-carta-icono { padding: 0; color: var(--color-tinta-2); }
-
-.boton-aprobar {
-  border-color: var(--carta-boya);
-  color: var(--carta-boya);
-}
-
-.boton-aprobar:hover:not(:disabled) {
-  border-color: var(--carta-boya);
-  background: var(--carta-boya);
-  color: var(--color-fondo);
-}
-
-.boton-descartar { color: var(--color-tinta-2); }
-
-.boton-asentar {
-  align-self: stretch;
-  padding: 0 1.4rem;
-  border-color: var(--color-acento);
-  background: var(--color-acento);
-  color: var(--color-fondo);
-}
-
-.boton-asentar:hover:not(:disabled) {
-  border-color: var(--color-acento-vivo);
-  background: var(--color-acento-vivo);
-  color: var(--color-fondo);
-}
-
-/* ── Libro registro ─────────────────────────────────────────────────────
-   Las correcciones no son tarjetas flotantes: son asientos de un registro.
-   Filas del mismo ancho, separadas por un filete, sin sombra y sin hueco
-   entre ellas — así el ojo baja por la columna en vez de saltar de caja en
-   caja, que es lo que hace lenta una cola de moderación. */
-.lista-correcciones {
-  display: flex;
-  flex-direction: column;
-}
-
-.fila-correccion {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 0.75rem 1rem;
-  padding: 0.8rem 0.5rem;
-  border-top: 1px solid var(--color-linea);
-  transition: background var(--motion-fast) var(--ease);
-}
-
-.fila-correccion:last-child { border-bottom: 1px solid var(--color-linea); }
-
-.fila-correccion:hover { background: var(--color-superficie-2); }
-
-.correccion-cuerpo { min-width: 0; }
-
-/* La lectura: qué dice esta corrección del agua. En itálica hidrográfica
-   cuando es un estado del servicio; en romana cuando es la causa de un
-   corte, que es un hecho administrativo y no una medición. */
-.correccion-lectura {
-  display: block;
-  color: var(--color-tinta);
-  font-size: 1.02rem;
-  font-weight: 600;
-  line-height: 1.25;
-}
-
-.correccion-origen {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.2rem;
-  color: var(--color-tinta-2);
-  font-family: var(--font-util);
-  font-size: 0.7rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.correccion-pie {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-top: 0.35rem;
-  color: var(--color-tinta-2);
-  font-size: 0.75rem;
-}
-
-.correccion-pie-sep { color: var(--color-tinta-2); }
-
-.acciones-moderacion {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-/* La cita textual es la prueba con la que se aprueba o se descarta una
-   propuesta (ADR-028). Se le da el peso de un documento citado —serif de
-   la carta y filete al margen— para que nadie decida sin leerla. */
-.cita-fuente {
-  margin: 0.5rem 0 0;
-  padding-left: 0.8rem;
-  border-left: 2px solid var(--color-linea-fuerte);
-  color: var(--color-tinta);
-  font-family: var(--font-display);
-  font-size: 0.9rem;
-  line-height: 1.45;
-}
-
-/* ── Marcas de estado ───────────────────────────────────────────────────
-   Etiqueta seca, sin relleno de color: el estado de un corte es un dato del
-   registro, no una alarma. La única que se pinta es la promesa vencida. */
-.marca-estado {
+.btn-mod-descartar {
   display: inline-flex;
   align-items: center;
-  padding: 0.1rem 0.4rem;
-  border: 1px solid var(--color-linea-fuerte);
-  border-radius: 2px;
-  color: var(--color-tinta-2);
-  font-size: 0.65rem;
-}
-
-/* Magenta de aviso náutico. Es la brecha entre lo prometido y lo real en el
-   momento en que se está produciendo, y es lo único de esta lista que le
-   pide algo al veedor. */
-.marca-vencida {
-  border-color: var(--carta-magenta);
-  background: var(--carta-magenta-tenue);
-  /* La magenta pura sobre su propio tinte se queda en 4.1:1 y esto es texto
-     pequeño: acercarla al color de tinta del tema la sube por encima de AA en
-     carta impresa y en carta de noche sin dejar de ser la magenta de aviso. */
-  color: color-mix(in srgb, var(--carta-magenta) 82%, var(--color-tinta));
-  font-weight: 700;
-}
-
-/* ── Detalle de un corte ────────────────────────────────────────────────
-   Ocupa el ancho completo de la fila: al abrirse, el asiento se despliega
-   dentro del propio registro en vez de abrir otra ventana. */
-.corte-detalle {
-  grid-column: 1 / -1;
-  margin-top: 0.4rem;
-  padding-top: 0.7rem;
-  border-top: 1px dashed var(--color-linea);
-}
-
-.corte-datos {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 0.6rem 1rem;
-}
-
-.corte-datos dt {
-  color: var(--color-tinta-2);
-  font-family: var(--font-util);
-  font-size: 0.6rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.corte-datos dd {
-  margin-top: 0.1rem;
-  color: var(--color-tinta);
-  font-size: 0.82rem;
-}
-
-/* ── La brecha: prometido contra real ───────────────────────────────────
-   El diferencial del producto (M6). Las dos duraciones y el porcentaje se
-   leen en columna, como una tabla de sondas, para que la diferencia se vea
-   sin hacer la resta mental. */
-.brecha-corte { margin-top: 0.85rem; }
-
-.brecha-corte > .rotulo-carta {
-  margin-bottom: 0.45rem;
-  color: var(--color-tinta-2);
-  font-size: 0.6rem;
-}
-
-.brecha-cifras {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
-  padding: 0.65rem 0.8rem;
-  border: 1px solid var(--color-linea);
-  border-radius: 3px;
-  background: var(--color-fondo);
-}
-
-.brecha-cifras dt {
-  color: var(--color-tinta-2);
-  font-family: var(--font-util);
-  font-size: 0.6rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.brecha-cifras dd {
-  margin-top: 0.15rem;
-  color: var(--color-tinta);
-  font-size: 1.05rem;
-  font-weight: 600;
-}
-
-/* Solo cuando lo real superó a lo prometido. El filete magenta al margen es
-   la primitiva .brecha-regla del sistema, aplicada al caso que la justifica. */
-.brecha-incumplida {
-  border-color: var(--carta-magenta);
-  border-left-width: 3px;
-}
-
-/* Mismo ajuste de contraste que .marca-vencida: la cifra de cumplimiento es
-   texto normal y la magenta pura sobre el papel de fondo no llega a 4.5:1. */
-.brecha-incumplida > div:last-child dd { color: color-mix(in srgb, var(--carta-magenta) 82%, var(--color-tinta)); }
-
-/* ── Salud de los colectores ────────────────────────────────────────────
-   Una línea por fuente automática. Es diagnóstico, no protagonismo: solo
-   cambia de color el que lleva tres fallos seguidos. */
-.lista-colectores {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-bottom: 0.9rem;
-  list-style: none;
-}
-
-.colector {
-  display: inline-flex;
-  align-items: center;
+  justify-content: center;
   gap: 0.4rem;
-  padding: 0.25rem 0.55rem;
-  border: 1px solid var(--color-linea);
-  border-radius: 2px;
-  color: var(--color-tinta-2);
-  font-family: var(--font-util);
-  font-size: 0.68rem;
-}
-
-.colector-marca {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--color-estado-con);
-}
-
-.colector-nombre { color: var(--color-tinta); text-transform: uppercase; letter-spacing: 0.06em; }
-
-.colector-caido { border-color: var(--color-estado-sin); color: var(--color-estado-sin); }
-
-.colector-caido .colector-marca { background: var(--color-estado-sin); }
-
-.colector-caido .colector-nombre { color: var(--color-estado-sin); }
-
-/* ── Avisos ─────────────────────────────────────────────────────────────
-   Tres tonos y ninguno más: algo salió mal, algo quedó hecho, algo no cabe.
-   Todos dicen qué pasó y qué hacer; ninguno se disculpa. */
-.aviso-carta {
-  margin: 0 0 0.9rem;
-  padding: 0.6rem 0.75rem;
-  border-left: 3px solid var(--color-linea-fuerte);
-  background: var(--color-superficie-2);
-  color: var(--color-tinta);
-  font-size: 0.82rem;
-  line-height: 1.45;
-}
-
-.aviso-carta strong { display: block; margin-bottom: 0.15rem; }
-
-.aviso-carta p { color: var(--color-tinta-2); }
-
-.aviso-error { border-left-color: var(--color-estado-sin); }
-
-.aviso-hecho { border-left-color: var(--color-estado-con); }
-
-.aviso-tope { border-left-color: var(--color-estado-baja); }
-
-/* Nota de contexto: explica la regla que gobierna la hoja (la ingesta
-   propone, el veedor publica). Va en gris y pequeña porque se lee una vez. */
-.nota-carta {
-  margin-bottom: 0.9rem;
-  color: var(--color-tinta-2);
+  padding: 0.5rem 0.85rem;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
   font-size: 0.8rem;
-  line-height: 1.5;
-}
-
-/* ── Estados vacíos ─────────────────────────────────────────────────────
-   Ninguno es un encogimiento de hombros: o confirma que la cola quedó
-   limpia, o dice el siguiente paso. El de "todavía no has sondado nada"
-   además lleva el tramado de la carta, que es la forma que tiene este
-   producto de decir "aquí nadie ha medido" (ADR-014). */
-.hoja-vacia {
-  display: grid;
-  justify-items: start;
-  gap: 0.3rem;
-  padding: 1.4rem 1rem;
-  border: 1px dashed var(--color-linea-fuerte);
-  border-radius: 3px;
-  color: var(--color-tinta-2);
-}
-
-.hoja-vacia strong {
-  color: var(--color-tinta);
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-weight: 600;
-}
-
-.hoja-vacia p { font-size: 0.82rem; max-width: 46ch; }
-
-.hoja-vacia-marca { color: var(--carta-boya); }
-
-/* El tramado necesita algo detrás con contraste suficiente para que el
-   texto siga siendo legible por encima de él. */
-.hoja-vacia.zona-sin-sondar { background-color: var(--color-superficie-2); }
-
-/* ── Campos ─────────────────────────────────────────────────────────────
-   Un solo tratamiento para select, fecha y texto: mismo alto, mismo filete,
-   fondo del papel de fondo para que se lean como huecos donde escribir. */
-.campo-carta { min-width: 0; margin-bottom: 0.85rem; }
-
-.campo-carta > label,
-.campo-carta legend,
-.campo-carta label {
-  display: block;
-  color: var(--color-tinta);
-  font-size: 0.78rem;
   font-weight: 700;
+  cursor: pointer;
+  transition: background-color 180ms ease, border-color 180ms ease;
 }
 
-.campo-carta legend { margin-bottom: 0.3rem; }
+@media (hover: hover) and (pointer: fine) { .btn-mod-descartar:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.28);
+  border-color: rgba(239, 68, 68, 0.55);
+} }
 
-.campo-carta select,
-.campo-carta input[type="text"],
-.campo-carta input[type="datetime-local"],
-.campo-carta input:not([type]) {
+/* ── Formularios y Selectores ── */
+.panel-veedor-input {
   width: 100%;
-  min-height: 44px;
-  margin-top: 0.3rem;
-  padding: 0.5rem 0.65rem;
-  border: 1px solid var(--color-linea-fuerte);
-  border-radius: 3px;
-  background: var(--color-fondo);
-  color: var(--color-tinta);
-  font-family: var(--font-cuerpo);
-  font-size: 0.88rem;
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
 }
 
-.campo-carta select:focus-visible,
-.campo-carta input:focus-visible { outline: var(--foco-outline); outline-offset: 2px; }
-
-.campo-carta fieldset { border: 0; }
-
-.campo-ayuda {
-  margin-bottom: 0.35rem;
-  color: var(--color-tinta-2);
-  font-size: 0.74rem;
+.panel-veedor-input:focus {
+  border-color: #a855f7;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.25);
 }
 
-/* ── Asiento de un corte nuevo ──────────────────────────────────────────
-   Una sola columna: son cuatro campos en orden de lectura (a quiénes, desde
-   cuándo, hasta cuándo prometido, por qué) y partirlos en tres columnas
-   como antes obligaba a leer en zigzag. */
-.formulario-asiento { display: flex; flex-direction: column; }
-
-.campo-sectores { margin-bottom: 0.85rem; }
-
-.selector-sectores-corte {
+.panel-veedor-multiselect-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 0.15rem;
-  max-height: 224px;
-  padding: 0.3rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.5rem;
+  max-height: 220px;
   overflow-y: auto;
-  overscroll-behavior: contain;
-  border: 1px solid var(--color-linea-fuerte);
-  border-radius: 3px;
-  background: var(--color-fondo);
+  padding: 0.85rem;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
 }
 
-.selector-sectores-corte label {
+.panel-veedor-checkbox-label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  min-height: 44px;
-  min-width: 0;
-  padding: 0 0.4rem;
-  border-radius: 2px;
-  color: var(--color-tinta-2);
-  font-size: 0.76rem;
-  font-weight: 500;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.78rem;
+  font-weight: 550;
+  color: rgba(226, 232, 240, 0.85);
   cursor: pointer;
+  transition: background 150ms ease;
 }
 
-.selector-sectores-corte label:hover { background: var(--color-superficie-2); color: var(--color-tinta); }
+@media (hover: hover) and (pointer: fine) { .panel-veedor-checkbox-label:hover {
+  background: rgba(255, 255, 255, 0.08);
+} }
 
-.selector-sectores-corte label:has(input:checked) { color: var(--color-tinta); font-weight: 650; }
-
-.selector-sectores-corte input {
-  flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
-  min-height: 0;
-  min-width: 0;
-  accent-color: var(--color-acento);
+.panel-veedor-checkbox-label input {
+  accent-color: #a855f7;
 }
 
-.selector-sectores-corte span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-.nota-asiento { margin: 0.35rem 0 0.9rem; font-size: 0.76rem; }
-
-/* ═══════════════════════════════════════════════════════════════════════
-   PANTALLA DE ACCESO — la portada de la carta
-   ═══════════════════════════════════════════════════════════════════════
-   La versión anterior partía la pantalla en dos y pintaba el lado izquierdo
-   con --color-marino. En carta de noche ese token vale papel claro, así que
-   el titular blanco quedaba sobre crema: ilegible. Aquí se resuelve con una
-   sola hoja sobre el fondo del sistema, que funciona en los dos temas
-   porque no depende de ningún color invertido. */
-.acceso-carta {
-  position: relative;
-  width: min(560px, 100%);
-  padding: clamp(1.5rem, 4vw, 2.5rem);
-  border: 1px solid var(--color-linea);
-  border-radius: 4px;
-  background: var(--color-superficie);
-  box-shadow: var(--sombra-elevada);
+/* ── Acordeón de Cortes ── */
+.corte-accordion-card {
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 1.25rem;
+  margin-bottom: 0.85rem;
 }
 
-/* El doble filete por dentro del borde: la convención de recuadro de las
-   cartas impresas, la misma que lleva la cartela del mapa. */
-.acceso-carta::after {
-  content: "";
-  position: absolute;
-  inset: 5px;
-  border: 1px solid color-mix(in srgb, var(--color-linea) 55%, transparent);
-  border-radius: 2px;
-  pointer-events: none;
+.corte-accordion-cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
-.acceso-rotulo {
-  margin-bottom: 0.6rem;
-  color: var(--carta-magenta);
+.corte-accordion-detalles {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
 }
 
-.acceso-carta h1 {
-  font-size: clamp(2rem, 4vw, 2.6rem);
-  margin-bottom: 0.4rem;
+/* ── Reglas Responsivas para Móvil ── */
+@media (max-width: 768px) {
+  .panel-veedor-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+  }
+
+  .panel-veedor-acciones-cab {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .panel-veedor-seccion-card {
+    padding: 1.25rem 1rem;
+    border-radius: 20px;
+  }
+
+  .panel-veedor-grid-items {
+    grid-template-columns: 1fr;
+  }
+
+  .corte-form-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .panel-veedor-stats-bar {
+    gap: 0.5rem;
+  }
+
+  .corte-accordion-cab {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
 }
 
-.acceso-lema {
-  padding-bottom: 1rem;
-  margin-bottom: 1.1rem;
-  border-bottom: 1px solid var(--color-linea);
-  color: var(--color-tinta-2);
+@media (max-width: 480px) {
+  .panel-veedor-stats-bar {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .panel-veedor-stat-item {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .moderacion-acciones {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-mod-aprobar, .btn-mod-descartar {
+    width: 100%;
+  }
+}
+
+/* ── Resumen de la operación ──
+   Cuánto trabajo hay encima antes de abrir ninguna cola. Los valores que no se pueden calcular
+   viajan como «—» y nunca como 0: un cero afirma que la cola está vacía, y no saberlo es otra cosa. */
+.panel-veedor-stats-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.panel-veedor-stat-item {
+  flex: 1 1 220px;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1.15rem 1.25rem;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  backdrop-filter: blur(20px);
+}
+
+.panel-veedor-kpi-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.panel-veedor-kpi-titulo {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(203, 213, 225, 0.75);
+}
+
+.panel-veedor-kpi-valor {
+  display: block;
+  font-size: 1.65rem;
+  font-weight: 780;
+  line-height: 1.15;
+  color: #ffffff;
+}
+
+.panel-veedor-kpi-sub {
+  display: block;
+  font-size: 0.72rem;
+  color: rgba(203, 213, 225, 0.6);
+}
+
+/* ── Cabecera y secciones ── */
+.panel-veedor-acciones-cab {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.panel-veedor-error { margin-bottom: 1.5rem; }
+
+.panel-veedor-seccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.panel-veedor-seccion-desc {
+  color: rgba(203, 213, 225, 0.7);
+  font-size: 0.85rem;
+  margin: 0;
+  max-width: 62ch;
+}
+
+.panel-veedor-btn-actualizar {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.75rem;
+}
+
+.panel-veedor-cargando { color: #94a3b8; }
+
+.panel-veedor-tenue {
+  color: rgba(203, 213, 225, 0.62);
+  font-size: 0.75rem;
+}
+
+.panel-veedor-tenue-bloque {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Estados vacíos ──
+   Una cola vacía no es un hueco: se dice por qué está vacía, igual que en la Bitácora. */
+.panel-veedor-vacio {
+  text-align: center;
+  padding: 2.75rem 1rem;
+  color: #94a3b8;
+}
+
+.panel-veedor-vacio strong {
+  display: block;
+  color: #f8fafc;
+  margin: 0.5rem 0 0.2rem;
   font-size: 1rem;
 }
 
-.acceso-nota {
-  margin-bottom: 1.2rem;
-  color: var(--color-tinta-2);
-  font-size: 0.85rem;
-  line-height: 1.5;
+.panel-veedor-vacio p {
+  margin: 0 auto;
+  font-size: 0.82rem;
+  max-width: 46ch;
 }
 
-.acceso-carta form { display: flex; flex-direction: column; }
-
-.acceso-carta form > label {
-  margin-bottom: 0.4rem;
-  color: var(--color-tinta);
-  font-size: 0.78rem;
-  font-weight: 700;
+.panel-veedor-aviso-truncado {
+  margin-bottom: 1rem;
+  font-size: 0.82rem;
 }
 
-.acceso-carta .campo-con-icono { margin-bottom: 0.9rem; }
-
-.acceso-entrar { width: 100%; }
-
-.acceso-condiciones {
+.panel-veedor-lista {
   display: grid;
+  gap: 0.85rem;
+}
+
+.panel-veedor-campo { margin-bottom: 1.25rem; }
+
+.panel-veedor-campo .form-reporte-label { margin-bottom: 0.35rem; }
+
+/* ── Cortes ── */
+.corte-accordion-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.corte-accordion-titulo strong {
+  font-size: 0.98rem;
+  color: #f8fafc;
+}
+
+.corte-accordion-acciones {
+  display: flex;
+  align-items: center;
   gap: 0.4rem;
-  margin-top: 1.3rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--color-linea);
-  list-style: none;
-  color: var(--color-tinta-2);
+}
+
+.btn-compacto {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.74rem;
+}
+
+.corte-detalle-etiqueta {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.corte-detalle-valor {
+  font-weight: 600;
+  color: #f1f5f9;
+  font-size: 0.85rem;
+}
+
+.corte-cumplimiento {
+  grid-column: 1 / -1;
+  margin-top: 0.5rem;
+  padding: 0.65rem;
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: #f1f5f9;
+}
+
+.corte-cumplimiento strong { color: #d8b4fe; }
+
+/* ── Formulario de registro ── */
+.panel-veedor-form-corte {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.panel-veedor-multiselect-cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.panel-veedor-buscador {
+  position: relative;
+  width: 220px;
+  display: flex;
+  align-items: center;
+}
+
+.panel-veedor-buscador svg {
+  position: absolute;
+  left: 0.65rem;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.panel-veedor-input-buscador {
+  padding-left: 2rem;
+  padding-right: 0.5rem;
   font-size: 0.78rem;
+  min-height: 34px;
 }
 
-.acceso-condiciones li { display: flex; align-items: center; gap: 0.5rem; }
-
-.acceso-condiciones svg { flex: 0 0 auto; color: var(--carta-boya); }
-
-/* ── Adaptación ─────────────────────────────────────────────────────────
-   El panel vive dentro del shell de trabajo, que ya se queda con una banda
-   lateral, así que la caída a una columna llega antes que en el resto del
-   producto: dos hojas por debajo de ~1240 px de viewport quedan demasiado
-   estrechas para una cita textual de dos líneas. */
-@media (max-width: 1240px) {
-  .mesa-grid,
-  .mesa-grid-cortes { grid-template-columns: minmax(0, 1fr); }
+.corte-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
 }
 
-@media (max-width: 720px) {
-  .mesa-cabecera { align-items: stretch; flex-direction: column; gap: 1rem; }
-  .mesa-salir { width: 100%; }
-  .mesa-regla { grid-template-columns: minmax(0, 1fr); }
-  .mesa-regla > div { border-left: 0; border-top: 1px solid var(--color-linea); }
-  .mesa-regla > div:first-child { border-top: 0; }
-  .fila-correccion { grid-template-columns: minmax(0, 1fr); }
-  .acciones-moderacion > .boton-carta { flex: 1 1 0; }
-  .brecha-cifras { grid-template-columns: minmax(0, 1fr); }
-  .selector-sectores-corte { grid-template-columns: minmax(0, 1fr); }
+.panel-veedor-btn-registrar {
+  max-width: 280px;
+  margin-top: 0.5rem;
 }
+
+/* ── Ingesta ── */
+.panel-veedor-colectores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.badge-propuesta {
+  background: rgba(59, 130, 246, 0.18);
+  color: #bfdbfe;
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.badge-confianza {
+  font-size: 0.68rem;
+  padding: 0.2rem 0.5rem;
+}
+
+.propuesta-cita {
+  margin: 0;
+  padding: 0.65rem;
+  background: rgba(0, 0, 0, 0.25);
+  border-left: 3px solid #a855f7;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: #e2e8f0;
+}
+
+@media (max-width: 640px) {
+  .panel-veedor-buscador { width: 100%; }
+  .panel-veedor-multiselect-cab { align-items: stretch; }
+}
+
+/* Botón de «actualizar» del panel. El nombre viene de la Bitácora, que es donde nació: al
+   quitarse de allí el botón de recargar el feed, la regla se mudó acá, que es donde quedaron
+   sus tres únicos usos (ver PanelVeedor.tsx). */
+.bitacora-actualizar-pro {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 1.25rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  color: #f1f5f9;
+  font-size: 0.85rem;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (hover: hover) and (pointer: fine) { .bitacora-actualizar-pro:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(168, 85, 247, 0.4);
+  transform: translateY(-1px);
+} }

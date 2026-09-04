@@ -20,6 +20,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -71,6 +72,7 @@ public class CorteController {
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ProblemDetail.class)))
     })
+    @PreAuthorize("hasAuthority('PERM_GESTIONAR_CORTES')")
     @PostMapping
     public ResponseEntity<CorteRespuesta> registrar(@Valid @RequestBody SolicitudCorte solicitud) {
         CorteAgua corte = CorteAgua.builder()
@@ -96,6 +98,7 @@ public class CorteController {
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ProblemDetail.class)))
     })
+    @PreAuthorize("hasAuthority('PERM_GESTIONAR_CORTES')")
     @PatchMapping("/{id}/cierre")
     public CorteRespuesta cerrar(@PathVariable String id, @Valid @RequestBody SolicitudCierreCorte solicitud) {
         CorteAgua cerrado = gestionarCorte.cerrar(new CorteId(id), solicitud.horaReal());
@@ -109,6 +112,7 @@ public class CorteController {
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ProblemDetail.class)))
     })
+    @PreAuthorize("hasAuthority('PERM_VER_PANEL')")
     @GetMapping("/{id}")
     public CorteRespuesta consultar(@PathVariable String id) {
         return cortes.buscarPorId(new CorteId(id))
@@ -117,6 +121,7 @@ public class CorteController {
     }
 
     @Operation(summary = "Listar los cortes que afectan a un sector")
+    @PreAuthorize("hasAuthority('PERM_VER_PANEL')")
     @GetMapping
     public List<CorteRespuesta> listarPorSector(@RequestParam String sectorId) {
         return mapper.aRespuestas(cortes.listarPorSector(new SectorId(sectorId)));

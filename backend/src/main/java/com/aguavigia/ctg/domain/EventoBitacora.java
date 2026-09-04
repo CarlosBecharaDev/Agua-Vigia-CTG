@@ -18,7 +18,26 @@ public record EventoBitacora(
         SectorId sectorId,
         CorteId corteId,
         Instant timestamp,
-        String descripcion) {
+        String descripcion,
+        /**
+         * Qué estado del servicio afirma este evento. Nulo cuando el evento no habla del servicio.
+         * Sin él, la bitácora pública no puede darle color ni filtro a un evento y todo se lista
+         * como "informativo", que es lo que un vecino no sabe leer.
+         */
+        EstadoServicio estado,
+        /**
+         * Boletín o nota que respalda el evento, cuando lo hay. Es lo que permite enseñar la fuente
+         * —`ADR-006` exige que toda extracción sea contrastable— y de paso su portada.
+         */
+        String urlOriginal,
+        /** Portada del boletín que respalda el evento, cuando la fuente la trae. */
+        String imagenUrl) {
+
+    /** Para los eventos que no afirman un estado del servicio ni citan una fuente externa. */
+    public EventoBitacora(EventoId id, TipoEvento tipo, SectorId sectorId, CorteId corteId,
+                           Instant timestamp, String descripcion) {
+        this(id, tipo, sectorId, corteId, timestamp, descripcion, null, null, null);
+    }
 
     public EventoBitacora {
         if (tipo == null) {

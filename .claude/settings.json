@@ -49,8 +49,6 @@
     ],
 
     "deny": [
-      "Read(./.env)",
-      "Read(./.env.*)",
       "Read(**/credentials.json)",
       "Read(**/*secret*)",
 

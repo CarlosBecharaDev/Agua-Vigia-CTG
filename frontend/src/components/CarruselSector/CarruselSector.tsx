@@ -6,16 +6,11 @@
  * adaptado de un carrusel arrastrable de N ítems a un swap controlado por estado — acá no hay
  * arrastre, cada cambio de `vista` dispara la misma transición.
  *
- * La dirección no la fija el llamador: se infiere sola. La primera vez que aparece una
- * `vista` se le asigna la siguiente casilla libre (0, 1, 2…) en el orden en que el usuario
- * fue llegando a ella — no un orden fijo de antemano. Ir a una casilla mayor gira hacia
- * adelante, a una menor gira hacia atrás. Con "estado" (primera en aparecer, casilla 0),
- * "sector" (casilla 1) y "detalle" (casilla 2, se llega a ella desde cualquiera de las
- * otras dos) el resultado es intuitivo: alternar entre pestañas siempre desliza para el
- * mismo lado, y entrar al detalle siempre gira hacia adelante venga de donde venga.
+ * El llamador indica la dirección según la acción del usuario. Así el componente no necesita
+ * mutar referencias durante el render ni inventar un orden implícito entre vistas.
  */
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FC, ReactNode } from 'react'
 
 const RESORTE = { type: 'spring' as const, stiffness: 300, damping: 30 }
@@ -47,39 +42,17 @@ function usePrefiereMovimientoReducido(): boolean {
   return reducido
 }
 
-/** Asigna a cada `vista` distinta la próxima casilla libre, en el orden en que se pide por
- *  primera vez, y devuelve la dirección al compararla con la última consultada. */
-function useDireccionCarrusel(vista: string): number {
-  const casillasRef = useRef(new Map<string, number>())
-  const siguienteCasillaRef = useRef(0)
-  const anteriorRef = useRef(vista)
-
-  if (!casillasRef.current.has(vista)) {
-    casillasRef.current.set(vista, siguienteCasillaRef.current)
-    siguienteCasillaRef.current += 1
-  }
-
-  const casillaActual = casillasRef.current.get(vista)!
-  const casillaAnterior = casillasRef.current.get(anteriorRef.current)!
-  const direccion = casillaActual === casillaAnterior ? 1 : Math.sign(casillaActual - casillaAnterior)
-
-  useEffect(() => {
-    anteriorRef.current = vista
-  }, [vista])
-
-  return direccion
-}
-
 interface Props {
   /** Identifica el contenido actual — cambiar el valor dispara la transición. */
   vista: string
+  /** Sentido decidido por la acción que originó el cambio: 1 adelante, -1 atrás. */
+  direccion: number
   children: ReactNode
   className?: string
 }
 
-export const CarruselSector: FC<Props> = ({ vista, children, className }) => {
+export const CarruselSector: FC<Props> = ({ vista, direccion, children, className }) => {
   const reducido = usePrefiereMovimientoReducido()
-  const direccion = useDireccionCarrusel(vista)
   const transicion = reducido ? { duration: 0 } : RESORTE
 
   return (

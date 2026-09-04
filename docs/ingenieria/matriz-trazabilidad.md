@@ -209,5 +209,4 @@ No son huecos de trazabilidad: están declarados y con su razón.
 | Qué | Por qué sigue abierto |
 |---|---|
 | RF041 (webhook real de WhatsApp/Telegram) | Exige credenciales de WhatsApp Business API o un bot de Telegram, que no dependen del backend. La cadena evento → caso de uso → puerto ya está cableada y probada; falta el adaptador que llame al proveedor |
-| RNF021 (bucket, no disco local) | Decisión explícita del 2026-08-11: mantener disco local mientras el despliegue sea de servidor único (Anexo 5) — mismo criterio que TLS y autenticación de Mongo/Redis. `AlmacenamientoPort` ya aísla el cambio si se migra después |
-| Autenticación en MongoDB y Redis | Ambos van sin credenciales, protegidos por la red interna de Docker y sin publicar puertos en producción. Aceptable para el despliegue de aula; obligatorio antes de uno público |
+| RNF021 (bucket, no disco local) | Decisión explícita del 2026-08-11: mantener disco local mientras el despliegue sea de servidor único (Anexo 5). `AlmacenamientoPort` ya aísla el cambio si se migra después |

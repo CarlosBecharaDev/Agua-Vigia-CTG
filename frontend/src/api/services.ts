@@ -1,5 +1,7 @@
 import type { components } from './generated/schema'
+import type { EstadoServicio } from '../types/tipos-dominio'
 import { apiClient, sesionVeedor } from './client'
+import type { Permiso, RolVeedor, SesionVeedor } from './client'
 import { obtenerHuellaDispositivo } from '../utils/huellaDispositivo'
 
 type SectorApi = components['schemas']['SectorRespuesta']
@@ -20,9 +22,22 @@ type SolicitudCorteApi = components['schemas']['SolicitudCorte']
 export type SolicitudCorte = Required<Pick<SolicitudCorteApi, 'sectoresAfectados' | 'inicio' | 'finPrometido' | 'causa'>>
 export type CorteOficial = components['schemas']['CorteRespuesta']
 type EventoBitacoraApi = components['schemas']['EventoBitacoraRespuesta']
-export type TipoEventoBitacora = 'CORTE_ANUNCIADO' | 'CORTE_CONFIRMADO_POR_CIUDADANOS' | 'CORTE_RESTABLECIDO'
+/** Los cuatro de `TipoEvento` en el backend. Faltaba CORTE_DETECTADO_POR_INGESTA, y por eso todo
+ *  lo que publica la ingesta caía en el cajón "informativo", sin color ni filtro. */
+export type TipoEventoBitacora =
+  | 'CORTE_ANUNCIADO'
+  | 'CORTE_CONFIRMADO_POR_CIUDADANOS'
+  | 'CORTE_RESTABLECIDO'
+  | 'CORTE_DETECTADO_POR_INGESTA'
 export type EventoBitacora = Required<Pick<EventoBitacoraApi, 'id' | 'tipo' | 'timestamp' | 'descripcion'>> &
-  Pick<EventoBitacoraApi, 'sectorId' | 'corteId'>
+  Pick<EventoBitacoraApi, 'sectorId' | 'corteId'> & {
+    /** Estado que afirma el evento. Nulo cuando el evento no habla del servicio. */
+    estado?: EstadoServicio | null
+    /** Boletín que respalda el evento — de aquí sale el enlace "Leer documento". */
+    urlOriginal?: string | null
+    /** Portada del boletín, capturada por el colector al ingerir. */
+    imagenUrl?: string | null
+  }
 
 // --- Interfaces del Índice de Cumplimiento (M6, RF020-RF025) ---
 export interface IndiceCumplimiento {
@@ -205,16 +220,196 @@ export async function cerrarCorteOficial(id: string, horaReal: string): Promise<
   return data
 }
 
-export async function iniciarSesionVeedor(clave: string): Promise<void> {
-  const { data } = await apiClient.post<unknown>('/veedor/sesion', { clave })
-  if (!data || typeof data !== 'object' || !('token' in data) || typeof data.token !== 'string') {
+// --- Cuentas del panel (ADR-039) ---
+
+function comoSesion(data: unknown): SesionVeedorApi {
+  if (!data || typeof data !== 'object' || typeof (data as SesionVeedorApi).token !== 'string') {
     throw new Error('El servidor no devolvió una sesión válida.')
   }
-  sesionVeedor.guardar(data.token)
+  return data as SesionVeedorApi
 }
 
-export function cerrarSesionVeedor() {
-  sesionVeedor.limpiar()
+type SesionVeedorApi = SesionVeedor
+
+/**
+ * `codigoTotp` se omite en el primer intento. Si la cuenta tiene segundo factor, el backend
+ * responde 401 con type `segundo-factor-requerido` y la pantalla reintenta con el código — por eso
+ * el interceptor de client.ts no limpia la sesión ante ese type concreto.
+ */
+export async function iniciarSesionVeedor(
+  correo: string,
+  clave: string,
+  codigoTotp?: string,
+): Promise<SesionVeedor> {
+  const { data } = await apiClient.post<unknown>('/veedor/sesion', {
+    correo,
+    clave,
+    codigoTotp: codigoTotp?.trim() || undefined,
+  })
+  const sesion = comoSesion(data)
+  sesionVeedor.guardar(sesion)
+  return sesion
+}
+
+/** Revoca en el servidor, no solo en esta pestaña: un token copiado deja de servir en el acto. */
+export async function cerrarSesionVeedor(): Promise<void> {
+  try {
+    await apiClient.post('/veedor/sesion/cierre')
+  } catch {
+    // Si la llamada falla (sesión ya vencida, red caída) igual se limpia el cliente: dejar el
+    // token en la pestaña sería lo peor de los dos mundos.
+  } finally {
+    sesionVeedor.limpiar()
+  }
+}
+
+export async function solicitarCuenta(correo: string, nombre: string, clave: string): Promise<void> {
+  await apiClient.post('/cuentas/registro', { correo, nombre, clave })
+}
+
+export async function verificarCorreo(token: string): Promise<void> {
+  await apiClient.post(`/cuentas/verificacion?token=${encodeURIComponent(token)}`)
+}
+
+export async function aceptarInvitacion(token: string, clave: string): Promise<void> {
+  await apiClient.post('/cuentas/invitacion', { token, clave })
+}
+
+export async function pedirRestablecimiento(correo: string): Promise<void> {
+  await apiClient.post('/cuentas/restablecimiento', { correo })
+}
+
+export async function fijarClaveNueva(token: string, clave: string): Promise<void> {
+  await apiClient.post('/cuentas/clave', { token, clave })
+}
+
+// --- Segundo factor (TOTP) ---
+
+export interface AltaSegundoFactor {
+  uri: string
+  secreto: string
+}
+
+export async function iniciarAltaSegundoFactor(): Promise<AltaSegundoFactor> {
+  const { data } = await apiClient.post<AltaSegundoFactor>('/veedor/segundo-factor/alta')
+  return data
+}
+
+/** Devuelve una sesión nueva de alcance COMPLETO y la deja guardada. */
+export async function confirmarSegundoFactor(codigo: string): Promise<SesionVeedor> {
+  const { data } = await apiClient.post<unknown>('/veedor/segundo-factor/confirmacion', { codigo })
+  const sesion = comoSesion(data)
+  sesionVeedor.guardar(sesion)
+  return sesion
+}
+
+export async function desactivarSegundoFactor(codigo: string): Promise<void> {
+  await apiClient.post('/veedor/segundo-factor/baja', { codigo })
+}
+
+// --- Administración de cuentas (solo ADMIN) ---
+
+export interface CuentaPanel {
+  id: string
+  correo: string
+  nombre: string
+  estado:
+    | 'PENDIENTE_VERIFICACION'
+    | 'PENDIENTE_APROBACION'
+    | 'INVITADA'
+    | 'ACTIVA'
+    | 'SUSPENDIDA'
+    | 'RECHAZADA'
+  rol: RolVeedor
+  permisosEfectivos: Permiso[]
+  permisosConcedidos: Permiso[]
+  permisosRevocados: Permiso[]
+  segundoFactorActivo: boolean
+  creadoEn: string
+  actualizadoEn: string
+}
+
+export interface AjustePermisos {
+  rol: RolVeedor
+  concedidos?: Permiso[]
+  revocados?: Permiso[]
+}
+
+export async function listarCuentas(estado?: string): Promise<CuentaPanel[]> {
+  const { data } = await apiClient.get<CuentaPanel[]>('/veedor/usuarios', {
+    params: { estado: estado || undefined, tamano: 200 },
+  })
+  return Array.isArray(data) ? data : []
+}
+
+export async function invitarCuenta(
+  correo: string,
+  nombre: string,
+  rol: RolVeedor,
+): Promise<CuentaPanel> {
+  const { data } = await apiClient.post<CuentaPanel>('/veedor/usuarios/invitaciones', {
+    correo,
+    nombre,
+    rol,
+  })
+  return data
+}
+
+export async function aprobarCuenta(id: string, permisos: AjustePermisos): Promise<CuentaPanel> {
+  const { data } = await apiClient.patch<CuentaPanel>(
+    `/veedor/usuarios/${encodeURIComponent(id)}/aprobacion`,
+    permisos,
+  )
+  return data
+}
+
+export async function rechazarCuenta(id: string): Promise<CuentaPanel> {
+  const { data } = await apiClient.patch<CuentaPanel>(
+    `/veedor/usuarios/${encodeURIComponent(id)}/rechazo`,
+  )
+  return data
+}
+
+export async function suspenderCuenta(id: string): Promise<CuentaPanel> {
+  const { data } = await apiClient.patch<CuentaPanel>(
+    `/veedor/usuarios/${encodeURIComponent(id)}/suspension`,
+  )
+  return data
+}
+
+export async function reactivarCuenta(id: string): Promise<CuentaPanel> {
+  const { data } = await apiClient.patch<CuentaPanel>(
+    `/veedor/usuarios/${encodeURIComponent(id)}/reactivacion`,
+  )
+  return data
+}
+
+export async function cambiarPermisosCuenta(
+  id: string,
+  permisos: AjustePermisos,
+): Promise<CuentaPanel> {
+  const { data } = await apiClient.patch<CuentaPanel>(
+    `/veedor/usuarios/${encodeURIComponent(id)}/permisos`,
+    permisos,
+  )
+  return data
+}
+
+export interface AsientoAuditoria {
+  id: string
+  accion: string
+  autorCorreo: string | null
+  sujetoCorreo: string | null
+  detalle: string | null
+  ip: string | null
+  ocurrioEn: string
+}
+
+export async function listarAuditoria(tamano = 100): Promise<AsientoAuditoria[]> {
+  const { data } = await apiClient.get<AsientoAuditoria[]>('/veedor/auditoria', {
+    params: { tamano },
+  })
+  return Array.isArray(data) ? data : []
 }
 
 // --- Bitácora pública (M8) ---

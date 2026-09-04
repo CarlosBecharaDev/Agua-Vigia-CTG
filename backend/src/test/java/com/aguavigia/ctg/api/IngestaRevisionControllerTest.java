@@ -10,6 +10,7 @@ import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.port.in.RevisarPropuestaIngestaUseCase;
 import com.aguavigia.ctg.domain.port.out.PropuestaIngestaRepository;
 import com.aguavigia.ctg.infrastructure.config.SecurityConfig;
+import com.aguavigia.ctg.domain.Permiso;
 import com.aguavigia.ctg.infrastructure.security.JwtProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,8 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -52,13 +55,17 @@ class IngestaRevisionControllerTest {
     @MockitoBean
     private JwtProvider jwtProvider;
 
+    @MockitoBean
+    private com.aguavigia.ctg.domain.port.out.RevocacionSesionPort revocacion;
+
     // RateLimitConfig implementa WebMvcConfigurer y se instancia en cualquier @WebMvcTest aunque
     // no se importe (REC-006).
     @MockitoBean(name = "redisTemplate")
     private RedisTemplate<String, String> redisTemplateMock;
 
     private void autenticarComoVeedor() {
-        given(jwtProvider.validarYObtenerSujeto("token-de-veedor")).willReturn(Optional.of("veedor"));
+        given(jwtProvider.validar("token-de-veedor"))
+                .willReturn(Optional.of(AutenticacionDePrueba.sesionCon(Permiso.VER_PANEL, Permiso.REVISAR_INGESTA)));
     }
 
     private PropuestaIngesta propuesta() {
@@ -127,6 +134,31 @@ class IngestaRevisionControllerTest {
                 .willThrow(new IllegalArgumentException("No existe la propuesta 'no-existe'"));
 
         mockMvc.perform(patch("/api/veedor/ingesta/propuestas/no-existe/aprobar").header("Authorization", TOKEN))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Peticion invalida"));
+    }
+
+    /**
+     * BUG-062 — este endpoint solo acepta PATCH. Con POST respondia 500 «Error no controlado» y el
+     * log guardaba el stack trace, lo que hizo creer que el servidor estaba roto cuando el error
+     * era del cliente.
+     */
+    @Test
+    void debeResponder405ConLaCabeceraAllowSiSeUsaElVerboEquivocado() throws Exception {
+        autenticarComoVeedor();
+
+        mockMvc.perform(post("/api/veedor/ingesta/propuestas/p-1/aprobar").header("Authorization", TOKEN))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(header().string("Allow", "PATCH"))
+                .andExpect(jsonPath("$.title").value("Metodo no permitido"))
+                .andExpect(jsonPath("$.metodosPermitidos[0]").value("PATCH"));
+    }
+
+    @Test
+    void debeResponder400SiLaPaginaNoEsUnNumero() throws Exception {
+        autenticarComoVeedor();
+
+        mockMvc.perform(get("/api/veedor/ingesta/propuestas").param("pagina", "abc").header("Authorization", TOKEN))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").value("Peticion invalida"));
     }

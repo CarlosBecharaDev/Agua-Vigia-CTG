@@ -11,6 +11,7 @@ import type { ErrorInfo, ReactNode } from 'react'
 import { Encabezado } from './components/Encabezado'
 import { useTheme } from './hooks/useTheme'
 import { ModalSuscripcion } from './components/ModalSuscripcion'
+import { SplashScreen } from './components/SplashScreen'
 
 // Cada vista carga solo cuando se visita, especialmente útil en conexiones móviles.
 const PaginaMapa = lazy(() => import('./pages/PaginaMapa'))
@@ -18,6 +19,11 @@ const PaginaReportar = lazy(() => import('./pages/PaginaReportar'))
 const PaginaConfirmarReporte = lazy(() => import('./pages/PaginaConfirmarReporte'))
 const PaginaSector = lazy(() => import('./pages/PaginaSector'))
 const PaginaVeedor = lazy(() => import('./pages/PaginaVeedor'))
+const PaginaCuentas = lazy(() => import('./pages/PaginaCuentas'))
+const PaginaRegistroCuenta = lazy(() => import('./pages/PaginaRegistroCuenta'))
+const PaginaOlvideClave = lazy(() => import('./pages/PaginaOlvideClave'))
+const PaginaVerificarCorreo = lazy(() => import('./pages/PaginaVerificarCorreo'))
+const PaginaFijarClave = lazy(() => import('./pages/PaginaFijarClave'))
 const PaginaNoEncontrada = lazy(() => import('./pages/PaginaNoEncontrada'))
 
 // Al recargar la página el navegador restaura por su cuenta la posición de scroll que
@@ -78,7 +84,11 @@ function ContenidoApp() {
 
   return (
     <RouteErrorBoundary key={pathname}>
-      <Suspense fallback={<div className="cargando-pagina" role="status"><span /> Cargando experiencia…</div>}>
+      <Suspense fallback={
+        <main id="contenido-principal" tabIndex={-1} className="cargando-pagina" aria-busy="true">
+          <div role="status"><span /> Cargando experiencia…</div>
+        </main>
+      }>
         {esPaginaPrincipal ? (
           <PaginaMapa temaActivo={temaActivo} onAlternarTema={alternarTema} />
         ) : (
@@ -90,6 +100,14 @@ function ContenidoApp() {
                 <Route path="/confirmar/:id" element={<PaginaConfirmarReporte />} />
                 <Route path="/sectores/:id" element={<PaginaSector />} />
                 <Route path="/veedor" element={<PaginaVeedor />} />
+                <Route path="/veedor/cuentas" element={<PaginaCuentas />} />
+                {/* Las rutas /cuentas/* son las que aterrizan desde los enlaces del correo: el
+                    token viaja como query param y cada pantalla lo canjea contra la API. */}
+                <Route path="/cuentas/registro" element={<PaginaRegistroCuenta />} />
+                <Route path="/cuentas/olvide-mi-clave" element={<PaginaOlvideClave />} />
+                <Route path="/cuentas/verificar" element={<PaginaVerificarCorreo />} />
+                <Route path="/cuentas/invitacion" element={<PaginaFijarClave modo="invitacion" />} />
+                <Route path="/cuentas/restablecer" element={<PaginaFijarClave modo="restablecimiento" />} />
                 <Route path="*" element={<PaginaNoEncontrada />} />
               </Routes>
             </div>
@@ -101,13 +119,10 @@ function ContenidoApp() {
   )
 }
 
-// Sin pantalla de bienvenida: bloqueaba 2,5 s cada carga —y cada recarga, porque no
-// recordaba haberse mostrado— sin dar ni un dato. El producto se compromete a contestar
-// "¿tengo agua?" en menos de 5 s (DESIGN.md §1) y RNF001 exige el mapa en menos de 3 s
-// sobre 3G: medio presupuesto se iba en mirar una gota. Lo primero que se ve es la carta.
 function App() {
   return (
     <BrowserRouter>
+      <SplashScreen />
       <a
         href="#contenido-principal"
         id="saltar-al-contenido"

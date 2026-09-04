@@ -34,10 +34,21 @@ public class EstadisticasMongoAdapter implements EstadisticasRepository {
     @Override
     public EstadisticasGlobales calcularGlobales() {
 
-        // 1. Top 5 sectores mas afectados
+        // 1. Top 5 sectores mas afectados.
+        //
+        // Se cuenta sobre `propuestas_ingesta` y no sobre `cortes` a proposito. Un `CorteAgua`
+        // exige ventana completa (inicio + fin prometido), y medido sobre los 100 boletines mas
+        // recientes de Acuacar el 30/08/2026: 18 anuncian suspension, los 18 traen la fecha, pero
+        // solo 5 declaran el rango horario. Contra `cortes` este top salia de 3 registros y no
+        // representaba nada; contra las propuestas aprobadas cubre los cinco anios de boletines
+        // (1.106 menciones desde 2020).
+        //
+        // Cambia lo que el numero significa, y hay que decirlo donde se muestre: es "veces que el
+        // barrio aparecio en un aviso de corte", no "cortes con duracion medida". Esa otra cifra
+        // vive en el Indice de Cumplimiento, que sigue exigiendo ventana real.
         Aggregation topSectoresAgg = Aggregation.newAggregation(
-                Aggregation.unwind("sectoresAfectados"),
-                Aggregation.group("sectoresAfectados").count().as("cantidadCortes"),
+                Aggregation.match(Criteria.where("estadoRevision").is("APROBADA")),
+                Aggregation.group("sectorId").count().as("cantidadCortes"),
                 Aggregation.sort(Sort.Direction.DESC, "cantidadCortes"),
                 Aggregation.limit(5),
                 // Contra `slug`, no contra `_id`: `cortes.sectoresAfectados` guarda el SectorId de
@@ -53,7 +64,7 @@ public class EstadisticasMongoAdapter implements EstadisticasRepository {
         );
 
         AggregationResults<Map> topSectoresResults =
-                mongoTemplate.aggregate(topSectoresAgg, CorteAguaDocumento.class, Map.class);
+                mongoTemplate.aggregate(topSectoresAgg, PropuestaIngestaDocumento.class, Map.class);
         List<EstadisticaSector> topSectores = topSectoresResults.getMappedResults().stream()
                 .map(m -> new EstadisticaSector(
                         new SectorId((String) m.get("sectorId")),

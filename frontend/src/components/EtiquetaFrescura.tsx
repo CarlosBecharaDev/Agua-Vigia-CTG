@@ -11,10 +11,16 @@ import { AlertTriangle } from 'lucide-react'
 
 interface Props {
   timestampIso: string | null
+  /** F4 — cuando el stream SSE en vivo está caído, se fuerza el aviso de inmediato en vez de
+   *  esperar a que el dato envejezca hasta el umbral de frescura. `undefined`/`true` no cambia
+   *  el comportamiento existente (solo por tiempo transcurrido). */
+  conexionViva?: boolean
 }
 
-export const EtiquetaFrescura: FC<Props> = ({ timestampIso }) => {
-  const { etiqueta, degradado } = useFrescura(timestampIso)
+export const EtiquetaFrescura: FC<Props> = ({ timestampIso, conexionViva = true }) => {
+  const resultado = useFrescura(timestampIso)
+  const etiqueta = conexionViva ? resultado.etiqueta : 'sin conexión en vivo — mostrando el último dato'
+  const degradado = conexionViva ? resultado.degradado : true
 
   return (
     <span

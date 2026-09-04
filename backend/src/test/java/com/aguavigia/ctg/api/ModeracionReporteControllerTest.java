@@ -12,6 +12,7 @@ import com.aguavigia.ctg.domain.TipoReporte;
 import com.aguavigia.ctg.domain.port.in.ModerarReporteUseCase;
 import com.aguavigia.ctg.domain.port.out.ReporteCiudadanoRepository;
 import com.aguavigia.ctg.infrastructure.config.SecurityConfig;
+import com.aguavigia.ctg.domain.Permiso;
 import com.aguavigia.ctg.infrastructure.security.JwtProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,13 +54,17 @@ class ModeracionReporteControllerTest {
     @MockitoBean
     private JwtProvider jwtProvider;
 
+    @MockitoBean
+    private com.aguavigia.ctg.domain.port.out.RevocacionSesionPort revocacion;
+
     // RateLimitConfig implementa WebMvcConfigurer y se instancia en cualquier @WebMvcTest aunque
     // no se importe (REC-006).
     @MockitoBean(name = "redisTemplate")
     private RedisTemplate<String, String> redisTemplateMock;
 
     private void autenticarComoVeedor() {
-        given(jwtProvider.validarYObtenerSujeto("token-de-veedor")).willReturn(Optional.of("veedor"));
+        given(jwtProvider.validar("token-de-veedor"))
+                .willReturn(Optional.of(AutenticacionDePrueba.sesionCon(Permiso.VER_PANEL, Permiso.MODERAR_REPORTES)));
     }
 
     private ReporteCiudadano reporte(EstadoModeracion estado) {

@@ -1,0 +1,618 @@
+/* ── Apple-Grade Pro Estadísticas — Panel de Analítica y Cumplimiento ── */
+
+.estadisticas-seccion {
+  position: relative;
+  background: linear-gradient(180deg, #070a18 0%, #050814 50%, #03050c 100%);
+  padding: 4.5rem 0 4.75rem;
+  color: #f8fafc;
+  overflow: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ── Fondo Animado Morado/Índigo Fluido ── */
+.estadisticas-fondo-animado {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.orbe-est-1 {
+  position: absolute;
+  top: -10%;
+  left: 15%;
+  width: 550px;
+  height: 550px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.22) 0%, rgba(147, 51, 234, 0.06) 60%, transparent 80%);
+  filter: blur(75px);
+  animation: flotar-est-1 14s infinite ease-in-out;
+}
+
+.orbe-est-2 {
+  position: absolute;
+  bottom: -15%;
+  right: 10%;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, rgba(99, 102, 241, 0.06) 60%, transparent 80%);
+  filter: blur(80px);
+  animation: flotar-est-2 16s infinite ease-in-out;
+}
+
+.orbe-est-3 {
+  position: absolute;
+  top: 40%;
+  right: 35%;
+  width: 450px;
+  height: 450px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(192, 132, 252, 0.14) 0%, transparent 70%);
+  filter: blur(65px);
+  animation: flotar-est-1 20s infinite ease-in-out reverse;
+}
+
+@keyframes flotar-est-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(40px, -30px) scale(1.1); }
+}
+
+@keyframes flotar-est-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-35px, 25px) scale(0.95); }
+}
+
+.estadisticas-envoltorio {
+  position: relative;
+  z-index: 1;
+  width: min(100% - 2.5rem, 1200px);
+  margin: 0 auto;
+}
+
+/* ── Cabecera Apple Pro ── */
+.estadisticas-cab {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.estadisticas-eyebrow-pro {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  color: #93c5fd;
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.85rem;
+}
+
+.estadisticas-eyebrow-pro .pulse-dot-blue {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #3b82f6;
+  box-shadow: 0 0 8px #60a5fa;
+  animation: pulse-glow-blue 2s infinite ease-in-out;
+}
+
+@keyframes pulse-glow-blue {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.estadisticas-titulo-pro {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  font-size: clamp(2rem, 3.8vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 0 0 0.6rem;
+  background: linear-gradient(180deg, #ffffff 30%, rgba(255, 255, 255, 0.75) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.estadisticas-subtitulo-pro {
+  color: rgba(226, 232, 240, 0.75);
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 50ch;
+  margin: 0;
+  font-weight: 400;
+}
+
+.estadisticas-acciones-cab {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.estadisticas-badge-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(14px);
+  color: rgba(226, 232, 240, 0.85);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.estadisticas-btn-exportar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 1.05rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f1f5f9;
+  font-size: 0.78rem;
+  font-weight: 650;
+  text-decoration: none;
+  backdrop-filter: blur(12px);
+  transition: all 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) { .estadisticas-btn-exportar:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(96, 165, 250, 0.4);
+  transform: translateY(-1px);
+} }
+
+/* ── Tarjetas Bento Glass para KPIs ── */
+.estadisticas-kpis-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.estadisticas-kpi-card {
+  position: relative;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 1.5rem;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  transition: all 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.estadisticas-seccion.is-visible .estadisticas-kpi-card {
+  animation: estadistica-entrada 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.estadisticas-seccion.is-visible .estadisticas-kpi-card:nth-child(2) { animation-delay: 70ms; }
+.estadisticas-seccion.is-visible .estadisticas-kpi-card:nth-child(3) { animation-delay: 140ms; }
+.estadisticas-seccion.is-visible .estadisticas-kpi-card:nth-child(4) { animation-delay: 210ms; }
+
+@keyframes estadistica-entrada {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (hover: hover) and (pointer: fine) { .estadisticas-kpi-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(96, 165, 250, 0.35);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 25px -5px rgba(59, 130, 246, 0.25);
+} }
+
+.estadisticas-kpi-icono {
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.estadisticas-kpi-cuerpo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.estadisticas-kpi-titulo {
+  font-size: 0.72rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(203, 213, 225, 0.7);
+  margin-bottom: 0.25rem;
+}
+
+.estadisticas-kpi-valor {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  font-size: 1.95rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #f8fafc;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.estadisticas-kpi-sub {
+  font-size: 0.72rem;
+  color: rgba(148, 163, 184, 0.8);
+  margin-top: 0.25rem;
+}
+
+/* ── Panel Bento Gráficos y Cumplimiento ── */
+.estadisticas-card-bloque {
+  position: relative;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 1.85rem;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4);
+  margin-bottom: 2rem;
+  transition: border-color 200ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) { .estadisticas-card-bloque:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+} }
+
+.estadisticas-graficos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.estadisticas-chart {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  min-width: 0;
+}
+
+/* Las barras ya nacen con sus datos finales. Esta capa CSS solo anima su entrada al llegar
+   al viewport, por lo que nunca deja el grafico vacio si el navegador pausa animaciones. */
+.estadisticas-seccion.is-visible .estadisticas-chart:not(.estadisticas-chart--sectores) .recharts-bar-rectangle path {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: estadistica-barra-vertical 760ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.estadisticas-seccion.is-visible .estadisticas-chart--sectores .recharts-bar-rectangle path {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: estadistica-barra-horizontal 760ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes estadistica-barra-vertical {
+  from { opacity: 0.45; transform: scaleY(0.08); }
+  to { opacity: 1; transform: scaleY(1); }
+}
+
+@keyframes estadistica-barra-horizontal {
+  from { opacity: 0.45; transform: scaleX(0.08); }
+  to { opacity: 1; transform: scaleX(1); }
+}
+
+.estadisticas-card-cab {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.estadisticas-card-cab h3 {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  font-size: 1.25rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: #f1f5f9;
+  margin: 0 0 0.3rem 0;
+}
+
+.estadisticas-card-cab p {
+  color: rgba(203, 213, 225, 0.75);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Grid Bento de Cumplimiento ── */
+.cumplimiento-metricas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.25rem;
+  padding-top: 0.5rem;
+}
+
+.cumplimiento-item {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.cumplimiento-item-tag {
+  font-size: 0.7rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(148, 163, 184, 0.8);
+  margin-bottom: 0.35rem;
+}
+
+.cumplimiento-item-val {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.cumplimiento-desviacion-ok {
+  color: #4ade80;
+  text-shadow: 0 0 16px rgba(74, 222, 128, 0.3);
+}
+
+.cumplimiento-desviacion-alerta {
+  color: #f87171;
+  text-shadow: 0 0 16px rgba(248, 113, 113, 0.3);
+}
+
+/* ── Selectores Interactivos Píldora Apple ── */
+.estadisticas-pill-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  backdrop-filter: blur(12px);
+}
+
+.estadisticas-pill-btn {
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  background: transparent;
+  border: none;
+  color: rgba(203, 213, 225, 0.75);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 160ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (hover: hover) and (pointer: fine) { .estadisticas-pill-btn:hover {
+  color: #ffffff;
+} }
+
+.estadisticas-pill-btn.is-active {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Tooltips Apple Glass ── */
+.custom-tooltip-glass {
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 0.85rem 1rem;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 15px rgba(56, 189, 248, 0.2);
+  backdrop-filter: blur(20px);
+  color: #f8fafc;
+  min-width: 160px;
+}
+
+.custom-tooltip-title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #e2e8f0;
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.custom-tooltip-val {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.custom-tooltip-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  margin-top: 0.4rem;
+}
+
+/* ── Shimmer Skeleton Loader para Gráficos ── */
+.chart-skeleton-box {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  height: 100%;
+  padding: 1.5rem 1rem 0.5rem;
+}
+
+.chart-skeleton-bar {
+  flex: 1;
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  animation: chart-shimmer 1.8s infinite ease-in-out;
+}
+
+.chart-skeleton-horizontal {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding: 1rem 0;
+  gap: 0.75rem;
+}
+
+.chart-skeleton-hbar {
+  height: 22px;
+  border-radius: 0 8px 8px 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  animation: chart-shimmer 1.8s infinite ease-in-out;
+}
+
+@keyframes chart-shimmer {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.9; }
+}
+
+.chart-highlight-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.85rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.75rem;
+  color: rgba(226, 232, 240, 0.85);
+}
+
+/* ── Reglas Responsivas para Móvil en Estadísticas ── */
+@media (max-width: 768px) {
+  .estadisticas-seccion {
+    padding: 3.25rem 0 3.5rem;
+  }
+
+  .estadisticas-envoltorio {
+    width: min(100% - 1.25rem, 1200px);
+  }
+
+  .estadisticas-cab {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .estadisticas-acciones-cab {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .estadisticas-kpis-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .estadisticas-graficos-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .estadisticas-kpi-card {
+    padding: 1rem 0.85rem;
+    border-radius: 18px;
+    gap: 0.75rem;
+  }
+
+  .estadisticas-kpi-icono {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .estadisticas-kpi-titulo {
+    font-size: 0.65rem;
+  }
+
+  .estadisticas-kpi-valor {
+    font-size: 1.45rem;
+  }
+
+  .estadisticas-kpi-sub {
+    font-size: 0.65rem;
+  }
+
+  .estadisticas-card-bloque {
+    padding: 1.25rem 1rem;
+    border-radius: 20px;
+    margin-bottom: 1rem;
+  }
+
+  .estadisticas-card-cab {
+    flex-direction: column;
+    margin-bottom: 1rem;
+  }
+
+  .estadisticas-card-cab .estadisticas-pill-switch,
+  .estadisticas-card-cab .estadisticas-btn-exportar {
+    align-self: flex-start;
+  }
+
+  .estadisticas-chart {
+    height: 240px;
+  }
+
+  .cumplimiento-metricas-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .estadisticas-kpis-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .estadisticas-chart--sectores {
+    height: 260px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .estadisticas-seccion.is-visible .estadisticas-kpi-card,
+  .estadisticas-seccion.is-visible .estadisticas-chart .recharts-bar-rectangle path {
+    animation: none;
+  }
+}

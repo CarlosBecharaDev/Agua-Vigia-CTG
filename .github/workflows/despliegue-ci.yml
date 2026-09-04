@@ -13,6 +13,14 @@ jobs:
   compose:
     name: Construir las imágenes y validar los compose
     runs-on: ubuntu-latest
+    env:
+      # Valores efímeros para que Compose pueda validar la configuración; no son credenciales
+      # desplegadas ni se usan fuera del runner desechable del CI.
+      MONGO_ROOT_USERNAME: usuario-ci
+      MONGO_ROOT_PASSWORD: clave-ci-no-real
+      # Solo se analiza el compose; el job no arranca la base ni usa esta URI para conectarse.
+      MONGODB_URI_PROD: mongodb://mongo:27017/aguavigia
+      REDIS_PASSWORD: clave-ci-no-real
     steps:
       - uses: actions/checkout@v4
 

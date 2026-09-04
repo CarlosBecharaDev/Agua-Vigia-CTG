@@ -67,15 +67,20 @@ class EstadisticasMongoAdapterTest {
         mongoTemplate.save(documento);
     }
 
+    /**
+     * El top cuenta menciones en avisos aprobados, no cortes con ventana medida: un `CorteAgua`
+     * exige rango horario declarado y solo ~5 de cada 100 boletines de Acuacar lo traen, así que
+     * contra `cortes` este top se calculaba sobre un puñado de registros y no representaba la
+     * ciudad. Las propuestas aprobadas cubren los cinco años de boletines.
+     */
     @Test
     void debeCalcularElTopDeSectoresMasAfectados() {
         sembrarSector("manga", "Manga");
         sembrarSector("bocagrande", "Bocagrande");
-        Instant inicio = Instant.parse("2026-08-01T10:00:00Z");
-        Instant fin = Instant.parse("2026-08-01T14:00:00Z");
-        sembrarCorte("c1", List.of("manga"), inicio, fin);
-        sembrarCorte("c2", List.of("manga"), inicio, fin);
-        sembrarCorte("c3", List.of("bocagrande"), inicio, fin);
+        sembrarPropuestaAprobada("p1", "manga");
+        sembrarPropuestaAprobada("p2", "manga");
+        sembrarPropuestaAprobada("p3", "bocagrande");
+        sembrarPropuestaPendiente("p4", "bocagrande");
 
         EstadisticasGlobales resultado = adaptador.calcularGlobales();
 
@@ -83,6 +88,27 @@ class EstadisticasMongoAdapterTest {
         assertThat(resultado.sectoresMasAfectados().get(0).sectorId()).isEqualTo(new SectorId("manga"));
         assertThat(resultado.sectoresMasAfectados().get(0).nombre()).isEqualTo("Manga");
         assertThat(resultado.sectoresMasAfectados().get(0).cantidadCortes()).isEqualTo(2);
+    }
+
+    private void sembrarPropuestaAprobada(String id, String sectorId) {
+        sembrarPropuesta(id, sectorId, "APROBADA");
+    }
+
+    /** Una propuesta sin aprobar no cuenta: nadie ha confirmado que ese aviso sea real. */
+    private void sembrarPropuestaPendiente(String id, String sectorId) {
+        sembrarPropuesta(id, sectorId, "PENDIENTE");
+    }
+
+    private void sembrarPropuesta(String id, String sectorId, String estadoRevision) {
+        PropuestaIngestaDocumento documento = new PropuestaIngestaDocumento();
+        documento.setId(id);
+        documento.setSectorId(sectorId);
+        documento.setEstadoPropuesto("SIN_SERVICIO");
+        documento.setFuente("acuacar");
+        documento.setConfianza(0.85);
+        documento.setDetectadaEn(Instant.parse("2026-08-01T10:00:00Z"));
+        documento.setEstadoRevision(estadoRevision);
+        mongoTemplate.save(documento);
     }
 
     @Test

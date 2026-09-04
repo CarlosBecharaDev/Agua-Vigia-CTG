@@ -563,7 +563,7 @@ es de responsabilidad, no de código — no hay archivos que mover ni módulos q
 ## ADR-014 — Un sector sin dato verificado se publica con estado nulo, no como `CON_SERVICIO`
 
 - **Fecha:** 2026-08-08
-- **Estado:** Aceptada
+- **Estado:** Parcialmente reemplazada por ADR-035 — el contrato sigue transmitiendo `estado: null`; lo que cambia es cómo lo presenta el frontend
 - **Decide:** Backend – Infraestructura (D3)
 
 ### Contexto
@@ -664,7 +664,7 @@ y el contrato no cambian.
 ## ADR-016 — El panel del veedor usa una sola credencial compartida, no cuentas individuales
 
 - **Fecha:** 2026-08-08
-- **Estado:** Aceptada
+- **Estado:** Reemplazada por ADR-039
 - **Decide:** Backend – Infraestructura (D3)
 
 ### Contexto
@@ -1278,7 +1278,7 @@ antes resolver la identidad del ciudadano, que ADR-007 dejó fuera a propósito.
 ## ADR-028 — La ingesta automatizada propone; publicar es decisión del veedor
 
 - **Fecha:** 2026-08-11
-- **Estado:** Aceptada
+- **Estado:** Parcialmente reemplazada por ADR-034 — sigue rigiendo para las fuentes de prensa; ya no para los boletines de Acuacar
 - **Decide:** D3 (backend)
 
 ### Contexto
@@ -1451,8 +1451,449 @@ sin la excepción que lo explica.
 
 ---
 
+---
+
+## ADR-032 — La confianza de la extracción se gradúa; el veedor sigue decidiendo
+
+- **Fecha:** 2026-08-22
+- **Estado:** Parcialmente reemplazada por ADR-034 — la graduación de confianza sigue vigente; que el veedor decida ya no aplica a Acuacar
+- **Decide:** D3
+
+### Contexto
+
+`ADR-028` descartó publicar automáticamente por encima de un umbral de confianza, con un argumento
+concreto y correcto en su momento:
+
+> El extractor emite un valor constante de 0.6: el umbral no distinguiría nada.
+
+Al corregir la extracción (`BUG-057` a `BUG-060`) esa premisa dejó de ser cierta. El extractor ahora
+sí distingue evidencias muy distintas entre sí: un boletín con enumeración explícita de barrios y
+ventana horaria declarada no se parece en nada a una mención suelta en prosa, y hasta ahora ambos
+salían con el mismo 0.6.
+
+Medido sobre 37 boletines reales de Acuacar (mayo–agosto 2026), los tres niveles se separan de forma
+limpia: el 100% de los boletines con enumeración identifica al menos un barrio del catálogo oficial,
+mientras que las menciones en prosa producen sobre todo nombres genéricos que el catálogo descarta.
+
+### Decisión
+
+La confianza pasa a tener tres niveles, según la evidencia que el extractor encontró de verdad:
+
+| Valor | Evidencia |
+|---|---|
+| `0.85` | Enumeración explícita de barrios **y** ventana horaria declarada |
+| `0.75` | Enumeración explícita, sin horario |
+| `0.45` | Mención en prosa, sin lista |
+
+**No se cambia la política de publicación.** Nada se publica solo: toda propuesta sigue naciendo
+`PENDIENTE` y el mapa solo se mueve cuando un veedor aprueba, exactamente como decidió `ADR-028`.
+Lo que cambia es que el número sirve para **ordenar la cola** por lo que más se sostiene, y que
+`citaTextual` ahora cita el tramo que nombra los barrios y el horario en vez de la frase de resumen,
+que era una cita literal pero inútil para contrastar.
+
+### Consecuencias
+
+- **Gana:** el veedor revisa primero lo mejor respaldado y lee una cita que de verdad le permite
+  decidir. Si el equipo quisiera más adelante reabrir la publicación automática, ahora existe la
+  señal que `ADR-028` echaba en falta.
+- **Pierde:** los tres valores son un juicio calibrado sobre 37 boletines, no una probabilidad
+  medida. No deben leerse como tal ni exponerse al público como si lo fueran.
+- **Queda pendiente:** validar los umbrales contra el conjunto dorado de 100 boletines etiquetados a
+  mano (`pipeline-ingesta-datos.md` §4), que sigue sin construirse.
+
+---
+
+## ADR-033 — El estado de un barrio evoluciona con la ventana que la fuente prometió
+
+- **Fecha:** 2026-08-22
+- **Estado:** Aceptada
+- **Decide:** D3
+
+### Contexto
+
+Un boletín dice «suspensión mañana viernes 21 de agosto, entre las 9:00 a.m. y las 6:00 p.m.». Con la
+ingesta corregida ese dato ya se lee y se guarda, pero nadie volvía a mirarlo: una propuesta aprobada
+dejaba el barrio en un estado fijo. Un corte anunciado para mañana se quedaba en `CORTE_PROGRAMADO`
+indefinidamente, y el barrio aparecía «con corte programado» semanas después de que el agua volviera.
+
+### Alternativas consideradas
+
+1. **Que el veedor cierre cada corte a mano.** Es lo que ya ocurre con los cortes oficiales, pero
+   aplicado a la ingesta multiplica el trabajo manual por cada barrio de cada boletín — 17 en un solo
+   aviso — y el estado queda mal mientras nadie entra.
+2. **Estimar la duración cuando el boletín no la declara.** Descartada: es exactamente el dato
+   inventado que `ADR-006` prohíbe y que ya se eliminó del extractor.
+3. **Aplicar solo la ventana que la fuente declaró explícitamente.**
+
+### Decisión
+
+`ActualizarEstadosPorVentanaService` barre cada minuto las propuestas **ya aprobadas** que traen
+ventana declarada y pone cada sector en el estado que le corresponde en ese instante:
+
+```
+antes del inicio → CORTE_PROGRAMADO
+dentro           → SIN_SERVICIO (o el estado propuesto)
+después del fin  → CON_SERVICIO
+```
+
+Tres restricciones que hacen que esto no contradiga `ADR-028`:
+
+- Solo actúa sobre propuestas **que un veedor ya aprobó**. No publica nada nuevo: mueve en el tiempo
+  algo que una persona ya validó.
+- **Sin ventana declarada, el sector no se toca.** No se estima ni el inicio ni el fin.
+- Solo escribe cuando el estado cambia de verdad, para no disparar correo, push y SSE en cada barrido.
+
+### Consecuencias
+
+- **Gana:** el mapa deja de envejecer solo. El ciclo «se anuncia → ocurre → termina» se refleja sin
+  intervención, que es lo que un vecino espera de un mapa «en vivo».
+- **Pierde:** si Acuacar promete una ventana y no la cumple, el mapa dirá que el servicio volvió
+  cuando no volvió. Es un riesgo real y es precisamente lo que el Índice de Cumplimiento (RF020–RF022)
+  existe para medir; la corrección vendrá de los reportes ciudadanos, no de la ingesta.
+- El barrido queda acotado a un día después del fin prometido, para no recorrer el histórico entero.
+
+## ADR-034 — Los boletines de Acuacar se publican solos; la revisión del veedor queda para la prensa y los reportes ciudadanos
+
+- **Fecha:** 2026-08-29
+- **Estado:** Aceptada
+- **Decide:** Product owner, con implementación de D3
+
+### Contexto
+`ADR-028` mandó toda detección a una cola de revisión. Medido en local el 2026-08-29 con la base de
+producción de desarrollo: **17 propuestas PENDIENTE, 0 cortes, 0 eventos de bitácora, 211 barrios sin
+estado**. El mapa llevaba semanas vacío no por falta de datos sino porque nadie vaciaba la cola, y el
+único camino para hacerlo (`/veedor`) respondía `503` por dos variables sin configurar. El costo real
+de la cola no fue prudencia: fue que la plataforma no publicó nada.
+
+El argumento de `ADR-028` era que *"una expresión regular sobre una nota de prensa"* no puede mover el
+mapa sola. Ese argumento es correcto y sigue en pie **para la prensa**. Pero no describe a Acuacar:
+las 17 propuestas venían de la API oficial del operador, con `citaTextual` que enumera los barrios y
+la ventana horaria, `urlOriginal` verificable y confianza 0.85 —el nivel más alto que `ADR-032`
+reserva para boletines con enumeración explícita—. Acuacar no es una fuente *sobre* el corte: es
+quien lo ejecuta y lo anuncia.
+
+En paralelo, los 211 barrios en gris (`COLOR_SIN_DATOS`) hacían ver el mapa averiado. La petición
+inicial fue pintarlos de verde por descarte —"si nadie reporta, es que tiene agua"—, que es publicar
+un *todo despejado* que nadie verificó y choca de frente con la regla 4 de ética de datos.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Mantener `ADR-028` intacta | Ninguna publicación sin humano | Demostrado: el mapa se queda vacío. La cola no se vacía sola |
+| Publicar todo automático (Acuacar + prensa) | Mapa siempre lleno | Reintroduce exactamente el riesgo que `ADR-028` cerró: una regex sobre prensa moviendo el mapa |
+| **Publicar solo lo oficial** | Acuacar es el operador, con cita y URL; la prensa sigue revisada | Un error del propio boletín se publica sin filtro |
+| Sin datos → verde pleno | Mapa uniforme y vivo | Afirma servicio en 211 barrios sin verificar. Un barrio sin agua donde nadie reportó saldría "con agua" |
+| **Sin datos → verde pálido, "Sin reportes de falla"** | Mapa vivo sin afirmar lo que no se sabe | Un tercer verde que hay que saber leer; el color por sí solo puede leerse como "todo bien" |
+
+### Decisión
+Lo que viene de Acuacar (`PropuestaIngesta.esDeFuenteOficial()`) se publica en el acto, delegando en
+el mismo `RevisarPropuestaIngestaUseCase` que usa el panel. Lo que viene de prensa (RSS) y los
+reportes ciudadanos siguen esperando al veedor. Los barrios sin dato pasan de gris a verde pálido
+`#9FD8AB` con la etiqueta **"Sin reportes de falla"** — que describe el dato, no lo que se supone de él.
+
+### Consecuencias
+- El mapa se llena solo con lo oficial: las 17 propuestas represadas se publicaron y dejaron 17
+  eventos de bitácora y 17 barrios en `CON_SERVICIO`.
+- **El veedor deja de ser cuello de botella y pasa a ser moderador de lo ciudadano**, que es donde su
+  criterio aporta: el reporte anónimo es lo que nadie más puede validar.
+- Se acepta un riesgo nuevo y real: **si Acuacar publica un boletín equivocado, ese error llega al
+  mapa sin filtro humano** y dispara correo, push y SSE. Se mitiga con la trazabilidad —cada estado
+  publicado conserva `citaTextual` y `urlOriginal`— pero no se elimina.
+- Publicar automático reusa el caso de uso del veedor a propósito: el camino automático y el manual
+  no pueden divergir, y la guarda de estado repetido y el evento de bitácora valen para ambos.
+- El verde pálido depende de que la leyenda se lea. `DESIGN.md` §2 ya exige que el color nunca vaya
+  solo, y `InsigniaEstado` siempre muestra la etiqueta; si esa regla se rompe, este verde miente.
+
+### Cómo se revierte
+Quitar la rama `esDeFuenteOficial()` de `RegistrarPropuestaIngestaService` devuelve todo a la cola:
+es un `if`, y las propuestas siguen naciendo `PENDIENTE`. Lo ya publicado **no** se revierte solo —
+la bitácora es de solo anexado (`RF028`) y los eventos emitidos quedan. Volver atrás exige además
+restaurar `ADR-028` y `ADR-032` a *Aceptada*. El color es un cambio de una constante.
+
+## ADR-035 — Sin corte anunciado ni reporte vigente, el barrio se muestra con servicio
+
+- **Fecha:** 2026-08-30
+- **Estado:** Aceptada
+- **Decide:** Product owner, con implementación de D4
+
+### Contexto
+`ADR-014` decidió lo contrario y su argumento era correcto **en su momento**: el 2026-08-08 no
+existía la ingesta, ningún proceso miraba a Acuacar, y los 211 barrios estaban sin estado por
+ausencia de sistema. En ese mundo, pintar de verde era afirmar sobre un vacío, y `BUG-061` (S1) se
+cerró quitando justamente el `sector?.estado ?? 'CON_SERVICIO'` del mapa.
+
+El supuesto cambió. Desde `ADR-034` el colector revisa la API de Acuacar cada 10 minutos sobre una
+ventana de 7 días y **publica sin intervención**. La ausencia de aviso dejó de ser "no tenemos
+sistema" y pasó a ser una señal que se mantiene sola. Verificado el 2026-08-30 sobre los 40
+boletines más recientes: 7 hablan de suspensión del servicio, y no solo de mantenimiento programado
+—incluyen trabajo reactivo como *"repara fuga en tubería"* y *"avanza en la reparación de la
+conducción"*—, así que Acuacar no publica únicamente lo planificado.
+
+Hay además un segundo canal correctivo que `ADR-014` no tenía: el reporte ciudadano moderado por el
+veedor, que puede sacar a un barrio del verde sin esperar a que Acuacar diga nada.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Mantener `ADR-014` (gris "sin datos") | No afirma nada sin verificar | 194 de 211 barrios en gris permanente: el mapa se lee como app rota, no como app prudente |
+| Verde pálido distinto, "Sin reportes de falla" | Mapa vivo sin igualar lo sabido con lo supuesto | Obliga al lector a distinguir dos verdes; y si la premisa es que Acuacar cubre los cortes, la distinción no describe nada real |
+| **Verde de `CON_SERVICIO`, sin marca de tiempo** | Coincide con el modelo real: el barrio tiene agua salvo aviso del operador o reporte ciudadano | Un corte que Acuacar aún no publicó y que nadie reportó se ve verde |
+
+### Decisión
+`COLOR_SIN_DATOS` pasa a los valores y la etiqueta de `CON_SERVICIO`. **No se fabrica
+`actualizadoEn`**: el backend sigue mandando `estado: null` y `actualizadoEn: null`, así que
+`useFrescura` sigue diciendo *"sin datos"*. El resaltado del mapa trata el nulo como `CON_SERVICIO`
+(`MapaCartagena.tsx`, `estadoEfectivo`) para que filtrar por *Con servicio* no atenúe justo a los
+barrios que esta regla considera con agua.
+
+### Consecuencias
+- **Gana:** el mapa comunica el estado real de la ciudad en vez de un gris que nadie sabía leer.
+- **Pierde y hay que decirlo:** **un corte que Acuacar no haya publicado todavía y que ningún
+  ciudadano haya reportado se muestra verde.** Es el riesgo que `ADR-014` quiso evitar y no
+  desaparece; se acota con la ingesta cada 10 minutos y con el reporte ciudadano, no se elimina.
+- **El contrato no cambia:** `estado` sigue siendo anulable y el backend sigue sin inventar nada.
+  Esto es una decisión de presentación, y por eso `ADR-014` queda *parcialmente* reemplazada.
+- **`BUG-061` sigue cerrado y su corrección intacta:** su defecto real era `actualizadoEn: new
+  Date()`, que afirmaba una verificación inexistente. Eso no vuelve.
+- **Límite conocido:** un barrio del GeoJSON ausente del catálogo del backend no lo vigila la
+  ingesta, así que ahí el verde no estaría respaldado. Hoy no ocurre —verificado el 2026-08-30: 211
+  en el GeoJSON, 211 en el catálogo, 0 de diferencia— y el mapa además lo dibujaría al 15% de opacidad.
+  Si esa cifra deja de ser 0, esta decisión debe revisarse.
+
+### Cómo se revierte
+Devolver `COLOR_SIN_DATOS` a un color y etiqueta propios y quitar `estadoEfectivo` de
+`calcularEstiloFeature`. Son dos cambios de presentación y ningún dato guardado cambia, porque
+ninguno se fabricó.
+
+## ADR-036 — La ingesta crea el corte pero nunca su hora real de restablecimiento
+
+- **Fecha:** 2026-08-31
+- **Estado:** Aceptada
+- **Decide:** Product owner, con implementación de D3
+
+### Contexto
+Las estadísticas (M7) y el Índice de Cumplimiento (M6) agregan sobre la colección `cortes`, que la
+ingesta nunca alimentaba: solo la llenaba el veedor a mano. Con 1.106 propuestas aprobadas y 0
+cortes, `sectoresMasAfectados` y `cortesPorDiaDeSemana` salían vacíos aunque hubiera datos de sobra.
+
+Al crear el corte aparece la tentación evidente: el boletín trae `inicioDeclarado` y `finPrometido`,
+así que rellenar `finReal = finPrometido` deja las tres métricas completas de inmediato.
+
+**Eso sería una mentira, y de la peor clase para este proyecto.** El Índice de Cumplimiento existe
+para comparar lo prometido con lo real; igualarlos por defecto da **100% de cumplimiento
+permanente**, que es exactamente la afirmación que la plataforma existe para poder contrastar.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| No crear cortes desde la ingesta | Nada que discutir | Las estadísticas se quedan vacías con 1.106 propuestas disponibles |
+| Crear el corte con `finReal = finPrometido` | Las tres métricas se llenan solas | Cumplimiento del 100% inventado. Destruye la tesis del proyecto |
+| **Crear el corte sin `finReal`** | Se puebla lo que sí se sabe; lo que no se sabe se queda vacío y se nota | `duracionPromedioHoras` y el Índice siguen sin datos hasta que alguien confirme la hora real |
+
+### Decisión
+Al aprobar una propuesta con ventana declarada se crea un `CorteAgua` con `OrigenCorte.INGESTA_IA`
+y estado `ANUNCIADO`. **`finReal` se deja nulo.** El corte queda abierto hasta que el consenso
+ciudadano o el veedor confirmen cuándo volvió el agua.
+
+El id del corte se deriva del boletín y su ventana, no de un UUID nuevo: un boletín nombra muchos
+barrios y genera una propuesta por cada uno, y sin esa clave la estadística se inflaba con un corte
+por barrio en vez de uno por evento.
+
+### Consecuencias
+- `sectoresMasAfectados` y `cortesPorDiaDeSemana` se pueblan con datos reales.
+- **`duracionPromedioHoras` y `/api/cumplimiento` siguen vacíos, y es correcto que lo estén.** El
+  endpoint responde *"No hay cortes cerrados todavía"* porque de verdad no los hay.
+- La interfaz debe decir "Sin datos" y nunca un número: ver `BUG-063`, que es justo lo que pasó.
+- Queda cubierto por `RevisarPropuestaIngestaServiceTest.debeRegistrarElCorteDelBoletinCuandoDeclaraVentana`,
+  que falla si alguien rellena `finReal` desde la ingesta.
+
+### Cómo se revierte
+Quitar la llamada a `registrarCorteDelBoletin`. Los cortes ya creados no se borran solos; habría que
+eliminar los de origen `INGESTA_IA` a mano.
+
+## ADR-037 — «Sectores más afectados» cuenta menciones en avisos, no cortes con duración medida
+
+- **Fecha:** 2026-08-31
+- **Estado:** Aceptada
+- **Decide:** Product owner, con implementación de D3
+
+### Contexto
+Un `CorteAgua` exige ventana completa (inicio + fin prometido). Medido sobre los 100 boletines más
+recientes de Acuacar el 30/08/2026: **18 anuncian suspensión del servicio, los 18 traen la fecha,
+pero solo 5 declaran el rango horario**. Es decir, ~5% de los boletines pueden generar un corte.
+
+Contra la colección `cortes`, el top de sectores se calculaba sobre 3 registros: no representaba la
+ciudad ni de lejos, y desde luego no los cinco años de historia que el equipo quería mostrar.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Dejarlo contra `cortes` | El número significa "cortes con duración medida" | Se calcula sobre 3 registros; el ranking no dice nada |
+| Inventar la ventana que falta | Habría muchos más cortes | Dato fabricado; contamina además el Índice de Cumplimiento |
+| **Contar propuestas aprobadas** | 1.106 menciones desde 2020: cubre los cinco años | Cambia lo que el número significa, y hay que decirlo donde se muestre |
+
+### Decisión
+`EstadisticasMongoAdapter.calcularGlobales` agrega `propuestas_ingesta` con `estadoRevision:
+APROBADA` en vez de `cortes`. El número pasa a ser **«veces que el barrio apareció en un aviso de
+corte»**, no «cortes con duración medida».
+
+### Consecuencias
+- El ranking cubre cinco años y sí representa a la ciudad.
+- **Cambia el significado de la cifra**, así que el rótulo donde se muestre tiene que decirlo. Hoy
+  la sección dice "Cortes cerrados registrados por barrio", que ya no describe lo que cuenta —
+  queda pendiente corregir ese texto.
+- Una propuesta sin aprobar no cuenta: nadie ha confirmado que ese aviso sea real.
+- La otra cifra —cortes con duración medida— sigue viviendo en el Índice de Cumplimiento, que sigue
+  exigiendo ventana real (`ADR-036`).
+
+### Cómo se revierte
+Volver a agregar sobre `CorteAguaDocumento` y restaurar el `unwind` por `sectoresAfectados`.
+
+## ADR-038 — Las portadas de Acuacar se sirven por proxy propio, no enlazadas directo
+
+- **Fecha:** 2026-08-31
+- **Estado:** Aceptada
+- **Decide:** D4, verificado contra el sitio real
+
+### Contexto
+Las tarjetas de la bitácora muestran la portada del boletín. Enlazarla directo a
+`acuacar.com/wp-content/uploads/…` no funciona: **el sitio bloquea el hotlinking**. Verificado el
+31/08/2026 sobre la misma imagen — responde `200 image/jpeg` sin cabecera `Referer` y **`403` con un
+`Referer` de otro dominio**. Por eso todas las pruebas con `curl` pasaban y el navegador fallaba
+siempre, y por eso costó tanto encontrarlo.
+
+Aparte, `_embed=wp:featuredmedia` **no devuelve nada si `_fields` recorta `_links`**: WordPress
+construye `_embedded` a partir de los enlaces del recurso. Sin `_links` el boletín llega sin imagen
+y sin ningún error que lo delate.
+
+### Decisión
+El colector captura la URL de la portada al ingerir (tamaño `medium`, no el original de varios MB) y
+viaja con el evento hasta la API. El navegador la pide por `/acuacar-media/`, que `nginx.conf` y
+`vite.config.ts` proxean sin mandar `Referer`.
+
+El bloque de nginx usa `location ^~` a propósito: más abajo hay un `location ~* \.(jpg|png|…)$` para
+los assets propios, y en nginx las expresiones regulares ganan sobre los prefijos — sin `^~` la
+portada caía en ese bloque, se buscaba en el disco local y devolvía 404.
+
+### Consecuencias
+- **Gana:** la portada funciona para cualquier evento, también los de 2020. La alternativa —que el
+  navegador pidiera los boletines recientes y cruzara por URL— solo cubría los últimos 100.
+- **Pierde:** el proxy queda acotado a `/wp-content/uploads/`. Abrirlo a todo el dominio lo
+  convertiría en un proxy abierto hacia acuacar.com.
+- Se respeta la ética de datos: el proxy se identifica con el `User-Agent` del proyecto y no
+  disfraza nada; lo único que omite es el `Referer`.
+
+### Cómo se revierte
+Volver a apuntar `src` a la URL de acuacar.com y borrar los dos bloques de proxy. La portada dejará
+de verse, que es el estado del que se venía.
+
+
+## ADR-039 — El panel del veedor usa cuentas individuales con rol y ajustes de permisos por persona
+
+- **Fecha:** 2026-08-31
+- **Estado:** Aceptada
+- **Decide:** Equipo (petición del titular del producto), sobre backend y frontend
+- **Reemplaza a:** `ADR-016`
+
+### Contexto
+
+`ADR-016` eligió una credencial compartida y dejó escrito su propio costo: *"ninguna acción del panel
+queda atribuida a una persona concreta"*, y señaló que migrar a cuentas individuales exigiría una
+entidad de dominio. También dejó abierto que `POST /api/veedor/sesion` no tenía freno contra fuerza
+bruta; `ADR-018` cerró la mitad de ese hueco con un límite por IP, que no ve el ataque repartido
+entre muchas direcciones contra un mismo correo.
+
+El equipo pide ahora lo que aquella ADR aplazó: que cada persona se registre con su correo, y que un
+administrador decida desde el panel quién entra y qué puede hacer. `RF019` solo exige *"autenticación
+con token"* y `RNF011` fija la expiración en 8 horas — ninguno de los dos dice nada sobre el modelo de
+cuentas, así que esto es requisito nuevo (`RF042`–`RF046`), no una reinterpretación.
+
+Verificado en local el 2026-08-31 sobre el stack de `docker compose`: el flujo completo —siembra del
+primer administrador, alta de TOTP con un código calculado fuera del sistema, registro abierto,
+verificación por correo, aprobación con permisos recortados, suspensión y revocación— funciona de
+punta a punta.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Seguir con la credencial compartida (`ADR-016`) | Cero trabajo | No atribuye ninguna acción a nadie; una filtración obliga a rotar la clave de las cinco personas a la vez |
+| Solo invitación del administrador | Superficie mínima; nadie llega sin que alguien lo llame | No es lo que el equipo pidió, y obliga a un administrador disponible para cada alta |
+| Solo auto-registro sin aprobación | El alta no depende de nadie | Registro abierto = panel de moderación abierto. Inaceptable |
+| **Auto-registro + invitación, ambos con aprobación o rol asignado** (elegida) | Cubre las dos formas de entrar; en ninguna se concede acceso sin decisión humana | Dos flujos de alta y dos tipos de token que mantener |
+| Roles fijos sin ajustes | Imposible dejar a alguien mal configurado | No permite el caso real de "veedor que no cierra cortes" |
+| **Roles como paquete de permisos + ajustes por persona** (elegida) | El día a día es elegir un rol; el caso raro se resuelve sin inventar un rol nuevo | Para saber qué puede hacer alguien hay que resolver rol + excepciones, no basta con leer el rol |
+
+### Decisión
+
+Entidad `Usuario` en `domain/`, con `EstadoCuenta` (verificación → aprobación → activa, más invitada,
+suspendida y rechazada), `RolVeedor` (`ADMIN`, `VEEDOR`, `OBSERVADOR`) y `PermisosEfectivos`
+(rol + concedidos − revocados). **La autorización se comprueba siempre contra un `Permiso` concreto**
+vía `@PreAuthorize`, nunca contra el rol: añadir un rol no obliga a repasar cada endpoint.
+
+`VEEDOR_PASSWORD_HASH` deja de ser una credencial compartida y pasa a ser la semilla del primer
+administrador (`SembradorAdminInicial`, junto con `ADMIN_INICIAL_CORREO`); en cuanto existe alguna
+cuenta, deja de usarse.
+
+Cinco medidas sostienen la parte de seguridad, y cada una cubre un agujero distinto:
+
+1. **Enumeración.** Registro, login y "olvidé mi clave" responden igual exista o no la cuenta. El
+   login además gasta el mismo tiempo (`CifradorClavePort.gastarTiempoEquivalente`), porque con
+   mensajes idénticos y tiempos distintos el cronómetro sigue delatando qué correos existen.
+2. **Fuerza bruta por cuenta.** Bloqueo tras 5 fallos en 15 minutos (`ControlIntentosPort`, Redis),
+   complementario al límite por IP de `ADR-018`. La clave es el correo, también cuando no existe.
+3. **Revocación inmediata.** El token lleva los permisos dentro para no leer Mongo en cada petición;
+   a cambio, suspender, rechazar, cambiar permisos —también al ampliarlos— o cerrar sesión escribe un
+   instante de corte en Redis, y el filtro rechaza todo token anterior. Sin esa pareja de medidas,
+   meter los permisos en el token sería un error.
+4. **Segundo factor obligatorio para `ADMIN`** (TOTP, RFC 6238, implementado sin dependencia nueva).
+   Un administrador sin TOTP entra con una sesión de alcance `ALTA_SEGUNDO_FACTOR` que solo abre el
+   alta: negarle la entrada lo dejaría fuera para siempre, y darle sesión completa haría que
+   "obligatorio" no significara nada.
+5. **Guardas de integridad.** Nadie se administra a sí mismo, y no se puede suspender ni despromover
+   al último `ADMIN` activo — eso deja el sistema sin nadie capaz de otorgar permisos, y no se
+   arregla desde la aplicación.
+
+Todo cambio de acceso queda en una bitácora de auditoría de solo anexado (`auditoria_cuentas`), que
+es exactamente la carencia que `ADR-016` se reprochó.
+
+### Consecuencias
+
+- **Gana:** cada acción del panel queda atribuida a una persona con nombre y correo — evidencia
+  directa para el Capítulo IV. Una filtración afecta a una cuenta, no a las cinco. Un `OBSERVADOR`
+  puede acompañar la moderación sin poder ejecutarla.
+- **Pierde:** la superficie crece mucho. Diez casos de uso nuevos, tres colecciones de Mongo, dos
+  claves de Redis, dos plantillas de correo y cinco pantallas. Es la parte del sistema con más
+  código por requisito.
+- **Pierde:** el reparto de fallo abierto/cerrado es deliberadamente asimétrico y hay que recordarlo.
+  Con Redis caído, el bloqueo por intentos falla **abierto** (la cuenta sigue protegida por su clave)
+  pero la revocación falla **cerrado** (el panel deja de aceptar sesiones). Las dos decisiones están
+  justificadas en el javadoc de su adaptador; leer una y suponer la otra lleva a conclusiones falsas.
+- **Pierde:** un token emitido dentro del mismo segundo en que se revocó sobrevive, porque el `iat`
+  de un JWT tiene precisión de segundo. Redondear hacia arriba mataría el token que la propia persona
+  acaba de obtener al volver a entrar. El margen es de un segundo y está documentado en el filtro.
+- **Condiciona:** los permisos viajan dentro del token, así que **cualquier** cambio de permisos debe
+  revocar sesiones. Quien añada una vía nueva para cambiarlos y olvide la revocación deja a esa
+  persona operando con los permisos viejos hasta 8 horas.
+- **Condiciona:** `CONFIGURAR_SEGUNDO_FACTOR` no se puede revocar. `PermisosEfectivos` lo rechaza al
+  construir, porque es la única puerta que dejaría a un `ADMIN` sin forma de entrar.
+- **Condiciona:** los enlaces de los correos apuntan al frontend (`APP_URL_PUBLICA`), no a la API. Si
+  esa variable apunta al backend, los correos llevan a respuestas JSON.
+
+### Cómo se revierte
+
+No se revierte a `ADR-016` sin perder las cuentas ya creadas. Lo que sí se puede desactivar por
+partes: dejar `ADMIN_INICIAL_CORREO` vacío desactiva la siembra; bajar el rol del único `ADMIN` a
+`VEEDOR` desactiva de hecho la gestión de cuentas; y quitar `exigeSegundoFactor()` de `RolVeedor`
+apaga el TOTP obligatorio sin tocar nada más. Volver a una clave compartida exigiría reponer el
+`VeedorAuthController` anterior y aceptar que la auditoría deje de atribuir acciones.
+
 <!--
-Siguiente número disponible: ADR-032
+Siguiente número disponible: ADR-040
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->

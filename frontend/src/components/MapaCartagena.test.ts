@@ -1,7 +1,7 @@
 import L from 'leaflet'
 import { describe, expect, it, vi } from 'vitest'
 import { sectorDesdeGeojson } from '../utils/sectorGeojson'
-import { volarABounds } from './MapaCartagena'
+import { volarABounds } from '../utils/mapaLeaflet'
 
 describe('sectorDesdeGeojson', () => {
   it('mantiene como desconocido un polígono ausente del backend', () => {

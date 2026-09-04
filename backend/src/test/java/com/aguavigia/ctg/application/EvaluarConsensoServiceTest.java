@@ -63,6 +63,11 @@ class EvaluarConsensoServiceTest {
         return new ReporteCiudadano(new ReporteId(id), SECTOR_ID, tipo, null, new HuellaDispositivo("h-" + id), AHORA);
     }
 
+    private ReporteCiudadano reporte(String id, String huella, TipoReporte tipo, Instant instante) {
+        return new ReporteCiudadano(new ReporteId(id), SECTOR_ID, tipo, null,
+                new HuellaDispositivo(huella), instante);
+    }
+
     @Test
     void debeCambiarElEstadoYAnexarUnEventoCuandoSeAlcanzaElConsenso() {
         Sector sector = new Sector(SECTOR_ID, "BOCAGRANDE", 12000, EstadoServicio.CON_SERVICIO);
@@ -89,7 +94,8 @@ class EvaluarConsensoServiceTest {
         given(contadorReportes.contarRecientes(any(), any())).willReturn(3L);
         given(estrategia.seAlcanzaConsenso(3L, sector)).willReturn(true);
         given(reportes.listarRecientesPorSector(any(), any())).willReturn(List.of(
-                reporte("r1", TipoReporte.SIN_AGUA), reporte("r2", TipoReporte.SIN_AGUA)));
+                reporte("r1", TipoReporte.SIN_AGUA), reporte("r2", TipoReporte.SIN_AGUA),
+                reporte("r3", TipoReporte.SIN_AGUA)));
 
         servicio.evaluar(SECTOR_ID);
 
@@ -121,7 +127,8 @@ class EvaluarConsensoServiceTest {
         given(contadorReportes.contarRecientes(any(), any())).willReturn(3L);
         given(estrategia.seAlcanzaConsenso(3L, sector)).willReturn(true);
         given(reportes.listarRecientesPorSector(any(), any())).willReturn(List.of(
-                reporte("r1", TipoReporte.SIN_AGUA), reporte("r2", TipoReporte.SIN_AGUA)));
+                reporte("r1", TipoReporte.SIN_AGUA), reporte("r2", TipoReporte.SIN_AGUA),
+                reporte("r3", TipoReporte.SIN_AGUA)));
 
         ResultadoConsenso resultado = servicio.evaluar(SECTOR_ID);
 
@@ -154,6 +161,25 @@ class EvaluarConsensoServiceTest {
         given(estrategia.seAlcanzaConsenso(2L, sector)).willReturn(true);
         given(reportes.listarRecientesPorSector(any(), any())).willReturn(List.of(
                 reporte("r1", TipoReporte.SIN_AGUA), reporte("r2", TipoReporte.SERVICIO_RESTABLECIDO)));
+
+        ResultadoConsenso resultado = servicio.evaluar(SECTOR_ID);
+
+        assertThat(resultado.alcanzado()).isFalse();
+        verify(sectores, never()).guardar(any());
+        verify(registrarEvento, never()).registrar(any());
+    }
+
+    @Test
+    void unDispositivoConVariosReportesNoDebeContarComoVariosVecinos() {
+        Sector sector = new Sector(SECTOR_ID, "BOCAGRANDE", null, EstadoServicio.CON_SERVICIO);
+        given(sectores.buscarPorId(SECTOR_ID)).willReturn(Optional.of(sector));
+        given(contadorReportes.contarRecientes(any(), any())).willReturn(3L);
+        given(estrategia.seAlcanzaConsenso(3L, sector)).willReturn(true);
+        given(estrategia.seAlcanzaConsenso(1L, sector)).willReturn(false);
+        given(reportes.listarRecientesPorSector(any(), any())).willReturn(List.of(
+                reporte("r1", "misma-huella", TipoReporte.SIN_AGUA, AHORA.minusSeconds(20)),
+                reporte("r2", "misma-huella", TipoReporte.SIN_AGUA, AHORA.minusSeconds(10)),
+                reporte("r3", "misma-huella", TipoReporte.SIN_AGUA, AHORA)));
 
         ResultadoConsenso resultado = servicio.evaluar(SECTOR_ID);
 

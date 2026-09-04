@@ -31,10 +31,13 @@ function CapaOla({ path, viewBox, clase, fill }: { path: string; viewBox: string
 
 export const PieDePagina: FC = () => (
   <>
+    {/* Tres capas a distinta velocidad: el desfase entre ellas es lo que da la sensación de
+        agua en movimiento. Van en tonos del propio azul del pie, no en turquesa, para que se
+        lea como profundidad y no como una franja de otro color pegada encima. */}
     <div className="pie-olas" aria-hidden="true">
-      <CapaOla path={OLA_FONDO} viewBox="0 0 480 60" clase="pie-ola-capa--fondo" fill="var(--color-acento-suave)" />
-      <CapaOla path={OLA_MEDIA} viewBox="0 0 420 60" clase="pie-ola-capa--media" fill="var(--color-acento)" />
-      <CapaOla path={OLA_FRENTE} viewBox="0 0 360 60" clase="pie-ola-capa--frente" fill="var(--color-marino)" />
+      <CapaOla path={OLA_FONDO} viewBox="0 0 480 60" clase="pie-ola-capa--fondo" fill="var(--color-pie-ola-fondo)" />
+      <CapaOla path={OLA_MEDIA} viewBox="0 0 420 60" clase="pie-ola-capa--media" fill="var(--color-pie-ola-media)" />
+      <CapaOla path={OLA_FRENTE} viewBox="0 0 360 60" clase="pie-ola-capa--frente" fill="var(--color-pie)" />
     </div>
 
     <footer className="pie-pagina" role="contentinfo">

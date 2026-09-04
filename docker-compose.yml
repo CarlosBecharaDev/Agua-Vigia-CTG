@@ -67,6 +67,10 @@ services:
       SPRING_DATA_REDIS_PORT: ${REDIS_PORT:-6379}
       SPRING_MAIL_HOST: ${MAIL_HOST:-mailhog}
       SPRING_MAIL_PORT: ${MAIL_PORT:-1025}
+      # Los enlaces de los correos apuntan al sitio, no a la API: es el frontend quien pinta esas
+      # pantallas y luego llama al backend con el token. En local, el frontend es el 5173.
+      AGUAVIGIA_APP_URL_PUBLICA: ${APP_URL_PUBLICA:-http://localhost:5173}
+      AGUAVIGIA_CUENTAS_ADMIN_INICIAL_CORREO: ${ADMIN_INICIAL_CORREO:-}
     ports:
       - "8081:8080"
     volumes:

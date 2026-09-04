@@ -9,6 +9,7 @@ import com.aguavigia.ctg.domain.port.out.RelojPort;
 import com.aguavigia.ctg.domain.port.out.SectorRepository;
 import com.aguavigia.ctg.infrastructure.config.SecurityConfig;
 import com.aguavigia.ctg.infrastructure.security.JwtProvider;
+import com.aguavigia.ctg.domain.port.out.RevocacionSesionPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -33,6 +34,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(SectorController.class)
 @Import({SectorApiMapperImpl.class, ManejadorGlobalDeErrores.class, SecurityConfig.class})
 class SectorControllerTest {
+
+    // SecurityConfig construye JwtAuthenticationFilter con este puerto: el filtro consulta la
+    // revocacion en cada peticion con token (ADR-039). Sin el bean, el contexto del slice no carga.
+    @MockitoBean
+    private RevocacionSesionPort revocacion;
 
     private static final Instant INSTANTE_FIJO = Instant.parse("2026-08-08T15:30:00Z");
 

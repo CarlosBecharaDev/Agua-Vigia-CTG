@@ -30,4 +30,14 @@ public class PropuestaIngestaDocumento {
     /** PENDIENTE, APROBADA o DESCARTADA. */
     @Indexed
     private String estadoRevision;
+
+    /** Ventana que el boletín prometió. Nulas cuando el texto no la declaraba: no se estima. */
+    private Instant inicioDeclarado;
+    private Instant finPrometido;
+    /** Portada del boletín, cuando la fuente la trae. */
+    private String imagenUrl;
+    /** Fecha en que la fuente publicó el boletín. */
+    private Instant publicadoEn;
+    /** Titular tal como lo publicó la fuente. */
+    private String tituloOriginal;
 }

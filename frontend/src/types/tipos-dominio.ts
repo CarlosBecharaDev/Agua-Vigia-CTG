@@ -38,7 +38,19 @@ export const COLOR_POR_ESTADO: Record<EstadoServicio, { claro: string; oscuro: s
   CORTE_PROGRAMADO: { claro: '#2A628F', oscuro: '#6BA8DA', etiqueta: 'Corte programado' },
 }
 
-export const COLOR_SIN_DATOS = { claro: '#788290', oscuro: '#8B95A5', etiqueta: 'Sin datos (Pendiente verificación)' }
+/**
+ * Un barrio sin corte anunciado por Acuacar ni reporte ciudadano vigente se muestra **con
+ * servicio** (`ADR-035`). No es una suposición sobre un vacío: desde `ADR-034` el colector revisa
+ * los boletines del operador cada 10 minutos sobre una ventana de 7 días y publica solo, así que la
+ * ausencia de aviso es una señal que se mantiene, no la falta de un sistema. Ese es el supuesto que
+ * `ADR-014` no podía tener el 2026-08-08, cuando no había ingesta y los 211 barrios estaban sin dato.
+ *
+ * Se mantiene como constante aparte —y no se reemplaza por `COLOR_POR_ESTADO.CON_SERVICIO`— porque
+ * el camino sigue siendo distinto: aquí el backend mandó `estado: null`, y por eso `actualizadoEn`
+ * queda nulo y `useFrescura` dice "sin datos" en vez de inventar una hora de verificación. Fabricar
+ * esa hora fue exactamente `BUG-061` (S1); pintar el barrio de verde no lo era.
+ */
+export const COLOR_SIN_DATOS = { claro: '#34c759', oscuro: '#4FBF89', etiqueta: 'Con servicio' }
 
 /** Cuántos minutos antes de que un dato se considere "fresco" */
 export const MINUTOS_FRESCURA = 15

@@ -19,6 +19,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 import com.aguavigia.ctg.infrastructure.security.JwtProvider;
+import com.aguavigia.ctg.domain.port.out.RevocacionSesionPort;
 
 import java.util.Objects;
 
@@ -40,6 +41,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "aguavigia.rate-limit.reglas[0].ventana-segundos=60"
 })
 class RateLimitConfigTest {
+
+    // SecurityConfig construye JwtAuthenticationFilter con este puerto: el filtro consulta la
+    // revocacion en cada peticion con token (ADR-039). Sin el bean, el contexto del slice no carga.
+    @MockitoBean
+    private RevocacionSesionPort revocacion;
 
     @Container
     @ServiceConnection

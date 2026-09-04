@@ -9,6 +9,7 @@ import com.aguavigia.ctg.domain.SectorId;
 import com.aguavigia.ctg.domain.port.in.GestionarCorteOficialUseCase;
 import com.aguavigia.ctg.domain.port.out.CorteAguaRepository;
 import com.aguavigia.ctg.infrastructure.config.SecurityConfig;
+import com.aguavigia.ctg.domain.Permiso;
 import com.aguavigia.ctg.infrastructure.security.JwtProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,9 @@ class CorteControllerTest {
     @MockitoBean
     private JwtProvider jwtProvider;
 
+    @MockitoBean
+    private com.aguavigia.ctg.domain.port.out.RevocacionSesionPort revocacion;
+
     // RateLimitConfig implementa WebMvcConfigurer y se instancia en cualquier @WebMvcTest aunque
     // no se importe (REC-006).
     @MockitoBean(name = "redisTemplate")
@@ -76,7 +80,8 @@ class CorteControllerTest {
     }
 
     private void autenticarComoVeedor() {
-        given(jwtProvider.validarYObtenerSujeto("token-de-veedor")).willReturn(Optional.of("veedor"));
+        given(jwtProvider.validar("token-de-veedor"))
+                .willReturn(Optional.of(AutenticacionDePrueba.sesionCon(Permiso.VER_PANEL, Permiso.GESTIONAR_CORTES)));
     }
 
     @Test

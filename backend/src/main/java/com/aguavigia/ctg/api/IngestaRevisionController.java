@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -57,6 +58,7 @@ public class IngestaRevisionController {
                     Paginado, con el total y el enlace a la siguiente página en las cabeceras
                     `X-Total-Count` y `Link`. Por defecto 50; el máximo por página es 200.""")
     @ApiResponse(responseCode = "200", description = "Listado generado")
+    @PreAuthorize("hasAuthority('PERM_VER_PANEL')")
     @GetMapping
     public ResponseEntity<List<PropuestaIngestaRespuesta>> listarPendientes(
             @RequestParam(required = false) Integer pagina,
@@ -82,6 +84,7 @@ public class IngestaRevisionController {
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ProblemDetail.class)))
     })
+    @PreAuthorize("hasAuthority('PERM_REVISAR_INGESTA')")
     @PatchMapping("/{id}/aprobar")
     public PropuestaIngestaRespuesta aprobar(@PathVariable String id) {
         return mapper.aRespuesta(revisarPropuesta.aprobar(new PropuestaId(id)));
@@ -95,6 +98,7 @@ public class IngestaRevisionController {
                     content = @Content(mediaType = "application/problem+json",
                             schema = @Schema(implementation = ProblemDetail.class)))
     })
+    @PreAuthorize("hasAuthority('PERM_REVISAR_INGESTA')")
     @PatchMapping("/{id}/descartar")
     public PropuestaIngestaRespuesta descartar(@PathVariable String id) {
         return mapper.aRespuesta(revisarPropuesta.descartar(new PropuestaId(id)));

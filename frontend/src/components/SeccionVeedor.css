@@ -1,0 +1,135 @@
+.seccion-veedor-root {
+  position: relative;
+  padding: 4rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, #050814 0%, #0a0f24 52%, #050814 100%);
+}
+
+.seccion-veedor-contenido {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .seccion-veedor-root {
+    padding: 3.25rem 0.75rem;
+  }
+}
+
+/* ── Ingreso emergente, vidrio líquido oscuro ───────────────────────────────────
+   El fondo se difumina en vez de solo oscurecerse: eso es lo que da la sensación
+   de vidrio, porque la página sigue viéndose detrás pero deformada. */
+.veedor-modal-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgba(4, 7, 18, 0.72);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  animation: veedor-fondo-entra 200ms var(--ease) both;
+}
+
+.veedor-modal-caja {
+  position: relative;
+  width: min(100%, 520px);
+  padding: 0.75rem;
+  border-radius: 30px;
+  /* Dos capas de luz cruzadas + un borde muy tenue: el vidrio se lee por cómo
+     refracta la luz en los bordes, no por la transparencia sola. */
+  background:
+    radial-gradient(ellipse at 18% 0%, rgba(168, 85, 247, 0.28) 0%, transparent 58%),
+    radial-gradient(ellipse at 90% 100%, rgba(56, 189, 248, 0.18) 0%, transparent 55%),
+    rgba(17, 24, 44, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 32px 80px -28px rgba(0, 0, 0, 0.95),
+    /* El brillo interior superior imita el canto iluminado de una lámina de vidrio. */
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(26px);
+  -webkit-backdrop-filter: blur(26px);
+  animation: veedor-caja-entra var(--motion-ui) var(--ease) both;
+}
+
+/* Nunca desde scale(0): parte de 0.96, que ya tiene forma. */
+@keyframes veedor-caja-entra {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes veedor-fondo-entra {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.veedor-modal-cerrar {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  cursor: pointer;
+  transition: background-color var(--motion-fast) var(--ease);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .veedor-modal-cerrar:hover { background: rgba(255, 255, 255, 0.16); }
+}
+
+.veedor-modal-cerrar:active { transform: scale(0.94); }
+
+.veedor-modal-cerrar:focus-visible {
+  outline: 2px solid #c084fc;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .veedor-modal-fondo,
+  .veedor-modal-caja { animation: veedor-fondo-entra var(--motion-ui) var(--ease) both; }
+}
+
+/* La tarjeta del modal reusa el contenedor del modal de reporte, pero sin su propio fondo ni
+   borde: el marco ya lo pone .veedor-modal-caja, y superponer dos bordes se ve como un error. */
+.veedor-modal-tarjeta {
+  width: min(100%, 480px);
+  max-height: none;
+  position: relative;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.veedor-modal-cabecera { margin-bottom: 1.25rem; }
+
+.veedor-modal-badge {
+  background: rgba(168, 85, 247, 0.2);
+  color: #d8b4fe;
+}
+
+.veedor-modal-antetitulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #c084fc;
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
+.veedor-modal-titulo {
+  font-size: 1.45rem;
+  margin: 0;
+  color: #ffffff;
+}

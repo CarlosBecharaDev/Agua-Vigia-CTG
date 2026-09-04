@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useReducer } from 'react'
 import type { FC } from 'react'
 import { Clock } from 'lucide-react'
 
@@ -21,20 +21,17 @@ function calcularHaceCuanto(fechaIso: string): string {
 }
 
 export const IndicadorFrescura: FC<Props> = ({ ultimaActualizacion }) => {
-  const [texto, setTexto] = useState<string>('Actualizando...')
+  const [, forzarActualizacion] = useReducer((valor: number) => valor + 1, 0)
 
   useEffect(() => {
-    if (!ultimaActualizacion) {
-      setTexto('Actualizando...')
-      return
-    }
-
-    const actualizar = () => setTexto(`Actualizado ${calcularHaceCuanto(ultimaActualizacion)}`)
-    
-    actualizar()
-    const intervalo = setInterval(actualizar, 60000) // Actualiza cada minuto
+    if (!ultimaActualizacion) return
+    const intervalo = setInterval(forzarActualizacion, 60000)
     return () => clearInterval(intervalo)
   }, [ultimaActualizacion])
+
+  const texto = ultimaActualizacion
+    ? `Actualizado ${calcularHaceCuanto(ultimaActualizacion)}`
+    : 'Actualizando...'
 
   return (
     <div 

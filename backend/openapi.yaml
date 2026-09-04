@@ -19,34 +19,71 @@ tags:
   description: Alertas por correo cuando cambia el estado de un sector
 - name: Veedor - Moderación
   description: Moderar reportes ciudadanos pendientes (RF018)
-- name: Bitácora
-  description: "Bitácora pública de eventos, de solo anexado (RF026-RF028)"
-- name: Sectores
-  description: Estado del servicio de agua por sector de Cartagena
 - name: Open311
   description: API abierta bajo el estándar Open311 GeoReport v2 (RF039)
-- name: Veedor - Cortes
-  description: Registro y cierre de cortes oficiales (RF016-RF017)
 - name: Veedor - Ingesta
   description: Salud de los colectores del pipeline de ingesta (RNF007)
 - name: Cumplimiento
   description: Índice de Cumplimiento — prometido vs. real (RF020-RF022)
+- name: Estadisticas
+  description: M7 — Estadísticas Públicas (RF023)
+- name: Bitácora
+  description: "Bitácora pública de eventos, de solo anexado (RF026-RF028)"
+- name: Cuentas
+  description: "Alta, verificacion y recuperacion de cuentas del panel"
+- name: Sectores
+  description: Estado del servicio de agua por sector de Cartagena
+- name: Veedor - Cortes
+  description: Registro y cierre de cortes oficiales (RF016-RF017)
 - name: Reportes
   description: "Reportes ciudadanos de estado del servicio, sin registro"
 - name: Veedor - Ingesta
   description: Revisión de las propuestas de la ingesta automatizada (M9)
-- name: Estadisticas
-  description: M7 — Estadísticas Públicas (RF023)
+- name: Veedor - Cuentas
+  description: Gestion de cuentas y permisos del panel (solo ADMIN)
+- name: Veedor - Segundo factor
+  description: Alta y baja del TOTP de la propia cuenta
 - name: Veedor
   description: Autenticacion del panel del veedor
 paths:
+  /api/veedor/usuarios/invitaciones:
+    post:
+      tags:
+      - Veedor - Cuentas
+      summary: Invitar a una persona con un rol ya decidido
+      description: |-
+        Crea la cuenta en INVITADA y le envia un enlace para que fije su clave. Al
+        aceptarlo queda ACTIVA sin necesitar otra aprobacion.
+      operationId: invitar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolicitudInvitacion"
+        required: true
+      responses:
+        "201":
+          description: Invitacion enviada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsuarioRespuesta"
+        "409":
+          description: Ya existe una cuenta con ese correo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsuarioRespuesta"
   /api/veedor/sesion:
     post:
       tags:
       - Veedor
-      summary: Iniciar sesion como veedor
-      description: Devuelve un token JWT valido por 8 horas (RNF011) si la clave es
-        correcta.
+      summary: Iniciar sesion en el panel del veedor
+      description: |-
+        Devuelve un token JWT valido por 8 horas (RNF011) junto con el rol y los permisos
+        ya resueltos. Si la cuenta tiene segundo factor y no se envio `codigoTotp`, la
+        respuesta es 401 con type `segundo-factor-requerido`: hay que reintentar con el
+        codigo, no es un error de credencial.
       operationId: iniciarSesion
       requestBody:
         content:
@@ -58,21 +95,120 @@ paths:
         "200":
           description: "Credencial correcta, token emitido"
           content:
-            '*/*':
+            application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/SesionVeedor"
         "401":
-          description: Credencial incorrecta
+          description: "Credencial incorrecta, o falta el segundo factor"
           content:
-            '*/*':
+            application/json:
               schema:
-                type: object
-        "503":
-          description: El servidor no tiene configurada la credencial del veedor
+                $ref: "#/components/schemas/SesionVeedor"
+        "403":
+          description: La cuenta existe pero no esta habilitada para entrar
           content:
-            '*/*':
+            application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/SesionVeedor"
+        "423":
+          description: Cuenta bloqueada por intentos fallidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SesionVeedor"
+        "429":
+          description: Demasiados intentos desde esta IP
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SesionVeedor"
+  /api/veedor/sesion/cierre:
+    post:
+      tags:
+      - Veedor
+      summary: Cerrar sesion
+      description: |-
+        Revoca en el servidor todas las sesiones vivas de la cuenta, no solo la de este
+        navegador. Un token copiado antes del cierre deja de servir en el acto.
+      operationId: cerrar
+      responses:
+        "204":
+          description: No Content
+  /api/veedor/segundo-factor/confirmacion:
+    post:
+      tags:
+      - Veedor - Segundo factor
+      summary: Confirmar el alta con un codigo de la app
+      description: |-
+        Devuelve una sesion nueva de alcance COMPLETO. Es lo que permite que un ADMIN
+        recien sembrado pase de su sesion restringida al panel sin volver a escribir la
+        clave que acaba de escribir.
+      operationId: confirmar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolicitudCodigo"
+        required: true
+      responses:
+        "200":
+          description: Segundo factor activo; sesion nueva emitida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SesionVeedor"
+        "401":
+          description: El codigo no coincide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SesionVeedor"
+        "409":
+          description: No hay un alta en curso
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SesionVeedor"
+  /api/veedor/segundo-factor/baja:
+    post:
+      tags:
+      - Veedor - Segundo factor
+      summary: Desactivar el segundo factor de la propia cuenta
+      description: |-
+        Exige un codigo valido: si bastara con la sesion, un token robado podria quitar
+        de en medio justamente la defensa que impide usarlo. Un ADMIN no puede
+        desactivarlo, su rol lo exige.
+      operationId: desactivar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolicitudCodigo"
+        required: true
+      responses:
+        "204":
+          description: Segundo factor desactivado
+        "401":
+          description: El codigo no coincide
+        "409":
+          description: El rol ADMIN exige segundo factor
+  /api/veedor/segundo-factor/alta:
+    post:
+      tags:
+      - Veedor - Segundo factor
+      summary: "Empezar el alta: genera el secreto y devuelve el QR"
+      description: |-
+        El secreto queda guardado sin confirmar y todavia no se exige al entrar. Solo
+        empieza a hacerlo tras confirmar un codigo valido. El secreto se muestra una
+        sola vez: no hay endpoint para volver a leerlo.
+      operationId: iniciar
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AltaSegundoFactorRespuesta"
   /api/veedor/cortes:
     get:
       tags:
@@ -232,7 +368,7 @@ paths:
       - Reportes
       summary: Confirmar un reporte
       description: Permite a otro vecino confirmar un reporte ciudadano (M11).
-      operationId: confirmar
+      operationId: confirmar_1
       parameters:
       - name: id
         in: path
@@ -284,6 +420,232 @@ paths:
       responses:
         "200":
           description: OK
+  /api/cuentas/verificacion:
+    post:
+      tags:
+      - Cuentas
+      summary: Confirmar el correo con el token del enlace
+      description: Pasa la cuenta a PENDIENTE_APROBACION. Sigue sin poder entrar hasta
+        que un ADMIN la apruebe.
+      operationId: verificarCorreo
+      parameters:
+      - name: token
+        in: query
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Correo confirmado
+        "400":
+          description: "Enlace invalido, vencido o ya usado"
+  /api/cuentas/restablecimiento:
+    post:
+      tags:
+      - Cuentas
+      summary: Pedir el enlace para restablecer la clave
+      description: "Responde 202 siempre, exista o no la cuenta. Ver el javadoc de\
+        \ esta clase."
+      operationId: pedirRestablecimiento
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolicitudRestablecer"
+        required: true
+      responses:
+        "202":
+          description: Accepted
+  /api/cuentas/registro:
+    post:
+      tags:
+      - Cuentas
+      summary: Solicitar una cuenta del panel
+      description: |-
+        Crea la cuenta en PENDIENTE_VERIFICACION y envia el enlace de confirmacion.
+        Registrarse no concede ningun permiso: hace falta verificar el correo y que un
+        ADMIN apruebe. Responde 202 aunque el correo ya tenga cuenta, para no revelar
+        que direcciones estan registradas.
+      operationId: registrarse
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolicitudRegistro"
+        required: true
+      responses:
+        "202":
+          description: Solicitud recibida; revisa tu correo
+        "400":
+          description: Correo mal formado o clave que no cumple la politica
+  /api/cuentas/invitacion:
+    post:
+      tags:
+      - Cuentas
+      summary: Aceptar una invitacion fijando la clave
+      description: Deja la cuenta ACTIVA con el rol que eligio quien invito. No hace
+        falta otra aprobacion.
+      operationId: aceptar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolicitudFijarClave"
+        required: true
+      responses:
+        "204":
+          description: Cuenta activa; ya puedes iniciar sesion
+        "400":
+          description: Enlace invalido o clave que no cumple la politica
+  /api/cuentas/clave:
+    post:
+      tags:
+      - Cuentas
+      summary: Fijar la clave nueva con el token del enlace
+      description: Cambia la clave y revoca todas las sesiones abiertas de esa cuenta.
+      operationId: fijarClave
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolicitudFijarClave"
+        required: true
+      responses:
+        "204":
+          description: Clave cambiada
+        "400":
+          description: "Enlace invalido, vencido o ya usado"
+  /api/veedor/usuarios/{id}/suspension:
+    patch:
+      tags:
+      - Veedor - Cuentas
+      summary: Suspender una cuenta activa
+      description: "Revoca sus sesiones al instante: no espera a que caduque su token."
+      operationId: suspender
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Cuenta suspendida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsuarioRespuesta"
+        "409":
+          description: "Es el unico ADMIN activo, o el ADMIN se administra a si mismo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsuarioRespuesta"
+  /api/veedor/usuarios/{id}/rechazo:
+    patch:
+      tags:
+      - Veedor - Cuentas
+      summary: Denegar una solicitud de acceso
+      operationId: rechazar
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsuarioRespuesta"
+  /api/veedor/usuarios/{id}/reactivacion:
+    patch:
+      tags:
+      - Veedor - Cuentas
+      summary: Devolver el acceso a una cuenta suspendida
+      operationId: reactivar
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsuarioRespuesta"
+  /api/veedor/usuarios/{id}/permisos:
+    patch:
+      tags:
+      - Veedor - Cuentas
+      summary: Cambiar rol y ajustes de permisos de una cuenta
+      description: |-
+        Revoca las sesiones vivas de esa persona, tanto si los permisos se amplian como
+        si se recortan: el token los lleva dentro y una sesion abierta seguiria usando
+        los anteriores.
+      operationId: cambiarPermisos
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolicitudPermisos"
+        required: true
+      responses:
+        "200":
+          description: Permisos actualizados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsuarioRespuesta"
+        "409":
+          description: Dejaria al sistema sin ningun ADMIN activo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsuarioRespuesta"
+  /api/veedor/usuarios/{id}/aprobacion:
+    patch:
+      tags:
+      - Veedor - Cuentas
+      summary: "Aprobar una cuenta que ya verifico su correo, asignandole permisos"
+      operationId: aprobar
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SolicitudPermisos"
+        required: true
+      responses:
+        "200":
+          description: Cuenta activa
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsuarioRespuesta"
+        "409":
+          description: "La cuenta no esta esperando aprobacion, o el ADMIN se administra\
+            \ a si mismo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsuarioRespuesta"
   /api/veedor/reportes/{id}/descartar:
     patch:
       tags:
@@ -314,7 +676,7 @@ paths:
       tags:
       - Veedor - Moderación
       summary: Aprobar un reporte
-      operationId: aprobar
+      operationId: aprobar_1
       parameters:
       - name: id
         in: path
@@ -369,7 +731,7 @@ paths:
       description: |-
         Aplica el estado propuesto al sector y anexa el evento a la bitácora pública
         (RF026). Es el único camino por el que la ingesta llega al mapa.
-      operationId: aprobar_1
+      operationId: aprobar_2
       parameters:
       - name: id
         in: path
@@ -400,7 +762,7 @@ paths:
       tags:
       - Veedor - Cortes
       summary: Cerrar un corte con la hora real de restablecimiento (RF017)
-      operationId: cerrar
+      operationId: cerrar_1
       parameters:
       - name: id
         in: path
@@ -432,6 +794,58 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetail"
+  /api/veedor/yo:
+    get:
+      tags:
+      - Veedor
+      summary: Datos de la cuenta que tiene la sesion
+      description: |-
+        Lo usa el frontend al recargar para saber que puede pintar sin volver a pedir la
+        clave. Devuelve el estado vigente en la base de datos, no lo que dice el token.
+      operationId: yo
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsuarioRespuesta"
+  /api/veedor/usuarios:
+    get:
+      tags:
+      - Veedor - Cuentas
+      summary: "Listar cuentas, mas recientes primero"
+      description: |-
+        Paginado, con el total y el enlace a la siguiente pagina en `X-Total-Count` y
+        `Link`. `estado` filtra por PENDIENTE_APROBACION para ver solo la cola de altas.
+      operationId: listar
+      parameters:
+      - name: estado
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: pagina
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: tamano
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UsuarioRespuesta"
   /api/veedor/reportes/pendientes:
     get:
       tags:
@@ -546,6 +960,36 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetail"
+  /api/veedor/auditoria:
+    get:
+      tags:
+      - Veedor - Cuentas
+      summary: "Bitacora de auditoria de cuentas, mas recientes primero"
+      description: "Solo anexado: no hay forma de editar ni borrar un asiento desde\
+        \ la API."
+      operationId: auditoria
+      parameters:
+      - name: pagina
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      - name: tamano
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EventoAuditoriaRespuesta"
   /api/v2/requests.json:
     get:
       tags:
@@ -575,7 +1019,7 @@ paths:
         confirmarla dos veces no falla (RF013). Responde JSON o una página HTML de cortesía
         según el `Accept` de quien pide — el mismo enlace del correo abre bien tanto en un
         navegador como desde un cliente de API.
-      operationId: confirmar_1
+      operationId: confirmar_2
       parameters:
       - name: token
         in: query
@@ -889,7 +1333,7 @@ paths:
         `X-Total-Count`, `X-Total-Pages`, `X-Page`, `X-Page-Size` y `Link` — el cuerpo
         sigue siendo un arreglo JSON, así que un cliente que las ignore no se rompe.
         Por defecto 50 eventos; el máximo por página es 200.
-      operationId: listar
+      operationId: listar_1
       parameters:
       - name: pagina
         in: query
@@ -914,14 +1358,125 @@ paths:
                   $ref: "#/components/schemas/EventoBitacoraRespuesta"
 components:
   schemas:
+    SolicitudInvitacion:
+      required:
+      - rol
+      type: object
+      properties:
+        correo:
+          minLength: 1
+          type: string
+        nombre:
+          maxLength: 80
+          minLength: 2
+          type: string
+        rol:
+          type: string
+          description: "ADMIN, VEEDOR u OBSERVADOR"
+      description: "Invitacion emitida por un ADMIN: crea la cuenta con su rol y manda\
+        \ el enlace"
+    UsuarioRespuesta:
+      type: object
+      properties:
+        id:
+          type: string
+        correo:
+          type: string
+        nombre:
+          type: string
+        estado:
+          type: string
+          description: "PENDIENTE_VERIFICACION, PENDIENTE_APROBACION, INVITADA, ACTIVA,\
+            \ SUSPENDIDA o RECHAZADA"
+        rol:
+          type: string
+        permisosEfectivos:
+          type: array
+          items:
+            type: string
+        permisosConcedidos:
+          type: array
+          items:
+            type: string
+        permisosRevocados:
+          type: array
+          items:
+            type: string
+        segundoFactorActivo:
+          type: boolean
+        creadoEn:
+          type: string
+          format: date-time
+        actualizadoEn:
+          type: string
+          format: date-time
+      description: "Cuenta del panel, tal como la ve un ADMIN"
     CredencialVeedor:
       type: object
       properties:
+        correo:
+          minLength: 1
+          type: string
+          description: Correo de la cuenta
+          example: veedor@ejemplo.org
         clave:
           minLength: 1
           type: string
-          description: Clave de acceso del veedor
+          description: Clave de la cuenta
+        codigoTotp:
+          type: string
+          description: |-
+            Codigo de 6 digitos de la app de autenticacion. Se omite en el primer intento; si la
+            cuenta tiene segundo factor, la respuesta 401 con type `segundo-factor-requerido`
+            indica que hay que reintentar incluyendolo.
       description: Credencial de acceso al panel del veedor
+    SesionVeedor:
+      type: object
+      properties:
+        token:
+          type: string
+          description: "Token JWT. Se envia como 'Authorization: Bearer <token>'"
+        usuarioId:
+          type: string
+        nombre:
+          type: string
+        correo:
+          type: string
+        rol:
+          type: string
+          description: "ADMIN, VEEDOR u OBSERVADOR"
+        permisos:
+          type: array
+          description: "Permisos efectivos ya resueltos: rol mas concedidos menos\
+            \ revocados"
+          items:
+            type: string
+            description: "Permisos efectivos ya resueltos: rol mas concedidos menos\
+              \ revocados"
+        alcance:
+          type: string
+          description: |-
+            COMPLETO, o ALTA_SEGUNDO_FACTOR cuando la cuenta es ADMIN y todavia no dio de alta su
+            TOTP. Con ese alcance el token solo sirve para /api/veedor/segundo-factor.
+      description: "Sesion emitida para el panel del veedor (RNF011: expira en 8 horas)"
+    SolicitudCodigo:
+      type: object
+      properties:
+        codigo:
+          minLength: 1
+          type: string
+      description: Codigo de 6 digitos de la app de autenticacion
+    AltaSegundoFactorRespuesta:
+      type: object
+      properties:
+        uri:
+          type: string
+          description: URI otpauth:// para pintar el QR
+        secreto:
+          type: string
+          description: "El mismo secreto en Base32, para teclearlo si la camara falla"
+      description: "Datos para dar de alta el segundo factor. El secreto solo se muestra\
+        \ aqui, una vez."
     SolicitudCorte:
       required:
       - finPrometido
@@ -1125,6 +1680,60 @@ components:
           format: double
         coordenada:
           $ref: "#/components/schemas/IotCoordenada"
+    SolicitudRestablecer:
+      type: object
+      properties:
+        correo:
+          minLength: 1
+          type: string
+      description: "Pedir el enlace de restablecimiento. Responde siempre 202, exista\
+        \ o no la cuenta."
+    SolicitudRegistro:
+      type: object
+      properties:
+        correo:
+          minLength: 1
+          type: string
+        nombre:
+          maxLength: 80
+          minLength: 2
+          type: string
+          description: Nombre con el que apareceras en la auditoria del panel
+        clave:
+          minLength: 1
+          type: string
+          description: Minimo 12 caracteres. La politica completa vive en ClaveEnClaro.
+      description: "Solicitud de acceso al panel. No concede nada: exige verificar\
+        \ el correo y que un ADMIN apruebe."
+    SolicitudFijarClave:
+      type: object
+      properties:
+        token:
+          minLength: 1
+          type: string
+          description: Token que venia en el enlace del correo
+        clave:
+          minLength: 1
+          type: string
+      description: Fijar clave desde un enlace de un solo uso (invitacion o restablecimiento)
+    SolicitudPermisos:
+      type: object
+      properties:
+        rol:
+          minLength: 1
+          type: string
+          description: "ADMIN, VEEDOR u OBSERVADOR"
+        concedidos:
+          type: array
+          items:
+            type: string
+        revocados:
+          type: array
+          items:
+            type: string
+      description: |-
+        Rol de base mas los ajustes por persona. Los permisos del rol se aplican solos; `concedidos`
+        anade sobre ellos y `revocados` quita. Un permiso en las dos listas es un error y se rechaza.
     ReporteModeracionRespuesta:
       type: object
       properties:
@@ -1167,8 +1776,10 @@ components:
             \ pueda verificarlo"
         confianza:
           type: number
-          description: Entre 0 y 1. La heurística por expresiones regulares emite
-            0.6 (ADR-025)
+          description: |-
+            Entre 0 y 1, graduada según la evidencia que halló el extractor (ADR-032): 0.85 con
+            enumeración explícita de barrios y horario, 0.75 con enumeración sin horario, 0.45
+            con una mención suelta en prosa. Sirve para ordenar la cola, no para publicar solo.
           format: double
         detectadaEn:
           type: string
@@ -1176,6 +1787,21 @@ components:
         estadoRevision:
           type: string
           description: "PENDIENTE, APROBADA o DESCARTADA"
+        inicioDeclarado:
+          type: string
+          description: |-
+            Inicio de la ventana que el boletín prometió. Nulo cuando el texto no la declaraba:
+            no se estima (ADR-006).
+          format: date-time
+          nullable: true
+        finPrometido:
+          type: string
+          description: |-
+            Fin prometido de la misma ventana. Junto con el inicio es lo que permite que el
+            estado del sector evolucione solo (ADR-033) y lo que alimenta el Índice de
+            Cumplimiento (RF020-RF022).
+          format: date-time
+          nullable: true
       description: |-
         Propuesta de cambio de estado detectada por la ingesta automatizada (M9), esperando la
         revisión de un veedor. No afecta el mapa público hasta que se apruebe.
@@ -1224,6 +1850,27 @@ components:
             \ caído en /actuator/health"
           format: int32
       description: Estado de salud de un colector de la ingesta automatizada
+    EventoAuditoriaRespuesta:
+      type: object
+      properties:
+        id:
+          type: string
+        accion:
+          type: string
+        autorCorreo:
+          type: string
+          description: Nulo cuando actua el sistema o alguien sin sesion
+        sujetoCorreo:
+          type: string
+        detalle:
+          type: string
+        ip:
+          type: string
+        ocurrioEn:
+          type: string
+          format: date-time
+      description: "Asiento de la bitacora de auditoria de cuentas: quien le hizo\
+        \ que a quien"
     Open311Response:
       type: object
       properties:
@@ -1391,7 +2038,8 @@ components:
           type: string
         tipo:
           type: string
-          description: "CORTE_ANUNCIADO, CORTE_CONFIRMADO_POR_CIUDADANOS o CORTE_RESTABLECIDO"
+          description: "CORTE_ANUNCIADO, CORTE_CONFIRMADO_POR_CIUDADANOS, CORTE_RESTABLECIDO\
+            \ o CORTE_DETECTADO_POR_INGESTA"
         sectorId:
           type: string
           description: Nulo si el evento no está atado a un sector
@@ -1404,4 +2052,16 @@ components:
           format: date-time
         descripcion:
           type: string
+        estado:
+          type: string
+          description: "Estado del servicio que afirma el evento: CON_SERVICIO, SIN_SERVICIO,\
+            \ PRESION_BAJA o CORTE_PROGRAMADO. Nulo si el evento no habla del servicio\
+            \ — presentarlo entonces como informativo, sin color de estado."
+        urlOriginal:
+          type: string
+          description: Boletín o nota que respalda el evento. Nulo si la fuente no
+            lo trae.
+        imagenUrl:
+          type: string
+          description: Portada del boletín. Nula si la fuente no la trae.
       description: "Evento de la bitácora pública, de solo anexado (RF026-RF028)"

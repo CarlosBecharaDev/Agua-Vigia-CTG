@@ -123,6 +123,10 @@ Todos medibles. Un RNF sin métrica y umbral no es verificable y no cuenta.
 | RNF009 | Los correos de suscripción deben almacenarse con acceso restringido y eliminarse al darse de baja. | Revisión de código y prueba |
 | RNF010 | No debe haber credenciales en el código fuente ni en el repositorio. | Escaneo de secretos en CI |
 | RNF011 | El panel administrativo debe requerir token JWT con expiración máxima de 8 horas. | Test de seguridad |
+| RNF022 | El panel debe autorizar cada acción contra un permiso concreto, nunca contra el rol. | ArchUnit + pruebas de contrato por endpoint |
+| RNF023 | Suspender una cuenta o cambiar sus permisos debe invalidar sus sesiones vivas de inmediato, sin esperar a que expire el token. | Prueba de integración de revocación |
+| RNF024 | El registro, el ingreso y el restablecimiento de clave no deben revelar qué correos tienen cuenta, ni por el mensaje ni por el tiempo de respuesta. | Pruebas de igualdad de respuesta y de tiempo equivalente |
+| RNF025 | Las cuentas con rol ADMIN deben exigir un segundo factor TOTP conforme al RFC 6238. | Vectores de prueba del propio RFC |
 
 ### Usabilidad y accesibilidad
 
@@ -202,3 +206,16 @@ A partir de la estabilización del núcleo del sistema, se proponen las siguient
 | ID | Requisito | Prioridad | Actor | Origen |
 |---|---|---|---|---|
 | RF041 | El sistema debe permitir la suscripción a alertas de sector mediante plataformas de mensajería instantánea (Telegram/WhatsApp) como alternativa al correo. | Debe | Vecino | Propuesta Fase 2 |
+
+### M15 — Cuentas y permisos del panel
+
+Amplían `RF019`, que solo exige "autenticación con token" y no dice nada del modelo de cuentas.
+Decisión y alternativas descartadas en `ADR-039`, que reemplaza a `ADR-016`.
+
+| ID | Requisito | Prioridad | Actor | Origen |
+|---|---|---|---|---|
+| RF042 | El sistema debe permitir que una persona solicite una cuenta del panel con su correo, y no debe concederle ningún permiso hasta que verifique el correo y un administrador la apruebe. | Debe | Aspirante a veedor | ADR-039 |
+| RF043 | El sistema debe permitir a un administrador invitar a una persona por correo con un rol ya asignado; al fijar su clave desde el enlace, la cuenta queda activa sin otra aprobación. | Debe | Administrador | ADR-039 |
+| RF044 | El sistema debe permitir a un administrador aprobar, rechazar, suspender y reactivar cuentas, y asignarles un rol con ajustes de permisos por persona. | Debe | Administrador | ADR-039 |
+| RF045 | El sistema debe registrar en una bitácora inmutable quién cambió el acceso de quién, cuándo y desde qué IP. | Debe | Administrador | ADR-039 · carencia declarada en ADR-016 |
+| RF046 | El sistema debe permitir restablecer la clave mediante un enlace de un solo uso enviado al correo, y ese cambio debe cerrar todas las sesiones abiertas de la cuenta. | Debería | Veedor | ADR-039 |

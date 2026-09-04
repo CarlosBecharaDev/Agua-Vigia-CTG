@@ -1,0 +1,148 @@
+/* ── Llamado a la veeduría ──────────────────────────────────────────────────────
+   Sigue la paleta del sitio (púrpura/teal sobre el azul profundo de la bitácora),
+   no el azul corporativo del ejemplo: la sección tiene que leerse como parte de
+   AguaVigía y no como un banner pegado de otra página. */
+
+.llamado-veedor {
+  position: relative;
+  background: linear-gradient(180deg, #070a18 0%, #0a0f24 100%);
+  padding: 3.5rem 0 1rem;
+}
+
+.llamado-veedor-tarjeta {
+  position: relative;
+  width: min(100% - 2.5rem, 1200px);
+  margin: 0 auto;
+  padding: 3rem 2.5rem;
+  border-radius: 28px;
+  border: 1px solid rgba(168, 85, 247, 0.22);
+  background:
+    radial-gradient(ellipse at 12% 0%, rgba(147, 51, 234, 0.22) 0%, transparent 55%),
+    radial-gradient(ellipse at 92% 100%, rgba(20, 184, 166, 0.16) 0%, transparent 55%),
+    rgba(15, 23, 42, 0.72);
+  box-shadow: 0 22px 60px -30px rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(18px);
+  text-align: center;
+}
+
+.llamado-veedor-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  background: rgba(168, 85, 247, 0.14);
+  border: 1px solid rgba(192, 132, 252, 0.32);
+  color: #d8b4fe;
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.llamado-veedor-titulo {
+  /* Color sólido, sin degradado: en un titular el degradado es decoración sin
+     significado y le quita contraste justo donde más hace falta leer. */
+  margin: 1rem 0 0.9rem;
+  color: #f8fafc;
+  font-size: clamp(1.6rem, 2.8vw, 2.1rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.llamado-veedor-texto {
+  /* ~62ch: por encima de eso el ojo pierde el renglón al volver. */
+  max-width: 62ch;
+  margin: 0 auto 0.75rem;
+  color: rgba(226, 232, 240, 0.78);
+  font-size: 0.97rem;
+  line-height: 1.6;
+}
+
+.llamado-veedor-texto strong {
+  color: #f1f5f9;
+  font-weight: 700;
+}
+
+.llamado-veedor-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 1.6rem;
+}
+
+.llamado-veedor-btn-primario,
+.llamado-veedor-btn-secundario {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.8rem 1.5rem;
+  border-radius: 9999px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  /* Solo transform y color: ambas corren en GPU y no disparan reflow. */
+  transition: transform var(--motion-fast) var(--ease),
+              background-color var(--motion-fast) var(--ease),
+              border-color var(--motion-fast) var(--ease);
+}
+
+.llamado-veedor-btn-primario {
+  border: 1px solid transparent;
+  background: #a855f7;
+  color: #ffffff;
+  box-shadow: 0 10px 30px -12px rgba(168, 85, 247, 0.9);
+}
+
+.llamado-veedor-btn-secundario {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f1f5f9;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .llamado-veedor-btn-primario:hover { background: #9333ea; }
+  .llamado-veedor-btn-secundario:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(192, 132, 252, 0.45);
+  }
+}
+
+/* Retroalimentación de pulsación: confirma que la interfaz escuchó el clic. */
+.llamado-veedor-btn-primario:active,
+.llamado-veedor-btn-secundario:active {
+  transform: scale(0.97);
+}
+
+.llamado-veedor-btn-primario:focus-visible,
+.llamado-veedor-btn-secundario:focus-visible {
+  outline: 2px solid #c084fc;
+  outline-offset: 3px;
+}
+
+.llamado-veedor-nota {
+  max-width: 58ch;
+  margin: 1.25rem auto 0;
+  color: rgba(148, 163, 184, 0.85);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 640px) {
+  .llamado-veedor { padding-top: 2.5rem; }
+  .llamado-veedor-tarjeta {
+    padding: 2.1rem 1.35rem;
+    border-radius: 22px;
+  }
+  /* Apilados y a todo el ancho: dos botones lado a lado en 360px quedan
+     demasiado estrechos para acertarles con el pulgar. */
+  .llamado-veedor-acciones { flex-direction: column; }
+  .llamado-veedor-btn-primario,
+  .llamado-veedor-btn-secundario {
+    width: 100%;
+    justify-content: center;
+  }
+}

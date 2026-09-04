@@ -1,40 +1,19 @@
-/**
- * PaginaReportar — RF006: reportar sin registro y en dos pasos.
- *
- * Se rediseñó sobre un supuesto muy concreto: quien abre esta pantalla está en la calle,
- * sin agua y molesto, en un celular. De ahí las tres decisiones de presentación:
- *
- * 1. Se cayó el panel partido oscuro/claro. Además de ser un tercer lenguaje visual
- *    ajeno a la carta, tenía un fallo de contraste grave: pintaba el fondo con
- *    --color-marino y el título con blanco fijo, y --color-marino se invierte a papel
- *    (#EDE7D6) en carta de noche — el título quedaba en 1,24:1 sobre su propio fondo.
- * 2. Los dos pasos son ahora dos tramos siempre visibles, cada uno declarando su estado.
- *    Antes el paso 2 solo se atenuaba al 48 % de opacidad: ni decía por qué estaba
- *    bloqueado ni se leía bien.
- * 3. Un toque en una opción envía, como antes. Son dos pasos por requisito, no tres, así
- *    que en vez de añadir un botón de envío se escribe encima que al elegir se envía.
- */
 import { useState } from 'react'
-import type { CSSProperties } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check, Link as LinkIcon } from 'lucide-react'
+import { CheckCircle2, Megaphone, DropletOff, Gauge, CheckCircle } from 'lucide-react'
 import { PageWrapper } from '../components/PageWrapper'
 import { useDatosEnVivo } from '../hooks/useDatosEnVivo'
 import { normalizarErrorApi } from '../api/client'
 import { registrarReporteCiudadano } from '../api/services'
 import type { TipoReporte } from '../api/services'
 import { EnlaceConfirmarReporte } from '../components/EnlaceConfirmarReporte'
+import '../components/ModalReporte.css'
 
-/**
- * Cada opción lleva el token del estado que va a pintar en el mapa si el reporte prospera.
- * Es el mismo código de color de la leyenda: quien reporta ve qué está publicando sobre su
- * barrio antes de tocar.
- */
-const OPCIONES: Array<{ tipo: TipoReporte; etiqueta: string; descripcion: string; color: string }> = [
-  { tipo: 'SIN_AGUA', etiqueta: 'No me llega agua', descripcion: 'No sale agua de la llave.', color: 'var(--color-estado-sin)' },
-  { tipo: 'PRESION_BAJA', etiqueta: 'Llega con poca presión', descripcion: 'Sale agua, pero con poca fuerza.', color: 'var(--color-estado-baja)' },
-  { tipo: 'SERVICIO_RESTABLECIDO', etiqueta: 'Ya volvió el agua', descripcion: 'El servicio se restableció.', color: 'var(--color-estado-con)' },
+const OPCIONES: Array<{ tipo: TipoReporte; etiqueta: string; descripcion: string; Icono: typeof DropletOff; clase: string }> = [
+  { tipo: 'SIN_AGUA', etiqueta: 'No tengo agua', descripcion: 'El servicio está completamente interrumpido.', Icono: DropletOff, clase: 'opcion-sin-agua' },
+  { tipo: 'PRESION_BAJA', etiqueta: 'Presión muy baja', descripcion: 'El agua llega con un hilo o poca fuerza.', Icono: Gauge, clase: 'opcion-presion-baja' },
+  { tipo: 'SERVICIO_RESTABLECIDO', etiqueta: 'Ya volvió el servicio', descripcion: 'Confirma que el agua regresó con normalidad.', Icono: CheckCircle, clase: 'opcion-restablecido' },
 ]
 
 export default function PaginaReportar() {
@@ -49,134 +28,115 @@ export default function PaginaReportar() {
   })
   const error = mutacion.error ? normalizarErrorApi(mutacion.error) : null
 
-  const ordenados = [...sectores].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
-  const barrioElegido = ordenados.find((sector) => sector.id === sectorId)
-  const enviando = mutacion.isPending
-  const tipoEnviando = mutacion.variables
-
   return (
     <PageWrapper>
-      <main id="contenido-principal" tabIndex={-1} className="pagina-pliego reticula-carta">
-        <article className="pliego pliego--reporte" aria-labelledby="titulo-reportar">
-          <header className="pliego-cabecera">
-            <p className="rotulo-carta pliego-rotulo">Reporte ciudadano</p>
-            <h1 id="titulo-reportar" className="pliego-titulo">Reporta el estado de tu barrio</h1>
-            <p className="pliego-entradilla">
-              Sin registro y en dos pasos. Tu reporte se suma al de tus vecinos y así se
-              confirma lo que de verdad está pasando.
-            </p>
-          </header>
-
-          <div className="pliego-cuerpo">
-            {mutacion.isSuccess ? (
-              <div className="confirmacion" role="status">
-                <span className="confirmacion-marca" aria-hidden="true"><Check size={17} strokeWidth={3} /></span>
-                <div>
-                  <h2>Reporte enviado</h2>
-                  <p className="confirmacion-texto">
-                    Ya quedó registrado
-                    {barrioElegido ? <> para <strong>{barrioElegido.nombre}</strong></> : null}. Se
-                    publica en el mapa cuando otros vecinos lo confirmen o el veedor lo valide.
-                  </p>
-
-                  {/* RF038/M11: la confirmación de un vecino es lo que acelera la publicación,
-                      así que el enlace para pedirla es la acción principal de este momento. */}
-                  {mutacion.data?.id && (
-                    <>
-                      <p className="pliego-nota">
-                        <LinkIcon size={13} aria-hidden="true" /> Pásale este enlace a un vecino:
-                        cada confirmación acerca tu reporte al mapa.
-                      </p>
-                      <EnlaceConfirmarReporte reporteId={mutacion.data.id} />
-                    </>
-                  )}
-
-                  <div className="pliego-acciones">
-                    <button
-                      className="boton boton-secundario"
-                      type="button"
-                      onClick={() => { mutacion.reset(); setSectorId('') }}
-                    >
-                      Reportar otro barrio
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <>
-                {/* Tramo 1 ─ el barrio. Se marca completo en cuanto hay uno elegido. */}
-                <section className="tramo" data-estado={sectorId ? 'completo' : 'activo'}>
-                  <span className="tramo-numero sonda" aria-hidden="true">
-                    {sectorId ? <Check size={15} strokeWidth={3} /> : '1'}
-                  </span>
-                  <div>
-                    <label className="tramo-titulo" htmlFor="sector-reporte">Selecciona tu barrio</label>
-                    <span className="tramo-lectura">
-                      {barrioElegido ? barrioElegido.nombre : 'Todavía sin elegir'}
-                    </span>
-                    <select
-                      id="sector-reporte"
-                      className="tramo-campo"
-                      value={sectorId}
-                      onChange={(event) => setSectorId(event.target.value)}
-                      disabled={cargando}
-                    >
-                      <option value="">{cargando ? 'Cargando barrios…' : 'Elige un barrio'}</option>
-                      {ordenados.map((sector) => (
-                        <option key={sector.id} value={sector.id}>{sector.nombre}</option>
-                      ))}
-                    </select>
-                  </div>
-                </section>
-
-                {/* Tramo 2 ─ la novedad. Un toque envía; por eso la lectura del tramo lo
-                    avisa antes y no después. */}
-                <section className="tramo" data-estado={!sectorId ? 'espera' : enviando ? 'completo' : 'activo'}>
-                  <span className="tramo-numero sonda" aria-hidden="true">2</span>
-                  <fieldset disabled={!sectorId || enviando}>
-                    <legend className="tramo-titulo rotulo-hidrografico">¿Qué pasa con el agua ahora?</legend>
-                    <span className="tramo-lectura">
-                      {!sectorId
-                        ? 'Elige primero tu barrio'
-                        : enviando
-                          ? 'Enviando tu reporte…'
-                          : 'Al elegir una opción se envía el reporte'}
-                    </span>
-                    <div className="opciones-novedad">
-                      {OPCIONES.map((opcion) => (
-                        <button
-                          type="button"
-                          key={opcion.tipo}
-                          className={`opcion-novedad${enviando && tipoEnviando === opcion.tipo ? ' is-enviando' : ''}`}
-                          style={{ '--color-estado': opcion.color } as CSSProperties}
-                          onClick={() => mutacion.mutate(opcion.tipo)}
-                        >
-                          <span className="opcion-novedad-marca" aria-hidden="true" />
-                          <span>
-                            <strong className="opcion-novedad-titulo">{opcion.etiqueta}</strong>
-                            <span className="opcion-novedad-detalle">{opcion.descripcion}</span>
-                          </span>
-                          {enviando && tipoEnviando === opcion.tipo && (
-                            <span className="spinner" aria-hidden="true" />
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </fieldset>
-                </section>
-
-                {error && <p className="pliego-error" role="alert">{error.detalle}</p>}
-
-                {/* RF006: el cupo por dispositivo se controla con una huella anónima. Decirlo
-                    aquí y no en un enlace legal es parte del trato de reportar sin registro. */}
-                <p className="pliego-nota">
-                  No pedimos ni guardamos datos tuyos. Usamos una huella anónima del
-                  dispositivo solo para limitar reportes repetidos.
-                </p>
-              </>
-            )}
+      <main id="contenido-principal" tabIndex={-1} className="pagina-estado" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem 1rem 6rem' }}>
+        <section
+          className="modal-reporte-contenedor"
+          style={{ width: 'min(100%, 540px)', maxHeight: 'none' }}
+          aria-labelledby="titulo-reportar"
+        >
+          {/* Fondo animado morado */}
+          <div className="modal-reporte-fondo-animado" aria-hidden="true">
+            <div className="orbe-rep-1" />
+            <div className="orbe-rep-2" />
           </div>
-        </article>
+
+          <div className="modal-reporte-cabecera">
+            <div className="modal-reporte-icono-titulo">
+              <div className="modal-reporte-badge-icono" aria-hidden="true">
+                <Megaphone size={24} />
+              </div>
+              <div className="modal-reporte-titulos">
+                <h1 id="titulo-reportar" style={{ fontSize: '1.45rem', margin: 0 }}>Reporta el estado de tu barrio</h1>
+                <p>Participación ciudadana anónima en dos pasos.</p>
+              </div>
+            </div>
+          </div>
+
+          {mutacion.isSuccess ? (
+            <div className="suscripcion-exito-moderno" role="status">
+              <div className="suscripcion-exito-icono">
+                <CheckCircle2 size={36} />
+              </div>
+              <div className="suscripcion-exito-titulos">
+                <h3>¡Reporte Recibido!</h3>
+                <p>Gracias por ayudar a mantener informada a toda Cartagena.</p>
+              </div>
+              {mutacion.data?.id && <EnlaceConfirmarReporte reporteId={mutacion.data.id} />}
+              <button
+                className="form-suscripcion-boton-enviar"
+                type="button"
+                style={{ maxWidth: '240px', marginTop: '0.75rem' }}
+                onClick={() => { mutacion.reset(); setSectorId('') }}
+              >
+                Enviar otro reporte
+              </button>
+            </div>
+          ) : (
+            <div className="form-reporte-moderno">
+              <div className="form-reporte-bloque">
+                <label htmlFor="sector-reporte" className="form-reporte-label">
+                  <span className="form-suscripcion-chip-paso">1</span>
+                  Selecciona tu barrio
+                </label>
+                <select
+                  id="sector-reporte"
+                  value={sectorId}
+                  onChange={(event) => setSectorId(event.target.value)}
+                  disabled={cargando}
+                  className="form-reporte-select"
+                >
+                  <option value="">{cargando ? 'Cargando barrios…' : 'Elige un barrio de Cartagena…'}</option>
+                  {[...sectores].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')).map((sector) => (
+                    <option key={sector.id} value={sector.id}>{sector.nombre}</option>
+                  ))}
+                </select>
+              </div>
+
+              <fieldset disabled={!sectorId || mutacion.isPending} className="form-reporte-bloque" style={{ border: '1px solid rgba(255, 255, 255, 0.09)' }}>
+                <legend className="form-reporte-label" style={{ padding: '0 0.5rem' }}>
+                  <span className="form-suscripcion-chip-paso">2</span>
+                  ¿Qué está pasando ahora?
+                </legend>
+                <div className="form-reporte-opciones-grid">
+                  {OPCIONES.map(({ tipo, etiqueta, descripcion, Icono, clase }) => (
+                    <button
+                      type="button"
+                      key={tipo}
+                      onClick={() => mutacion.mutate(tipo)}
+                      className={`form-reporte-opcion-btn ${clase}`}
+                    >
+                      <div className="form-reporte-opcion-icono">
+                        <Icono size={20} aria-hidden="true" />
+                      </div>
+                      <div className="form-reporte-opcion-textos">
+                        <strong>{etiqueta}</strong>
+                        <small>{descripcion}</small>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+
+              {mutacion.isPending && (
+                <p style={{ color: '#d8b4fe', fontSize: '0.85rem', textAlign: 'center', margin: '0.2rem 0' }} role="status">
+                  <span className="spinner" /> Enviando reporte a la red…
+                </p>
+              )}
+
+              {error && (
+                <div className="form-suscripcion-error-badge" role="alert">
+                  {error.detalle}
+                </div>
+              )}
+
+              <p style={{ color: 'rgba(203, 213, 225, 0.6)', fontSize: '0.74rem', textAlign: 'center', margin: '0.2rem 0 0' }}>
+                Usamos una huella anónima del dispositivo para limitar reportes repetidos sin pedir datos personales.
+              </p>
+            </div>
+          )}
+        </section>
       </main>
     </PageWrapper>
   )
