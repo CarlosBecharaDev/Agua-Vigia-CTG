@@ -14,7 +14,7 @@ test('el acceso del veedor inicia cerrado y permite mostrar la clave', async ({ 
   await expect(page).toHaveTitle(/AguaVigía/)
   await expect(page.getByRole('heading', { name: 'Ingreso del Veedor' })).toBeVisible()
 
-  const clave = page.getByLabel('Clave del veedor')
+  const clave = page.getByLabel('Clave', { exact: true })
   await expect(clave).toHaveAttribute('type', 'password')
   await clave.fill('clave-de-prueba')
   await page.getByRole('button', { name: 'Mostrar clave' }).click()

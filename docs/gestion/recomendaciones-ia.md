@@ -24,6 +24,12 @@
 | REC-007 | 2026-08-28 | Las ramas fusionadas se acumulan en GitHub porque falta activar el borrado automático | Pendiente |
 | REC-008 | 2026-08-30 | El fuente de `index.css` está semi-minificado: el breakpoint móvil completo vive en una sola línea de 2.509 caracteres | Pendiente |
 | REC-009 | 2026-08-30 | 25 reglas usan `transition: all`, que anima también propiedades de layout y dispara reflow en cada hover | Pendiente |
+| REC-010 | 2026-08-31 | `CLAUDE.md` seguía declarando «Sprint 0 · ANDAMIAJE» sobre un backend terminado | Resuelta |
+| REC-011 | 2026-09-04 | Los 15 endpoints de M15 (cuentas, permisos y segundo factor) no tienen prueba de contrato, y RNF022 la exige | Pendiente |
+| REC-012 | 2026-09-04 | Las respuestas 401 y 403 de la cadena de seguridad no salen en RFC 7807, a diferencia del resto de la API | Pendiente |
+| REC-013 | 2026-09-04 | El allowlist de gitleaks exceptúa un archivo entero, no un secreto concreto | Pendiente |
+| REC-014 | 2026-09-04 | `sprint-2.md` lleva abierto desde el 2026-08-09 mientras el repositorio ya entregó M10–M15 | Pendiente |
+| REC-015 | 2026-09-04 | Nada impide que `index.css` y `tipos-dominio.ts` vuelvan a discrepar en los colores de estado | Pendiente |
 
 **Estado:** `Pendiente` (sin revisar) · `Validada` (el equipo está de acuerdo, puede pasar a
 ADR/issue/tarea) · `Descartada` (el equipo no está de acuerdo — deja el motivo en el detalle) ·
@@ -163,7 +169,7 @@ intentarla de una sola pasada.
 
 ### REC-010 — `CLAUDE.md` sigue declarando "Sprint 0 · ANDAMIAJE, se prohíbe la funcionalidad" sobre un backend ya terminado
 
-- **Fecha:** 2026-08-31 · **Estado:** Pendiente
+- **Fecha:** 2026-08-31 · **Estado:** Resuelta
 
 `CLAUDE.md` §Estado actual dice *"Sprint 0 · Fase: ANDAMIAJE. Se permite estructura de proyecto,
 configuración, infraestructura, tokens visuales y rutas vacías. Se prohíbe la funcionalidad: si el
@@ -179,4 +185,102 @@ personas.
 
 Basta actualizar §Estado actual al sprint real y a su entregable pendiente. Conviene que lo haga
 quien lleva la gestión del sprint, no el agente: es el estado del proyecto, no un detalle técnico.
+
+**Resuelta:** el 2026-09-04 se actualizó §Estado actual de `CLAUDE.md` al estado verificado —Sprint 0
+y 1 cerrados, Sprint 2 abierto, M1–M15 construidos, `ADR-009` ya no aplica— con las cifras medidas en
+esa sesión (563 pruebas de backend, 95 de frontend) y una advertencia explícita de que la gestión de
+sprints va por detrás del código (ver `REC-014`).
+
+---
+
+### REC-011 — Los 15 endpoints de M15 no tienen prueba de contrato, y `RNF022` la exige
+
+- **Fecha:** 2026-09-04 · **Estado:** Pendiente
+
+`RNF022` dice que el panel debe autorizar cada acción contra un permiso concreto, y declara como
+verificación *«ArchUnit + pruebas de contrato por endpoint»*. Esas pruebas no existen para
+`AdminUsuariosController` (7 endpoints), `CuentaPublicaController` (5) y `SegundoFactorController`
+(3): `backend/src/test/.../api/` no tiene un solo archivo que los nombre, y ninguna prueba de la
+suite toca las rutas `/api/veedor/usuarios`, `/api/cuentas/*` ni `/api/veedor/segundo-factor/*`.
+
+Los **casos de uso** sí están probados (`GestionDeCuentasDelPanelTest`, `AdministrarCuentaServiceTest`,
+`AltaYRecuperacionDeCuentaTest`, `AutenticarUsuarioServiceTest`). Lo que falta es la capa web: nada
+verifica que un `OBSERVADOR` reciba 403 al llamar a un endpoint de administración, ni que un token
+de alcance restringido no pueda usarse fuera del alta del segundo factor. Justo la superficie donde
+un permiso mal cableado no se nota hasta que alguien lo aprovecha.
+
+Es además la parte más nueva del sistema (`ADR-039`) y la de mayor daño si falla: son los endpoints
+que crean, aprueban y suspenden cuentas.
+
+---
+
+### REC-012 — Las respuestas 401 y 403 de la cadena de seguridad no salen en RFC 7807
+
+- **Fecha:** 2026-09-04 · **Estado:** Pendiente
+
+`CLAUDE.md` fija que los errores de API van en formato RFC 7807 centralizados en un
+`@RestControllerAdvice`, y `ManejadorGlobalDeErrores` lo cumple para todo lo que pasa por un
+controlador. Pero `SecurityConfig` resuelve sus dos casos con `response.sendError(...)`, que produce
+la página de error del contenedor, no un `ProblemDetail`.
+
+Son precisamente los dos casos más frecuentes que ve un cliente: entrar sin token y entrar sin
+permiso. El frontend recibe ahí una forma distinta a la de cualquier otro error, y la única prueba
+que los cubre (`debeRechazarUnaRutaDeVeedorSinTokenCon401`) comprueba el código de estado, no el
+cuerpo, así que la divergencia no salta.
+
+Se arregla escribiendo el `ProblemDetail` desde el `authenticationEntryPoint` y el
+`accessDeniedHandler`, con su `type` propio, y afirmando el `content-type` en la prueba.
+
+---
+
+### REC-013 — El allowlist de gitleaks exceptúa un archivo entero, no un secreto concreto
+
+- **Fecha:** 2026-09-04 · **Estado:** Pendiente
+
+`ADR-031` decidió, con razón, no borrar la clave de desarrollo local de
+`docs/ingenieria/entorno-local.md`. Pero el allowlist de `.gitleaks.toml` está escrito por **ruta**:
+
+```toml
+paths = ['''docs/ingenieria/entorno-local\.md''']
+```
+
+Eso apaga el escaneo para el archivo completo y para siempre. Cualquier secreto que alguien escriba
+ahí en el futuro —incluido uno de producción, y ese archivo es justo donde alguien lo pegaría por
+error— pasa el CI en verde y en silencio.
+
+Acotarlo al secreto concreto en vez del archivo: `regexTarget` con el valor de la clave de
+desarrollo, o `stopwords`, de forma que el archivo siga escaneándose para todo lo demás.
+
+---
+
+### REC-014 — `sprint-2.md` lleva abierto desde el 2026-08-09 mientras el repositorio ya entregó M10–M15
+
+- **Fecha:** 2026-09-04 · **Estado:** Pendiente
+
+`docs/gestion/sprint-2.md` («Reporte ciudadano y consenso») sigue sin fecha de cierre desde el
+2026-08-09, casi un mes. En ese intervalo el repositorio entregó M10 a M15 —evidencia multimedia,
+validación comunitaria, Open311, IoT, alertas push y el modelo completo de cuentas y permisos— y
+registró de `ADR-025` a `ADR-042`.
+
+No es un detalle de forma: la Sala de control se genera de estos archivos, así que lo que el equipo
+mira no refleja lo que el equipo hizo. Y el Capítulo IV se alimenta de aquí. Cerrar el Sprint 2 con
+su entregable demostrado y abrir los siguientes es trabajo de quien lleva la gestión, no del agente
+— pero cuanto más se tarde, más caro es reconstruir qué pasó en cada uno.
+
+---
+
+### REC-015 — Nada impide que `index.css` y `tipos-dominio.ts` vuelvan a discrepar en los colores de estado
+
+- **Fecha:** 2026-09-04 · **Estado:** Pendiente
+
+`ADR-042` unificó los cuatro colores de estado, que estaban en seis sitios con cinco valores
+distintos, y dejó dos fuentes que **deben** moverse juntas: `--color-estado-*` en `index.css` (pinta
+la leyenda) y `COLOR_POR_ESTADO` en `tipos-dominio.ts` (pinta los polígonos del mapa). Está
+documentado en `DESIGN.md` §2 y en el javadoc del propio `COLOR_POR_ESTADO`, pero **nada lo
+verifica**: quien cambie uno y olvide el otro vuelve a partir el mapa de su leyenda, y la build sigue
+en verde.
+
+Una prueba corta lo cerraría: leer los cuatro valores de `index.css` y compararlos con
+`COLOR_POR_ESTADO`, y de paso comprobar que cada uno alcanza 4.5:1 sobre la superficie de su tema
+(`RNF012`). Hoy el contraste tampoco lo verifica nada — se midió a mano.
 

@@ -30,11 +30,17 @@ export interface RespuestaSectores {
   generadoEn: string
 }
 
-/** Mapa de colores por estado — derivado de DESIGN.md §2 */
+/**
+ * Mapa de colores por estado — DESIGN.md §2, con los valores que además pasan el contraste AA
+ * que §7 exige. Deben coincidir exactamente con `--color-estado-*` de `index.css`: el mapa pinta
+ * los polígonos desde aquí y la leyenda desde el CSS, así que si divergen el vecino ve un verde
+ * en el mapa y otro en la leyenda para el mismo estado, y el color deja de significar algo
+ * (`ADR-042`).
+ */
 export const COLOR_POR_ESTADO: Record<EstadoServicio, { claro: string; oscuro: string; etiqueta: string }> = {
-  CON_SERVICIO:     { claro: '#34c759', oscuro: '#4FBF89', etiqueta: 'Con servicio' },
+  CON_SERVICIO:     { claro: '#1C7F55', oscuro: '#4FBF89', etiqueta: 'Con servicio' },
   SIN_SERVICIO:     { claro: '#AE3428', oscuro: '#E2695B', etiqueta: 'Sin servicio' },
-  PRESION_BAJA:     { claro: '#A87310', oscuro: '#D9A63C', etiqueta: 'Presión baja' },
+  PRESION_BAJA:     { claro: '#94640C', oscuro: '#D9A63C', etiqueta: 'Presión baja' },
   CORTE_PROGRAMADO: { claro: '#2A628F', oscuro: '#6BA8DA', etiqueta: 'Corte programado' },
 }
 
@@ -50,7 +56,7 @@ export const COLOR_POR_ESTADO: Record<EstadoServicio, { claro: string; oscuro: s
  * queda nulo y `useFrescura` dice "sin datos" en vez de inventar una hora de verificación. Fabricar
  * esa hora fue exactamente `BUG-061` (S1); pintar el barrio de verde no lo era.
  */
-export const COLOR_SIN_DATOS = { claro: '#34c759', oscuro: '#4FBF89', etiqueta: 'Con servicio' }
+export const COLOR_SIN_DATOS = { claro: '#1C7F55', oscuro: '#4FBF89', etiqueta: 'Con servicio' }
 
 /** Cuántos minutos antes de que un dato se considere "fresco" */
 export const MINUTOS_FRESCURA = 15

@@ -91,6 +91,8 @@ Tres razones concretas, no burocráticas:
 | BUG-064 | 2026-08-31 | S3 | CI | El Frontend CI llevaba tres commits en rojo: `e465a23` agrandó el logo del panel de bienvenida de 150 a 195 px y la prueba E2E se quedó exigiendo el valor viejo | Cerrado — aserción alineada con el diseño vigente; `home.spec.ts:65` | D4 |
 | BUG-065 | 2026-09-01 | S2 | M15 | El panel de cuentas era ilegible en tema claro: heredaba el fondo claro del sitio y pintaba encima el texto claro que su CSS fijaba para superficie oscura | Cerrado — el panel pinta su propia superficie oscura, como `.panel-veedor-root`; `Cuentas.css` | D4 |
 | BUG-066 | 2026-09-02 | S2 | M15 | Desde el ingreso emergente del veedor, «Solicitar una cuenta» y «Olvidé mi clave» navegaban a `/cuentas/*`: cerraban la portada y mandaban al usuario a otra pantalla para pedirle lo mismo que ya tenía delante | Cerrado — las tres vistas viven en el mismo modal; `SeccionVeedor.tsx` | D4 |
+| BUG-067 | 2026-09-04 | S2 | — (dependencias) | `tomcat-embed-core` 10.1.55, que fija Spring Boot 3.5.16, arrastra tres CVE críticos y dejó el escaneo del CI en rojo desde el 2026-09-03 | Cerrado — `tomcat.version` fijado a 10.1.59 en `backend/pom.xml` | D5 |
+| BUG-068 | 2026-09-04 | S3 | CI | El E2E buscaba la etiqueta «Clave del veedor», que el rediseño de M15 renombró a «Clave»: Frontend CI en rojo desde el 2026-09-01 | Cerrado — `tests/e2e/home.spec.ts` usa la etiqueta real | D5 |
 | BUG-067 | 2026-09-03 | S2 | M1 | En pantallas ≤480px el navbar flotante de la portada se quedaba sin marca: un hueco vacío a la izquierda de la barra | Cerrado — la regla que oculta el texto del logo se acotó al otro encabezado; `index.css` + `home.spec.ts` | D4 |
 | BUG-068 | 2026-09-03 | S3 | CI | La prueba E2E del ingreso del veedor lleva fallando desde `69f64de`: busca el campo «Clave del veedor» en `/veedor`, y ese ingreso se movió al modal de la portada | Abierto | D4 |
 
@@ -127,6 +129,65 @@ esa etiqueta. Es el mismo patrón de BUG-064: el diseño avanzó y la aserción 
 
 **Corrección:** pendiente. Es de M15, no de quien lo encontró — se detectó de paso al agregar las
 pruebas de la barra de navegación de teléfono.
+
+### BUG-067 — Tres CVE críticos en Tomcat dejaron el escaneo de dependencias en rojo
+
+- **Fecha:** 2026-09-04 · **Severidad:** S2 · **Módulo:** — (dependencias) · **Responsable:** D5
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** el job «Vulnerabilidades conocidas en dependencias» falla con
+`Total: 3 (HIGH: 0, CRITICAL: 3)` sobre `backend/pom.xml`. En rojo en `main` desde el 2026-09-03, en
+dos ejecuciones seguidas.
+
+**Reproducción:** `trivy fs backend` con la base de vulnerabilidades al día. También en el CI, en
+cualquier PR que toque el backend.
+
+**Esperado:** el escaneo en verde, o la excepción declarada y justificada.
+
+**Causa raíz:** Spring Boot 3.5.16 fija `tomcat-embed-core` 10.1.55, y contra esa versión se
+publicaron `CVE-2026-65182` (bypass de restricción de seguridad por control de acceso indebido),
+`CVE-2026-65905` (bypass de autenticación por repetición en el autenticador DIGEST) y
+`CVE-2026-68525` (acceso a recursos por bypass de la autenticación FORM). No es un defecto del
+código del proyecto: apareció al publicarse los avisos, sin que nadie tocara el `pom.xml`.
+
+De los tres, **solo el primero afecta a este backend**: `SecurityConfig` deshabilita explícitamente
+DIGEST y FORM y autentica con JWT. Pero ese primero toca justo el control de acceso que separa
+`/api/veedor/**` de lo público, así que no se deja pasar.
+
+**Corrección:** `<tomcat.version>10.1.59</tomcat.version>` en `backend/pom.xml`, con el mismo patrón
+que ya usaba `netty.version`. **Ojo con el número:** el aviso nombra la 10.1.58 como versión
+corregida, pero esa versión no llegó a publicarse en Maven Central — la línea 10.1.x salta de la 57
+a la 59, comprobado contra `maven-metadata.xml`. Fijar la 10.1.58 hace fallar la resolución de
+dependencias con `was not found in https://repo.maven.apache.org/maven2`.
+
+Verificado: 563 pruebas con 0 fallos, los mismos 16 errores de Testcontainers por falta de Docker
+que antes del cambio.
+
+---
+
+### BUG-068 — El E2E buscaba una etiqueta que el rediseño de M15 había renombrado
+
+- **Fecha:** 2026-09-04 · **Severidad:** S3 · **Módulo:** CI · **Responsable:** D5
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** `Frontend CI` en rojo con `8 passed, 1 failed` desde el 2026-09-01, en cinco
+ejecuciones. Siempre la misma prueba: *«el acceso del veedor inicia cerrado y permite mostrar la
+clave»*, con `Error: element(s) not found` sobre `getByLabel('Clave del veedor')`.
+
+**Reproducción:** `npx playwright test` en `frontend/`.
+
+**Esperado:** las 9 pruebas E2E en verde.
+
+**Causa raíz:** el rediseño de M15 reescribió el ingreso del veedor y la etiqueta del campo pasó de
+«Clave del veedor» a «Clave» a secas, junto a un icono. La prueba siguió buscando la etiqueta vieja.
+El propio `BUG-064` ya había registrado este mismo patrón —una prueba que se queda atrás de un
+rediseño— hace tres días; es la segunda vez.
+
+**Corrección:** `tests/e2e/home.spec.ts` usa `getByLabel('Clave', { exact: true })`. El `exact`
+importa: sin él la consulta también casaría con «Código de tu app de autenticación» el día que el
+segundo factor esté visible. Verificado en local: 9 passed.
+
+---
 
 ### BUG-066 — Pedir una cuenta o recuperar la clave sacaba al usuario de la portada
 
