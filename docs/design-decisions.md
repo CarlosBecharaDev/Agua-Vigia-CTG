@@ -2131,8 +2131,51 @@ Quitar la entrada de `regexes` en `.gitleaks.toml`. Si para entonces `TotpAdapte
 
 ---
 
+## ADR-044 — Formato RFC 7807 ProblemDetail uniforme en los errores 401 y 403 de la cadena de seguridad
+
+- **Fecha:** 2026-09-05
+- **Estado:** Aceptada
+- **Decide:** D4 (José Daniel Zambrano) y equipo
+
+### Contexto
+
+`CLAUDE.md` fijó que todos los errores de la API deben responder en formato RFC 7807 (`application/problem+json`), centralizados en un `@RestControllerAdvice` (`ManejadorGlobalDeErrores`). Sin embargo, las peticiones rechazadas por la cadena de filtros de Spring Security antes de llegar a cualquier controlador MVC —específicamente peticiones sin autenticación (401) y peticiones sin la autoridad o permiso requerido (403)— eran resueltas mediante `response.sendError(...)` en `SecurityConfig.java`.
+
+Esto producía páginas HTML o respuestas genéricas del contenedor de servlets en vez de JSON estructurado, generando divergencias de contrato para clientes web y móviles en los dos escenarios de error más comunes (`REC-012`).
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Mantener `response.sendError(...)` | Cero código adicional | El cliente no recibe JSON estructurado; viola la convención RFC 7807 de la API |
+| Delegar en un endpoint de error (`/error`) con controlador | Reutiliza la infraestructura MVC | Requiere mapeos servlet adicionales y agrega latencia en el pipeline |
+| Escribir directamente el payload RFC 7807 en `authenticationEntryPoint` y `accessDeniedHandler` | Respuestas inmediatas, tipadas y conformes con RFC 7807 sin saltos adicionales | Requiere inyectar `ObjectMapper` en `SecurityConfig` |
+
+### Decisión
+
+Se configuraron `authenticationEntryPoint` y `accessDeniedHandler` en `SecurityConfig.java` para serializar directamente un objeto `ProblemDetail` de Spring 6 en formato `application/problem+json` con codificación UTF-8, inyectando `ObjectMapper` vía constructor.
+
+Se asignaron tipos e instancias normalizados:
+- 401 No autenticado: `type = "https://aguavigia.ctg/errores/no-autenticado"`, `title = "No autenticado"`
+- 403 Acceso denegado: `type = "https://aguavigia.ctg/errores/acceso-denegado"`, `title = "Acceso denegado"`
+
+Se actualizaron las pruebas de contrato web (`VeedorAuthControllerTest`, `AdminUsuariosControllerTest`, `SegundoFactorControllerTest`) para validar que las respuestas 401 y 403 sean compatibles con `application/problem+json` y contengan `title` y `status` esperados.
+
+### Consecuencias
+
+- **Gana:** Contrato de error homogéneo (RFC 7807) en toda la superficie de la API, incluyendo el nivel de infraestructura de seguridad.
+- **Gana:** El frontend puede parsear consistentemente los errores `title` y `detail` sin bifurcar la lógica según si el error vino del filtro o de un controlador.
+- **Pierde:** `SecurityConfig` asume la responsabilidad de serializar el error de seguridad en vez de delegar en el contenedor.
+
+### Cómo se revierte
+
+Restaurar las llamadas `response.sendError(...)` en `SecurityConfig.java` y actualizar las aserciones de `MockMvc` en las pruebas de controlador correspondientes.
+
+---
+
 <!--
-Siguiente número disponible: ADR-044
+Siguiente número disponible: ADR-045
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->
+
