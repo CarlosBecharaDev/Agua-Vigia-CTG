@@ -17,10 +17,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.MediaType;
+import org.springframework.http.ProblemDetail;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
@@ -38,6 +43,13 @@ import java.util.List;
 @EnableMethodSecurity
 @EnableConfigurationProperties(CorsProperties.class)
 public class SecurityConfig {
+
+    private static final String BASE_TIPO = "https://aguavigia.example/errores/";
+    private final ObjectMapper objectMapper;
+
+    public SecurityConfig(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -104,10 +116,30 @@ public class SecurityConfig {
                         .requestMatchers("/api/veedor/**").authenticated()
                         .anyRequest().permitAll())
                 .exceptionHandling(manejo -> manejo
-                        .authenticationEntryPoint((request, response, ex) ->
-                                response.sendError(HttpStatus.UNAUTHORIZED.value()))
-                        .accessDeniedHandler((request, response, ex) ->
-                                response.sendError(HttpStatus.FORBIDDEN.value())))
+                        .authenticationEntryPoint((request, response, ex) -> {
+                            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                            response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+                            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                            ProblemDetail problema = ProblemDetail.forStatusAndDetail(
+                                    HttpStatus.UNAUTHORIZED,
+                                    "Se requiere autenticacion para acceder a este recurso.");
+                            problema.setTitle("No autenticado");
+                            problema.setType(URI.create(BASE_TIPO + "no-autenticado"));
+                            problema.setInstance(URI.create(request.getRequestURI()));
+                            response.getWriter().write(objectMapper.writeValueAsString(problema));
+                        })
+                        .accessDeniedHandler((request, response, ex) -> {
+                            response.setStatus(HttpStatus.FORBIDDEN.value());
+                            response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+                            response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+                            ProblemDetail problema = ProblemDetail.forStatusAndDetail(
+                                    HttpStatus.FORBIDDEN,
+                                    "No tienes permisos suficientes para realizar esta accion.");
+                            problema.setTitle("Acceso denegado");
+                            problema.setType(URI.create(BASE_TIPO + "acceso-denegado"));
+                            problema.setInstance(URI.create(request.getRequestURI()));
+                            response.getWriter().write(objectMapper.writeValueAsString(problema));
+                        }))
                 .addFilterBefore(new JwtAuthenticationFilter(jwtProvider, revocacion),
                         UsernamePasswordAuthenticationFilter.class);
 

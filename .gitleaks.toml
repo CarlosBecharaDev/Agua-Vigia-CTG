@@ -8,8 +8,16 @@ useDefault = true
 # secreto de producción — el perfil `prod` exige las suyas propias y aborta el arranque si faltan
 # (ValidacionDeSecretosProd). Sin este allowlist, el job "Escaneo de secretos" queda en rojo de
 # forma permanente por un hallazgo ya evaluado y aceptado, no por uno real sin revisar.
+#
+# Ver ADR-043: GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ es la semilla de prueba oficial de TOTP del
+# RFC 4226/6238 (Base32 de "12345678901234567890"), usada en TotpAdapterTest.java para verificar
+# el formato de la URI otpauth://. No es un secreto real — la regla es sobre el valor exacto, no
+# sobre una ruta, para no eximir de escaneo ningún archivo completo.
 [allowlist]
-description = "Clave de desarrollo local compartida por el equipo, documentada a propósito (ADR-031)"
+description = "Excepciones evaluadas y aceptadas: clave de desarrollo local (ADR-031) y semilla TOTP del RFC (ADR-043)"
 paths = [
   '''docs/ingenieria/entorno-local\.md''',
+]
+regexes = [
+  '''GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ''',
 ]

@@ -1,4 +1,4 @@
-﻿/* ── Modal Reporte con Fondo Morado en Movimiento & Glassmorphism ── */
+/* ── Modal Reporte con Fondo Morado en Movimiento & Glassmorphism ── */
 
 .modal-reporte-backdrop {
   position: fixed;
@@ -118,7 +118,7 @@
   background: rgba(255, 255, 255, 0.07);
   color: rgba(255, 255, 255, 0.75);
   cursor: pointer;
-  transition: all 200ms ease;
+  transition: background 200ms ease, color 200ms ease, transform 200ms ease;
   flex-shrink: 0;
 }
 
@@ -165,7 +165,7 @@
   color: #ffffff;
   font-size: 0.95rem;
   cursor: pointer;
-  transition: all 200ms ease;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
 }
 
 .form-reporte-select:focus {
@@ -196,7 +196,7 @@
   background: rgba(15, 23, 42, 0.5);
   color: #f1f5f9;
   cursor: pointer;
-  transition: all 220ms ease;
+  transition: background 220ms ease, border-color 220ms ease, transform 220ms ease;
   text-align: left;
 }
 
@@ -277,7 +277,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   cursor: pointer;
-  transition: all 180ms ease;
+  transition: background 180ms ease, border-color 180ms ease;
   user-select: none;
 }
 

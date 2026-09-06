@@ -333,8 +333,8 @@ export default function PaginaCuentas() {
                     </td>
                     <td>
                       {cuenta.rol}
-                      {(cuenta.permisosConcedidos.length > 0 ||
-                        cuenta.permisosRevocados.length > 0) && (
+                      {(((cuenta.permisosConcedidos?.length ?? 0) > 0) ||
+                        ((cuenta.permisosRevocados?.length ?? 0) > 0)) && (
                         <div style={{ color: 'rgba(203, 213, 225, 0.6)', fontSize: '0.72rem' }}>
                           con ajustes
                         </div>

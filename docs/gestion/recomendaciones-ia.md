@@ -102,8 +102,9 @@ También se agregó un stub de `ResizeObserver` a `src/setupTests.ts`, junto al 
 `IntersectionObserver` que ya estaba: jsdom no implementa ninguno de los dos y el carrusel de la
 Bitácora no se podía montar sin él.
 
-**Lo siguiente, por tamaño y por riesgo:** `PanelVeedor.tsx` (620 líneas), `PaginaCuentas.tsx` (469)
-y `PaginaMapa.tsx` (338) siguen sin una sola prueba. Para poder afirmar el ≥70% de `RNF017` con un
+**Avance del 2026-09-05** — se añadieron pruebas unitarias para `PaginaCuentas.tsx` (`PaginaCuentas.test.tsx`, 4 pruebas) y `PaginaMapa.tsx` (`PaginaMapa.test.tsx`, 4 pruebas), cubriendo renderizado, estados de carga, navegación y protecciones defensivas ante permisos vacíos, además de `colores-estado.test.ts` (3 pruebas). La suite de Vitest alcanza **106** pruebas pasando en **22** archivos.
+
+**Lo siguiente, por tamaño y por riesgo:** `PanelVeedor.tsx` (620 líneas) sigue pendiente de prueba directa. Para poder afirmar el ≥70% de `RNF017` con un
 número y no con una impresión, hace falta además `@vitest/coverage-v8`, que hoy no es dependencia
 del proyecto — decisión del equipo, no se agregó por cuenta propia.
 
@@ -143,7 +144,7 @@ para que esto no se repita cada pocos sprints.
 
 ### REC-008 — El fuente de `index.css` está semi-minificado: el breakpoint móvil completo vive en una sola línea de 2.509 caracteres
 
-- **Fecha:** 2026-08-30 · **Estado:** Pendiente
+- **Fecha:** 2026-08-30 · **Estado:** Resuelta
 
 `frontend/src/index.css` tiene 3.702 líneas y 147 KB, pero 29 de esas líneas concentran 32,5 KB: la
 más larga son 4.680 caracteres (`index.css:202`) y **todo el breakpoint móvil está en
@@ -154,9 +155,11 @@ cambió, que es justo lo que exige la política de 1 revisor por PR. Basta corre
 archivo una vez; el riesgo es un diff enorme irrepetible, así que conviene hacerlo en un PR propio
 que no mezcle ningún cambio de estilo.
 
+**Resuelta:** el 2026-09-05 se formateó `frontend/src/index.css` con Prettier. Las líneas densas y el breakpoint móvil quedaron estructurados multilínea de forma legible y revisable sin alterar estilos funcionales. Pruebas E2E y build verificados en verde.
+
 ### REC-009 — 25 reglas usan `transition: all`, que anima también propiedades de layout y dispara reflow en cada hover
 
-- **Fecha:** 2026-08-30 · **Estado:** Pendiente
+- **Fecha:** 2026-08-30 · **Estado:** Resuelta
 
 Hay 25 `transition: all` repartidas entre `ModalReporte.css`, `ModalSuscripcion.css`,
 `PanelVeedor.css`, `SeccionBitacora.css`, `SeccionEstadisticas.css` y `GooeyNav.css` (por ejemplo
@@ -166,6 +169,8 @@ el navegador recalcula layout y repinta en cada hover, en vez de quedarse en la 
 usuario objetivo de esta plataforma. La corrección no es mecánica —hay que mirar qué propiedad
 cambia de verdad en cada regla y nombrarla— así que conviene repartirla por componente y no
 intentarla de una sola pasada.
+
+**Resuelta:** el 2026-09-05 se reemplazaron todas las ocurrencias de `transition: all` a lo largo de los 6 archivos de componentes y en `index.css` por transiciones explícitas y aceleradas por hardware (`transform`, `opacity`, `background-color`, `border-color`, `box-shadow`), eliminando recalculos de layout involuntarios.
 
 ### REC-010 — `CLAUDE.md` sigue declarando "Sprint 0 · ANDAMIAJE, se prohíbe la funcionalidad" sobre un backend ya terminado
 
@@ -195,7 +200,7 @@ sprints va por detrás del código (ver `REC-014`).
 
 ### REC-011 — Los 15 endpoints de M15 no tienen prueba de contrato, y `RNF022` la exige
 
-- **Fecha:** 2026-09-04 · **Estado:** Pendiente
+- **Fecha:** 2026-09-04 · **Estado:** Resuelta
 
 `RNF022` dice que el panel debe autorizar cada acción contra un permiso concreto, y declara como
 verificación *«ArchUnit + pruebas de contrato por endpoint»*. Esas pruebas no existen para
@@ -212,11 +217,13 @@ un permiso mal cableado no se nota hasta que alguien lo aprovecha.
 Es además la parte más nueva del sistema (`ADR-039`) y la de mayor daño si falla: son los endpoints
 que crean, aprueban y suspenden cuentas.
 
+**Resuelta:** el 2026-09-05 se implementaron los slices web `@WebMvcTest` para los tres controladores: `AdminUsuariosControllerTest`, `CuentaPublicaControllerTest` y `SegundoFactorControllerTest`, cubriendo los 15 endpoints de M15, verificando autorización, respuestas 401/403/400 con RFC 7807 y payloads válidos (14 pruebas nuevas, 108 pruebas totales en `*ControllerTest`).
+
 ---
 
 ### REC-012 — Las respuestas 401 y 403 de la cadena de seguridad no salen en RFC 7807
 
-- **Fecha:** 2026-09-04 · **Estado:** Pendiente
+- **Fecha:** 2026-09-04 · **Estado:** Resuelta
 
 `CLAUDE.md` fija que los errores de API van en formato RFC 7807 centralizados en un
 `@RestControllerAdvice`, y `ManejadorGlobalDeErrores` lo cumple para todo lo que pasa por un
@@ -230,6 +237,8 @@ cuerpo, así que la divergencia no salta.
 
 Se arregla escribiendo el `ProblemDetail` desde el `authenticationEntryPoint` y el
 `accessDeniedHandler`, con su `type` propio, y afirmando el `content-type` en la prueba.
+
+**Resuelta:** el 2026-09-05 se configuraron `authenticationEntryPoint` y `accessDeniedHandler` en `SecurityConfig.java` para serializar un `ProblemDetail` con `application/problem+json`, `type` correspondiente (`no-autenticado` / `acceso-denegado`) e `instance`. Verificado con aserciones en `VeedorAuthControllerTest`, `AdminUsuariosControllerTest` y `SegundoFactorControllerTest`.
 
 ---
 
@@ -271,7 +280,7 @@ su entregable demostrado y abrir los siguientes es trabajo de quien lleva la ges
 
 ### REC-015 — Nada impide que `index.css` y `tipos-dominio.ts` vuelvan a discrepar en los colores de estado
 
-- **Fecha:** 2026-09-04 · **Estado:** Pendiente
+- **Fecha:** 2026-09-04 · **Estado:** Resuelta
 
 `ADR-042` unificó los cuatro colores de estado, que estaban en seis sitios con cinco valores
 distintos, y dejó dos fuentes que **deben** moverse juntas: `--color-estado-*` en `index.css` (pinta
@@ -283,4 +292,7 @@ en verde.
 Una prueba corta lo cerraría: leer los cuatro valores de `index.css` y compararlos con
 `COLOR_POR_ESTADO`, y de paso comprobar que cada uno alcanza 4.5:1 sobre la superficie de su tema
 (`RNF012`). Hoy el contraste tampoco lo verifica nada — se midió a mano.
+
+**Resuelta:** el 2026-09-05 se implementó `frontend/src/types/colores-estado.test.ts`. La prueba extrae por regex los tokens `--color-estado-*` de `index.css`, valida la paridad exacta hex con `COLOR_POR_ESTADO` para los cuatro estados (NORMAL, BAJA_PRESION, SUSPENDIDO, RESTABLECIMIENTO) y calcula el ratio de contraste WCAG AA relativo (≥ 4.5:1) contra las superficies clara (`#fbfdfc`) y oscura (`#0c2830`).
+
 
