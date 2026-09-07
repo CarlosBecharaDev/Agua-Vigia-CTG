@@ -820,6 +820,25 @@
   cursor: not-allowed;
 }
 
+@media (max-width: 640px) {
+  .bitacora-filtros-pro {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    overflow: visible;
+  }
+
+  .bitacora-filtro-btn {
+    min-width: 0;
+    padding-inline: 0.35rem;
+    white-space: normal;
+  }
+
+  .bitacora-filtro-btn:nth-child(n + 4) {
+    grid-column: span 1;
+  }
+}
+
 /* Columna Lateral (4 Cols): Gauge, Foto Terreno y Protocolo Legal */
 .bitacora-col-lateral {
   display: flex;

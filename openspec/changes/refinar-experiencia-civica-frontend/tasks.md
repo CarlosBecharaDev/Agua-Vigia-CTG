@@ -16,6 +16,8 @@
 - [ ] 3.2 Simplificar navegación superior/inferior y controles del mapa, conservando rutas, anclas, teclado y objetivos de 44×44 px; verificar pruebas de navegación y foco.
 - [ ] 3.3 Rehacer el panel de consulta por barrio y las tarjetas de estado con superficies sólidas, jerarquía legible y los colores reservados; verificar selección, filtro y detalle de sector en pruebas existentes.
 - [ ] 3.4 Ajustar la composición de escritorio para que mapa y contexto quepan en el primer viewport a 1280×720; verificar que no hay scroll horizontal ni contenido oculto.
+- [x] 3.5 Acotar el mapa, desactivar el zoom por rueda y devolver la consulta textual al flujo móvil; cubrir la interacción y el estado neutral con pruebas.
+- [x] 3.6 Superponer relieve Esri con atribución, completar el buscador desde la cartografía local y neutralizar estados/eventos con más de 30 días; verificar URL, catálogo y caducidad con pruebas unitarias.
 
 ## 4. Lenguaje visual compartido
 
@@ -23,6 +25,8 @@
 - [ ] 4.2 Rediseñar bitácora y estadísticas como evidencia editorial, no como tablero decorativo; verificar estados vacío/error, cifras tabulares, CSV y responsividad con sus pruebas.
 - [ ] 4.3 Rediseñar llamado del veedor, sección del proyecto y pie de página con la misma composición sobria; verificar anclas y llamadas a reporte/suscripción/panel.
 - [ ] 4.4 Sustituir todos los emojis visibles por iconos Lucide o texto y verificar con `rg --pcre2` que no queda ningún emoji en `frontend/src`.
+- [x] 4.5 Retirar boletines, expedientes, telemetría, evidencias, rankings y métricas simuladas de la portada; verificar estados vacíos honestos con pruebas.
+- [x] 4.6 Sustituir la ficha simulada del barrio por eventos publicados por `/api/bitacora`, sin consultar ni clasificar WordPress desde el navegador.
 
 ## 5. Formularios y área protegida
 
@@ -39,7 +43,7 @@
 
 ## 7. Cierre verificable
 
-- [ ] 7.1 Ejecutar `npm run lint`, `npm test -- --run`, `npm run build` y `npm run api:check`; resolver toda regresión del frontend.
-- [ ] 7.2 Ejecutar Playwright en 360 px, móvil y escritorio, comprobar ambos temas y guardar capturas comparables de las rutas principales sin añadirlas al repositorio.
-- [ ] 7.3 Ejecutar `openspec validate refinar-experiencia-civica-frontend --strict`, revisar `git diff --check` y confirmar que no hay commits ni push.
-- [ ] 7.4 Registrar la sesión en `docs/gestion/bitacora-sesiones.md` con referencias a ADR/bugs y dejar el siguiente paso concreto para revisión local del equipo.
+- [x] 7.1 Ejecutar `npm run lint`, `npm test -- --run`, `npm run build` y `npm run api:check`; resolver toda regresión del frontend.
+- [x] 7.2 Ejecutar Playwright en 360 px, móvil y escritorio, comprobar ambos temas y guardar capturas comparables de las rutas principales sin añadirlas al repositorio.
+- [x] 7.3 Ejecutar `openspec validate refinar-experiencia-civica-frontend --strict`, revisar `git diff --check` y confirmar que no hay commits ni push.
+- [x] 7.4 Registrar la sesión en `docs/gestion/bitacora-sesiones.md` con referencias a ADR/bugs y dejar el siguiente paso concreto para revisión local del equipo.

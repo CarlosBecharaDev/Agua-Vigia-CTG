@@ -152,6 +152,24 @@ si la capa pasa a ser mixta y cómo se le declara eso al usuario.
 
 ---
 
+## 6c. Relieve y vigencia de los datos en la interfaz
+
+Revisión documental del 2026-09-06:
+
+| Fuente | Verificación | Decisión |
+|---|---|---|
+| Esri World Hillshade | La documentación oficial de ArcGIS publica `Elevation/World_Hillshade/MapServer` como capa de sombreado y exige conservar atribución. | ✅ Se usa como contexto visual semitransparente con atribución `Relieve © Esri`; no representa presión, cortes ni infraestructura hidráulica. |
+| WordPress REST de Acuacar | La referencia oficial de WordPress define `date` como la fecha de publicación del recurso en la zona horaria del sitio. | ✅ El backend conserva esa fecha como respaldo de trazabilidad; el frontend ya no consulta WordPress directamente ni clasifica texto. |
+| Catálogo de barrios | Se conserva el snapshot ya auditado de Cartagena Cómo Vamos: 213 filas y 211 nombres únicos. | ✅ Se completa la búsqueda desde este catálogo local para que una respuesta parcial de estados no haga desaparecer barrios. No se vuelve a descargar en cada visita. |
+
+La interfaz aplica una ventana pública máxima de **30 días** a estados y eventos. Superado ese plazo,
+el barrio sigue visible y consultable, pero se muestra neutral como «sin datos recientes». Esta regla
+evita que una fecha técnicamente válida se convierta en una afirmación operativa indefinida.
+
+Referencias oficiales consultadas: [ArcGIS World Hillshade](https://developers.arcgis.com/javascript/latest/sample-code/layers-custom-blendlayer/), [ArcGIS TileLayer](https://developers.arcgis.com/javascript/latest/references/core/layers/TileLayer/) y [WordPress REST Posts](https://developer.wordpress.org/rest-api/reference/posts/).
+
+---
+
 ## 7. Tabla resumen — decisión por fuente
 
 | # | Fuente | Tipo | Estado | Capa del pipeline |

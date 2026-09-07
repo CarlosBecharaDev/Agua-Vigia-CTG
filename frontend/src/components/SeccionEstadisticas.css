@@ -29,6 +29,10 @@
   text-transform: uppercase;
 }
 
+:root[data-theme="dark"] .estadisticas-eyebrow-pro {
+  color: #ff9b7a;
+}
+
 .estadisticas-titulo-pro {
   margin: 0;
   color: var(--color-tinta);

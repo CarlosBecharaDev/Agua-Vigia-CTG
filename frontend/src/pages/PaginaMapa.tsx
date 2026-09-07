@@ -19,16 +19,12 @@ import type { FC } from 'react'
 import { useLocation } from 'react-router-dom'
 import {
   AlertTriangle,
-  ChevronUp,
   Compass,
   Database,
-  ExternalLink,
   MapPin,
   Menu,
   RefreshCw,
-  ScrollText,
   WifiOff,
-  X,
 } from 'lucide-react'
 import { MapaCartagena } from '../components/MapaCartagena'
 import { BuscadorBarrios } from '../components/BuscadorBarrios'
@@ -103,8 +99,8 @@ const EstadoConsultaMapa: FC<EstadoConsultaMapaProps> = ({ estado, error, onReca
       <div className="estado-consulta-mapa" role="status">
         <Database size={20} aria-hidden="true" />
         <div>
-          <strong>Aún no hay sectores publicados</strong>
-          <p>El servicio respondió correctamente, pero no entregó información para mostrar.</p>
+          <strong>Sin estados recientes publicados</strong>
+          <p>La cartografía sigue disponible, pero la API no entregó estados vigentes.</p>
         </div>
         <button type="button" onClick={onRecargar} aria-label="Reintentar consulta">
           <RefreshCw size={16} aria-hidden="true" />
@@ -150,17 +146,10 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
   const [filtroPanel, setFiltroPanel] = useState<'estado' | 'sector'>('estado')
   const [direccionCarrusel, setDireccionCarrusel] = useState(1)
   const [panelColapsado, setPanelColapsado] = useState(false)
-  const [busquedaBitacora, setBusquedaBitacora] = useState<string>('')
   const [seccionActiva, setSeccionActiva] = useState<'mapa' | 'bitacora' | 'estadisticas' | 'veedor'>('mapa')
   const [estadoDestacado, setEstadoDestacado] = useState<EstadoServicio | null>(null)
-  const [drawerBitacoraAbierto, setDrawerBitacoraAbierto] = useState(false)
-  const hayResumenConfiable = estado === 'success' || estado === 'stale'
-
-  const conServicioCount = sectores.filter((s) => s.estado === 'CON_SERVICIO').length
-  const porcentajeNormal =
-    hayResumenConfiable && sectores.length > 0
-      ? ((conServicioCount / sectores.length) * 100).toFixed(1)
-      : undefined
+  const hayResumenConfiable = (estado === 'success' || estado === 'stale')
+    && sectores.some((sector) => sector.estado !== null)
 
   const conteos = [
     { estado: 'SIN_SERVICIO' as const, n: sectores.filter(s => s.estado === 'SIN_SERVICIO').length },
@@ -256,15 +245,10 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
         temaActivo={temaActivo}
         onAlternarTema={onAlternarTema}
         seccionActiva={seccionActiva}
-        busquedaBitacora={busquedaBitacora}
-        onCambiarBusquedaBitacora={setBusquedaBitacora}
         onReportar={() => {
           setSectorReporte('')
           setModalAbierto(true)
         }}
-        porcentajeNormal={porcentajeNormal}
-        totalEventosBitacora={boletines.length}
-        onAlternarBitacora={() => setDrawerBitacoraAbierto((v) => !v)}
       />
 
       <main id="contenido-principal" tabIndex={-1} aria-label="Mapa en vivo del servicio de agua en Cartagena">
@@ -287,7 +271,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
                 <Compass size={14} aria-hidden="true" />
                 <span className="mapa-breadcrumb-titulo">Cartagena, barrio por barrio</span>
                 <span className="mapa-breadcrumb-sep" aria-hidden="true">•</span>
-                <span className="mapa-breadcrumb-sub">Monitoreo Hidráulico Activo</span>
+                <span className="mapa-breadcrumb-sub">Datos publicados por las fuentes conectadas</span>
               </div>
               <div className="mapa-pills-rapidos" role="toolbar" aria-label="Filtro rápido por estado">
                 <button
@@ -295,7 +279,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
                   className={`mapa-pill-rapido${!estadoDestacado ? ' is-activo' : ''}`}
                   onClick={() => setEstadoDestacado(null)}
                 >
-                  Todos ({hayResumenConfiable ? sectores.length : '—'})
+                  Barrios ({sectores.length || '—'})
                 </button>
                 <button
                   type="button"
@@ -318,122 +302,6 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
               </div>
             </div>
 
-            {/* Disparador flotante inferior de la Bitácora */}
-            <div className="mapa-disparador-bitacora">
-              <button
-                type="button"
-                className="mapa-btn-bitacora-flotante"
-                onClick={() => setDrawerBitacoraAbierto((v) => !v)}
-                aria-expanded={drawerBitacoraAbierto}
-                aria-label="Abrir bitácora del servicio con novedades recientes"
-              >
-                <ScrollText size={15} className="mapa-bitacora-icono" aria-hidden="true" />
-                <span className="mapa-bitacora-texto-desktop">
-                  Bitácora del servicio {boletines.length > 0 ? `(${boletines.length} eventos recientes)` : ''}
-                </span>
-                <span className="mapa-bitacora-texto-movil">
-                  Bitácora {boletines.length > 0 ? `(${boletines.length})` : ''}
-                </span>
-                <ChevronUp
-                  size={15}
-                  className={`mapa-bitacora-chevron${drawerBitacoraAbierto ? ' is-abierto' : ''}`}
-                  aria-hidden="true"
-                />
-              </button>
-            </div>
-
-            {/* Drawer deslizable de novedades de Bitácora */}
-            <div
-              className={`mapa-bitacora-drawer${drawerBitacoraAbierto ? ' is-abierto' : ''}`}
-              aria-hidden={!drawerBitacoraAbierto}
-              role="region"
-              aria-label="Registro público de bitácora del servicio"
-            >
-              <div className="mapa-bitacora-drawer-cab">
-                <div>
-                  <span className="mapa-bitacora-drawer-sub">Registro Público Distrital</span>
-                  <h3 className="mapa-bitacora-drawer-titulo">
-                    Bitácora del servicio
-                    <span className="mapa-bitacora-drawer-aclaracion"> — Avisos oficiales y novedades en Cartagena</span>
-                  </h3>
-                </div>
-                <div className="mapa-bitacora-drawer-acciones">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDrawerBitacoraAbierto(false)
-                      document.getElementById('bitacora')?.scrollIntoView({ behavior: 'smooth' })
-                    }}
-                    className="mapa-bitacora-drawer-ver-todo"
-                  >
-                    Ver sección completa →
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDrawerBitacoraAbierto(false)}
-                    className="mapa-bitacora-drawer-cerrar"
-                    aria-label="Cerrar bitácora rápida"
-                  >
-                    <X size={17} aria-hidden="true" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="mapa-bitacora-drawer-tarjetas custom-scroll">
-                {(boletines.length > 0 ? boletines.slice(0, 4) : [
-                  {
-                    numero: '2854',
-                    titulo: 'Mantenimiento de tubería matriz en Manga',
-                    fecha: 'Hoy, 07:00 COT',
-                    barriosAfectados: ['Manga'],
-                    url: 'https://www.acuacar.com'
-                  },
-                  {
-                    numero: '2853',
-                    titulo: 'Baja presión en sector Getsemaní',
-                    fecha: 'Hoy, 09:20 COT',
-                    barriosAfectados: ['Getsemaní'],
-                    url: 'https://www.acuacar.com'
-                  },
-                  {
-                    numero: '2852',
-                    titulo: 'Servicio regularizado en Camagüey',
-                    fecha: 'Hoy, 10:45 COT',
-                    barriosAfectados: ['Camagüey'],
-                    url: 'https://www.acuacar.com'
-                  }
-                ]).map((b) => (
-                  <div
-                    key={b.numero}
-                    className="mapa-bitacora-drawer-tarjeta"
-                    onClick={() => {
-                      const primerBarrio = b.barriosAfectados[0]
-                      if (primerBarrio) {
-                        const encontrado = sectores.find(
-                          (s) => s.nombre.toLowerCase().includes(primerBarrio.toLowerCase()) || primerBarrio.toLowerCase().includes(s.nombre.toLowerCase())
-                        )
-                        if (encontrado) alSeleccionarSector(encontrado)
-                      }
-                    }}
-                  >
-                    <div className="mapa-bitacora-tarjeta-cab">
-                      <span className="mapa-bitacora-badge-boletin">Boletín #{b.numero}</span>
-                      <span className="mapa-bitacora-fecha font-mono">{b.fecha}</span>
-                    </div>
-                    <h4 className="mapa-bitacora-tarjeta-titulo">{b.titulo.replace(/^#\d+\s*–?\s*/, '')}</h4>
-                    <div className="mapa-bitacora-tarjeta-pie">
-                      <span className="text-secondary font-medium text-xs">
-                        {b.barriosAfectados.length > 0 ? b.barriosAfectados.join(', ') : 'Distrito de Cartagena'}
-                      </span>
-                      <span className="mapa-bitacora-tarjeta-link">
-                        <ExternalLink size={13} aria-hidden="true" />
-                        <span>Ver en el mapa</span>
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Esquina superior derecha del MARCO, no de la columna — vive fuera de
@@ -463,7 +331,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
           >
             <div className="hoja-sectores-cab mapa-resumen">
               <p className="mapa-panel-codigo">VEEDURÍA CIUDADANA · CARTAGENA</p>
-              <h2 className="mapa-titulo">Lectura del servicio</h2>
+              <h1 className="mapa-titulo">Lectura del servicio</h1>
               <p className="mapa-subtitulo">
                 Consulta el estado general o busca tu barrio directamente.
               </p>
@@ -533,21 +401,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
                     resumen={conteos}
                     estadoDestacado={estadoDestacado}
                     onAlternar={alAlternarEstadoDestacado}
-                    sectorActivo={sectorActivo}
-                    sectores={sectores}
-                    onAbrirFichaTecnica={() => {
-                      if (!sectorActivo) {
-                        const critico = sectores.find((s) => s.estado === 'SIN_SERVICIO') ||
-                          sectores.find((s) => s.estado === 'PRESION_BAJA') ||
-                          sectores.find((s) => s.nombre.toLowerCase().includes('manga'))
-                        if (critico) alSeleccionarSector(critico)
-                      }
-                    }}
-                    onAbrirReporte={(id) => {
-                      setSectorReporte(id)
-                      setModalAbierto(true)
-                    }}
-                    onAlternarBitacora={() => setDrawerBitacoraAbierto((v) => !v)}
+                    onAlternarBitacora={() => document.getElementById('bitacora')?.scrollIntoView({ behavior: 'smooth' })}
                   />
                 ) : filtroPanel === 'sector' ? (
                   <BuscadorBarrios
@@ -565,26 +419,17 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
             {/* Footer del Drawer lateral */}
             <div className="hoja-sectores-pie">
               <span className="hoja-sectores-pie-actualizado">
-                <span className="pulse-dot-emerald" aria-hidden="true" />
-                Actualizado en tiempo real
+                <span className={hayResumenConfiable && conexionViva ? 'pulse-dot-emerald' : 'pulse-dot-amber'} aria-hidden="true" />
+                {estado === 'loading'
+                  ? 'Consultando datos'
+                  : !hayResumenConfiable
+                    ? 'Sin estados recientes'
+                    : conexionViva
+                    ? 'Conexión en vivo activa'
+                    : ultimaActualizacion
+                      ? 'Última información disponible'
+                      : 'Sin datos publicados'}
               </span>
-              <button
-                type="button"
-                className="hoja-sectores-pie-exportar"
-                onClick={() => {
-                  const cabecera = 'ID,Nombre,Estado,ActualizadoEn\n'
-                  const cuerpo = sectores.map(s => `"${s.id}","${s.nombre}","${s.estado}","${s.actualizadoEn}"`).join('\n')
-                  const blob = new Blob([cabecera + cuerpo], { type: 'text/csv;charset=utf-8;' })
-                  const url = URL.createObjectURL(blob)
-                  const a = document.createElement('a')
-                  a.href = url
-                  a.download = 'aguavigia-sectores-cartagena.csv'
-                  a.click()
-                  URL.revokeObjectURL(url)
-                }}
-              >
-                Exportar reporte CSV
-              </button>
             </div>
           </aside>
         </div>
@@ -595,7 +440,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
       </section>
 
       <Suspense fallback={<div className="seccion-cargando" role="status">Cargando bitácora…</div>}>
-        <SeccionBitacora busqueda={busquedaBitacora} />
+        <SeccionBitacora />
       </Suspense>
 
       <Suspense fallback={<div className="seccion-cargando" role="status">Cargando estadísticas…</div>}>

@@ -124,7 +124,7 @@ describe('PaginaMapa (M1 / REC-004)', () => {
     })
 
     renderizarPaginaMapa()
-    expect(screen.getByText('Aún no hay sectores publicados')).toBeInTheDocument()
+    expect(screen.getByText('Sin estados recientes publicados')).toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 

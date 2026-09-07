@@ -3,6 +3,22 @@ import { describe, expect, it, vi } from 'vitest'
 import { sectorDesdeGeojson } from '../utils/sectorGeojson'
 import { volarABounds } from '../utils/mapaLeaflet'
 import { observarEstadoCapaBase } from '../utils/estadoCapaBase'
+import { calcularEstiloFeature, OPCIONES_INTERACCION_MAPA, URL_CAPA_RELIEVE } from './MapaCartagena'
+
+describe('mapa honesto y navegable', () => {
+  it('no captura la rueda de desplazamiento de la página', () => {
+    expect(OPCIONES_INTERACCION_MAPA.scrollWheelZoom).toBe(false)
+  })
+
+  it('usa una capa cartográfica de relieve real y no una textura simulada', () => {
+    expect(URL_CAPA_RELIEVE).toContain('/Elevation/World_Hillshade/MapServer/')
+  })
+
+  it('pinta como sin datos un barrio que la API no ha clasificado', () => {
+    const estilo = calcularEstiloFeature(undefined, null, null)
+    expect(estilo.className).toBe('barrio-sin-datos')
+  })
+})
 
 describe('sectorDesdeGeojson', () => {
   it('mantiene como desconocido un polígono ausente del backend', () => {

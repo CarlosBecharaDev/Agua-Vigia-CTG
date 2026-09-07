@@ -98,5 +98,6 @@ describe('SeccionBitacora', () => {
     render(<SeccionBitacora />)
 
     expect(await screen.findByText(/la bitácora está vacía/i)).toBeInTheDocument()
+    expect(screen.queryByText(/SCADA|Camagüey|EVT-2026/i)).not.toBeInTheDocument()
   })
 })

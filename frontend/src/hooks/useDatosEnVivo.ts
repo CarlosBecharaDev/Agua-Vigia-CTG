@@ -1,17 +1,18 @@
 /**
  * useDatosEnVivo.ts — sectores en vivo desde el backend de AguaVigía (M1), con los
- * boletines oficiales de Acuacar como contexto complementario para la ficha de un sector
- * (ver PanelDetalleSector). Los boletines nunca deciden el estado publicado de un barrio:
- * eso lo hace el propio pipeline de ingesta + moderación del veedor del backend
+ * eventos publicados por el backend como contexto complementario para la ficha de un sector
+ * (ver PanelDetalleSector). El navegador no consulta ni clasifica Acuacar por su cuenta:
+ * eso lo hace el pipeline de ingesta + moderación del veedor del backend
  * (`AcuacarApiCollector` → `PipelineOrquestador` → cola de revisión en `/api/veedor/ingesta/propuestas`).
  */
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { normalizarErrorApi } from '../api/client'
-import { obtenerSectores } from '../api/services'
+import { listarBitacora, obtenerSectores } from '../api/services'
+import type { EventoBitacora } from '../api/services'
 import type { Sector } from '../types/tipos-dominio'
-import { obtenerBoletinesRecientes } from '../api/acuacar'
-import type { BoletinAcuacar } from '../api/acuacar'
+import { obtenerBarriosCartagena } from '../data/barriosCartagena'
+import { completarCatalogoBarrios, filtrarEventosRecientes, invalidarEstadoVencido } from '../utils/datosRecientes'
 
 export type EstadoRecurso = 'loading' | 'success' | 'empty' | 'error' | 'stale' | 'unavailable'
 
@@ -24,8 +25,8 @@ export interface DatosEnVivo {
   /** F4 — false cuando el stream SSE está caído (reconectando). El dato en pantalla sigue
    *  siendo el último conocido; esto solo indica que el canal en vivo no está entregando. */
   conexionViva: boolean
-  /** Boletines oficiales de Acuacar más recientes — solo contexto, ver nota arriba. */
-  boletines: BoletinAcuacar[]
+  /** Eventos recientes ya verificados y publicados por el backend. */
+  boletines: EventoBitacora[]
   recargar: () => void
 }
 
@@ -33,7 +34,6 @@ export function useDatosEnVivo(): DatosEnVivo {
   const [sectores, setSectores] = useState<Sector[]>([])
   const [ultimaActualizacion, setUltimaActualizacion] = useState<string | null>(null)
   const [conexionViva, setConexionViva] = useState(true)
-  const [boletines, setBoletines] = useState<BoletinAcuacar[]>([])
 
   // F5 — el poll de React Query (cada 5 min) y el SSE pueden entregar en cualquier orden; sin
   // comparar `generadoEn`, una respuesta de poll más vieja que ya venía en vuelo podía pisar un
@@ -46,7 +46,7 @@ export function useDatosEnVivo(): DatosEnVivo {
     const actual = ultimaActualizacionRef.current
     if (actual && Date.parse(generadoEn) < Date.parse(actual)) return
     ultimaActualizacionRef.current = generadoEn
-    setSectores(nuevosSectores)
+    setSectores(nuevosSectores.map((sector) => invalidarEstadoVencido(sector)))
     setUltimaActualizacion(generadoEn)
   }, [])
 
@@ -54,6 +54,18 @@ export function useDatosEnVivo(): DatosEnVivo {
     queryKey: ['sectores'],
     queryFn: obtenerSectores,
     refetchInterval: 5 * 60_000,
+  })
+
+  const consultaBarrios = useQuery({
+    queryKey: ['barrios-cartagena'],
+    queryFn: obtenerBarriosCartagena,
+    staleTime: Number.POSITIVE_INFINITY,
+  })
+
+  const consultaBitacora = useQuery({
+    queryKey: ['bitacora-reciente'],
+    queryFn: () => listarBitacora(200),
+    refetchInterval: 10 * 60_000,
   })
 
   useEffect(() => {
@@ -84,15 +96,6 @@ export function useDatosEnVivo(): DatosEnVivo {
     }
   }, [aplicarSiEsMasReciente])
 
-  // Best-effort: si Acuacar no responde, la ficha del sector simplemente no muestra citas.
-  useEffect(() => {
-    let montado = true
-    obtenerBoletinesRecientes(20)
-      .then((bols) => { if (montado) setBoletines(bols) })
-      .catch(() => {})
-    return () => { montado = false }
-  }, [])
-
   const error = consulta.error ? normalizarErrorApi(consulta.error).detalle : null
   const estaDesactualizado = Boolean(consulta.isError && consulta.data)
   const estado: EstadoRecurso = consulta.isPending
@@ -105,11 +108,14 @@ export function useDatosEnVivo(): DatosEnVivo {
           ? 'empty'
           : 'success'
 
+  const sectoresConCatalogo = completarCatalogoBarrios(sectores, consultaBarrios.data ?? [])
+  const boletines = filtrarEventosRecientes(consultaBitacora.data ?? [])
+
   return {
     estado,
     cargando: consulta.isPending,
     error,
-    sectores,
+    sectores: sectoresConCatalogo,
     ultimaActualizacion,
     conexionViva,
     boletines,

@@ -86,6 +86,19 @@ test.describe('en teléfono', () => {
     const caja = await mapa.boundingBox()
     expect(caja).not.toBeNull()
     expect(caja!.y).toBeLessThan(844)
+    expect(caja!.height).toBeLessThanOrEqual(500)
+
+    const panelBarrios = page.locator('.hoja-sectores')
+    await expect(panelBarrios).toBeVisible()
+    const anchos = await page.evaluate(() => ({
+      pagina: document.documentElement.clientWidth,
+      contenido: document.documentElement.scrollWidth,
+    }))
+    expect(anchos.contenido).toBeLessThanOrEqual(anchos.pagina + 1)
+
+    await page.mouse.move(caja!.x + caja!.width / 2, caja!.y + caja!.height / 2)
+    await page.mouse.wheel(0, 400)
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
   })
 
   test('los cinco filtros de la bitácora caben sin desbordar', async ({ page }) => {

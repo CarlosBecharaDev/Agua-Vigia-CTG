@@ -17,11 +17,9 @@ import {
   Clock,
   Download,
   Scale,
-  FileCheck,
   TrendingDown,
   Info,
   MapPin,
-  FileText,
 } from 'lucide-react'
 import {
   obtenerEstadisticas,
@@ -59,49 +57,6 @@ const DIAS_SEMANA_CORTOS: Record<string, string> = {
   Domingo: 'Dom',
 }
 
-// Datos de fallback para el ranking de sectores cuando no hay datos de la API
-const RANKING_SECTORES_MOCK = [
-  { nombre: 'CEBALLOS', cortes: 14, porcentaje: 92.4, ranking: 1 },
-  { nombre: 'LA VICTORIA', cortes: 11, porcentaje: 84.1, ranking: 2 },
-  { nombre: 'LA ESPERANZA', cortes: 9, porcentaje: 73.5, ranking: 3 },
-  { nombre: 'HENEQUÉN', cortes: 8, porcentaje: 66.0, ranking: 4 },
-  { nombre: 'EL CAMPESTRE', cortes: 7, porcentaje: 58.2, ranking: 5 },
-]
-
-// Dossier de evidencias ciudadanas fotográficas de terreno
-const EVIDENCIAS_CIUDADANAS = [
-  {
-    id: 'ev-1',
-    sector: 'Ceballos - Manzana 14',
-    fecha: '04 Sep, 16:20 COT',
-    titulo: 'Corte sin previo aviso superó las 48h',
-    detalle: 'Presión nula en acometidas domiciliarias y tanques elevados. Familias obligadas a recolectar agua lluvia.',
-    fotoUrl: 'https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?auto=format&fit=crop&w=600&q=80',
-    tag: 'Falta de Suministro',
-    veedor: 'Célula Industrial #08',
-  },
-  {
-    id: 'ev-2',
-    sector: 'La Victoria - Sector 2',
-    fecha: '02 Sep, 10:15 COT',
-    titulo: 'Agua turbia con sedimentos',
-    detalle: 'Agua amarillenta con residuos arenosos tras restablecimiento. Muestra entregada a laboratorio comunitario.',
-    fotoUrl: 'https://images.unsplash.com/photo-1584467735871-8e85353a8413?auto=format&fit=crop&w=600&q=80',
-    tag: 'Turbidez Crítica',
-    veedor: 'Célula Sur #14',
-  },
-  {
-    id: 'ev-3',
-    sector: 'Henequén - Calle 19',
-    fecha: '30 Ago, 18:40 COT',
-    titulo: 'Ruptura de matriz sin señalizar',
-    detalle: 'Desperdicio de agua potable por más de 12h sin presencia de operarios ni carro tanques de auxilio.',
-    fotoUrl: 'https://images.unsplash.com/photo-1574482620826-40685ca5ebd2?auto=format&fit=crop&w=600&q=80',
-    tag: 'Fuga de Red',
-    veedor: 'Célula Terreno #22',
-  },
-]
-
 function useCountUpSeguro(target: number, activo: boolean, duracion = 900): number {
   const [valor, setValor] = useState(target)
 
@@ -137,7 +92,6 @@ const SeccionEstadisticasBase: FC = () => {
   const [cumplimiento, setCumplimiento] = useState<IndiceCumplimiento | null>(null)
 
   // Estados interactivos
-  const [periodoFiltro, setPeriodoFiltro] = useState<'30d' | 'q3' | '2026'>('30d')
   const [modoDias, setModoDias] = useState<'cantidad' | 'porcentaje'>('cantidad')
   const [diaSeleccionado, setDiaSeleccionado] = useState<string | null>(null)
   const [modoBarrios, setModoBarrios] = useState<'cortes' | 'porcentaje'>('cortes')
@@ -227,7 +181,7 @@ const SeccionEstadisticasBase: FC = () => {
             ranking: index + 1,
           }
         })
-      : RANKING_SECTORES_MOCK
+      : []
 
   // Cálculo para visualizador comparativo
   const horasPrometidas = cumplimiento ? cumplimiento.duracionPrometidaSegundos / 3600 : null
@@ -249,43 +203,18 @@ const SeccionEstadisticasBase: FC = () => {
         <div className="estadisticas-cab">
           <div>
             <div className="estadisticas-eyebrow-pro">
-              <span>OBSERVATORIO DE CUMPLIMIENTO REGULATORIO • LEY 142 ART. 79</span>
+              <span>Datos agregados del servicio</span>
             </div>
             <h2 className="estadisticas-titulo-pro">Evidencias sobre el servicio</h2>
             <p className="estadisticas-subtitulo-pro">
-              Auditoría forense a los compromisos de suministro de Aguas de Cartagena (Acuacar). Datos contrastados con reportes de veeduría distrital.
+              Indicadores calculados por la API a partir de eventos registrados. Una ausencia de datos se muestra como tal.
             </p>
           </div>
 
           <div className="estadisticas-acciones-cab">
-            {/* Selector de periodo Stitch */}
-            <div className="estadisticas-periodo-pills" role="group" aria-label="Filtrar periodo de auditoría">
-              <button
-                type="button"
-                className={`periodo-btn${periodoFiltro === '30d' ? ' is-active' : ''}`}
-                onClick={() => setPeriodoFiltro('30d')}
-              >
-                Últimos 30 días
-              </button>
-              <button
-                type="button"
-                className={`periodo-btn${periodoFiltro === 'q3' ? ' is-active' : ''}`}
-                onClick={() => setPeriodoFiltro('q3')}
-              >
-                Trimestre Q3
-              </button>
-              <button
-                type="button"
-                className={`periodo-btn${periodoFiltro === '2026' ? ' is-active' : ''}`}
-                onClick={() => setPeriodoFiltro('2026')}
-              >
-                Año 2026
-              </button>
-            </div>
-
             <span className="estadisticas-badge-status">
-              <span className="bitacora-pulse-dot" aria-hidden="true" />
-              {errorApi ? 'Datos no disponibles' : 'Monitoreo activo'}
+              <span className={errorApi ? 'pulse-dot-amber' : 'bitacora-pulse-dot'} aria-hidden="true" />
+              {cargando ? 'Consultando datos' : errorApi ? 'Datos no disponibles' : datos ? 'Consulta completada' : 'Sin datos'}
             </span>
 
             {!errorApi && (
@@ -573,7 +502,7 @@ const SeccionEstadisticasBase: FC = () => {
 
                 <div className="estadisticas-chart-nota">
                   <Info size={13} aria-hidden="true" />
-                  <span>Martes y domingos registran la mayor incidencia por mantenimientos de redes maestras.</span>
+                  <span>La distribución usa únicamente los eventos devueltos por la API.</span>
                 </div>
               </section>
 
@@ -607,7 +536,9 @@ const SeccionEstadisticasBase: FC = () => {
                 </div>
 
                 <div className="ranking-barrios-lista">
-                  {datosBarrios.slice(0, 5).map((item) => (
+                  {datosBarrios.length === 0 ? (
+                    <div className="estadisticas-sin-datos" role="status">Sin datos para construir el ranking.</div>
+                  ) : datosBarrios.slice(0, 5).map((item) => (
                     <div
                       key={item.nombre}
                       className={`ranking-barrio-fila${sectorSeleccionado === item.nombre ? ' is-seleccionado' : ''}`}
@@ -637,88 +568,9 @@ const SeccionEstadisticasBase: FC = () => {
 
                 <div className="estadisticas-chart-nota">
                   <MapPin size={13} aria-hidden="true" />
-                  <span>Sectores de la Localidad Industrial y Suroriente concentran más del 65% de quejas.</span>
+                  <span>El orden refleja la cantidad de cortes registrada por sector.</span>
                 </div>
               </section>
-            </div>
-
-            {/* Dossier de Evidencias Ciudadanas Fotográficas */}
-            <div className="estadisticas-dossier-seccion">
-              <div className="dossier-cab">
-                <div>
-                  <h3 className="dossier-titulo">Evidencias Ciudadanas de Terreno</h3>
-                  <p className="dossier-subtitulo">
-                    Registros fotográficos y testimonios georreferenciados aportados por vecinos y veedores.
-                  </p>
-                </div>
-                <span className="dossier-total-badge tabular">{EVIDENCIAS_CIUDADANAS.length} reportes auditados</span>
-              </div>
-
-              <div className="dossier-grid-evidencias">
-                {EVIDENCIAS_CIUDADANAS.map((ev) => (
-                  <div key={ev.id} className="dossier-card">
-                    <div className="dossier-foto-marco">
-                      <img src={ev.fotoUrl} alt={ev.titulo} className="dossier-foto" loading="lazy" />
-                      <span className="dossier-foto-tag">{ev.tag}</span>
-                    </div>
-                    <div className="dossier-cuerpo">
-                      <div className="dossier-meta">
-                        <span className="dossier-sector">{ev.sector}</span>
-                        <span className="dossier-fecha tabular">{ev.fecha}</span>
-                      </div>
-                      <h4 className="dossier-card-titulo">{ev.titulo}</h4>
-                      <p className="dossier-card-detalle">{ev.detalle}</p>
-                      <div className="dossier-pie">
-                        <span className="dossier-veedor">{ev.veedor}</span>
-                        <span className="dossier-verificado">
-                          <FileCheck size={13} aria-hidden="true" /> Verificado
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Hallazgos Legales y Acciones Regulatorias Ante Superservicios */}
-            <div className="estadisticas-hallazgos-bloque">
-              <div className="hallazgos-cab">
-                <div>
-                  <span className="hallazgos-eyebrow">MARCO REGULATORIO SSPD • RESOLUCIÓN CRA 943</span>
-                  <h3 className="hallazgos-titulo">Hallazgos Jurídicos para Reclamación Colectiva</h3>
-                </div>
-                <button
-                  type="button"
-                  className="hallazgos-btn-descarga"
-                  onClick={() => alert('Generando memorial jurídico en PDF con evidencias certificadas.')}
-                >
-                  <FileText size={15} aria-hidden="true" /> Descargar Memorial para Superservicios (PDF)
-                </button>
-              </div>
-
-              <div className="hallazgos-grid">
-                <div className="hallazgo-card">
-                  <div className="hallazgo-numero">01</div>
-                  <h4>Reincidencia en Zona Suroccidental</h4>
-                  <p>
-                    Ceballos y Mamonal superan el umbral máximo de 24 horas continuas de corte sin reposición de tanques de reserva ni carro tanques de contingencia.
-                  </p>
-                </div>
-                <div className="hallazgo-card">
-                  <div className="hallazgo-numero">02</div>
-                  <h4>Incumplimiento de Preaviso Oficial</h4>
-                  <p>
-                    Violación del mandato de notificación anticipada de 48 horas contemplado en la reglamentación técnica de acueducto y alcantarillado.
-                  </p>
-                </div>
-                <div className="hallazgo-card">
-                  <div className="hallazgo-numero">03</div>
-                  <h4>Cobro Pleno de Cargo Fijo</h4>
-                  <p>
-                    Acuacar factura el 100% de la tarifa sin aplicar el descuento de ley por horas no suministradas establecido en el Art. 137 de la Ley 142 de 1994.
-                  </p>
-                </div>
-              </div>
             </div>
           </>
         )}

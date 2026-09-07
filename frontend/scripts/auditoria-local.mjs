@@ -13,8 +13,9 @@ fs.mkdirSync(salida, { recursive: true })
 const casos = [
   ['inicio-claro', '/', 1280, 720, 'claro'],
   ['inicio-oscuro', '/', 1280, 720, 'oscuro'],
-  ['inicio-movil-claro', '/', 390, 844, 'claro'],
+  ['inicio-movil-claro', '/', 360, 800, 'claro'],
   ['inicio-movil-oscuro', '/', 390, 844, 'oscuro'],
+  ['inicio-tablet-claro', '/', 768, 1024, 'claro'],
   ['reportar-claro', '/reportar', 1280, 720, 'claro'],
   ['veedor-claro', '/veedor', 1280, 720, 'claro'],
   ['registro-oscuro', '/cuentas/registro', 1280, 720, 'oscuro'],
@@ -22,6 +23,7 @@ const casos = [
 
 const axe = require.resolve('axe-core/axe.min.js')
 const resultados = []
+const fechaReciente = new Date().toISOString()
 
 for (const [nombre, url, width, height, tema] of casos) {
   const context = await browser.newContext({
@@ -38,12 +40,12 @@ for (const [nombre, url, width, height, tema] of casos) {
   await page.route('**/api/sectores/stream', (route) => route.abort())
   await page.route('**/api/sectores', (route) => route.fulfill({
     json: {
-      generadoEn: '2026-09-05T22:00:00Z',
+      generadoEn: fechaReciente,
       sectores: [
-        { id: 'sec-1', nombre: 'BOCAGRANDE', estado: 'CON_SERVICIO', actualizadoEn: '2026-09-05T22:00:00Z' },
-        { id: 'sec-2', nombre: 'CRESPO', estado: 'SIN_SERVICIO', actualizadoEn: '2026-09-05T22:00:00Z' },
-        { id: 'sec-3', nombre: 'MANGA', estado: 'PRESION_BAJA', actualizadoEn: '2026-09-05T22:00:00Z' },
-        { id: 'sec-4', nombre: 'EL CABRERO', estado: 'CORTE_PROGRAMADO', actualizadoEn: '2026-09-05T22:00:00Z' },
+        { id: 'sec-1', nombre: 'BOCAGRANDE', estado: 'CON_SERVICIO', actualizadoEn: fechaReciente },
+        { id: 'sec-2', nombre: 'CRESPO', estado: 'SIN_SERVICIO', actualizadoEn: fechaReciente },
+        { id: 'sec-3', nombre: 'MANGA', estado: 'PRESION_BAJA', actualizadoEn: fechaReciente },
+        { id: 'sec-4', nombre: 'EL CABRERO', estado: 'CORTE_PROGRAMADO', actualizadoEn: fechaReciente },
       ],
     },
   }))

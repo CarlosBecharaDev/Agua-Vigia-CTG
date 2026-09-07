@@ -1618,7 +1618,7 @@ restaurar `ADR-028` y `ADR-032` a *Aceptada*. El color es un cambio de una const
 ## ADR-035 — Sin corte anunciado ni reporte vigente, el barrio se muestra con servicio
 
 - **Fecha:** 2026-08-30
-- **Estado:** Aceptada
+- **Estado:** Parcialmente reemplazada por ADR-046 — solo un estado explícito y reciente puede mostrarse como servicio confirmado
 - **Decide:** Product owner, con implementación de D4
 
 ### Contexto
@@ -2236,8 +2236,63 @@ reabre `BUG-071` si también se elimina el estado explícito de indisponibilidad
 
 ---
 
+## ADR-046 — La portada publica estados y eventos verificados con vigencia máxima de 30 días
+
+- **Fecha:** 2026-09-06
+- **Estado:** Aceptada
+- **Decide:** D4 (José Daniel Zambrano), a solicitud del titular del producto
+
+### Contexto
+
+La portada consultaba WordPress de Acuacar desde el navegador y volvía a interpretar sus textos,
+aunque el backend ya tiene el pipeline responsable de ingerir, asociar, moderar y publicar eventos.
+Además, `estado: null` compartía color y etiqueta con `CON_SERVICIO`, y una marca temporal antigua
+podía seguir presentándose indefinidamente como estado actual. Esto hacía imposible distinguir una
+confirmación reciente de una ausencia de evidencia (BUG-076 y BUG-077).
+
+La geometría tiene otra cadencia: los límites de barrios no son telemetría y ya existe un snapshot
+auditado de Cartagena Cómo Vamos. Su disponibilidad no debe depender de que `/api/sectores` entregue
+los 211 nombres en cada consulta. El relieve de Esri es únicamente contexto cartográfico.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Consultar y clasificar Acuacar también en el navegador | Parece más directo | Duplica reglas, evita la trazabilidad del backend y puede asociar avisos viejos o ambiguos |
+| Tratar todo nulo como `CON_SERVICIO` sin caducidad (ADR-035) | Mapa visualmente completo | Confunde falta de datos con confirmación y mantiene estados antiguos indefinidamente |
+| **Backend como autoridad, catálogo local completo y ventana pública de 30 días** | Una sola clasificación auditable; nunca desaparecen barrios; lo viejo deja de parecer actual | Un estado todavía verdadero necesita renovarse para seguir coloreado |
+
+### Decisión
+
+La portada consume estados de `/api/sectores` y eventos de `/api/bitacora`; no consulta ni clasifica
+WordPress de Acuacar. Solo presenta como actual un estado o evento cuya fecha sea válida, no futura y
+no supere 30 días. Al vencer, conserva barrio y geometría pero los muestra como «sin datos recientes».
+
+La lista de búsqueda se completa con los nombres únicos del GeoJSON local. Los barrios que falten en
+la respuesta operativa reciben un identificador solo de interfaz (`geo-*`) que nunca se envía a los
+endpoints de reportes o cumplimiento. World Hillshade se superpone con atribución y no se interpreta
+como dato hidráulico.
+
+### Consecuencias
+
+- **Gana:** estados y avisos visibles comparten una única cadena de publicación verificable.
+- **Gana:** un dato viejo o ausente no se convierte en «Con servicio», corte ni métrica actual.
+- **Gana:** los 211 nombres únicos siguen consultables aunque la API entregue una lista parcial.
+- **Pierde:** la portada puede mostrar más barrios neutrales si el backend deja de renovar estados;
+  ese gris es una señal de calidad de datos, no un defecto que se deba tapar.
+- **Condiciona:** si el dominio adopta otra ventana de vigencia, D2/D3 deben publicarla en contrato o
+  configuración para retirar el literal de 30 días del frontend.
+
+### Cómo se revierte
+
+Retirar `datosRecientes.ts`, devolver la lista a la respuesta directa de `/api/sectores` y eliminar
+la capa World Hillshade. Rehabilitar la consulta directa a WordPress reabre BUG-076 y requiere una
+nueva decisión explícita sobre autoridad y trazabilidad.
+
+---
+
 <!--
-Siguiente número disponible: ADR-046
+Siguiente número disponible: ADR-047
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->

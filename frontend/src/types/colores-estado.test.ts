@@ -31,10 +31,10 @@ describe('Paridad de colores de estado (ADR-042 / REC-015 / RNF012)', () => {
   const rutaCss = path.resolve(__dirname, '../index.css')
   const contenidoCss = fs.readFileSync(rutaCss, 'utf-8')
 
-  it('COLOR_SIN_DATOS debe coincidir con el estado CON_SERVICIO', () => {
-    expect(COLOR_SIN_DATOS.claro.toUpperCase()).toBe(COLOR_POR_ESTADO.CON_SERVICIO.claro.toUpperCase())
-    expect(COLOR_SIN_DATOS.oscuro.toUpperCase()).toBe(COLOR_POR_ESTADO.CON_SERVICIO.oscuro.toUpperCase())
-    expect(COLOR_SIN_DATOS.etiqueta).toBe('Con servicio')
+  it('COLOR_SIN_DATOS debe distinguirse de un servicio confirmado', () => {
+    expect(COLOR_SIN_DATOS.claro.toUpperCase()).not.toBe(COLOR_POR_ESTADO.CON_SERVICIO.claro.toUpperCase())
+    expect(COLOR_SIN_DATOS.oscuro.toUpperCase()).not.toBe(COLOR_POR_ESTADO.CON_SERVICIO.oscuro.toUpperCase())
+    expect(COLOR_SIN_DATOS.etiqueta).toBe('Sin datos recientes')
   })
 
   it('los cuatro estados de COLOR_POR_ESTADO deben coincidir con los tokens de index.css', () => {

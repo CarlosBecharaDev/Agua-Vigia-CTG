@@ -25,18 +25,7 @@
 }
 
 .llamado-veedor-tarjeta::after {
-  position: absolute;
-  top: 50%;
-  right: -8rem;
-  width: 28rem;
-  aspect-ratio: 1;
-  content: "";
-  opacity: 0.2;
-  pointer-events: none;
-  border: 1px solid #71d8ff;
-  border-radius: 50%;
-  background: repeating-radial-gradient(circle, #71d8ff 0 1px, transparent 1px 20%);
-  transform: translateY(-50%);
+  content: none;
 }
 
 .llamado-veedor-tarjeta > * {

@@ -96,6 +96,12 @@ Tres razones concretas, no burocráticas:
 | BUG-068 | 2026-09-03 | S3 | CI | La prueba E2E del ingreso del veedor lleva fallando desde `69f64de`: busca el campo «Clave del veedor» en `/veedor`, y ese ingreso se movió al modal de la portada | Cerrado — resuelto con BUG-070 al alinear la aserción con el campo real «Clave»; `home.spec.ts` | D4 |
 | BUG-071 | 2026-09-05 | S1 | M1 | La portada muestra cuatro conteos en cero cuando la API de sectores no responde | Cerrado — se deshabilitan filtros y se muestran estados indisponibles «—» sin fabricar ceros falsos; `PaginaMapa.tsx` + `TarjetasEstadoMapa.tsx` | D4 |
 | BUG-072 | 2026-09-05 | S2 | M1/Integración | El proxy de desarrollo ignora `VITE_BACKEND_PROXY_TARGET` definido en `.env.local` | Cerrado — `loadEnv` lee `.env.local` antes de evaluar el target del proxy; `vite.config.ts` | D4 |
+| BUG-073 | 2026-09-06 | S1 | M1/M5/M7/M8 | La portada publicaba boletines, SCADA, radicados, evidencias, rankings y métricas simuladas como datos operativos | Cerrado — retirado el contenido sin respaldo y cubiertos los estados vacíos con pruebas | D4 |
+| BUG-074 | 2026-09-06 | S2 | M1 | El mapa capturaba la rueda y en móvil ocultaba la búsqueda/lista textual de barrios | Cerrado — zoom por rueda desactivado y panel textual devuelto al flujo móvil | D4 |
+| BUG-075 | 2026-09-06 | S1 | M1/M6 | La ficha de barrio publicaba avance, población afectada, horarios y carrotanques inventados | Cerrado — ficha sustituida por estado y eventos reales de API | D4 |
+| BUG-076 | 2026-09-06 | S1 | M1/M8/M9 | El navegador consultaba WordPress de Acuacar y presentaba boletines sin pasar por la verificación del backend | Cerrado — consume `/api/bitacora` y descarta eventos con más de 30 días | D4 |
+| BUG-077 | 2026-09-06 | S1 | M1 | Un estado nulo o vencido se etiquetaba y coloreaba como «Con servicio» | Cerrado — presentación neutral «Sin datos recientes» | D4 |
+| BUG-078 | 2026-09-06 | S3 | Pruebas frontend | La portada no tenía encabezado principal y la auditoría usaba estados simulados con fecha fija | Cerrado — restaurado el `h1`, espera estable y fechas recientes | D4 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -104,6 +110,31 @@ Tres razones concretas, no burocráticas:
 ---
 
 ## Bugs abiertos — detalle
+
+### BUG-073 — La portada publicaba contenido operativo simulado
+
+- **Fecha:** 2026-09-06 · **Severidad:** S1 · **Módulo:** M1/M5/M7/M8 · **Responsable:** D4
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** sin datos de API, la interfaz mostraba boletines, radicados, lecturas SCADA, fotografías,
+rankings, firmas y hallazgos legales escritos a mano; también destacaba Manga y clasificaba
+Getsemaní por nombre. **Reproducción:** abrir `/` con respuestas vacías y recorrer mapa, bitácora,
+estadísticas y llamado veedor. **Esperado:** mostrar vacío o indisponibilidad, nunca una demostración
+como dato real. **Causa raíz:** el prototipo visual quedó mezclado con componentes productivos.
+**Corrección:** se retiraron los conjuntos estáticos y los estados geográficos implícitos; pruebas de
+Bitácora, Estadísticas, Llamado Veedor y mapa impiden reintroducirlos.
+
+### BUG-074 — El mapa impedía continuar la navegación y ocultaba la consulta móvil
+
+- **Fecha:** 2026-09-06 · **Severidad:** S2 · **Módulo:** M1 · **Responsable:** D4
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** la rueda sobre Leaflet cambiaba el zoom en vez de desplazar la página; a 768 px o menos
+`.hoja-sectores` quedaba en `display: none`, eliminando búsqueda y lista. **Reproducción:** abrir `/`,
+poner el puntero sobre el mapa y usar la rueda; repetir a 360 px. **Esperado:** navegación vertical
+continua y alternativa textual disponible. **Causa raíz:** mapa a pantalla completa con interacción
+Leaflet por defecto y una regla móvil que descartaba el panel. **Corrección:** `scrollWheelZoom: false`,
+altura acotada y panel debajo del lienzo en el flujo móvil; prueba unitaria para la opción de interacción.
 
 > **Nota de origen — BUG-044 a BUG-048:** encontrados el 2026-08-11 investigando por qué el panel
 > de detalle de sector se veía "incompleto" para muchos barrios al hacer clic en el mapa, y
@@ -1966,6 +1997,57 @@ tests quedan bloqueados por dependencias, exports y tipos preexistentes ajenos a
 
 ---
 
+### BUG-075 — La ficha de barrio publicaba métricas operativas inventadas
+
+- **Fecha:** 2026-09-06 · **Severidad:** S1 · **Módulo:** M1/M6 · **Responsable:** D4
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** al abrir un barrio aparecían porcentajes de avance, habitantes afectados, hora estimada,
+cantidad de carrotanques y textos de intervención escritos directamente en el componente.
+**Causa raíz:** la ficha mezclaba una maqueta de alta fidelidad con información presentada como real.
+**Corrección:** `PanelDetalleSector.tsx` conserva solo estado, frescura, cumplimiento recibido por API y
+eventos publicados. `TarjetasEstadoMapa.tsx` conserva únicamente los cuatro conteos reales. Sus dos
+pruebas de componente impiden reintroducir métricas, descripciones o telemetría de muestra.
+
+---
+
+### BUG-076 — El navegador omitía la verificación del pipeline de Acuacar
+
+- **Fecha:** 2026-09-06 · **Severidad:** S1 · **Módulo:** M1/M8/M9 · **Responsable:** D4
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** `useDatosEnVivo` consultaba WordPress de Acuacar desde el navegador y la ficha podía
+mostrar un boletín antiguo como contexto operativo, separado de la moderación y asociación del backend.
+**Esperado:** una sola clasificación verificable y publicada por el contrato de AguaVigía.
+**Corrección:** el hook consume `/api/bitacora`, filtra a 30 días y la ficha asocia por `sectorId`.
+La consulta directa queda fuera del camino de ejecución de la portada.
+
+---
+
+### BUG-077 — Un estado nulo o vencido se mostraba como «Con servicio»
+
+- **Fecha:** 2026-09-06 · **Severidad:** S1 · **Módulo:** M1 · **Responsable:** D4
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** `COLOR_SIN_DATOS` era idéntico al verde de `CON_SERVICIO`, por lo que falta de evidencia y
+servicio confirmado resultaban visual y textualmente indistinguibles; reincidencia de BUG-008/018.
+**Corrección:** estado neutral gris con etiqueta «Sin datos recientes» e invalidación de estados que
+superen 30 días, cubiertos por `colores-estado.test.ts` y `datosRecientes.test.ts`.
+
+---
+
+### BUG-078 — La portada no tenía encabezado principal y la auditoría no podía abrirla
+
+- **Fecha:** 2026-09-06 · **Severidad:** S3 · **Módulo:** Pruebas frontend · **Responsable:** D4
+- **Estado:** Cerrado — corregido en el acto
+
+**Síntoma:** la portada no contenía un `h1`; `npm run audit:ui` agotaba 30 segundos esperándolo y sus
+estados de prueba usaban además una fecha fija que terminaría venciendo bajo ADR-046.
+**Corrección:** «Lectura del servicio» vuelve a ser el encabezado principal; `auditoria-local.mjs`
+espera ese `h1` real antes de capturar y genera timestamps recientes en cada ejecución.
+
+---
+
 ## Regla especial: bugs que publican información falsa
 
 Un defecto que haga que la plataforma muestre un corte que no existe, o un Índice de Cumplimiento
@@ -1990,5 +2072,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-073
+Siguiente número disponible: BUG-079
 -->

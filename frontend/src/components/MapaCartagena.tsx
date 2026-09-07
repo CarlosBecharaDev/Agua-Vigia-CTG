@@ -1,3 +1,4 @@
+// oxlint-disable react/only-export-components -- opciones y estilo exportados para pruebas de integridad del mapa
 /**
  * MapaCartagena — componente principal del mapa (M1).
  *
@@ -30,6 +31,9 @@ const BOUNDS_CARTAGENA: L.LatLngBoundsExpression = [
   [10.53, -75.40]  // Noreste
 ]
 
+export const OPCIONES_INTERACCION_MAPA = { scrollWheelZoom: false } as const
+export const URL_CAPA_RELIEVE = 'https://services.arcgisonline.com/arcgis/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}'
+
 interface Props {
   sectores: Sector[]
   cargando: boolean
@@ -60,22 +64,15 @@ function normalizarNombre(nombre: string): string {
  */
 /** Estilo de un polígono — compartido entre la carga inicial y la actualización reactiva
  *  para que ambos caminos nunca diverjan en cómo se ve un barrio. */
-function calcularEstiloFeature(
+export function calcularEstiloFeature(
   sector: Sector | undefined,
   sectorActivo: Sector | null,
   estadoDestacado: EstadoServicio | null,
-  nombre: string = ''
+  _nombre: string = ''
 ): L.PathOptions {
-  const nombreNorm = normalizarNombre(nombre)
-  const esManga = nombreNorm.includes('manga')
-  const esGetsemani = nombreNorm.includes('getsemani')
-  const esCentro = nombreNorm.includes('centro')
-  const esBocagrande = nombreNorm.includes('bocagrande')
-  const esCrespo = nombreNorm.includes('crespo')
-
   const estado = sector?.estado
-  const estadoEfectivo: EstadoServicio | undefined = sector ? (estado ?? 'CON_SERVICIO') : undefined
-  const esActivo = !!(sectorActivo && sector && sectorActivo.id === sector.id) || (!sectorActivo && esManga)
+  const estadoEfectivo: EstadoServicio | undefined = estado ?? undefined
+  const esActivo = !!(sectorActivo && sector && sectorActivo.id === sector.id)
   const enFoco = estadoDestacado !== null
   const esDestacado = !!(estadoEfectivo && estadoEfectivo === estadoDestacado)
   const atenuado = enFoco && !esDestacado
@@ -87,11 +84,11 @@ function calcularEstiloFeature(
       color: '#ff5722',
       weight: 2.8,
       opacity: 1,
-      className: 'barrio-activo-manga',
+      className: 'barrio-activo',
     }
   }
 
-  if (esGetsemani || estadoEfectivo === 'PRESION_BAJA') {
+  if (estadoEfectivo === 'PRESION_BAJA') {
     return {
       fillColor: '#ffedd5',
       fillOpacity: atenuado ? 0.05 : 0.3,
@@ -125,14 +122,24 @@ function calcularEstiloFeature(
     }
   }
 
-  // Normal / Con servicio (Centro, Bocagrande, Crespo y resto de barrios)
-  const esBarrioClave = esCentro || esBocagrande || esCrespo
+  if (!estadoEfectivo) {
+    return {
+      fillColor: '#d7dde3',
+      fillOpacity: atenuado ? 0.02 : 0.08,
+      color: '#7b8794',
+      weight: 0.8,
+      opacity: atenuado ? 0.15 : 0.5,
+      className: 'barrio-sin-datos',
+    }
+  }
+
+  // Con servicio, únicamente cuando la API lo afirma.
   return {
     fillColor: '#3b82f6',
-    fillOpacity: atenuado ? 0.02 : esBarrioClave ? 0.08 : 0.04,
-    color: esBarrioClave ? '#2563eb' : '#94a3b8',
-    weight: esBarrioClave ? 1.8 : 0.8,
-    opacity: atenuado ? 0.15 : esBarrioClave ? 0.8 : 0.45,
+    fillOpacity: atenuado ? 0.02 : 0.08,
+    color: '#2563eb',
+    weight: 1.2,
+    opacity: atenuado ? 0.15 : 0.65,
     className: 'barrio-con-servicio',
   }
 }
@@ -150,6 +157,7 @@ export const MapaCartagena: FC<Props> = ({
   const mapaRef = useRef<L.Map | null>(null)
   const capaRef = useRef<L.GeoJSON | null>(null)
   const capaBaseRef = useRef<L.TileLayer | null>(null)
+  const capaRelieveRef = useRef<L.TileLayer | null>(null)
   const limpiarObservacionCapaBaseRef = useRef<(() => void) | null>(null)
   const destacadoLayerRef = useRef<L.LayerGroup | null>(null)
 
@@ -284,6 +292,7 @@ export const MapaCartagena: FC<Props> = ({
       maxBounds: BOUNDS_CARTAGENA,
       maxBoundsViscosity: 1.0,
       zoomControl: false,
+      ...OPCIONES_INTERACCION_MAPA,
       attributionControl: false,
       preferCanvas: false, // SVG paths para trazados nítidos y micro-interacciones suaves
     })
@@ -298,6 +307,7 @@ export const MapaCartagena: FC<Props> = ({
       {
         attribution: '&copy; <a href="https://www.esri.com">Esri</a> &copy; OpenStreetMap',
         maxZoom: 16,
+        zIndex: 100,
       },
     )
     limpiarObservacionCapaBaseRef.current = observarEstadoCapaBase(
@@ -305,6 +315,18 @@ export const MapaCartagena: FC<Props> = ({
       setEstadoCapaBase,
     )
     capaBaseRef.current = nuevaCapa.addTo(mapa)
+
+    // Sombreado topográfico oficial de Esri: añade lectura de relieve sin sustituir las
+    // etiquetas urbanas ni ocultar los polígonos de estado de AguaVigía.
+    capaRelieveRef.current = L.tileLayer(
+      URL_CAPA_RELIEVE,
+      {
+        attribution: 'Relieve &copy; <a href="https://www.esri.com">Esri</a>',
+        maxZoom: 16,
+        opacity: 0.32,
+        zIndex: 150,
+      },
+    ).addTo(mapa)
 
     mapaRef.current = mapa
 
@@ -314,6 +336,7 @@ export const MapaCartagena: FC<Props> = ({
       mapa.remove()
       mapaRef.current = null
       capaBaseRef.current = null
+      capaRelieveRef.current = null
     }
   }, [])
 
@@ -523,30 +546,6 @@ export const MapaCartagena: FC<Props> = ({
             })
           },
         }).addTo(mapa)
-
-        // Pulsing Sonar Pin Marker sobre el epicentro de Manga con su etiqueta fija
-        const sonarIcon = L.divIcon({
-          className: 'sonar-radar-contenedor',
-          html: `
-            <div class="sonar-radar-pin">
-              <div class="sonar-ring-1"></div>
-              <div class="sonar-ring-2"></div>
-              <div class="sonar-ring-3"></div>
-              <div class="sonar-center-dot"></div>
-              <div class="sonar-center-dot-inner"></div>
-            </div>
-          `,
-          iconSize: [80, 80],
-          iconAnchor: [40, 40],
-        })
-        const sonarMarker = L.marker([10.4085, -75.5365], { icon: sonarIcon, interactive: false })
-        sonarMarker.bindTooltip('SECTOR MANGA', {
-          permanent: true,
-          direction: 'bottom',
-          offset: [0, 20],
-          className: 'etiqueta-barrio-mapa etiqueta-barrio-manga',
-        })
-        sonarMarker.addTo(mapa)
 
         capaRef.current = capa
         dibujarDestacado()

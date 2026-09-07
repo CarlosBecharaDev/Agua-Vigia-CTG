@@ -14,6 +14,10 @@ La interfaz actual conserva los flujos del producto, pero su presentación contr
 - Añadir pruebas de regresión visual/funcional, accesibilidad, ancho de 360 px y manejo de API no disponible.
 - Documentar la decisión visual en un ADR y entregar a D3/D5 los hallazgos de API, MongoDB, Docker y cabeceras de seguridad que requieran cambios fuera de `frontend/`.
 
+- Acotar el lienzo del mapa, liberar la rueda de desplazamiento y mantener la consulta textual de barrios en el flujo móvil.
+- Retirar boletines, radicados, telemetría, evidencias, rankings, firmas y hallazgos de muestra que no provengan de las APIs conectadas.
+- Completar la consulta con el catálogo cartográfico local, añadir relieve real con atribución y tratar como «sin datos recientes» cualquier estado o evento con más de 30 días.
+
 ## Capabilities
 
 ### New Capabilities

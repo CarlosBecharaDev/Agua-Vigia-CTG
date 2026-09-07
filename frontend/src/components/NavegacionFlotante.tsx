@@ -10,7 +10,7 @@
 import { useCallback } from 'react'
 import type { FC } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Search, Megaphone, Droplets } from 'lucide-react'
+import { Megaphone, Droplets } from 'lucide-react'
 import { SelectorTema } from './SelectorTema'
 import { NavegacionInferior } from './NavegacionInferior/NavegacionInferior'
 import { ENLACES } from '../config/navegacion'
@@ -25,12 +25,7 @@ interface Props {
   temaActivo: ThemeProps['temaActivo']
   onAlternarTema: ThemeProps['alternarTema']
   seccionActiva: SeccionPrincipal
-  busquedaBitacora: string
-  onCambiarBusquedaBitacora: (valor: string) => void
   onReportar: () => void
-  porcentajeNormal?: string
-  totalEventosBitacora?: number
-  onAlternarBitacora?: () => void
 }
 
 const DESTINO_POR_SECCION: Record<SeccionPrincipal, string> = {
@@ -49,12 +44,7 @@ export const NavegacionFlotante: FC<Props> = ({
   temaActivo,
   onAlternarTema,
   seccionActiva,
-  busquedaBitacora,
-  onCambiarBusquedaBitacora,
   onReportar,
-  porcentajeNormal,
-  totalEventosBitacora = 0,
-  onAlternarBitacora,
 }) => {
   const navigate = useNavigate()
   const esMovil = useConsultaMedios(CORTE_MOVIL)
@@ -120,70 +110,19 @@ export const NavegacionFlotante: FC<Props> = ({
                 <span className="navbar-enlace-punto" aria-hidden="true" />
               )}
               <span>{etiqueta}</span>
-              {etiqueta === 'Bitácora' && totalEventosBitacora > 0 && (
-                <span className="navbar-enlace-badge" aria-hidden="true">
-                  {totalEventosBitacora}
-                </span>
-              )}
             </button>
           )
         })}
       </nav>
     )}
 
-    <div className="navbar-buscador-telemetria">
-      <div className="navbar-buscador-bitacora">
-        <Search size={15} aria-hidden="true" />
-        <input
-          type="search"
-          placeholder="Buscar barrio o sector..."
-          aria-label="Buscar en la bitácora"
-          value={busquedaBitacora}
-          onChange={(e) => onCambiarBusquedaBitacora(e.target.value)}
-          onFocus={() => document.getElementById('bitacora')?.scrollIntoView({ behavior: 'smooth' })}
-        />
-      </div>
-
-      <div className="navbar-telemetria" title="Telemetría en tiempo real de la red matriz de Cartagena">
-        {porcentajeNormal ? (
-          <>
-            <span className="pulse-dot-emerald" aria-hidden="true" />
-            <span className="navbar-telemetria-texto">Red Matriz: {porcentajeNormal}% Normal</span>
-          </>
-        ) : (
-          <>
-            <span className="pulse-dot-amber" aria-hidden="true" />
-            <span className="navbar-telemetria-texto">Red Matriz: Sin telemetría</span>
-          </>
-        )}
-      </div>
-    </div>
-
     <div className="navbar-acciones">
-      {onAlternarBitacora && (
-        <button
-          type="button"
-          onClick={onAlternarBitacora}
-          className="navbar-btn-bitacora hidden sm:flex"
-          title="Ver bitácora de novedades"
-        >
-          <Search size={14} className="sr-only" />
-          <span>Bitácora</span>
-        </button>
-      )}
       <button type="button" onClick={onReportar} className="navbar-reportar">
         <Megaphone size={15} aria-hidden="true" />
         <span>Reportar ahora</span>
       </button>
       <div className="navbar-separador" aria-hidden="true" />
       <SelectorTema temaActivo={temaActivo} onAlternar={onAlternarTema} />
-      <div
-        className="navbar-avatar"
-        title="Perfil ciudadano"
-        aria-label="Perfil ciudadano"
-      >
-        C
-      </div>
     </div>
   </header>
 

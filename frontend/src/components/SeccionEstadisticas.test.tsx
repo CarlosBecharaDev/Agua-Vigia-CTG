@@ -47,6 +47,7 @@ describe('SeccionEstadisticas', () => {
     await waitFor(() => expect(screen.getAllByText('Sin datos').length).toBeGreaterThan(0))
     expect(screen.queryByText('100%')).not.toBeInTheDocument()
     expect(screen.queryByText(/2822|2\.822/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/CEBALLOS|reportes auditados|hallazgos jurídicos/i)).not.toBeInTheDocument()
   })
 
   it('debe mostrar «Sin datos» en las tres metricas del Indice, no ceros', async () => {

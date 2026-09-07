@@ -26,6 +26,14 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 2
 
+### 2026-09-06 · D4 · `front-nuevo-beta`
+**Qué:** Añadido relieve Esri, catálogo completo de barrios y vigencia máxima de 30 días; la ficha consume bitácora verificada y ya no publica estados ni métricas falsas (BUG-075–077).
+**Sigue:** validar visualmente a 360/768/1280 px con backend real y decidir con D2/D3 si la caducidad debe reforzarse también en el contrato.
+
+### 2026-09-06 · D4 · `front-nuevo-beta`
+**Qué:** Mapa acotado y navegable en móvil; retirados datos operativos simulados de M1/M5/M7/M8 (BUG-073, BUG-074), con OpenSpec y 113 pruebas en verde.
+**Sigue:** validar visualmente a 360/768/1280 px y diseñar la integración de relieve/frescura de Acuacar sin tocar el contrato hasta acordar fuentes y credenciales.
+
 ### 2026-08-09 · D4 (José) · `fix/integrar-formulario-reportes`
 **Qué:** RF008 conectado a `POST /api/reportes`: formulario real en dos pasos, huella anónima SHA-256, ubicación opcional, errores RFC 7807 y contrato OpenAPI regenerado; 26 pruebas, lint, build y `npm audit` en verde.
 **Sigue:** Revisar y fusionar el PR a `develop`; después registrar la entrega en `registro-de-implementaciones.md`.
