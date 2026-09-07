@@ -64,7 +64,7 @@ export function FormularioSolicitarCuenta({ onVolverAlIngreso }: Props) {
     <form onSubmit={enviar} className="form-reporte-moderno">
       <div className="form-reporte-bloque">
         <label htmlFor="registro-nombre" className="form-reporte-label">
-          <UserPlus size={15} color="#d8b4fe" />
+          <UserPlus size={15} aria-hidden="true" />
           Tu nombre
         </label>
         <input
@@ -77,14 +77,13 @@ export function FormularioSolicitarCuenta({ onVolverAlIngreso }: Props) {
           placeholder="Como aparecerás en la auditoría"
           value={nombre}
           onChange={(event) => setNombre(event.target.value)}
-          className="form-suscripcion-input"
-          style={{ width: '100%' }}
+          className="form-suscripcion-input cuenta-input"
         />
       </div>
 
       <div className="form-reporte-bloque">
         <label htmlFor="registro-correo" className="form-reporte-label">
-          <Mail size={15} color="#d8b4fe" />
+          <Mail size={15} aria-hidden="true" />
           Correo
         </label>
         <input
@@ -95,8 +94,7 @@ export function FormularioSolicitarCuenta({ onVolverAlIngreso }: Props) {
           placeholder="tu@correo.org"
           value={correo}
           onChange={(event) => setCorreo(event.target.value)}
-          className="form-suscripcion-input"
-          style={{ width: '100%' }}
+          className="form-suscripcion-input cuenta-input"
         />
       </div>
 
@@ -115,10 +113,9 @@ export function FormularioSolicitarCuenta({ onVolverAlIngreso }: Props) {
       )}
 
       <button
-        className="form-suscripcion-boton-enviar"
+        className="form-suscripcion-boton-enviar cuenta-boton-principal"
         type="submit"
         disabled={enviando || !correo || !nombre || clave.length < LONGITUD_MINIMA_CLAVE}
-        style={{ marginTop: '0.5rem' }}
       >
         {enviando ? (
           <>
@@ -129,7 +126,7 @@ export function FormularioSolicitarCuenta({ onVolverAlIngreso }: Props) {
         )}
       </button>
 
-      <p className="cuenta-pista" style={{ textAlign: 'center' }}>
+      <p className="cuenta-pista cuenta-texto-centrado">
         Solicitar una cuenta no da acceso al panel por sí solo.
       </p>
 

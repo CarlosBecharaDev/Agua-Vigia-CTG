@@ -1,9 +1,23 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  // Vite no carga los archivos .env en `process.env` mientras evalúa este archivo. `loadEnv`
+  // mantiene la configuración local fuera del bundle y permite alternar con claridad entre el
+  // backend de Maven (8080) y el puerto publicado por Docker Compose (8081).
+  const entorno = loadEnv(mode, process.cwd(), '')
+  const backendTarget =
+    process.env.VITE_BACKEND_PROXY_TARGET ||
+    process.env.VITE_BACKEND_ORIGIN ||
+    entorno.VITE_BACKEND_PROXY_TARGET ||
+    entorno.VITE_BACKEND_ORIGIN ||
+    'http://localhost:8080'
+
+  console.info(`[Vite] Proxy /api → ${backendTarget}`)
+
+  return {
   plugins: [
     tailwindcss(),
     react(),
@@ -73,11 +87,13 @@ export default defineConfig({
             }
           },
           {
-            // Tiles de OpenStreetMap — CacheFirst para funcionar offline
-            urlPattern: /^https:\/\/[abc]\.tile\.openstreetmap\.org/,
+            // Imagen satelital de Esri usada por el radar territorial. La geometría local no
+            // depende de esta caché, pero conservar las teselas recientes evita un lienzo vacío
+            // durante cortes breves de conectividad.
+            urlPattern: /^https:\/\/server\.arcgisonline\.com\/ArcGIS\/rest\/services\/World_Imagery\/MapServer\/tile\//,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'osm-tiles',
+              cacheName: 'esri-imagen-satelital',
               expiration: {
                 maxEntries: 500,
                 maxAgeSeconds: 60 * 60 * 24 * 30, // 30 días
@@ -114,10 +130,7 @@ export default defineConfig({
         // Se aceptan los dos nombres porque cada uno quedó documentado en un sitio distinto:
         // VITE_BACKEND_PROXY_TARGET en frontend/INTEGRACION-BACKEND.md y VITE_BACKEND_ORIGIN
         // en docs/gestion/registro-de-bugs.md (BUG-052).
-        target:
-          process.env.VITE_BACKEND_PROXY_TARGET ||
-          process.env.VITE_BACKEND_ORIGIN ||
-          'http://localhost:8080',
+        target: backendTarget,
         changeOrigin: true,
         secure: false,
         configure: (proxy, options) => {
@@ -171,5 +184,6 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/setupTests.ts',
     exclude: ['node_modules', 'tests/e2e/**'],
+  }
   }
 })

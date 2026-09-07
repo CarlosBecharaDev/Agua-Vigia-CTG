@@ -47,7 +47,7 @@ describe('SeccionBitacora', () => {
     render(<SeccionBitacora />)
 
     expect(await screen.findByText('Con servicio')).toBeInTheDocument()
-    expect(screen.queryByText('Sin servicio')).not.toBeInTheDocument()
+    expect(document.querySelector('.bitacora-badge-estado.badge-sin-servicio')).not.toBeInTheDocument()
   })
 
   /**

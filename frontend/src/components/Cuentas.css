@@ -1,23 +1,17 @@
-/*
- * Pantallas de cuentas: ingreso, registro, enlaces de correo y panel de administración.
- * Se apoyan en la paleta y los contenedores de ModalReporte.css — aquí solo vive lo que esas
- * pantallas necesitan y el modal no tiene.
- */
+@import "./ModalReporte.css";
 
 .enlace-cuenta {
-  color: #c084fc;
-  font-size: 0.78rem;
-  font-weight: 600;
-  text-decoration: none;
-  padding: 0.35rem 0.25rem;
-  border-radius: 6px;
-  /* RNF014: 44px de alto táctil aunque el texto sea pequeño. */
-  min-height: 44px;
   display: inline-flex;
   align-items: center;
+  min-height: 44px;
+  padding: 0.3rem 0.25rem;
+  color: var(--color-acento);
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
 }
 
-/* Dentro del modal el mismo enlace es un <button>, porque cambia de vista en vez de navegar. */
 button.enlace-cuenta {
   background: none;
   border: 0;
@@ -27,7 +21,7 @@ button.enlace-cuenta {
 
 .enlace-cuenta:hover,
 .enlace-cuenta:focus-visible {
-  color: #e9d5ff;
+  color: var(--color-acento-vivo);
   text-decoration: underline;
 }
 
@@ -39,65 +33,140 @@ button.enlace-cuenta {
 .cuenta-enlaces-fila {
   flex-wrap: wrap;
   gap: 0.35rem 1rem;
-  margin-top: 0.85rem;
+  margin-top: 0.6rem;
 }
 
 .cuenta-pagina {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  min-height: 80dvh;
-  padding: 3rem 1rem 6rem;
+  min-height: calc(100dvh - 4.5rem);
+  padding: clamp(2rem, 6vw, 4.5rem) 1rem 6rem;
+  background: var(--color-fondo);
 }
 
 .cuenta-tarjeta {
-  width: min(100%, 480px);
+  width: min(100%, 500px);
   max-height: none;
 }
 
-.cuenta-mensaje {
-  border-radius: 10px;
-  padding: 0.85rem 1rem;
-  font-size: 0.85rem;
+.cuenta-tarjeta-ingreso {
+  border-top-color: var(--color-acento);
+}
+
+.cuenta-acceso-denegado-titulo {
+  margin: 0 0 0.5rem;
+  color: var(--color-tinta);
+  font-size: 1.3rem;
+}
+
+.cuenta-cabecera {
+  margin-bottom: 1.15rem;
+}
+
+.cuenta-cabecera-icono {
+  color: var(--color-acento);
+  background: var(--color-acento-suave);
+}
+
+.cuenta-antetitulo {
+  margin-bottom: 0.2rem;
+  color: var(--color-acento);
+  font: 800 0.72rem/1.2 var(--font-util);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cuenta-titulo {
+  margin: 0;
+  color: var(--color-tinta);
+  font-size: 1.4rem;
+}
+
+.cuenta-cabecera-ingreso {
+  margin-bottom: 1.15rem;
+}
+
+.cuenta-acceso-restringido {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.25rem;
+  color: var(--color-acento);
+  font: 750 0.68rem/1.2 var(--font-util);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cuenta-nota-sesion,
+.cuenta-pista {
+  margin: 0.55rem 0 0;
+  color: var(--color-tinta-3);
+  font-size: 0.72rem;
   line-height: 1.5;
+}
+
+.cuenta-nota-sesion {
+  text-align: center;
+}
+
+.cuenta-texto-centrado {
+  text-align: center;
+}
+
+.cuenta-input {
+  width: 100%;
+}
+
+.cuenta-boton-principal {
+  margin-top: 0.5rem;
+  color: var(--color-sobre-acento);
+}
+
+.cuenta-form-separado {
+  margin-top: 1rem;
+}
+
+.cuenta-codigo {
+  font-size: 1.15rem;
+  letter-spacing: 0.35em;
+}
+
+.cuenta-btn-ancho {
+  width: 100%;
+  margin-top: 0.6rem;
+}
+
+.cuenta-mensaje {
   margin: 0.25rem 0 0;
+  padding: 0.8rem 0.9rem;
+  color: var(--color-tinta-2);
+  background: var(--color-superficie-2);
+  border: 1px solid var(--color-linea);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  line-height: 1.5;
 }
 
 .cuenta-mensaje-exito {
-  background: rgba(34, 197, 94, 0.14);
-  border: 1px solid rgba(74, 222, 128, 0.35);
-  color: #bbf7d0;
+  color: var(--color-estado-con);
+  border-left: 4px solid var(--color-estado-con);
 }
 
 .cuenta-mensaje-aviso {
-  background: rgba(168, 85, 247, 0.14);
-  border: 1px solid rgba(192, 132, 252, 0.35);
-  color: #e9d5ff;
+  color: var(--color-acento);
+  border-left: 4px solid var(--color-acento);
 }
 
-.cuenta-pista {
-  color: rgba(203, 213, 225, 0.6);
-  font-size: 0.74rem;
-  line-height: 1.5;
-  margin: 0.4rem 0 0;
-}
-
-/* --- Panel de cuentas --- */
-
-/*
- * Pinta su propia superficie oscura en los dos temas, igual que `.panel-veedor-root`: el centro de
- * operaciones es oscuro por decision de diseno, no por seguir el tema del sitio. Sin esto, en tema
- * claro el panel heredaba el fondo claro y pintaba encima texto claro — ilegible (BUG-065).
- */
 .cuentas-panel {
   min-height: 100dvh;
-  background: linear-gradient(180deg, #050814 0%, #0a0f24 50%, #070a18 100%);
-  color: #f8fafc;
-  padding: 2.5rem 1rem 5rem;
+  padding: clamp(2rem, 5vw, 4rem) 1rem 5rem;
+  color: var(--color-tinta);
+  background: var(--color-fondo);
 }
 
 .cuentas-panel-contenedor {
-  width: min(100% - 1.5rem, 1100px);
+  width: min(calc(100% - 1rem), 1100px);
   margin: 0 auto;
 }
 
@@ -107,120 +176,117 @@ button.enlace-cuenta {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.cuentas-titulo,
+.cuentas-auditoria-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-tinta);
+}
+
+.cuentas-titulo {
+  margin: 0.35rem 0 0.15rem;
+  font-size: 1.6rem;
+}
+
+.cuentas-subtitulo,
+.cuentas-auditoria-descripcion {
+  color: var(--color-tinta-2);
+}
+
+.cuentas-subtitulo {
+  margin: 0;
+  font-size: 0.86rem;
+}
+
+.cuentas-error {
+  margin-bottom: 1rem;
+}
+
+.cuentas-editor {
+  max-height: none;
+  margin-bottom: 1.5rem;
+}
+
+.cuentas-editor-titulo {
+  margin: 0 0 0.25rem;
+  color: var(--color-tinta);
+  font-size: 1.05rem;
+}
+
+.cuentas-editor-titulo--separado {
+  margin-bottom: 0.85rem;
+}
+
+.cuentas-editor-pista {
+  margin-bottom: 1rem;
+}
+
+.cuentas-filtros,
+.cuentas-acciones,
+.cuentas-permisos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
 }
 
 .cuentas-filtros {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
 }
 
-.cuentas-filtro {
-  background: rgba(148, 163, 184, 0.12);
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  color: rgba(226, 232, 240, 0.8);
-  border-radius: 999px;
-  padding: 0.5rem 1rem;
-  min-height: 44px;
-  font-size: 0.78rem;
-  font-weight: 650;
-  cursor: pointer;
+.cuentas-filtros--compactos {
+  margin-bottom: 0;
 }
 
-.cuentas-filtro[aria-pressed='true'] {
-  background: rgba(168, 85, 247, 0.22);
-  border-color: rgba(192, 132, 252, 0.5);
-  color: #f3e8ff;
+.cuentas-fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
-/* El contenido ancho scrollea dentro de su propia caja; la página nunca lo hace en horizontal. */
-.cuentas-tabla-scroll {
-  overflow-x: auto;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 14px;
-  border: 1px solid rgba(148, 163, 184, 0.18);
+.cuentas-fieldset--separado {
+  margin-bottom: 1rem;
 }
 
-.cuentas-tabla {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 720px;
-  font-size: 0.84rem;
+.cuentas-legend {
+  margin-bottom: 0.5rem;
 }
 
-.cuentas-tabla th,
-.cuentas-tabla td {
-  padding: 0.85rem 1rem;
-  text-align: left;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
-  vertical-align: middle;
+.cuentas-legend--compacta {
+  margin-bottom: 0.35rem;
 }
 
-.cuentas-tabla th {
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(203, 213, 225, 0.65);
-  font-weight: 700;
+.cuentas-acciones--separadas {
+  margin-top: 1.15rem;
 }
 
-.cuentas-tabla tbody tr:last-child td {
-  border-bottom: none;
-}
-
-/* RNF016: el estado nunca se comunica solo por color — cada pastilla lleva su texto. */
-.cuenta-pastilla {
-  display: inline-block;
-  border-radius: 999px;
-  padding: 0.25rem 0.6rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  white-space: nowrap;
-}
-
-.cuenta-pastilla-activa {
-  background: rgba(34, 197, 94, 0.18);
-  color: #bbf7d0;
-}
-
-.cuenta-pastilla-espera {
-  background: rgba(250, 204, 21, 0.18);
-  color: #fef3c7;
-}
-
-.cuenta-pastilla-detenida {
-  background: rgba(248, 113, 113, 0.18);
-  color: #fecaca;
-}
-
-.cuenta-pastilla-neutra {
-  background: rgba(148, 163, 184, 0.18);
-  color: #e2e8f0;
-}
-
-.cuentas-acciones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
+.cuentas-filtro,
 .cuentas-btn {
-  border-radius: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  background: rgba(148, 163, 184, 0.1);
-  color: #e2e8f0;
-  font-size: 0.75rem;
-  font-weight: 650;
-  padding: 0.45rem 0.75rem;
   min-height: 44px;
+  padding: 0.45rem 0.75rem;
+  color: var(--color-tinta-2);
+  background: var(--color-superficie-2);
+  border: 1px solid var(--color-linea);
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
   cursor: pointer;
 }
 
-.cuentas-btn:hover:not(:disabled) {
-  background: rgba(148, 163, 184, 0.2);
+.cuentas-filtro[aria-pressed="true"],
+.cuentas-btn-principal {
+  color: var(--color-sobre-acento);
+  background: var(--color-acento);
+  border-color: var(--color-acento);
+}
+
+.cuentas-btn-peligro {
+  color: var(--color-estado-sin);
+  background: transparent;
+  border-color: currentColor;
 }
 
 .cuentas-btn:disabled {
@@ -228,64 +294,128 @@ button.enlace-cuenta {
   cursor: not-allowed;
 }
 
-.cuentas-btn-peligro {
-  border-color: rgba(248, 113, 113, 0.4);
-  color: #fecaca;
+.cuentas-tabla-scroll {
+  overflow-x: auto;
+  background: var(--color-elevado);
+  border: 1px solid var(--color-linea);
+  border-radius: var(--radio-base);
+  box-shadow: var(--sombra-suave);
 }
 
-.cuentas-btn-principal {
-  border-color: rgba(192, 132, 252, 0.5);
-  background: rgba(168, 85, 247, 0.2);
-  color: #f3e8ff;
+.cuentas-tabla {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  font-size: 0.82rem;
 }
+
+.cuentas-tabla th,
+.cuentas-tabla td {
+  padding: 0.8rem 0.9rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-linea);
+  vertical-align: middle;
+}
+
+.cuentas-tabla th {
+  color: var(--color-tinta-3);
+  background: var(--color-superficie-2);
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cuentas-persona {
+  color: var(--color-tinta);
+}
+
+.cuentas-correo {
+  color: var(--color-tinta-2);
+  font-size: 0.78rem;
+}
+
+.cuentas-ajuste {
+  color: var(--color-tinta-3);
+  font-size: 0.72rem;
+}
+
+.cuentas-fecha {
+  white-space: nowrap;
+}
+
+.cuenta-pastilla {
+  display: inline-block;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid currentColor;
+  border-radius: var(--radio-pill);
+  font-size: 0.68rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.cuenta-pastilla-activa { color: var(--color-estado-con); }
+.cuenta-pastilla-espera { color: var(--color-estado-baja); }
+.cuenta-pastilla-detenida { color: var(--color-estado-sin); }
+.cuenta-pastilla-neutra { color: var(--color-tinta-2); }
 
 .cuentas-permisos {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem 0.9rem;
-  margin: 0.5rem 0 0;
+  margin-top: 0.5rem;
+  gap: 0.4rem 0.8rem;
 }
 
 .cuentas-permiso {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.78rem;
-  color: rgba(226, 232, 240, 0.85);
-  min-height: 44px;
+  min-height: 42px;
+  color: var(--color-tinta-2);
+  font-size: 0.76rem;
 }
 
 .cuentas-vacio {
   padding: 2.5rem 1rem;
+  color: var(--color-tinta-3);
   text-align: center;
-  color: rgba(203, 213, 225, 0.6);
-  font-size: 0.88rem;
 }
 
 .cuentas-qr {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 12px;
-  width: fit-content;
-  margin: 0 auto;
+  display: block;
+  width: min(220px, 100%);
+  margin: 1rem auto;
+  padding: 0.75rem;
+  background: #fff;
+  border-radius: 8px;
 }
 
 .cuentas-secreto {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.82rem;
-  letter-spacing: 0.12em;
-  word-break: break-all;
-  background: rgba(15, 23, 42, 0.55);
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  display: block;
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  overflow-wrap: anywhere;
+  color: var(--color-tinta);
+  background: var(--color-superficie-2);
+  border: 1px solid var(--color-linea);
   border-radius: 8px;
-  padding: 0.6rem 0.75rem;
-  color: #e2e8f0;
-  text-align: center;
+  font: 0.78rem/1.5 var(--font-util);
+}
+
+.cuentas-auditoria {
+  margin-top: 2.5rem;
+}
+
+.cuentas-auditoria-titulo {
+  margin: 0 0 0.25rem;
+  font-size: 1.15rem;
+}
+
+.cuentas-auditoria-descripcion {
+  margin: 0 0 1rem;
+  font-size: 0.84rem;
 }
 
 @media (max-width: 640px) {
-  .cuentas-cabecera {
-    flex-direction: column;
-    align-items: flex-start;
+  .cuenta-pagina {
+    padding-inline: 0.75rem;
   }
 }

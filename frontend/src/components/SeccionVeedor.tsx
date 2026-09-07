@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import * as Dialog from '@radix-ui/react-dialog'
 import { KeyRound, LockKeyhole, RotateCcwKey, ShieldCheck, UserPlus, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { cerrarSesionVeedor } from '../api/services'
@@ -50,15 +51,6 @@ export function SeccionVeedor({ loginAbierto, onCerrarLogin }: Props) {
   const { autenticado, debeCompletarSegundoFactor } = useSesionVeedor()
   const [vista, setVista] = useState<Vista>('ingreso')
 
-  useEffect(() => {
-    if (!loginAbierto) return
-    const alPulsar = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCerrarLogin()
-    }
-    window.addEventListener('keydown', alPulsar)
-    return () => window.removeEventListener('keydown', alPulsar)
-  }, [loginAbierto, onCerrarLogin])
-
   // Cerrar y volver a abrir empieza por el ingreso: reabrir en "Restablecer la clave" obligaría a
   // deshacer un paso que nadie pidió esta vez.
   useEffect(() => {
@@ -89,32 +81,21 @@ export function SeccionVeedor({ loginAbierto, onCerrarLogin }: Props) {
   const volverAlIngreso = () => setVista('ingreso')
 
   return (
-    <div
-      className="veedor-modal-fondo"
-      role="presentation"
-      // Solo cierra si el clic nace y muere en el fondo: arrastrar desde dentro del formulario
-      // hasta fuera no debe cerrar lo que se estaba escribiendo.
-      onMouseDown={(e) => {
-        if (e.target === e.currentTarget) onCerrarLogin()
-      }}
-    >
-      <div className="veedor-modal-caja" role="dialog" aria-modal="true" aria-labelledby="titulo-veedor">
-        <button
-          type="button"
-          className="veedor-modal-cerrar"
-          onClick={onCerrarLogin}
-          aria-label="Cerrar el ingreso del veedor"
-        >
-          <X size={18} aria-hidden="true" />
-        </button>
+    <Dialog.Root open={loginAbierto} onOpenChange={(abierto) => { if (!abierto) onCerrarLogin() }}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="veedor-modal-fondo">
+          <Dialog.Content className="veedor-modal-caja">
+        <Dialog.Close asChild>
+          <button
+            type="button"
+            className="veedor-modal-cerrar"
+            aria-label="Cerrar el ingreso del veedor"
+          >
+            <X size={18} aria-hidden="true" />
+          </button>
+        </Dialog.Close>
         <div className="seccion-veedor-contenido">
           <div className="modal-reporte-contenedor veedor-modal-tarjeta" aria-labelledby="titulo-veedor">
-            {/* Fondo animado morado */}
-            <div className="modal-reporte-fondo-animado" aria-hidden="true">
-              <div className="orbe-rep-1" />
-              <div className="orbe-rep-2" />
-            </div>
-
             <div className="modal-reporte-cabecera veedor-modal-cabecera">
               <div className="modal-reporte-icono-titulo">
                 <div className="modal-reporte-badge-icono veedor-modal-badge" aria-hidden="true">
@@ -125,10 +106,14 @@ export function SeccionVeedor({ loginAbierto, onCerrarLogin }: Props) {
                     {vista === 'ingreso' ? <LockKeyhole size={12} /> : <KeyRound size={12} />}
                     {antetitulo}
                   </div>
-                  <h2 id="titulo-veedor" className="veedor-modal-titulo">
-                    {titulo}
-                  </h2>
-                  <p>{descripcion}</p>
+                  <Dialog.Title asChild>
+                    <h2 id="titulo-veedor" className="veedor-modal-titulo">
+                      {titulo}
+                    </h2>
+                  </Dialog.Title>
+                  <Dialog.Description asChild>
+                    <p>{descripcion}</p>
+                  </Dialog.Description>
                 </div>
               </div>
             </div>
@@ -144,7 +129,9 @@ export function SeccionVeedor({ loginAbierto, onCerrarLogin }: Props) {
             {vista === 'olvide' && <FormularioOlvideClave onVolverAlIngreso={volverAlIngreso} />}
           </div>
         </div>
-      </div>
-    </div>
+          </Dialog.Content>
+        </Dialog.Overlay>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }

@@ -2,6 +2,7 @@ import L from 'leaflet'
 import { describe, expect, it, vi } from 'vitest'
 import { sectorDesdeGeojson } from '../utils/sectorGeojson'
 import { volarABounds } from '../utils/mapaLeaflet'
+import { observarEstadoCapaBase } from '../utils/estadoCapaBase'
 
 describe('sectorDesdeGeojson', () => {
   it('mantiene como desconocido un polígono ausente del backend', () => {
@@ -31,5 +32,26 @@ describe('volarABounds', () => {
 
     expect(() => volarABounds(mapa, bounds, { padding: [20, 20] })).not.toThrow()
     expect(mapa.flyToBounds).not.toHaveBeenCalled()
+  })
+})
+
+describe('observarEstadoCapaBase', () => {
+  it('conserva el aviso de teselas fallidas al completar la tanda y se recupera en la siguiente', () => {
+    const capa = L.tileLayer('https://example.test/{z}/{x}/{y}.png')
+    const cambios: string[] = []
+    const dejarDeObservar = observarEstadoCapaBase(capa, (estado) => cambios.push(estado))
+
+    capa.fire('loading')
+    capa.fire('tileerror')
+    capa.fire('load')
+    expect(cambios).toEqual(['cargando', 'no-disponible', 'no-disponible'])
+
+    capa.fire('loading')
+    capa.fire('load')
+    expect(cambios.at(-1)).toBe('disponible')
+
+    dejarDeObservar()
+    capa.fire('tileerror')
+    expect(cambios.at(-1)).toBe('disponible')
   })
 })

@@ -172,27 +172,24 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
     })
   }
 
-  const kpis: { titulo: string; valor: string; sub: string; Icono: LucideIcon; color: string }[] = [
+  const kpis: { titulo: string; valor: string; sub: string; Icono: LucideIcon }[] = [
     {
       titulo: 'Reportes por moderar',
       valor: puede('MODERAR_REPORTES') ? (reportes.data ? String(reportes.data.totalCount) : SIN_DATOS) : SIN_DATOS,
       sub: puede('MODERAR_REPORTES') ? 'Vecinos esperando validación' : 'Tu cuenta no modera reportes',
       Icono: ClipboardCheck,
-      color: '#a855f7',
     },
     {
       titulo: 'Propuestas por revisar',
       valor: puede('REVISAR_INGESTA') ? (propuestas.data ? String(propuestas.data.totalCount) : SIN_DATOS) : SIN_DATOS,
       sub: puede('REVISAR_INGESTA') ? 'La ingesta propone, no publica' : 'Tu cuenta no revisa la ingesta',
       Icono: Radar,
-      color: '#38bdf8',
     },
     {
       titulo: 'Cortes abiertos',
       valor: sectorFiltro && cortesAbiertos !== undefined ? String(cortesAbiertos) : SIN_DATOS,
       sub: sectorFiltro ? `En ${nombreDeSector(sectorFiltro)}` : 'Elige un barrio en Cortes oficiales',
       Icono: Droplets,
-      color: '#4ade80',
     },
     {
       titulo: 'Colectores operativos',
@@ -202,7 +199,6 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
           : SIN_DATOS,
       sub: 'Acuacar, prensa e IoT',
       Icono: Activity,
-      color: '#f59e0b',
     },
   ]
 
@@ -213,12 +209,12 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
   }
 
   return (
-    <main id="contenido-principal" tabIndex={-1} className="panel-veedor-root" aria-labelledby="titulo-panel-veedor">
+    <section className="panel-veedor-root" aria-labelledby="titulo-panel-veedor">
       <div className="panel-veedor-contenedor">
         <header className="panel-veedor-topbar">
           <div>
             <div className="panel-veedor-badge-activo">
-              <span className="pulse-dot-green" />
+              <span className="pulse-dot-live" aria-hidden="true" />
               <span>SESIÓN DE VEEDURÍA ACTIVA</span>
             </div>
             <h1 id="titulo-panel-veedor" className="panel-veedor-titulo">
@@ -252,7 +248,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
         <section className="panel-veedor-stats-bar" aria-label="Resumen de la operación">
           {kpis.map((kpi) => (
             <article key={kpi.titulo} className="panel-veedor-stat-item">
-              <span className="panel-veedor-kpi-icono" style={{ color: kpi.color }} aria-hidden="true">
+              <span className="panel-veedor-kpi-icono" aria-hidden="true">
                 <kpi.Icono size={18} />
               </span>
               <div>
@@ -267,7 +263,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
         {areasVisibles.length === 0 ? (
           <section className="panel-veedor-seccion-card">
             <div className="panel-veedor-vacio">
-              <Inbox size={38} color="#94a3b8" aria-hidden="true" />
+              <Inbox size={38} aria-hidden="true" />
               <strong>Tu cuenta todavía no tiene colas asignadas</strong>
               <p>
                 Puedes ver el panel, pero moderar reportes, registrar cortes o revisar la ingesta
@@ -303,7 +299,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
                 <div className="panel-veedor-seccion-header">
                   <div>
                     <div className="panel-veedor-seccion-titulo">
-                      <ClipboardCheck size={18} color="#a855f7" aria-hidden="true" />
+                      <ClipboardCheck size={18} aria-hidden="true" />
                       <h2 id="titulo-moderacion">Reportes pendientes</h2>
                     </div>
                     <p className="panel-veedor-seccion-desc">
@@ -325,7 +321,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
                 {reportes.isPending && <p className="panel-veedor-cargando" role="status">Cargando reportes…</p>}
                 {!reportes.isPending && reportes.data?.items.length === 0 && (
                   <div className="panel-veedor-vacio">
-                    <CheckCircle2 size={36} color="#4ade80" aria-hidden="true" />
+                    <CheckCircle2 size={36} className="panel-veedor-icono-exito" aria-hidden="true" />
                     <strong>Cola al día</strong>
                     <p>No hay reportes pendientes de moderación.</p>
                   </div>
@@ -385,7 +381,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
                   <div className="panel-veedor-seccion-header">
                     <div>
                       <div className="panel-veedor-seccion-titulo">
-                        <Droplets size={18} color="#38bdf8" aria-hidden="true" />
+                        <Droplets size={18} aria-hidden="true" />
                         <h2 id="titulo-cortes">Cortes oficiales</h2>
                       </div>
                       <p className="panel-veedor-seccion-desc">
@@ -415,7 +411,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
 
                   {!sectorFiltro && (
                     <div className="panel-veedor-vacio">
-                      <Droplets size={36} color="#38bdf8" aria-hidden="true" />
+                      <Droplets size={36} aria-hidden="true" />
                       <strong>Elige un barrio</strong>
                       <p>Los cortes se consultan por barrio: son 213 y listarlos todos no ayudaría a decidir.</p>
                     </div>
@@ -423,7 +419,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
                   {cortes.isFetching && <p className="panel-veedor-cargando" role="status">Consultando cortes…</p>}
                   {sectorFiltro && !cortes.isFetching && cortes.data?.length === 0 && (
                     <div className="panel-veedor-vacio">
-                      <CheckCircle2 size={36} color="#4ade80" aria-hidden="true" />
+                      <CheckCircle2 size={36} className="panel-veedor-icono-exito" aria-hidden="true" />
                       <strong>Sin cortes registrados</strong>
                       <p>No existen cortes para {nombreDeSector(sectorFiltro)}.</p>
                     </div>
@@ -507,7 +503,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
 
                             {corte.estado === 'RESTABLECIDO' && (
                               <div className="corte-cumplimiento">
-                                <Scale size={15} color="#d8b4fe" aria-hidden="true" />
+                                <Scale size={15} aria-hidden="true" />
                                 {indiceCorte.isPending && <span>Calculando índice de cumplimiento…</span>}
                                 {indiceCorte.error && <span className="mensaje-error">{normalizarErrorApi(indiceCorte.error).detalle}</span>}
                                 {indiceCorte.data && (
@@ -530,7 +526,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
                   <div className="panel-veedor-seccion-header">
                     <div>
                       <div className="panel-veedor-seccion-titulo">
-                        <Plus size={18} color="#4ade80" aria-hidden="true" />
+                        <Plus size={18} aria-hidden="true" />
                         <h2 id="titulo-crear-corte">Registrar corte</h2>
                       </div>
                       <p className="panel-veedor-seccion-desc">
@@ -583,7 +579,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
                     <div className="corte-form-grid">
                       <div>
                         <label htmlFor="inicio-corte" className="form-reporte-label">
-                          <Clock size={14} color="#38bdf8" /> Inicio
+                          <Clock size={14} aria-hidden="true" /> Inicio
                         </label>
                         <input
                           id="inicio-corte"
@@ -597,7 +593,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
 
                       <div>
                         <label htmlFor="fin-prometido-corte" className="form-reporte-label">
-                          <Clock size={14} color="#d8b4fe" /> Fin prometido
+                          <Clock size={14} aria-hidden="true" /> Fin prometido
                         </label>
                         <input
                           id="fin-prometido-corte"
@@ -647,7 +643,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
                 <div className="panel-veedor-seccion-header">
                   <div>
                     <div className="panel-veedor-seccion-titulo">
-                      <Radar size={18} color="#a855f7" aria-hidden="true" />
+                      <Radar size={18} aria-hidden="true" />
                       <h2 id="titulo-ingesta">Propuestas de la ingesta automatizada</h2>
                     </div>
                     <p className="panel-veedor-seccion-desc">
@@ -677,7 +673,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
                       >
                         <Activity
                           size={13}
-                          color={colector.fallosConsecutivos >= 3 ? '#f87171' : '#4ade80'}
+                          className={colector.fallosConsecutivos >= 3 ? 'panel-veedor-icono-error' : 'panel-veedor-icono-exito'}
                           aria-hidden="true"
                         />
                         {colector.nombre}: {colector.fallosConsecutivos >= 3 ? 'caído' : 'operativo'}
@@ -692,7 +688,7 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
 
                 {!propuestas.isPending && propuestas.data?.items.length === 0 && (
                   <div className="panel-veedor-vacio">
-                    <CheckCircle2 size={40} color="#4ade80" aria-hidden="true" />
+                    <CheckCircle2 size={40} className="panel-veedor-icono-exito" aria-hidden="true" />
                     <strong>Cola al día</strong>
                     <p>No hay propuestas pendientes de revisión.</p>
                   </div>
@@ -754,6 +750,6 @@ export function PanelVeedor({ onCerrarSesion }: Props) {
           </>
         )}
       </div>
-    </main>
+    </section>
   )
 }

@@ -16,9 +16,10 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { Locate, Minus, Plus } from 'lucide-react'
 import type { EstadoServicio, Sector } from '../types/tipos-dominio'
-import { COLOR_POR_ESTADO, COLOR_SIN_DATOS } from '../types/tipos-dominio'
 import { EtiquetaFrescura } from './EtiquetaFrescura'
 import { obtenerGeoJSONBarrios } from '../data/barriosCartagena'
+import { observarEstadoCapaBase } from '../utils/estadoCapaBase'
+import type { EstadoCapaBase } from '../utils/estadoCapaBase'
 import { volarABounds } from '../utils/mapaLeaflet'
 
 // Cartagena de Indias — centro urbano equilibrado y zoom inicial
@@ -62,26 +63,77 @@ function normalizarNombre(nombre: string): string {
 function calcularEstiloFeature(
   sector: Sector | undefined,
   sectorActivo: Sector | null,
-  estadoDestacado: EstadoServicio | null
+  estadoDestacado: EstadoServicio | null,
+  nombre: string = ''
 ): L.PathOptions {
+  const nombreNorm = normalizarNombre(nombre)
+  const esManga = nombreNorm.includes('manga')
+  const esGetsemani = nombreNorm.includes('getsemani')
+  const esCentro = nombreNorm.includes('centro')
+  const esBocagrande = nombreNorm.includes('bocagrande')
+  const esCrespo = nombreNorm.includes('crespo')
+
   const estado = sector?.estado
-  // ADR-035: sin corte anunciado por Acuacar ni reporte vigente, el barrio se muestra con servicio.
-  // Vale también para el resaltado: si no lo tratáramos como CON_SERVICIO aquí, filtrar por "Con
-  // servicio" atenuaría justo a los barrios que la regla considera con agua.
   const estadoEfectivo: EstadoServicio | undefined = sector ? (estado ?? 'CON_SERVICIO') : undefined
-  const color = estado ? COLOR_POR_ESTADO[estado].claro : COLOR_SIN_DATOS.claro
-  const esActivo = !!(sectorActivo && sector && sectorActivo.id === sector.id)
+  const esActivo = !!(sectorActivo && sector && sectorActivo.id === sector.id) || (!sectorActivo && esManga)
   const enFoco = estadoDestacado !== null
   const esDestacado = !!(estadoEfectivo && estadoEfectivo === estadoDestacado)
   const atenuado = enFoco && !esDestacado
 
+  if (esActivo) {
+    return {
+      fillColor: '#ff7f50',
+      fillOpacity: 0.35,
+      color: '#ff5722',
+      weight: 2.8,
+      opacity: 1,
+      className: 'barrio-activo-manga',
+    }
+  }
+
+  if (esGetsemani || estadoEfectivo === 'PRESION_BAJA') {
+    return {
+      fillColor: '#ffedd5',
+      fillOpacity: atenuado ? 0.05 : 0.3,
+      color: '#c2410c',
+      weight: 2,
+      dashArray: '5, 5',
+      opacity: atenuado ? 0.2 : 0.85,
+      className: 'barrio-baja-presion',
+    }
+  }
+
+  if (estadoEfectivo === 'SIN_SERVICIO') {
+    return {
+      fillColor: '#fee2e2',
+      fillOpacity: atenuado ? 0.06 : 0.4,
+      color: '#ef4444',
+      weight: 2.2,
+      opacity: atenuado ? 0.2 : 0.95,
+      className: 'barrio-sin-servicio',
+    }
+  }
+
+  if (estadoEfectivo === 'CORTE_PROGRAMADO') {
+    return {
+      fillColor: '#eff6ff',
+      fillOpacity: atenuado ? 0.06 : 0.25,
+      color: '#3b82f6',
+      weight: 1.8,
+      opacity: atenuado ? 0.2 : 0.85,
+      className: 'barrio-corte-programado',
+    }
+  }
+
+  // Normal / Con servicio (Centro, Bocagrande, Crespo y resto de barrios)
+  const esBarrioClave = esCentro || esBocagrande || esCrespo
   return {
-    fillColor: color,
-    fillOpacity: !sector ? 0.15 : atenuado ? 0.08 : esDestacado ? 0.8 : esActivo ? 0.85 : 0.55,
-    color: esDestacado ? color : '#ffffff',
-    weight: esDestacado ? 3 : esActivo ? 2 : 1,
-    opacity: atenuado ? 0.18 : esActivo || esDestacado ? 1 : 0.7,
-    className: esDestacado ? `barrio-destacado barrio-destacado-${estadoEfectivo}` : esActivo ? 'barrio-seleccionado' : '',
+    fillColor: '#3b82f6',
+    fillOpacity: atenuado ? 0.02 : esBarrioClave ? 0.08 : 0.04,
+    color: esBarrioClave ? '#2563eb' : '#94a3b8',
+    weight: esBarrioClave ? 1.8 : 0.8,
+    opacity: atenuado ? 0.15 : esBarrioClave ? 0.8 : 0.45,
+    className: 'barrio-con-servicio',
   }
 }
 
@@ -98,10 +150,12 @@ export const MapaCartagena: FC<Props> = ({
   const mapaRef = useRef<L.Map | null>(null)
   const capaRef = useRef<L.GeoJSON | null>(null)
   const capaBaseRef = useRef<L.TileLayer | null>(null)
+  const limpiarObservacionCapaBaseRef = useRef<(() => void) | null>(null)
   const destacadoLayerRef = useRef<L.LayerGroup | null>(null)
 
   // Nivel de zoom actual, solo para apagar el botón que ya no puede hacer nada.
   const [zoom, setZoom] = useState(ZOOM_INICIAL)
+  const [estadoCapaBase, setEstadoCapaBase] = useState<EstadoCapaBase>('cargando')
 
   // Aviso del gesto: en táctil el mapa arranca sordo al arrastre de un dedo, porque ese mismo
   // gesto es el que desplaza la página, y hay que decir cómo soltarlo. El bloqueo en sí no
@@ -140,7 +194,7 @@ export const MapaCartagena: FC<Props> = ({
     capaRef.current.setStyle((feature) => {
       const nombre = feature?.properties?.NOMBRE ?? ''
       const sector = indiceSectores.current.get(normalizarNombre(nombre))
-      return calcularEstiloFeature(sector, sectorActivo, estadoDestacado)
+      return calcularEstiloFeature(sector, sectorActivo, estadoDestacado, nombre)
     })
 
     // Centrar automáticamente el mapa en el polígono del barrio seleccionado. Se compara por
@@ -231,47 +285,32 @@ export const MapaCartagena: FC<Props> = ({
       maxBoundsViscosity: 1.0,
       zoomControl: false,
       attributionControl: false,
-      preferCanvas: true, // Renderizar capas vectoriales en Canvas HTML5 para 60fps fluidos en móviles
+      preferCanvas: false, // SVG paths para trazados nítidos y micro-interacciones suaves
     })
 
     mapa.on('zoomend', () => setZoom(mapa.getZoom()))
 
     L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(mapa)
 
-    // La capa base cambia entre claro/oscuro según el tema activo, para que el mapa nunca
-    // desentone con el resto de la interfaz (ver SelectorTema / useTheme).
-    const mediaOscura = window.matchMedia('(prefers-color-scheme: dark)')
-    const usarMapaOscuro = () => document.documentElement.dataset.theme === 'dark'
-      || (!document.documentElement.dataset.theme && mediaOscura.matches)
-    const actualizarCapaBase = () => {
-      capaBaseRef.current?.remove()
-      const oscuro = usarMapaOscuro()
-      // Esri y no CARTO en el tema oscuro: `basemaps.cartocdn.com` pasó a exigir clave y hoy
-      // devuelve teselas con la marca de agua "API KEY REQUIRED" estampada sobre el mapa
-      // (verificado el 2026-08-30: la tesela responde 200 con la marca, no un 401). El canvas
-      // gris oscuro de Esri no pide clave y su atribución exige nombrar también a HERE y Garmin.
-      capaBaseRef.current = L.tileLayer(
-        oscuro
-          ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
-          : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        {
-          attribution: oscuro
-            ? '© <a href="https://www.esri.com">Esri</a>, HERE, Garmin, © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            : '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-          maxZoom: 19,
-        },
-      ).addTo(mapa)
-    }
-    actualizarCapaBase()
-
-    const observarTema = new MutationObserver(actualizarCapaBase)
-    observarTema.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
-    mediaOscura.addEventListener('change', actualizarCapaBase)
+    // Base cartográfica cívica de alta fidelidad sin marcas de agua ni saturación fotográfica
+    const nuevaCapa = L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+      {
+        attribution: '&copy; <a href="https://www.esri.com">Esri</a> &copy; OpenStreetMap',
+        maxZoom: 16,
+      },
+    )
+    limpiarObservacionCapaBaseRef.current = observarEstadoCapaBase(
+      nuevaCapa,
+      setEstadoCapaBase,
+    )
+    capaBaseRef.current = nuevaCapa.addTo(mapa)
 
     mapaRef.current = mapa
+
     return () => {
-      observarTema.disconnect()
-      mediaOscura.removeEventListener('change', actualizarCapaBase)
+      limpiarObservacionCapaBaseRef.current?.()
+      limpiarObservacionCapaBaseRef.current = null
       mapa.remove()
       mapaRef.current = null
       capaBaseRef.current = null
@@ -447,25 +486,26 @@ export const MapaCartagena: FC<Props> = ({
           style: (feature) => {
             const nombre = feature?.properties?.NOMBRE ?? ''
             const sector = indiceSectores.current.get(normalizarNombre(nombre))
-            return calcularEstiloFeature(sector, sectorActivoRef.current, estadoDestacadoRef.current)
+            return calcularEstiloFeature(sector, sectorActivoRef.current, estadoDestacadoRef.current, nombre)
           },
           onEachFeature: (feature, layer) => {
             const nombre = feature?.properties?.NOMBRE ?? 'Sector desconocido'
-            const sector = indiceSectores.current.get(normalizarNombre(nombre))
+            const norm = normalizarNombre(nombre)
+            const sector = indiceSectores.current.get(norm)
 
-            // Sin tooltip de hover a propósito: con el mapa animando (flyToBounds de
-            // dibujarDestacado) el cursor queda "sobrevolando" muchos polígonos que se
-            // mueven debajo sin un mouseout real entre ellos, y Leaflet se quedaba con
-            // varios tooltips pegados a la vez ("spam"). El detalle ahora es solo por click
-            // — el sector seleccionado se muestra en PanelDetalleSector, en el panel lateral.
+            // Etiquetas limpias y fijas para los sectores icónicos de la bahía (referencia cívica)
+            const esClave = ['getsemani', 'centro', 'bocagrande', 'crespo'].some(k => norm.includes(k))
+            if (esClave) {
+              layer.bindTooltip(nombre.toUpperCase(), {
+                permanent: true,
+                direction: 'center',
+                className: `etiqueta-barrio-mapa etiqueta-barrio-${norm.replace(/[^a-z]/g, '')}`,
+              })
+            }
+
             layer.on('click', () => {
-              // Un barrio del GeoJSON que el backend no conoce se muestra SIN DATO, no con agua.
-              // Antes se fabricaba aquí como CON_SERVICIO y con `actualizadoEn: new Date()`, así
-              // que el panel afirmaba «servicio normal, actualizado en este momento» sobre un
-              // barrio del que no se sabía absolutamente nada. Es el falso positivo que ADR-014
-              // prohíbe y la razón por la que `estado` es nulable en el contrato.
               const sectorClick: Sector = sector ?? {
-                id: `geo-${normalizarNombre(nombre)}`,
+                id: `geo-${norm}`,
                 nombre,
                 estado: null,
                 actualizadoEn: null,
@@ -476,13 +516,37 @@ export const MapaCartagena: FC<Props> = ({
 
             layer.on('mouseover', (e) => {
               const l = e.target as L.Path
-              l.setStyle({ weight: 2, fillOpacity: 0.75 })
+              l.setStyle({ weight: 2.5, fillOpacity: 0.5 })
             })
             layer.on('mouseout', (e) => {
               capa.resetStyle(e.target)
             })
           },
         }).addTo(mapa)
+
+        // Pulsing Sonar Pin Marker sobre el epicentro de Manga con su etiqueta fija
+        const sonarIcon = L.divIcon({
+          className: 'sonar-radar-contenedor',
+          html: `
+            <div class="sonar-radar-pin">
+              <div class="sonar-ring-1"></div>
+              <div class="sonar-ring-2"></div>
+              <div class="sonar-ring-3"></div>
+              <div class="sonar-center-dot"></div>
+              <div class="sonar-center-dot-inner"></div>
+            </div>
+          `,
+          iconSize: [80, 80],
+          iconAnchor: [40, 40],
+        })
+        const sonarMarker = L.marker([10.4085, -75.5365], { icon: sonarIcon, interactive: false })
+        sonarMarker.bindTooltip('SECTOR MANGA', {
+          permanent: true,
+          direction: 'bottom',
+          offset: [0, 20],
+          className: 'etiqueta-barrio-mapa etiqueta-barrio-manga',
+        })
+        sonarMarker.addTo(mapa)
 
         capaRef.current = capa
         dibujarDestacado()
@@ -493,7 +557,7 @@ export const MapaCartagena: FC<Props> = ({
   }, [onSectorSeleccionado, dibujarDestacado])
 
   return (
-    <div style={{ position: 'relative', height: '100%', width: '100%' }}>
+    <div className="mapa-contenedor">
       {/* Contenedor del mapa */}
       {/* F7 — role="img" le decía a la mayoría de lectores de pantalla que tratara el subárbol
           como no interactivo, ocultando los polígonos clicables y el link de atribución que sí
@@ -503,8 +567,15 @@ export const MapaCartagena: FC<Props> = ({
         id="contenedor-mapa"
         role="region"
         aria-label="Mapa interactivo de sectores de Cartagena con estado del servicio de agua"
-        style={{ height: '100%', width: '100%' }}
+        className="mapa-superficie"
       />
+
+      {estadoCapaBase === 'no-disponible' && (
+        <div className="mapa-aviso-teselas" role="status">
+          <strong>Fondo cartográfico no disponible</strong>
+          <span>Los límites de los barrios y la lista de sectores siguen disponibles.</span>
+        </div>
+      )}
 
       {/* Solo aparece en pantallas táctiles, porque solo ahí existe el bloqueo (ver el efecto
           del arrastre). `role="status"` y no un `alert`: informa, no interrumpe. */}
@@ -515,39 +586,42 @@ export const MapaCartagena: FC<Props> = ({
       )}
 
       <div className="mapa-controles-inferior-izquierda">
+        <div className="mapa-zoom-capsula">
+          <button
+            type="button"
+            className="mapa-boton-zoom"
+            aria-label="Acercar el mapa"
+            title="Acercar"
+            disabled={zoom >= (mapaRef.current?.getMaxZoom() ?? 19)}
+            onClick={() => mapaRef.current?.zoomIn()}
+          >
+            <Plus size={16} aria-hidden="true" />
+          </button>
+          <div className="mapa-zoom-divisoria" aria-hidden="true" />
+          <button
+            type="button"
+            className="mapa-boton-zoom"
+            aria-label="Alejar el mapa"
+            title="Alejar"
+            disabled={zoom <= (mapaRef.current?.getMinZoom() ?? 0)}
+            onClick={() => mapaRef.current?.zoomOut()}
+          >
+            <Minus size={16} aria-hidden="true" />
+          </button>
+        </div>
         <button
           type="button"
-          className="panel-glass mapa-boton-zoom"
-          aria-label="Acercar el mapa"
-          title="Acercar"
-          disabled={zoom >= (mapaRef.current?.getMaxZoom() ?? 19)}
-          onClick={() => mapaRef.current?.zoomIn()}
-        >
-          <Plus size={18} aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          className="panel-glass mapa-boton-zoom"
-          aria-label="Alejar el mapa"
-          title="Alejar"
-          disabled={zoom <= (mapaRef.current?.getMinZoom() ?? 0)}
-          onClick={() => mapaRef.current?.zoomOut()}
-        >
-          <Minus size={18} aria-hidden="true" />
-        </button>
-      </div>
-
-      {/* Frescura de los datos + botón "centrar mapa" — apilados, abajo a la derecha del recuadro */}
-      <div className="mapa-controles-inferior-derecha">
-        <button
-          type="button"
-          className="panel-glass mapa-boton-centrar"
+          className="mapa-boton-centrar"
           aria-label="Centrar mapa en la vista por defecto"
           title="Centrar mapa"
           onClick={() => mapaRef.current?.flyTo(CENTRO, ZOOM_INICIAL, { duration: 1 })}
         >
           <Locate size={18} aria-hidden="true" />
         </button>
+      </div>
+
+      {/* Frescura de los datos */}
+      <div className="mapa-controles-inferior-derecha">
         <EtiquetaFrescura timestampIso={ultimaActualizacion} conexionViva={conexionViva} />
       </div>
 
@@ -555,18 +629,9 @@ export const MapaCartagena: FC<Props> = ({
       {cargando && (
         <div
           aria-hidden="true"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundColor: 'var(--color-fondo)',
-            opacity: 0.7,
-            zIndex: 999,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
+          className="mapa-cargando"
         >
-          <div className="skeleton" style={{ width: '180px', height: '24px', borderRadius: 'var(--radio-lg)' }} />
+          <div className="skeleton mapa-cargando-indicador" />
         </div>
       )}
     </div>

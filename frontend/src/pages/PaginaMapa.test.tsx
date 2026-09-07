@@ -4,14 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import PaginaMapa from './PaginaMapa'
 
 const mockUseDatosEnVivo = vi.fn()
-const mockUseConsultaMedios = vi.fn()
-
 vi.mock('../hooks/useDatosEnVivo', () => ({
   useDatosEnVivo: () => mockUseDatosEnVivo(),
-}))
-
-vi.mock('../hooks/useConsultaMedios', () => ({
-  useConsultaMedios: () => mockUseConsultaMedios(),
 }))
 
 vi.mock('../components/MapaCartagena', () => ({
@@ -19,12 +13,6 @@ vi.mock('../components/MapaCartagena', () => ({
     <div data-testid="mapa-cartagena" data-props={JSON.stringify(props)}>
       Mapa Cartagena Mock
     </div>
-  ),
-}))
-
-vi.mock('../components/GradientWaves/GradientWaves', () => ({
-  GradientWaves: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="gradient-waves">{children}</div>
   ),
 }))
 
@@ -39,8 +27,8 @@ function renderizarPaginaMapa(tema: 'claro' | 'oscuro' = 'oscuro') {
 describe('PaginaMapa (M1 / REC-004)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockUseConsultaMedios.mockReturnValue(false)
     mockUseDatosEnVivo.mockReturnValue({
+      estado: 'success',
       sectores: [
         { id: 'sec-1', nombre: 'BOCAGRANDE', estado: 'CON_SERVICIO', actualizadoEn: '2026-09-01T12:00:00Z' },
         { id: 'sec-2', nombre: 'CRESPO', estado: 'SIN_SERVICIO', actualizadoEn: '2026-09-01T12:00:00Z' },
@@ -50,6 +38,7 @@ describe('PaginaMapa (M1 / REC-004)', () => {
       ultimaActualizacion: new Date('2026-09-01T12:00:00Z'),
       conexionViva: true,
       boletines: [],
+      recargar: vi.fn(),
     })
   })
 
@@ -63,12 +52,14 @@ describe('PaginaMapa (M1 / REC-004)', () => {
 
   it('pasa la bandera cargando a los componentes hijos cuando los datos se están recuperando', () => {
     mockUseDatosEnVivo.mockReturnValue({
+      estado: 'loading',
       sectores: [],
       cargando: true,
       error: null,
       ultimaActualizacion: null,
       conexionViva: false,
       boletines: [],
+      recargar: vi.fn(),
     })
 
     renderizarPaginaMapa()
@@ -91,11 +82,68 @@ describe('PaginaMapa (M1 / REC-004)', () => {
     expect(contenedorPanel).not.toHaveClass('panel-mapa-unificado--colapsado')
   })
 
-  it('monta la portada en pantallas pequeñas cuando el media query coincide', () => {
-    mockUseConsultaMedios.mockReturnValue(true) // Simula móvil/pantalla pequeña <= 1024px
+  it('no antepone una portada promocional al mapa', () => {
+    renderizarPaginaMapa()
+    expect(document.querySelector('.portada-movil')).not.toBeInTheDocument()
+    expect(screen.getByTestId('mapa-cartagena')).toBeInTheDocument()
+  })
+
+  it('muestra indisponibilidad y reintento sin publicar cuatro conteos cero', () => {
+    const recargar = vi.fn()
+    mockUseDatosEnVivo.mockReturnValue({
+      estado: 'error',
+      sectores: [],
+      cargando: false,
+      error: 'No fue posible conectar con el servicio.',
+      ultimaActualizacion: null,
+      conexionViva: false,
+      boletines: [],
+      recargar,
+    })
 
     renderizarPaginaMapa()
-    const portada = document.querySelector('.portada-movil')
-    expect(portada).toBeInTheDocument()
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Información no disponible')
+    expect(screen.getByText('No fue posible conectar con el servicio.')).toBeInTheDocument()
+    expect(screen.queryByText('Con servicio')).not.toBeInTheDocument()
+    expect(screen.queryByText('Sin servicio')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Reintentar consulta' }))
+    expect(recargar).toHaveBeenCalledTimes(1)
+  })
+
+  it('distingue una respuesta vacía de una consulta fallida', () => {
+    mockUseDatosEnVivo.mockReturnValue({
+      estado: 'empty',
+      sectores: [],
+      cargando: false,
+      error: null,
+      ultimaActualizacion: '2026-09-01T12:00:00Z',
+      conexionViva: true,
+      boletines: [],
+      recargar: vi.fn(),
+    })
+
+    renderizarPaginaMapa()
+    expect(screen.getByText('Aún no hay sectores publicados')).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('advierte cuando conserva datos previos pero el canal en vivo está interrumpido', () => {
+    mockUseDatosEnVivo.mockReturnValue({
+      estado: 'stale',
+      sectores: [
+        { id: 'sec-1', nombre: 'BOCAGRANDE', estado: 'CON_SERVICIO', actualizadoEn: '2026-09-01T12:00:00Z' },
+      ],
+      cargando: false,
+      error: 'La actualización falló.',
+      ultimaActualizacion: '2026-09-01T12:00:00Z',
+      conexionViva: false,
+      boletines: [],
+      recargar: vi.fn(),
+    })
+
+    renderizarPaginaMapa()
+    expect(screen.getByText('Mostrando la última información disponible')).toBeInTheDocument()
+    expect(screen.getByText('Con servicio')).toBeInTheDocument()
   })
 })

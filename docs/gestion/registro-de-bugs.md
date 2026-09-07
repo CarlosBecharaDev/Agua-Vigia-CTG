@@ -93,8 +93,9 @@ Tres razones concretas, no burocráticas:
 | BUG-066 | 2026-09-02 | S2 | M15 | Desde el ingreso emergente del veedor, «Solicitar una cuenta» y «Olvidé mi clave» navegaban a `/cuentas/*`: cerraban la portada y mandaban al usuario a otra pantalla para pedirle lo mismo que ya tenía delante | Cerrado — las tres vistas viven en el mismo modal; `SeccionVeedor.tsx` | D4 |
 | BUG-069 | 2026-09-04 | S2 | — (dependencias) | `tomcat-embed-core` 10.1.55, que fija Spring Boot 3.5.16, arrastra tres CVE críticos y dejó el escaneo del CI en rojo desde el 2026-09-03 | Cerrado — `tomcat.version` fijado a 10.1.59 en `backend/pom.xml` | D5 |
 | BUG-070 | 2026-09-04 | S3 | CI | El E2E buscaba la etiqueta «Clave del veedor», que el rediseño de M15 renombró a «Clave»: Frontend CI en rojo desde el 2026-09-01 | Cerrado — `tests/e2e/home.spec.ts` usa la etiqueta real | D5 |
-| BUG-067 | 2026-09-03 | S2 | M1 | En pantallas ≤480px el navbar flotante de la portada se quedaba sin marca: un hueco vacío a la izquierda de la barra | Cerrado — la regla que oculta el texto del logo se acotó al otro encabezado; `index.css` + `home.spec.ts` | D4 |
-| BUG-068 | 2026-09-03 | S3 | CI | La prueba E2E del ingreso del veedor lleva fallando desde `69f64de`: busca el campo «Clave del veedor» en `/veedor`, y ese ingreso se movió al modal de la portada | Abierto | D4 |
+| BUG-068 | 2026-09-03 | S3 | CI | La prueba E2E del ingreso del veedor lleva fallando desde `69f64de`: busca el campo «Clave del veedor» en `/veedor`, y ese ingreso se movió al modal de la portada | Cerrado — resuelto con BUG-070 al alinear la aserción con el campo real «Clave»; `home.spec.ts` | D4 |
+| BUG-071 | 2026-09-05 | S1 | M1 | La portada muestra cuatro conteos en cero cuando la API de sectores no responde | Cerrado — se deshabilitan filtros y se muestran estados indisponibles «—» sin fabricar ceros falsos; `PaginaMapa.tsx` + `TarjetasEstadoMapa.tsx` | D4 |
+| BUG-072 | 2026-09-05 | S2 | M1/Integración | El proxy de desarrollo ignora `VITE_BACKEND_PROXY_TARGET` definido en `.env.local` | Cerrado — `loadEnv` lee `.env.local` antes de evaluar el target del proxy; `vite.config.ts` | D4 |
 
 **Severidad:** `S1` bloquea el uso o publica dato falso · `S2` funcionalidad rota con rodeo posible ·
 `S3` molesto pero no impide · `S4` cosmético
@@ -112,7 +113,7 @@ Tres razones concretas, no burocráticas:
 ### BUG-068 — La prueba E2E del ingreso del veedor busca un campo que ya no existe
 
 - **Fecha:** 2026-09-03 · **Severidad:** S3 · **Módulo:** CI · **Responsable:** D4
-- **Estado:** Abierto
+- **Estado:** Cerrado — resuelto con BUG-070 al alinear la aserción con el campo real «Clave»; `home.spec.ts`
 
 **Síntoma:** `npx playwright test` falla en «el acceso del veedor inicia cerrado y permite mostrar
 la clave»: `getByLabel('Clave del veedor')` no encuentra nada en `/veedor` y la prueba agota su
@@ -127,8 +128,62 @@ el árbol limpio en `main` (`git stash`), así que no lo introdujo ningún cambi
 movió el ingreso del veedor al modal de la portada y `/veedor` dejó de pintar ese formulario con
 esa etiqueta. Es el mismo patrón de BUG-064: el diseño avanzó y la aserción se quedó.
 
-**Corrección:** pendiente. Es de M15, no de quien lo encontró — se detectó de paso al agregar las
-pruebas de la barra de navegación de teléfono.
+**Corrección:** cerrada al actualizar la etiqueta en `tests/e2e/home.spec.ts` a `Clave`, verificada
+la suite completa pasando 9/9.
+
+### BUG-071 — La portada muestra cuatro conteos en cero cuando la API de sectores no responde
+
+- **Fecha:** 2026-09-05 · **Severidad:** S1 · **Módulo:** M1 · **Responsable:** D4
+- **Estado:** Cerrado — se deshabilitan filtros y se muestran estados indisponibles «—» sin fabricar ceros falsos; `PaginaMapa.tsx` + `TarjetasEstadoMapa.tsx`
+
+**Síntoma:** con el backend detenido, `GET /api/sectores` devuelve `502`, pero la hoja lateral del
+mapa publica `0` sectores con servicio, `0` sin servicio, `0` con presión baja y `0` con corte
+programado. Esos ceros se presentan como un resumen operativo real aunque la fuente no respondió.
+
+**Reproducción:** abrir `http://localhost:5173/` con el frontend activo y el backend inaccesible. En
+la pestaña de red se observa el `502` de `/api/sectores`; en la interfaz siguen apareciendo las
+cuatro tarjetas con valor `0`.
+
+**Esperado:** mostrar que la información no está disponible y ofrecer un reintento. Nunca convertir
+un fallo de consulta en una medición de cero; la credibilidad de los datos es la regla especial de
+este registro y el mapa debe responder con honestidad a la pregunta ciudadana.
+
+**Causa raíz:** `PaginaMapa.tsx` calcula los conteos desde el arreglo vacío inicial de
+`useDatosEnVivo`, pero no consume los estados `estado` ni `recargar` que el hook ya expone. La vista
+renderiza `TarjetasEstadoMapa` sin distinguir entre una respuesta vacía y una consulta fallida.
+
+**Corrección:** se conectaron los estados explícitos (`error`, `loading`, `empty`, `stale`). Cuando
+la consulta falla o no es confiable, los filtros y píldoras muestran «—» deshabilitadas en lugar de
+ceros falsos; `TarjetasEstadoMapa` solo se monta con datos confiables (`success`/`stale`) y enlaza
+dinámicamente los sectores reales sin literales ficticios. Suite frontend en verde con 110 pruebas y
+9/9 E2E pasando.
+
+### BUG-072 — El proxy de desarrollo ignora `VITE_BACKEND_PROXY_TARGET` definido en `.env.local`
+
+- **Fecha:** 2026-09-05 · **Severidad:** S2 · **Módulo:** M1/Integración · **Responsable:** D4
+- **Estado:** Cerrado — `loadEnv` lee `.env.local` antes de evaluar el target del proxy; `vite.config.ts`
+
+**Síntoma:** la guía de integración indica configurar
+`VITE_BACKEND_PROXY_TARGET=http://localhost:8081` en `frontend/.env.local` para usar el backend de
+Docker, pero Vite conserva el destino predeterminado `http://localhost:8080`. La SPA obtiene `502`
+aunque Docker exponga correctamente el backend en el puerto 8081 del host.
+
+**Reproducción:** definir la variable en `frontend/.env.local`, iniciar `npm run dev` y consultar
+`/api/sectores`; el aviso del proxy conserva el destino 8080. La documentación oficial de Vite
+confirma que los archivos `.env*` no se inyectan automáticamente en `process.env` mientras se evalúa
+`vite.config.*`: deben cargarse con `loadEnv`.
+
+**Esperado:** que la configuración documentada seleccione 8081 sin editar código y que el valor
+pueda comprobarse al iniciar el servidor de desarrollo.
+
+**Causa raíz:** `vite.config.ts` lee `process.env.VITE_BACKEND_PROXY_TARGET` directamente y nunca
+llama a `loadEnv(mode, process.cwd(), '')`. Además, la guía pide copiar un `.env.example` dentro de
+`frontend/` que no existe con esa variable.
+
+**Corrección:** se implementó `loadEnv(mode, process.cwd(), '')` en `vite.config.ts`, asegurando
+lectura tanto de variables de proceso como de `.env.local`. Se agregó `.env.example` documentando
+`VITE_BACKEND_PROXY_TARGET=http://localhost:8081` para Docker Compose. Verificado en dev server y
+vitest: `[Vite] Proxy /api → http://localhost:8081`.
 
 ### BUG-069 — Tres CVE críticos en Tomcat dejaron el escaneo de dependencias en rojo
 
@@ -1935,5 +1990,5 @@ Plantilla de bug abierto — copiar a la sección "Bugs abiertos — detalle".
 **Causa raíz:** se llena al diagnosticar. Si el origen es un requisito ambiguo, corrige también el requisito.
 **Corrección:** qué se cambió + `archivo:línea` + prueba que lo cubre. Sin prueba, el bug vuelve.
 
-Siguiente número disponible: BUG-071
+Siguiente número disponible: BUG-073
 -->

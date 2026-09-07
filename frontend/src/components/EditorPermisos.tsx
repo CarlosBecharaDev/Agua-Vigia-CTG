@@ -106,11 +106,11 @@ export function EditorPermisos({
 
   return (
     <div>
-      <fieldset style={{ border: 'none', padding: 0, margin: '0 0 1rem' }}>
-        <legend className="form-reporte-label" style={{ marginBottom: '0.5rem' }}>
+      <fieldset className="cuentas-fieldset cuentas-fieldset--separado">
+        <legend className="form-reporte-label cuentas-legend">
           Rol de base
         </legend>
-        <div className="cuentas-filtros" style={{ marginBottom: 0 }}>
+        <div className="cuentas-filtros cuentas-filtros--compactos">
           {ROLES.map((opcion) => (
             <button
               key={opcion}
@@ -131,8 +131,8 @@ export function EditorPermisos({
         )}
       </fieldset>
 
-      <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
-        <legend className="form-reporte-label" style={{ marginBottom: '0.35rem' }}>
+      <fieldset className="cuentas-fieldset">
+        <legend className="form-reporte-label cuentas-legend cuentas-legend--compacta">
           Qué podrá hacer
         </legend>
         <div className="cuentas-permisos">
@@ -155,7 +155,7 @@ export function EditorPermisos({
         )}
       </fieldset>
 
-      <div className="cuentas-acciones" style={{ marginTop: '1.15rem' }}>
+      <div className="cuentas-acciones cuentas-acciones--separadas">
         <button
           type="button"
           className="cuentas-btn cuentas-btn-principal"

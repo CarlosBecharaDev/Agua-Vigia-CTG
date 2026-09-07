@@ -17,24 +17,14 @@ if (import.meta.env.DEV) {
 // Docker sirve un build de producción también durante el trabajo local. Si una pestaña
 // queda controlada por el Service Worker anterior, recárgala apenas el nuevo tome control.
 // Se limita a localhost para no interrumpir formularios abiertos en producción.
-if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-  const esEntornoLocal = window.location.hostname === '127.0.0.1'
-    || window.location.hostname === 'localhost'
-
-  if (esEntornoLocal) {
-    let recargandoPorActualizacion = false
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (recargandoPorActualizacion) return
-      recargandoPorActualizacion = true
-      window.location.reload()
-    })
-
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.ready
-        .then((registro) => registro.update())
-        .catch(() => undefined)
-    })
-  }
+// En localhost durante desarrollo, limpiar cualquier Service Worker previo para que el navegador
+// no sirva la caché vieja de sesiones anteriores.
+if ('serviceWorker' in navigator && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (const registration of registrations) {
+      registration.unregister()
+    }
+  }).catch(() => undefined)
 }
 
 createRoot(document.getElementById('root')!).render(

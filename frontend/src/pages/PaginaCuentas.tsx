@@ -116,7 +116,7 @@ export default function PaginaCuentas() {
       <PageWrapper>
         <main id="contenido-principal" tabIndex={-1} className="cuenta-pagina">
           <section className="modal-reporte-contenedor cuenta-tarjeta">
-            <h1 style={{ fontSize: '1.3rem', color: '#fff', margin: '0 0 0.5rem' }}>
+            <h1 className="cuenta-acceso-denegado-titulo">
               Esta zona es solo para administradores
             </h1>
             <p className="cuenta-pista">
@@ -150,11 +150,11 @@ export default function PaginaCuentas() {
             <Link to="/veedor" className="enlace-cuenta">
               <ArrowLeft size={14} /> Volver al panel
             </Link>
-            <h1 style={{ fontSize: '1.6rem', margin: '0.35rem 0 0.15rem', color: '#f8fafc' }}>
-              <Users size={22} style={{ verticalAlign: '-3px', marginRight: '0.4rem' }} />
+            <h1 className="cuentas-titulo">
+              <Users size={22} aria-hidden="true" />
               Cuentas del panel
             </h1>
-            <p style={{ margin: 0, color: 'rgba(203, 213, 225, 0.7)', fontSize: '0.86rem' }}>
+            <p className="cuentas-subtitulo">
               Aprueba solicitudes, invita gente y decide qué puede hacer cada quien.
             </p>
           </div>
@@ -183,18 +183,17 @@ export default function PaginaCuentas() {
         </div>
 
         {error && (
-          <div className="form-suscripcion-error-badge" role="alert" style={{ marginBottom: '1rem' }}>
+          <div className="form-suscripcion-error-badge cuentas-error" role="alert">
             {error}
           </div>
         )}
 
         {invitando && (
           <section
-            className="modal-reporte-contenedor"
-            style={{ marginBottom: '1.5rem', maxHeight: 'none' }}
+            className="modal-reporte-contenedor cuentas-editor"
             aria-label="Invitar a una persona"
           >
-            <h2 style={{ fontSize: '1.05rem', margin: '0 0 0.85rem', color: '#f8fafc' }}>
+            <h2 className="cuentas-editor-titulo cuentas-editor-titulo--separado">
               Invitar a una persona
             </h2>
             <form onSubmit={enviarInvitacion} className="form-reporte-moderno">
@@ -208,8 +207,7 @@ export default function PaginaCuentas() {
                   required
                   minLength={2}
                   maxLength={80}
-                  className="form-suscripcion-input"
-                  style={{ width: '100%' }}
+                  className="form-suscripcion-input cuenta-input"
                 />
               </div>
               <div className="form-reporte-bloque">
@@ -221,8 +219,7 @@ export default function PaginaCuentas() {
                   name="correo"
                   type="email"
                   required
-                  className="form-suscripcion-input"
-                  style={{ width: '100%' }}
+                  className="form-suscripcion-input cuenta-input"
                 />
               </div>
               <div className="form-reporte-bloque">
@@ -233,8 +230,7 @@ export default function PaginaCuentas() {
                   id="invitar-rol"
                   name="rol"
                   defaultValue="VEEDOR"
-                  className="form-suscripcion-input"
-                  style={{ width: '100%' }}
+                  className="form-suscripcion-input cuenta-input"
                 >
                   <option value="OBSERVADOR">OBSERVADOR — solo lectura del panel</option>
                   <option value="VEEDOR">VEEDOR — modera, registra cortes y revisa ingesta</option>
@@ -262,15 +258,14 @@ export default function PaginaCuentas() {
 
         {editando && (
           <section
-            className="modal-reporte-contenedor"
-            style={{ marginBottom: '1.5rem', maxHeight: 'none' }}
+            className="modal-reporte-contenedor cuentas-editor"
             aria-label="Editar permisos"
           >
-            <h2 style={{ fontSize: '1.05rem', margin: '0 0 0.25rem', color: '#f8fafc' }}>
+            <h2 className="cuentas-editor-titulo">
               {editando.modo === 'aprobar' ? 'Aprobar a ' : 'Permisos de '}
               {editando.cuenta.nombre}
             </h2>
-            <p className="cuenta-pista" style={{ marginBottom: '1rem' }}>
+            <p className="cuenta-pista cuentas-editor-pista">
               {editando.cuenta.correo}
               {editando.modo === 'permisos' &&
                 ' · al guardar se cerrarán sus sesiones abiertas para que el cambio aplique ya.'}
@@ -322,9 +317,9 @@ export default function PaginaCuentas() {
                 return (
                   <tr key={cuenta.id}>
                     <td>
-                      <strong style={{ color: '#f1f5f9' }}>{cuenta.nombre}</strong>
+                      <strong className="cuentas-persona">{cuenta.nombre}</strong>
                       {esYo && <span className="cuenta-pastilla cuenta-pastilla-neutra"> tú</span>}
-                      <div style={{ color: 'rgba(203, 213, 225, 0.65)', fontSize: '0.78rem' }}>
+                      <div className="cuentas-correo">
                         {cuenta.correo}
                       </div>
                     </td>
@@ -335,7 +330,7 @@ export default function PaginaCuentas() {
                       {cuenta.rol}
                       {(((cuenta.permisosConcedidos?.length ?? 0) > 0) ||
                         ((cuenta.permisosRevocados?.length ?? 0) > 0)) && (
-                        <div style={{ color: 'rgba(203, 213, 225, 0.6)', fontSize: '0.72rem' }}>
+                        <div className="cuentas-ajuste">
                           con ajustes
                         </div>
                       )}
@@ -421,12 +416,12 @@ export default function PaginaCuentas() {
         </div>
 
         {verAuditoria && puede('VER_AUDITORIA') && (
-          <section style={{ marginTop: '2.5rem' }} aria-label="Bitácora de auditoría">
-            <h2 style={{ fontSize: '1.15rem', color: '#f8fafc', margin: '0 0 0.25rem' }}>
-              <ShieldCheck size={18} style={{ verticalAlign: '-3px', marginRight: '0.35rem' }} />
+          <section className="cuentas-auditoria" aria-label="Bitácora de auditoría">
+            <h2 className="cuentas-auditoria-titulo">
+              <ShieldCheck size={18} aria-hidden="true" />
               Auditoría de cuentas
             </h2>
-            <p style={{ margin: '0 0 1rem', color: 'rgba(203, 213, 225, 0.7)', fontSize: '0.84rem' }}>
+            <p className="cuentas-auditoria-descripcion">
               Quién le hizo qué a quién. Solo se anexa: no hay forma de editar ni borrar un asiento.
             </p>
             <div className="cuentas-tabla-scroll">
@@ -444,7 +439,7 @@ export default function PaginaCuentas() {
                 <tbody>
                   {auditoria.data?.map((asiento) => (
                     <tr key={asiento.id}>
-                      <td style={{ whiteSpace: 'nowrap' }}>
+                      <td className="cuentas-fecha">
                         {new Date(asiento.ocurrioEn).toLocaleString('es-CO')}
                       </td>
                       <td>{asiento.accion.replaceAll('_', ' ').toLowerCase()}</td>

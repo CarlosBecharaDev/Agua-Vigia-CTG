@@ -5,15 +5,13 @@
  * Encabezado sin cambios.
  *
  * En teléfono la barra de arriba se queda con la marca, el tema y "Reportar ahora", y los
- * enlaces de sección se mudan a NavegacionInferior: el riel de GooeyNav necesita ancho para
- * las cuatro etiquetas y por debajo de 768px no lo hay.
+ * enlaces de sección se mudan a NavegacionInferior para conservar blancos táctiles cómodos.
  */
 import { useCallback } from 'react'
 import type { FC } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Search, Megaphone } from 'lucide-react'
+import { Search, Megaphone, Droplets } from 'lucide-react'
 import { SelectorTema } from './SelectorTema'
-import { GooeyNav } from './GooeyNav/GooeyNav'
 import { NavegacionInferior } from './NavegacionInferior/NavegacionInferior'
 import { ENLACES } from '../config/navegacion'
 import { useConsultaMedios } from '../hooks/useConsultaMedios'
@@ -30,6 +28,9 @@ interface Props {
   busquedaBitacora: string
   onCambiarBusquedaBitacora: (valor: string) => void
   onReportar: () => void
+  porcentajeNormal?: string
+  totalEventosBitacora?: number
+  onAlternarBitacora?: () => void
 }
 
 const DESTINO_POR_SECCION: Record<SeccionPrincipal, string> = {
@@ -51,15 +52,13 @@ export const NavegacionFlotante: FC<Props> = ({
   busquedaBitacora,
   onCambiarBusquedaBitacora,
   onReportar,
+  porcentajeNormal,
+  totalEventosBitacora = 0,
+  onAlternarBitacora,
 }) => {
   const navigate = useNavigate()
   const esMovil = useConsultaMedios(CORTE_MOVIL)
 
-  // NavLink solo compara pathname: "/", "/#estadisticas" y "/#bitacora" resuelven todos a
-  // pathname "/", así que su isActive automático los marcaría activos a los tres a la vez.
-  // En su lugar sombreamos según qué sección está visible en pantalla (seccionActiva, que
-  // PaginaMapa deriva con un IntersectionObserver) — así el navbar reacciona igual al
-  // hacer click que al hacer scroll manualmente hasta una sección.
   const indiceActivo = Math.max(
     0,
     ENLACES.findIndex(({ a }) => DESTINO_POR_SECCION[seccionActiva] === a)
@@ -70,14 +69,16 @@ export const NavegacionFlotante: FC<Props> = ({
       if (href === '/') {
         desplazarAlMapa()
         if (window.location.hash) {
-          window.history.pushState(null, '', '/')
+          navigate('/')
         }
       } else if (href.startsWith('/#')) {
         const id = href.slice(2)
         const el = document.getElementById(id)
         if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-          window.history.pushState(null, '', href)
+          navigate(href)
+          requestAnimationFrame(() => {
+            document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          })
         } else {
           navigate(href)
         }
@@ -92,37 +93,97 @@ export const NavegacionFlotante: FC<Props> = ({
   <>
   <header className="navbar-superior" role="banner">
     <Link to="/" id="logo-aguavigia" className="navbar-marca" aria-label="AguaVigía CTG — inicio">
-      <span className="navbar-marca-copy">AguaVigía</span>
+      <div className="navbar-marca-senal" aria-hidden="true">
+        <Droplets size={18} />
+      </div>
+      <div className="navbar-marca-texto">
+        <span className="navbar-marca-copy">AguaVigía</span>
+        <span className="navbar-marca-ctg">CTG</span>
+        <small className="navbar-marca-subtitulo sr-only">Cartagena</small>
+      </div>
     </Link>
 
-    <div className="navbar-buscador-bitacora">
-      <Search size={15} aria-hidden="true" />
-      <input
-        type="search"
-        placeholder="Buscar en la bitácora..."
-        aria-label="Buscar en la bitácora"
-        value={busquedaBitacora}
-        onChange={(e) => onCambiarBusquedaBitacora(e.target.value)}
-        onFocus={() => document.getElementById('bitacora')?.scrollIntoView({ behavior: 'smooth' })}
-      />
-    </div>
-
     {!esMovil && (
-      <div className="navbar-enlaces">
-        <GooeyNav
-          items={ENLACES.map(({ a, etiqueta }) => ({ href: a, label: etiqueta }))}
-          activeIndex={indiceActivo}
-          onSelect={irA}
-        />
-      </div>
+      <nav className="navbar-enlaces" aria-label="Secciones de la página principal">
+        {ENLACES.map(({ a, etiqueta }, indice) => {
+          const esActivo = indice === indiceActivo
+          return (
+            <button
+              type="button"
+              key={a}
+              className={esActivo ? 'activo' : ''}
+              aria-current={esActivo ? 'page' : undefined}
+              aria-label={etiqueta}
+              onClick={() => irA(indice, a)}
+            >
+              {etiqueta === 'Mapa en vivo' && (
+                <span className="navbar-enlace-punto" aria-hidden="true" />
+              )}
+              <span>{etiqueta}</span>
+              {etiqueta === 'Bitácora' && totalEventosBitacora > 0 && (
+                <span className="navbar-enlace-badge" aria-hidden="true">
+                  {totalEventosBitacora}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </nav>
     )}
 
+    <div className="navbar-buscador-telemetria">
+      <div className="navbar-buscador-bitacora">
+        <Search size={15} aria-hidden="true" />
+        <input
+          type="search"
+          placeholder="Buscar barrio o sector..."
+          aria-label="Buscar en la bitácora"
+          value={busquedaBitacora}
+          onChange={(e) => onCambiarBusquedaBitacora(e.target.value)}
+          onFocus={() => document.getElementById('bitacora')?.scrollIntoView({ behavior: 'smooth' })}
+        />
+      </div>
+
+      <div className="navbar-telemetria" title="Telemetría en tiempo real de la red matriz de Cartagena">
+        {porcentajeNormal ? (
+          <>
+            <span className="pulse-dot-emerald" aria-hidden="true" />
+            <span className="navbar-telemetria-texto">Red Matriz: {porcentajeNormal}% Normal</span>
+          </>
+        ) : (
+          <>
+            <span className="pulse-dot-amber" aria-hidden="true" />
+            <span className="navbar-telemetria-texto">Red Matriz: Sin telemetría</span>
+          </>
+        )}
+      </div>
+    </div>
+
     <div className="navbar-acciones">
-      <SelectorTema temaActivo={temaActivo} onAlternar={onAlternarTema} />
-      <button type="button" onClick={onReportar} className="navbar-reportar hover-glowing">
+      {onAlternarBitacora && (
+        <button
+          type="button"
+          onClick={onAlternarBitacora}
+          className="navbar-btn-bitacora hidden sm:flex"
+          title="Ver bitácora de novedades"
+        >
+          <Search size={14} className="sr-only" />
+          <span>Bitácora</span>
+        </button>
+      )}
+      <button type="button" onClick={onReportar} className="navbar-reportar">
         <Megaphone size={15} aria-hidden="true" />
         <span>Reportar ahora</span>
       </button>
+      <div className="navbar-separador" aria-hidden="true" />
+      <SelectorTema temaActivo={temaActivo} onAlternar={onAlternarTema} />
+      <div
+        className="navbar-avatar"
+        title="Perfil ciudadano"
+        aria-label="Perfil ciudadano"
+      >
+        C
+      </div>
     </div>
   </header>
 

@@ -79,7 +79,7 @@ export default function PaginaVerificarCorreo() {
           </>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div className="cuenta-enlaces">
           <Link to="/veedor" className="enlace-cuenta">
             Ir al ingreso
           </Link>

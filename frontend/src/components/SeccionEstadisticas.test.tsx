@@ -81,9 +81,8 @@ describe('SeccionEstadisticas', () => {
   })
 
   /**
-   * Un fallo de la API no puede dejar la sección afirmando cifras. Hoy el aviso al usuario es el
-   * indicador de red; lo que se protege aquí es que ninguna métrica se rellene con un valor
-   * inventado cuando la consulta no respondió.
+   * Un fallo de la API no puede dejar la sección afirmando cifras ni barras en cero. Se presenta
+   * como indisponibilidad con una acción explícita para volver a consultar.
    */
   it('debe avisar que esta sin red y no inventar metricas cuando la consulta falla', async () => {
     obtenerEstadisticas.mockRejectedValue({
@@ -94,7 +93,9 @@ describe('SeccionEstadisticas', () => {
 
     render(<SeccionEstadisticas />)
 
-    expect(await screen.findByText(/modo offline/i)).toBeInTheDocument()
-    expect(screen.getAllByText('Sin datos')).toHaveLength(5)
+    expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos consultar las estadísticas')
+    expect(screen.getByRole('button', { name: 'Reintentar consulta' })).toBeInTheDocument()
+    expect(screen.queryByText('0')).not.toBeInTheDocument()
+    expect(screen.queryByText('0%')).not.toBeInTheDocument()
   })
 })

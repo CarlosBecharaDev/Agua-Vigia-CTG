@@ -137,8 +137,8 @@ export const FormularioReporte: FC<Props> = ({ sectores, sectorPreseleccionado =
       </div>
 
       {/* Paso 2: Estado del Servicio */}
-      <fieldset disabled={!sectorId || procesando} className="form-reporte-bloque" style={{ border: '1px solid rgba(255, 255, 255, 0.09)' }}>
-        <legend className="form-reporte-label" style={{ padding: '0 0.5rem' }}>
+      <fieldset disabled={!sectorId || procesando} className="form-reporte-bloque">
+        <legend className="form-reporte-label form-reporte-leyenda">
           <span className="form-suscripcion-chip-paso">2</span>
           ¿Cómo está el servicio ahora?
         </legend>
@@ -173,7 +173,7 @@ export const FormularioReporte: FC<Props> = ({ sectores, sectorPreseleccionado =
             checked={compartirUbicacion}
             onChange={(event) => setCompartirUbicacion(event.target.checked)}
           />
-          <LocateFixed size={18} style={{ color: '#c084fc', flexShrink: 0 }} aria-hidden="true" />
+          <LocateFixed size={18} aria-hidden="true" />
           <div className="form-reporte-extra-textos">
             <strong>Compartir ubicación</strong>
             <small>Opcional (coordenada)</small>
@@ -189,7 +189,7 @@ export const FormularioReporte: FC<Props> = ({ sectores, sectorPreseleccionado =
               if (rechazada) event.target.value = ''
             }}
           />
-          <Camera size={18} style={{ color: '#f472b6', flexShrink: 0 }} aria-hidden="true" />
+          <Camera size={18} aria-hidden="true" />
           <div className="form-reporte-extra-textos">
             <strong>Adjuntar una foto</strong>
             <small>{foto ? foto.name : 'Opcional (evidencia)'}</small>
@@ -198,7 +198,7 @@ export const FormularioReporte: FC<Props> = ({ sectores, sectorPreseleccionado =
       </div>
 
       {procesando && (
-        <p style={{ color: '#d8b4fe', fontSize: '0.85rem', textAlign: 'center', margin: '0.2rem 0' }} role="status">
+        <p className="form-reporte-progreso" role="status">
           <span className="spinner" /> Enviando reporte a la comunidad…
         </p>
       )}
@@ -209,8 +209,8 @@ export const FormularioReporte: FC<Props> = ({ sectores, sectorPreseleccionado =
         </div>
       )}
 
-      <p style={{ color: 'rgba(203, 213, 225, 0.6)', fontSize: '0.74rem', textAlign: 'center', margin: '0.2rem 0 0' }}>
-        Tus reportes son 100% anónimos y ayudan a mantener informada a toda Cartagena.
+      <p className="form-reporte-privacidad">
+        No pedimos tu nombre. La huella anónima del dispositivo solo limita envíos repetidos.
       </p>
     </div>
   )

@@ -1,0 +1,819 @@
+<USER_REQUEST>
+<!DOCTYPE html>
+
+<html class="h-full" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AguaVigía CTG | Observatorio y Mapa de Cortes en Vivo</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-container-highest": "#e2e2e5",
+            "surface": "#f9f9fc",
+            "tertiary-fixed-dim": "#b8cac9",
+            "surface-variant": "#e2e2e5",
+            "primary-container": "#ff7f50",
+            "on-primary-fixed": "#380c00",
+            "surface-bright": "#f9f9fc",
+            "error-container": "#ffdad6",
+            "secondary-fixed-dim": "#b2c5ff",
+            "on-secondary-fixed-variant": "#0040a2",
+            "on-primary": "#ffffff",
+            "outline-variant": "#dec0b6",
+            "on-tertiary-fixed": "#0e1e1e",
+            "on-primary-container": "#6c2000",
+            "on-tertiary-fixed-variant": "#3a4a49",
+            "on-primary-fixed-variant": "#822800",
+            "inverse-primary": "#ffb59c",
+            "surface-tint": "#a43c12",
+            "inverse-surface": "#2f3133",
+            "background": "#f9f9fc",
+            "error": "#ba1a1a",
+            "primary-fixed-dim": "#ffb59c",
+            "on-tertiary": "#ffffff",
+            "on-secondary-fixed": "#001848",
+            "on-surface-variant": "#57423b",
+            "inverse-on-surface": "#f0f0f3",
+            "secondary-container": "#356ee7",
+            "on-error": "#ffffff",
+            "surface-container-lowest": "#ffffff",
+            "tertiary-container": "#96a7a6",
+            "tertiary-fixed": "#d4e6e5",
+            "surface-container-high": "#e8e8ea",
+            "secondary-fixed": "#dae2ff",
+            "tertiary": "#516161",
+            "surface-dim": "#dadadc",
+            "on-secondary": "#ffffff",
+            "surface-container-low": "#f3f3f6",
+            "on-surface": "#1a1c1e",
+            "secondary": "#0453cd",
+            "primary-fixed": "#ffdbcf",
+            "on-error-container": "#93000a",
+            "outline": "#8b7169",
+            "surface-container": "#eeeef0",
+            "primary": "#a43c12",
+            "on-background": "#1a1c1e",
+            "on-tertiary-container": "#2d3d3c",
+            "on-secondary-container": "#fefcff"
+          },
+          fontFamily: {
+            "sans": ["Geist", "sans-serif"],
+            "mono": ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    @layer base {
+      html, body {
+        height: 100%;
+        overflow: hidden;
+      }
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(81, 97, 97, 0.2);
+      border-radius: 4px;
+    }
+
+    /* Keyframe Animations & Micro-Interactions */
+    @keyframes sonar-wave {
+      0% {
+        r: 8px;
+        opacity: 0.9;
+      }
+      50% {
+        opacity: 0.45;
+      }
+      100% {
+        r: 34px;
+        opacity: 0;
+      }
+    }
+
+    @keyframes water-drift {
+      0%, 100% {
+        transform: translate(0, 0);
+      }
+      50% {
+        transform: translate(-3px, -4px);
+      }
+    }
+
+    @keyframes shimmer-sweep {
+      0% {
+        transform: translateX(-100%);
+      }
+      100% {
+        transform: translateX(200%);
+      }
+    }
+
+    @keyframes pulse-dot-glow {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+      }
+      50% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 5px rgba(16, 185, 129, 0);
+      }
+    }
+
+    @keyframes pulse-coral-dot {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 127, 80, 0.5);
+      }
+      50% {
+        transform: scale(1.12);
+        box-shadow: 0 0 0 6px rgba(255, 127, 80, 0);
+      }
+    }
+
+    .sonar-ring-1 {
+      animation: sonar-wave 2.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+      transform-origin: 675px 610px;
+    }
+    .sonar-ring-2 {
+      animation: sonar-wave 2.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+      animation-delay: 1.1s;
+      transform-origin: 675px 610px;
+    }
+    .sonar-ring-3 {
+      animation: sonar-wave 2.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+      animation-delay: 2s;
+      transform-origin: 675px 610px;
+    }
+
+    .ambient-drift {
+      animation: water-drift 8s ease-in-out infinite;
+    }
+
+    .shimmer-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.45) 50%, transparent 100%);
+      animation: shimmer-sweep 2.4s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .pulse-dot-emerald {
+      animation: pulse-dot-glow 2.2s infinite ease-in-out;
+    }
+
+    .pulse-dot-coral {
+      animation: pulse-coral-dot 2s infinite ease-in-out;
+    }
+
+    /* Metric card elevation & interactive transition */
+    .metric-card {
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+      cursor: pointer;
+    }
+    .metric-card:hover {
+      transform: translateY(-3px) scale(1.015);
+      box-shadow: 0 10px 22px -5px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Map polygon transitions */
+    .map-sector-poly {
+      transition: fill-opacity 0.3s ease, stroke-width 0.3s ease, filter 0.3s ease;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .sonar-ring-1, .sonar-ring-2, .sonar-ring-3,
+      .ambient-drift, .shimmer-bar::after,
+      .pulse-dot-emerald, .pulse-dot-coral {
+        animation: none !important;
+      }
+      .metric-card {
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-[#f2f4f8] text-on-surface font-sans antialiased h-full flex flex-col relative select-none">
+<!-- TOP APP BAR / HEADER -->
+<header class="h-14 bg-surface-container-lowest/90 backdrop-blur-md border-b border-surface-container-highest/60 px-6 flex items-center justify-between z-40 shrink-0">
+<!-- Brand & Subtitle -->
+<div class="flex items-center gap-6">
+<a class="flex items-center gap-2.5 group cursor-pointer" href="#">
+<div class="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-container to-[#ff5722] flex items-center justify-center text-white shadow-sm shadow-primary-container/30 transition-transform duration-300 group-hover:scale-105 group-active:scale-95">
+<span class="material-symbols-outlined text-[19px] transition-transform duration-300 group-hover:rotate-12">water_drop</span>
+</div>
+<div class="flex items-baseline gap-1.5">
+<span class="font-bold text-[17px] tracking-tight text-on-surface group-hover:text-primary transition-colors">AguaVigía</span>
+<span class="text-[11px] font-mono font-medium tracking-wider text-primary-container uppercase px-1.5 py-0.5 rounded bg-primary-fixed/50 transition-colors group-hover:bg-primary-fixed">CTG</span>
+</div>
+</a>
+<!-- Main Navigation Tabs Pill with reactive active states -->
+<nav class="hidden md:flex items-center bg-surface-container-low p-1 rounded-full text-xs font-medium border border-surface-container-highest/40" id="main-nav-bar">
+<button class="nav-tab px-3.5 py-1.5 rounded-full bg-surface-container-lowest text-on-surface font-semibold shadow-xs transition-all duration-200 flex items-center gap-1.5 cursor-pointer active:scale-95" data-nav="mapa">
+<span class="w-1.5 h-1.5 rounded-full bg-[#0453cd]"></span>
+          Mapa en vivo
+        </button>
+<button class="nav-tab px-3.5 py-1.5 rounded-full text-tertiary hover:text-on-surface hover:bg-surface-container-highest/50 transition-all duration-200 flex items-center gap-1.5 cursor-pointer active:scale-95" data-nav="bitacora" onclick="toggleBitacora()">
+          Bitácora
+          <span class="px-1.5 py-0.2 rounded-full text-[10px] bg-surface-container text-tertiary">3</span>
+</button>
+<button class="nav-tab px-3.5 py-1.5 rounded-full text-tertiary hover:text-on-surface hover:bg-surface-container-highest/50 transition-all duration-200 cursor-pointer active:scale-95" data-nav="stats">Estadísticas</button>
+<button class="nav-tab px-3.5 py-1.5 rounded-full text-tertiary hover:text-on-surface hover:bg-surface-container-highest/50 transition-all duration-200 cursor-pointer active:scale-95" data-nav="veedor">Panel Veedor</button>
+</nav>
+</div>
+<!-- Center Search & Telemetry Live Dot -->
+<div class="hidden lg:flex items-center gap-4">
+<div class="relative w-72 group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[17px] text-tertiary transition-colors duration-200 group-focus-within:text-primary-container">search</span>
+<input class="w-full h-8 pl-9 pr-3 rounded-full bg-surface-container-low text-xs border border-transparent focus:border-primary-container/40 focus:bg-surface-container-lowest focus:outline-none focus:ring-2 focus:ring-primary-container/15 transition-all duration-200 placeholder:text-tertiary/80" placeholder="Buscar barrio o sector..." type="text"/>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-mono border border-emerald-200/60 shadow-xs hover:border-emerald-300 transition-colors">
+<span class="relative flex h-2 w-2">
+<span class="pulse-dot-emerald inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+</span>
+<span>Red Matriz: 94.2% Normal</span>
+</div>
+</div>
+<!-- Actions & User Profile -->
+<div class="flex items-center gap-3">
+<!-- Bitácora Quick Toggle -->
+<button class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-tertiary hover:text-on-surface hover:bg-surface-container-low active:scale-95 transition-all" onclick="toggleBitacora()" title="Ver bitácora de novedades">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+<span>Bitácora</span>
+</button>
+<!-- CTA Reportar Fuga -->
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-primary-container text-white font-medium text-xs shadow-sm hover:brightness-110 hover:shadow-md hover:shadow-primary-container/30 active:scale-95 transition-all duration-200">
+<span class="material-symbols-outlined text-[16px]">campaign</span>
+<span>Reportar ahora</span>
+</button>
+<div class="h-4 w-px bg-surface-container-highest"></div>
+<!-- Mode Toggle with smooth rotation -->
+<button class="w-8 h-8 rounded-full flex items-center justify-center text-tertiary hover:text-on-surface hover:bg-surface-container-low active:scale-90 transition-all duration-200" onclick="this.querySelector('span').classList.toggle('rotate-90')" title="Cambiar tema">
+<span class="material-symbols-outlined text-[18px] transition-transform duration-300">dark_mode</span>
+</button>
+<!-- Profile Avatar -->
+<div class="w-7 h-7 rounded-full bg-[#0453cd] text-white flex items-center justify-center text-xs font-semibold cursor-pointer hover:ring-2 hover:ring-secondary/30 active:scale-90 transition-all">
+        C
+      </div>
+</div>
+</header>
+<!-- MAIN CANVAS AREA: Despejado, Amplio y Sin Saturación -->
+<main class="flex-1 relative overflow-hidden flex">
+<!-- Interactive Broad Geographic Map Layer -->
+<div class="absolute inset-0 w-full h-full bg-[#e8eef5]">
+<!-- Background Ambient Glows with subtle drift -->
+<div class="absolute top-10 left-10 w-[500px] h-[500px] bg-blue-100/60 rounded-full blur-3xl pointer-events-none ambient-drift"></div>
+<div class="absolute bottom-10 right-96 w-[500px] h-[500px] bg-orange-100/40 rounded-full blur-3xl pointer-events-none ambient-drift" style="animation-delay: -4s;"></div>
+<div class="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#0040a2_1px,transparent_1px)] [background-size:28px_28px] pointer-events-none"></div>
+<!-- Cartagena Coastline & Vector Sectors -->
+<svg class="w-full h-full object-cover transition-transform duration-500 ease-out" id="map-svg" preserveaspectratio="xMidYMid slice" viewbox="0 0 1600 960">
+<defs>
+<filter height="140%" id="soft-glow" width="140%" x="-20%" y="-20%">
+<fedropshadow dx="0" dy="4" flood-color="#ff7f50" flood-opacity="0.35" stddeviation="8"></fedropshadow>
+</filter>
+<lineargradient id="bayWater" x1="0%" x2="100%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#d6e3f3" stop-opacity="0.8"></stop>
+<stop offset="100%" stop-color="#c4d8ed" stop-opacity="0.6"></stop>
+</lineargradient>
+</defs>
+<!-- Ocean & Bays -->
+<path d="M 0,0 L 1600,0 L 1600,960 L 0,960 Z" fill="#e9eff6"></path>
+<path d="M 0,0 L 480,0 C 520,180 470,330 430,420 C 390,530 380,680 400,790 C 430,860 460,910 500,960 L 0,960 Z" fill="url(#bayWater)"></path>
+<path d="M 560,430 C 650,420 720,460 760,530 C 800,610 780,740 700,800 C 630,850 530,800 480,710 C 450,630 500,450 560,430 Z" fill="url(#bayWater)"></path>
+<!-- Cartagena Distrital Landmass -->
+<path d="M 500,0 C 550,140 530,260 500,350 C 550,360 620,370 680,360 C 740,250 840,180 960,150 C 1120,110 1300,120 1600,80 L 1600,960 L 730,960 C 800,900 850,820 830,740 C 800,620 700,590 650,560 C 590,520 540,460 530,400 C 550,300 580,200 540,0 Z" fill="#ffffff"></path>
+<!-- Pipeline conduits (Subtle lines) -->
+<g opacity="0.35" stroke="#356ee7" stroke-dasharray="6 6" stroke-linecap="round" stroke-width="2">
+<path d="M 960,170 L 860,280 L 720,350 L 620,420 L 590,550 L 610,710 L 520,840"></path>
+<path d="M 720,350 L 740,480 L 840,530 L 960,510 L 1100,550"></path>
+<path d="M 620,420 L 520,450 L 440,510 L 410,650"></path>
+</g>
+<!-- SECTORS POLYGONS (Interactive & Neat) -->
+<!-- Sector Crespo (Normal) -->
+<polygon class="map-sector-poly hover:fill-opacity-25 hover:stroke-width-[2.5] cursor-pointer transition-all" fill="#356ee7" fill-opacity="0.08" onclick="selectSector('Crespo', 'normal')" points="900,150 1100,120 1180,220 1040,260 920,230" stroke="#356ee7" stroke-width="1.8"></polygon>
+<text class="font-mono text-[11px] font-medium fill-tertiary select-none pointer-events-none" x="1030" y="195">CRESPO</text>
+<!-- Sector Centro Histórico (Normal) -->
+<polygon class="map-sector-poly hover:fill-opacity-25 hover:stroke-width-[2.5] cursor-pointer transition-all" fill="#356ee7" fill-opacity="0.08" onclick="selectSector('Centro Histórico', 'normal')" points="600,330 710,320 740,410 660,440 610,400" stroke="#356ee7" stroke-width="1.8"></polygon>
+<text class="font-mono text-[11px] font-medium fill-tertiary select-none pointer-events-none" x="630" y="375">CENTRO</text>
+<!-- Sector Getsemaní (Baja Presión) -->
+<polygon class="map-sector-poly hover:fill-opacity-40 hover:stroke-width-[2.5] cursor-pointer transition-all" fill="#ffb59c" fill-opacity="0.25" onclick="selectSector('Getsemaní', 'low_pressure')" points="660,445 740,415 770,470 710,510 650,480" stroke="#a43c12" stroke-dasharray="4 2" stroke-width="2"></polygon>
+<text class="font-mono text-[11px] font-semibold fill-primary select-none pointer-events-none" x="680" y="470">GETSEMANÍ</text>
+<!-- Sector Bocagrande (Normal) -->
+<polygon class="map-sector-poly hover:fill-opacity-25 hover:stroke-width-[2.5] cursor-pointer transition-all" fill="#356ee7" fill-opacity="0.08" onclick="selectSector('Bocagrande', 'normal')" points="430,490 510,450 490,700 420,760 380,660" stroke="#356ee7" stroke-width="1.8"></polygon>
+<text class="font-mono text-[11px] font-medium fill-tertiary select-none pointer-events-none" x="420" y="580">BOCAGRANDE</text>
+<!-- Sector Manga (Enfoque Activo - Corte Seleccionado) with coral sonar rings -->
+<g class="cursor-pointer group" onclick="selectSector('Sector Manga', 'active')">
+<polygon class="map-sector-poly group-hover:fill-opacity-30 group-hover:stroke-width-[3.5] transition-all" fill="#ff7f50" fill-opacity="0.18" filter="url(#soft-glow)" points="610,540 720,510 790,590 770,690 670,730 590,650" stroke="#ff7f50" stroke-width="3"></polygon>
+<!-- Multi-ring Sonar ripple effect -->
+<circle class="sonar-ring-1" cx="675" cy="610" fill="none" stroke="#ff7f50" stroke-width="1.8"></circle>
+<circle class="sonar-ring-2" cx="675" cy="610" fill="none" stroke="#ff7f50" stroke-width="1.4"></circle>
+<circle class="sonar-ring-3" cx="675" cy="610" fill="none" stroke="#ff7f50" stroke-width="1"></circle>
+<!-- Center alert pin -->
+<circle class="transition-transform duration-200 group-hover:scale-125" cx="675" cy="610" fill="#ff7f50" r="7"></circle>
+<circle cx="675" cy="610" fill="#ffffff" r="3"></circle>
+<text class="font-mono text-[12px] font-bold fill-primary tracking-wide select-none group-hover:fill-on-surface transition-colors" x="625" y="750">SECTOR MANGA</text>
+</g>
+</svg>
+</div>
+<!-- FLOATING BREADCRUMB & MAP QUICK FILTER -->
+<div class="absolute top-5 left-6 z-20 flex flex-col gap-2">
+<div class="bg-surface-container-lowest/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-surface-container-highest/60 shadow-xs flex items-center gap-2 transition-all hover:bg-surface-container-lowest">
+<span class="material-symbols-outlined text-[15px] text-tertiary">explore</span>
+<span class="text-xs font-semibold text-on-surface">Cartagena, barrio por barrio</span>
+<span class="text-tertiary/60">•</span>
+<span class="text-[11px] text-tertiary">Monitoreo Hidráulico Activo</span>
+</div>
+<!-- Minimal Quick Filter Pills with active states -->
+<div class="flex items-center gap-1.5" id="map-quick-filters">
+<button class="filter-pill active px-2.5 py-1 rounded-full bg-surface-container-lowest text-on-surface font-semibold border border-surface-container-highest/90 shadow-xs transition-all active:scale-95 text-[11px] hover:border-surface-tint/40 cursor-pointer" onclick="filterMap('all', this)">Todos (211)</button>
+<button class="filter-pill px-2.5 py-1 rounded-full bg-error-container/40 text-on-error-container text-[11px] font-semibold border border-error/20 flex items-center gap-1 shadow-xs hover:bg-error-container/70 transition-all active:scale-95 cursor-pointer" onclick="filterMap('sin_servicio', this)">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
+          Sin servicio (3)
+        </button>
+<button class="filter-pill px-2.5 py-1 rounded-full bg-primary-fixed/50 text-on-primary-fixed-variant text-[11px] font-semibold border border-primary-container/30 flex items-center gap-1 shadow-xs hover:bg-primary-fixed/80 transition-all active:scale-95 cursor-pointer" onclick="filterMap('baja_presion', this)">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+          Baja presión (10)
+        </button>
+</div>
+</div>
+<!-- BOTTOM-LEFT ZOOM & CONTROLS -->
+<div class="absolute bottom-6 left-6 z-20 flex flex-col gap-1.5">
+<div class="bg-surface-container-lowest/90 backdrop-blur-md rounded-xl p-1 border border-surface-container-highest/60 shadow-sm flex flex-col">
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-tertiary hover:text-on-surface hover:bg-surface-container active:scale-90 transition-all duration-150 cursor-pointer" onclick="zoomMap(1)" title="Acercar">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+<div class="w-full h-px bg-surface-container-highest/50 my-0.5"></div>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-tertiary hover:text-on-surface hover:bg-surface-container active:scale-90 transition-all duration-150 cursor-pointer" onclick="zoomMap(-1)" title="Alejar">
+<span class="material-symbols-outlined text-[18px]">remove</span>
+</button>
+</div>
+<button class="w-10 h-10 rounded-xl bg-surface-container-lowest/90 backdrop-blur-md border border-surface-container-highest/60 shadow-sm flex items-center justify-center text-secondary hover:bg-surface-container hover:text-primary active:scale-90 transition-all duration-150 cursor-pointer group" onclick="resetMapLocation()" title="Mi Ubicación">
+<span class="material-symbols-outlined text-[18px] transition-transform duration-300 group-hover:scale-110">my_location</span>
+</button>
+</div>
+<!-- RIGHT DOCKED INSPECTION PANEL -->
+<aside class="absolute top-5 bottom-6 right-6 z-30 w-96 flex flex-col pointer-events-none">
+<div class="pointer-events-auto flex-1 bg-surface-container-lowest/95 backdrop-blur-xl rounded-2xl border border-surface-container-highest/70 shadow-[0_8px_30px_rgba(0,0,0,0.06)] flex flex-col overflow-hidden transition-all duration-300">
+<!-- Header del Panel con tabs Estado / Sector -->
+<div class="p-5 pb-3 border-b border-surface-container-high/60 flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div>
+<span class="text-[10px] font-mono tracking-wider text-tertiary uppercase font-medium">Veeduría Ciudadana • Cartagena</span>
+<h2 class="text-base font-bold text-on-surface">Lectura del servicio</h2>
+</div>
+<button class="w-8 h-8 rounded-lg bg-surface-container-low flex items-center justify-center text-tertiary hover:text-on-surface hover:bg-surface-container-highest/60 active:scale-90 transition-all cursor-pointer" title="Configurar filtros">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+</button>
+</div>
+<!-- Tabs Switch 'Por estado' / 'Por sector' with reactive switch -->
+<div class="relative grid grid-cols-2 p-1 bg-surface-container-low rounded-xl text-xs font-semibold text-center select-none" id="panel-tab-container">
+<button class="tab-btn py-1.5 rounded-lg bg-surface-container-lowest text-on-surface shadow-xs transition-all duration-200 cursor-pointer" id="tab-estado-btn" onclick="switchInspectionTab('estado')">Por estado</button>
+<button class="tab-btn py-1.5 rounded-lg text-tertiary hover:text-on-surface transition-all duration-200 cursor-pointer" id="tab-sector-btn" onclick="switchInspectionTab('sector')">Por sector</button>
+</div>
+</div>
+<!-- Panel Body con Scroll Elegante -->
+<div class="flex-1 overflow-y-auto custom-scroll p-5 flex flex-col gap-4">
+<!-- Tab View: Por estado -->
+<div class="flex flex-col gap-4 transition-opacity duration-200" id="view-por-estado">
+<!-- Metricas 2x2 Ordenadas con micro-interacciones -->
+<div class="grid grid-cols-2 gap-2.5">
+<!-- Sin Servicio Card -->
+<div class="metric-card p-3.5 rounded-xl bg-error-container/20 border border-error/15 flex flex-col justify-between hover:border-error/40 hover:bg-error-container/30" onclick="selectSector('Castillogrande', 'sin_servicio')">
+<div class="flex items-center gap-1.5 text-error">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
+<span class="text-[11px] font-semibold">Sin servicio</span>
+</div>
+<div class="my-2">
+<div class="text-2xl font-bold font-mono text-on-surface tracking-tight">3</div>
+<div class="text-[10px] text-tertiary">barrios afectados</div>
+</div>
+<div class="text-[10px] font-semibold text-error flex items-center gap-0.5 group">
+<span class="group-hover:underline">Ver en el mapa</span>
+<span class="material-symbols-outlined text-[12px] transition-transform duration-200 group-hover:translate-x-1">arrow_forward</span>
+</div>
+</div>
+<!-- Presión Baja Card -->
+<div class="metric-card p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex flex-col justify-between hover:border-amber-500/40 hover:bg-amber-500/20" onclick="selectSector('Getsemaní', 'low_pressure')">
+<div class="flex items-center gap-1.5 text-amber-700">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+<span class="text-[11px] font-semibold">Presión baja</span>
+</div>
+<div class="my-2">
+<div class="text-2xl font-bold font-mono text-on-surface tracking-tight">10</div>
+<div class="text-[10px] text-tertiary">barrios en monitoreo</div>
+</div>
+<div class="text-[10px] font-semibold text-amber-800 flex items-center gap-0.5 group">
+<span class="group-hover:underline">Ver en el mapa</span>
+<span class="material-symbols-outlined text-[12px] transition-transform duration-200 group-hover:translate-x-1">arrow_forward</span>
+</div>
+</div>
+<!-- Corte Programado Card -->
+<div class="metric-card p-3.5 rounded-xl bg-surface-container-low border border-surface-container-highest/60 flex flex-col justify-between hover:border-secondary/30 hover:bg-surface-container" onclick="toggleBitacora()">
+<div class="flex items-center gap-1.5 text-secondary">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="text-[11px] font-semibold">Programados</span>
+</div>
+<div class="my-2">
+<div class="text-2xl font-bold font-mono text-on-surface tracking-tight">0</div>
+<div class="text-[10px] text-tertiary">para hoy</div>
+</div>
+<div class="text-[10px] font-semibold text-secondary flex items-center gap-0.5 group">
+<span class="group-hover:underline">Ver cronograma</span>
+<span class="material-symbols-outlined text-[12px] transition-transform duration-200 group-hover:translate-x-1">arrow_forward</span>
+</div>
+</div>
+<!-- Con Servicio Card -->
+<div class="metric-card p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex flex-col justify-between hover:border-emerald-500/40 hover:bg-emerald-500/20" onclick="filterMap('all')">
+<div class="flex items-center gap-1.5 text-emerald-700">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+<span class="text-[11px] font-semibold">Con servicio</span>
+</div>
+<div class="my-2">
+<div class="text-2xl font-bold font-mono text-on-surface tracking-tight">198</div>
+<div class="text-[10px] text-tertiary">barrios activos</div>
+</div>
+<div class="text-[10px] font-semibold text-emerald-800 flex items-center gap-0.5 group">
+<span class="group-hover:underline">Ver todos</span>
+<span class="material-symbols-outlined text-[12px] transition-transform duration-200 group-hover:translate-x-1">arrow_forward</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Tab View: Por sector (Hidden initially, toggled smoothly) -->
+<div class="hidden flex-col gap-2.5 transition-opacity duration-200" id="view-por-sector">
+<div class="p-3 rounded-xl bg-surface-container-low/70 border border-surface-container-highest/70 flex items-center justify-between cursor-pointer hover:bg-surface-container transition-colors" onclick="selectSector('Sector Manga', 'active')">
+<div>
+<span class="text-xs font-bold text-on-surface">Manga (Zona Histórica)</span>
+<span class="text-[10px] text-tertiary block">Reparación matriz en progreso</span>
+</div>
+<span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant">Corte</span>
+</div>
+<div class="p-3 rounded-xl bg-surface-container-low/70 border border-surface-container-highest/70 flex items-center justify-between cursor-pointer hover:bg-surface-container transition-colors" onclick="selectSector('Getsemaní', 'low_pressure')">
+<div>
+<span class="text-xs font-bold text-on-surface">Getsemaní</span>
+<span class="text-[10px] text-tertiary block">Presión baja en horario pico</span>
+</div>
+<span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-800">12 PSI</span>
+</div>
+<div class="p-3 rounded-xl bg-surface-container-low/70 border border-surface-container-highest/70 flex items-center justify-between cursor-pointer hover:bg-surface-container transition-colors" onclick="selectSector('Centro Histórico', 'normal')">
+<div>
+<span class="text-xs font-bold text-on-surface">Centro Histórico</span>
+<span class="text-[10px] text-tertiary block">Caudal estable verificado</span>
+</div>
+<span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Normal</span>
+</div>
+</div>
+<!-- SECCIÓN DE INSPECCIÓN CONTEXTUAL DEL SECTOR SELECCIONADO (Manga) -->
+<div class="rounded-xl bg-surface-container-low/70 border border-surface-container-highest/70 p-4 flex flex-col gap-3 transition-all duration-300" id="inspector-sector">
+<div class="flex items-start justify-between">
+<div>
+<div class="flex items-center gap-1.5 mb-1">
+<span class="px-2 py-0.5 rounded-full bg-primary-container/15 text-primary-container text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5">
+<span class="pulse-dot-coral w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+                    Corte Activo
+                  </span>
+<span class="text-[10px] font-mono text-tertiary" id="inspector-code">#CTG-8941</span>
+</div>
+<h3 class="text-base font-bold text-on-surface" id="inspector-title">Sector Manga</h3>
+</div>
+<span class="text-xs font-mono font-medium text-error bg-error-container/30 px-2 py-0.5 rounded" id="inspector-time">
+                Est. 14:00 COT
+              </span>
+</div>
+<p class="text-xs text-on-surface-variant leading-relaxed" id="inspector-desc">
+              Reposición de tubería matriz Ø 24" en Calle Real con 4ta Avenida. Trabajos de acople civil.
+            </p>
+<!-- Barra de Avance compacta con Shimmer Loading animado -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between text-[11px]">
+<span class="text-tertiary font-medium">Avance de reparación</span>
+<span class="font-mono font-bold text-primary-container" id="inspector-percent">65%</span>
+</div>
+<div class="relative w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="shimmer-bar relative h-full bg-gradient-to-r from-primary-container via-[#ff5722] to-primary-container rounded-full overflow-hidden transition-all duration-500 ease-out" id="inspector-bar" style="width: 65%;"></div>
+</div>
+</div>
+<!-- Datos Clave en Fila Compacta -->
+<div class="grid grid-cols-2 gap-2 pt-1 border-t border-surface-container-high/50 text-[11px]">
+<div>
+<span class="text-tertiary block text-[10px]">Afectación:</span>
+<span class="font-semibold text-on-surface" id="inspector-aff">24,380 habitantes</span>
+</div>
+<div>
+<span class="text-tertiary block text-[10px]">Suministro alterno:</span>
+<span class="font-semibold text-secondary" id="inspector-alt">3 Carro-tanques</span>
+</div>
+</div>
+<button class="w-full py-2 px-3 rounded-lg bg-primary-container text-white text-xs font-medium hover:brightness-110 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-1.5 shadow-sm shadow-primary-container/20 cursor-pointer group">
+<span>Ver ficha técnica y seguimiento</span>
+<span class="material-symbols-outlined text-[15px] transition-transform duration-200 group-hover:translate-x-1">arrow_forward</span>
+</button>
+</div>
+<!-- Resumen de Infraestructura / Tanques -->
+<div class="p-3 rounded-xl bg-surface-container-low/40 border border-surface-container-highest/40 flex items-center justify-between hover:bg-surface-container-low/80 transition-colors cursor-pointer group">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-secondary transition-transform duration-200 group-hover:scale-105">
+<span class="material-symbols-outlined text-[18px]">water_voc</span>
+</div>
+<div>
+<span class="text-xs font-medium text-on-surface block leading-tight">Tanque Colinas / Nariño</span>
+<span class="text-[10px] text-tertiary">Volumen acumulado: 88.4%</span>
+</div>
+</div>
+<span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Óptimo</span>
+</div>
+</div>
+<!-- Footer del Drawer lateral -->
+<div class="p-3 px-5 border-t border-surface-container-high/60 bg-surface-container-low/40 flex items-center justify-between text-[11px] text-tertiary">
+<span class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary animate-ping"></span>
+            Actualizado hace 2m
+          </span>
+<a class="text-primary hover:underline font-medium cursor-pointer transition-colors hover:text-primary-container" href="#">Exportar reporte</a>
+</div>
+</div>
+</aside>
+<!-- FLOATING BOTTOM TRIGGER FOR BITÁCORA -->
+<div class="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+<button class="px-4 py-2 rounded-full bg-surface-container-lowest/90 backdrop-blur-md border border-surface-container-highest/70 text-xs font-medium text-on-surface hover:bg-surface-container hover:shadow-lg active:scale-95 transition-all shadow-md shadow-black/5 flex items-center gap-2 group cursor-pointer" onclick="toggleBitacora()">
+<span class="material-symbols-outlined text-[17px] text-primary-container group-hover:rotate-12 transition-transform duration-200">receipt_long</span>
+<span>Bitácora del servicio (3 eventos recientes)</span>
+<span class="material-symbols-outlined text-[16px] text-tertiary transition-transform duration-300" id="bitacora-chevron">expand_less</span>
+</button>
+</div>
+<!-- DRAWER / PANEL INFERIOR DESLIZABLE: BITÁCORA DEL SERVICIO -->
+<div class="absolute bottom-0 left-0 right-0 z-35 bg-surface-container-lowest/98 backdrop-blur-2xl border-t border-surface-container-highest shadow-2xl transition-all duration-300 ease-in-out transform translate-y-full max-h-[50vh] flex flex-col" id="bitacora-drawer">
+<!-- Drawer Header Bar -->
+<div class="px-8 py-3.5 border-b border-surface-container-high/70 flex items-center justify-between shrink-0">
+<div>
+<span class="text-[10px] font-mono tracking-wider text-tertiary uppercase font-medium">Registro Público Distrital</span>
+<h3 class="text-base font-bold text-on-surface flex items-center gap-2">
+            Bitácora del servicio
+            <span class="text-xs font-normal text-tertiary hidden sm:inline">— Avisos oficiales, reportes confirmados y restablecimientos en Cartagena</span>
+</h3>
+</div>
+<div class="flex items-center gap-3">
+<!-- Filtros de Bitácora -->
+<div class="hidden md:flex items-center gap-1 bg-surface-container-low p-0.5 rounded-lg text-xs" id="bitacora-filter-group">
+<button class="px-3 py-1 rounded-md bg-surface-container-lowest text-on-surface font-semibold shadow-xs transition-all active:scale-95 cursor-pointer">Todos los eventos</button>
+<button class="px-3 py-1 rounded-md text-tertiary hover:text-on-surface hover:bg-surface-container-highest/40 transition-colors active:scale-95 cursor-pointer">Sin servicio</button>
+<button class="px-3 py-1 rounded-md text-tertiary hover:text-on-surface hover:bg-surface-container-highest/40 transition-colors active:scale-95 cursor-pointer">Baja presión</button>
+<button class="px-3 py-1 rounded-md text-tertiary hover:text-on-surface hover:bg-surface-container-highest/40 transition-colors active:scale-95 cursor-pointer">Programados</button>
+<button class="px-3 py-1 rounded-md text-tertiary hover:text-on-surface hover:bg-surface-container-highest/40 transition-colors active:scale-95 cursor-pointer">Restablecidos</button>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container-low hover:bg-surface-container active:scale-90 flex items-center justify-center text-tertiary hover:text-on-surface transition-all cursor-pointer" onclick="toggleBitacora()" title="Cerrar bitácora">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+</div>
+<!-- Drawer Content: Tarjetas Horizontales con micro-interacciones hover -->
+<div class="p-6 overflow-x-auto custom-scroll flex gap-4">
+<!-- Bitácora Item 1: Con Servicio (Camaguey) -->
+<div class="w-84 shrink-0 p-4 rounded-xl bg-surface-container-low/60 border border-surface-container-highest/80 flex flex-col justify-between hover:border-emerald-500/50 hover:bg-surface-container-lowest hover:shadow-md transition-all duration-200 cursor-pointer">
+<div>
+<div class="flex items-center justify-between text-xs mb-2">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-medium">
+<span class="material-symbols-outlined text-[13px]">check_circle</span>
+                Con servicio
+              </span>
+<span class="text-[11px] font-mono text-tertiary">Hoy, 10:45 COT</span>
+</div>
+<h4 class="text-xs font-semibold text-on-surface mt-1 leading-snug">
+              Servicio normalizado y presión regular restablecida en el sector <span class="font-bold">CAMAGUEY</span>.
+            </h4>
+</div>
+<div class="pt-3 mt-3 border-t border-surface-container-high/60 flex items-center justify-between text-[11px]">
+<span class="inline-flex items-center gap-1.5 text-emerald-700 font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              Servicio normalizado
+            </span>
+<span class="material-symbols-outlined text-[16px] text-tertiary">sensors</span>
+</div>
+</div>
+<!-- Bitácora Item 2: Sin Servicio (Castillogrande) -->
+<div class="w-84 shrink-0 p-4 rounded-xl bg-surface-container-low/60 border border-surface-container-highest/80 flex flex-col justify-between hover:border-error/50 hover:bg-surface-container-lowest hover:shadow-md transition-all duration-200 cursor-pointer" onclick="selectSector('Castillogrande', 'sin_servicio')">
+<div>
+<div class="flex items-center justify-between text-xs mb-2">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-[11px] font-medium">
+<span class="material-symbols-outlined text-[13px]">warning</span>
+                Sin servicio
+              </span>
+<span class="text-[11px] font-mono text-tertiary">Hoy, 09:20 COT</span>
+</div>
+<h4 class="text-xs font-semibold text-on-surface mt-1 leading-snug">
+              Reportes comunitarios constantes indican caída severa de presión en redes de <span class="font-bold">CASTILLOGRANDE</span>.
+            </h4>
+</div>
+<div class="pt-3 mt-3 border-t border-surface-container-high/60 flex items-center justify-between text-[11px]">
+<span class="inline-flex items-center gap-1.5 text-error font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
+              Masa crítica ciudadana
+            </span>
+<span class="material-symbols-outlined text-[16px] text-tertiary">podcasts</span>
+</div>
+</div>
+<!-- Bitácora Item 3: Sin Servicio (República de Chile) -->
+<div class="w-84 shrink-0 p-4 rounded-xl bg-surface-container-low/60 border border-surface-container-highest/80 flex flex-col justify-between hover:border-error/50 hover:bg-surface-container-lowest hover:shadow-md transition-all duration-200 cursor-pointer">
+<div>
+<div class="flex items-center justify-between text-xs mb-2">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-[11px] font-medium">
+<span class="material-symbols-outlined text-[13px]">warning</span>
+                Sin servicio
+              </span>
+<span class="text-[11px] font-mono text-tertiary">Hoy, 08:15 COT</span>
+</div>
+<h4 class="text-xs font-semibold text-on-surface mt-1 leading-snug">
+              Rotura imprevista reportada por vecinos en tubería secundaria de <span class="font-bold">REPÚBLICA DE CHILE</span>.
+            </h4>
+</div>
+<div class="pt-3 mt-3 border-t border-surface-container-high/60 flex items-center justify-between text-[11px]">
+<span class="inline-flex items-center gap-1.5 text-error font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
+              Cuadrilla en camino
+            </span>
+<span class="material-symbols-outlined text-[16px] text-tertiary">engineering</span>
+</div>
+</div>
+<!-- Bitácora Item 4: Manga Programado -->
+<div class="w-84 shrink-0 p-4 rounded-xl bg-surface-container-low/60 border border-surface-container-highest/80 flex flex-col justify-between hover:border-primary-container/50 hover:bg-surface-container-lowest hover:shadow-md transition-all duration-200 cursor-pointer" onclick="selectSector('Sector Manga', 'active')">
+<div>
+<div class="flex items-center justify-between text-xs mb-2">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed-variant text-[11px] font-medium">
+<span class="material-symbols-outlined text-[13px]">construction</span>
+                Intervención mayor
+              </span>
+<span class="text-[11px] font-mono text-tertiary">Hoy, 07:00 COT</span>
+</div>
+<h4 class="text-xs font-semibold text-on-surface mt-1 leading-snug">
+              Inicio de obra civil de empalme en Calle Real de <span class="font-bold">MANGA</span>. Corte programado hasta 14:00 COT.
+            </h4>
+</div>
+<div class="pt-3 mt-3 border-t border-surface-container-high/60 flex items-center justify-between text-[11px]">
+<span class="inline-flex items-center gap-1.5 text-primary-container font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container"></span>
+              En ejecución (65%)
+            </span>
+<span class="material-symbols-outlined text-[16px] text-tertiary">schedule</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+    let bitacoraOpen = false;
+    let currentScale = 1;
+
+    function toggleBitacora() {
+      const drawer = document.getElementById('bitacora-drawer');
+      const chevron = document.getElementById('bitacora-chevron');
+      
+      bitacoraOpen = !bitacoraOpen;
+      if (bitacoraOpen) {
+        drawer.classList.remove('translate-y-full');
+        drawer.classList.add('translate-y-0');
+        if (chevron) {
+          chevron.textContent = 'expand_more';
+          chevron.classList.add('rotate-180');
+        }
+      } else {
+        drawer.classList.remove('translate-y-0');
+        drawer.classList.add('translate-y-full');
+        if (chevron) {
+          chevron.textContent = 'expand_less';
+          chevron.classList.remove('rotate-180');
+        }
+      }
+    }
+
+    function switchInspectionTab(tabName) {
+      const btnEstado = document.getElementById('tab-estado-btn');
+      const btnSector = document.getElementById('tab-sector-btn');
+      const viewEstado = document.getElementById('view-por-estado');
+      const viewSector = document.getElementById('view-por-sector');
+
+      if (tabName === 'estado') {
+        btnEstado.classList.add('bg-surface-container-lowest', 'text-on-surface', 'shadow-xs');
+        btnEstado.classList.remove('text-tertiary');
+        btnSector.classList.remove('bg-surface-container-lowest', 'text-on-surface', 'shadow-xs');
+        btnSector.classList.add('text-tertiary');
+
+        viewEstado.classList.remove('hidden');
+        viewSector.classList.add('hidden');
+      } else {
+        btnSector.classList.add('bg-surface-container-lowest', 'text-on-surface', 'shadow-xs');
+        btnSector.classList.remove('text-tertiary');
+        btnEstado.classList.remove('bg-surface-container-lowest', 'text-on-surface', 'shadow-xs');
+        btnEstado.classList.add('text-tertiary');
+
+        viewEstado.classList.add('hidden');
+        viewSector.classList.remove('hidden');
+      }
+    }
+
+    function selectSector(sectorName, type) {
+      const inspector = document.getElementById('inspector-sector');
+      const titleEl = document.getElementById('inspector-title');
+      const descEl = document.getElementById('inspector-desc');
+      const percentEl = document.getElementById('inspector-percent');
+      const barEl = document.getElementById('inspector-bar');
+      const timeEl = document.getElementById('inspector-time');
+      const affEl = document.getElementById('inspector-aff');
+
+      if (!inspector) return;
+
+      if (sectorName === 'Getsemaní') {
+        titleEl.textContent = 'Sector Getsemaní';
+        descEl.textContent = 'Baja presión detectada por alta demanda y compensación en tanque Colinas.';
+        percentEl.textContent = '82%';
+        barEl.style.width = '82%';
+        timeEl.textContent = 'Monitoreo 16:30 COT';
+        timeEl.className = 'text-xs font-mono font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded';
+        affEl.textContent = '8,420 habitantes';
+      } else if (sectorName === 'Centro Histórico' || sectorName === 'Crespo' || sectorName === 'Bocagrande') {
+        titleEl.textContent = 'Sector ' + sectorName;
+        descEl.textContent = 'Caudal y presurización en rangos normales de operación.';
+        percentEl.textContent = '100%';
+        barEl.style.width = '100%';
+        timeEl.textContent = 'Normal';
+        timeEl.className = 'text-xs font-mono font-medium text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded';
+        affEl.textContent = 'Sin afectación';
+      } else if (sectorName === 'Castillogrande') {
+        titleEl.textContent = 'Sector Castillogrande';
+        descEl.textContent = 'Caída severa de presión por mantenimiento imprevisto en válvula secundaria.';
+        percentEl.textContent = '30%';
+        barEl.style.width = '30%';
+        timeEl.textContent = 'Est. 18:00 COT';
+        timeEl.className = 'text-xs font-mono font-medium text-error bg-error-container/30 px-2 py-0.5 rounded';
+        affEl.textContent = '14,100 habitantes';
+      } else {
+        titleEl.textContent = 'Sector Manga';
+        descEl.textContent = 'Reposición de tubería matriz Ø 24" en Calle Real con 4ta Avenida. Trabajos de acople civil.';
+        percentEl.textContent = '65%';
+        barEl.style.width = '65%';
+        timeEl.textContent = 'Est. 14:00 COT';
+        timeEl.className = 'text-xs font-mono font-medium text-error bg-error-container/30 px-2 py-0.5 rounded';
+        affEl.textContent = '24,380 habitantes';
+      }
+
+      // Smooth visual highlight feedback
+      inspector.classList.add('ring-2', 'ring-primary-container', 'scale-[1.01]');
+      setTimeout(() => {
+        inspector.classList.remove('ring-2', 'ring-primary-container', 'scale-[1.01]');
+      }, 700);
+    }
+
+    function zoomMap(delta) {
+      const svg = document.getElementById('map-svg');
+      if (!svg) return;
+      if (delta > 0 && currentScale < 1.6) {
+        currentScale += 0.15;
+      } else if (delta < 0 && currentScale > 0.85) {
+        currentScale -= 0.15;
+      }
+      svg.style.transform = `scale(${currentScale})`;
+    }
+
+    function resetMapLocation() {
+      const svg = document.getElementById('map-svg');
+      if (!svg) return;
+      currentScale = 1;
+      svg.style.transform = 'scale(1)';
+      selectSector('Sector Manga', 'active');
+    }
+
+    function filterMap(type, element) {
+      if (element) {
+        document.querySelectorAll('#map-quick-filters .filter-pill').forEach(btn => {
+          btn.classList.remove('ring-2', 'ring-surface-tint/50');
+        });
+        element.classList.add('ring-2', 'ring-surface-tint/50');
+      }
+      if (type === 'sin_servicio') {
+        selectSector('Sector Manga', 'active');
+      } else if (type === 'baja_presion') {
+        selectSector('Getsemaní', 'low_pressure');
+      } else {
+        selectSector('Sector Manga', 'active');
+      }
+    }
+  </script>
+</body></html> bueno mira esta parte de aqui vas a tomarlo como referencia y trabajaremos sobre este ok? tanto la version movil como de pc sorprendeme
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-09-06T15:44:13-05:00.
+</ADDITIONAL_METADATA>

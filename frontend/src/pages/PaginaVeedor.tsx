@@ -34,7 +34,9 @@ export default function PaginaVeedor() {
   if (autenticado && debeCompletarSegundoFactor) {
     return (
       <PageWrapper>
-        <AltaSegundoFactor obligatorio onCancelar={cerrar} />
+        <main id="contenido-principal" tabIndex={-1}>
+          <AltaSegundoFactor obligatorio onCancelar={cerrar} />
+        </main>
       </PageWrapper>
     )
   }
@@ -42,7 +44,9 @@ export default function PaginaVeedor() {
   if (autenticado) {
     return (
       <PageWrapper>
-        <PanelVeedor onCerrarSesion={cerrar} />
+        <main id="contenido-principal" tabIndex={-1}>
+          <PanelVeedor onCerrarSesion={cerrar} />
+        </main>
       </PageWrapper>
     )
   }
@@ -50,41 +54,20 @@ export default function PaginaVeedor() {
   return (
     <PageWrapper>
       <main id="contenido-principal" tabIndex={-1} className="pagina-estado cuenta-pagina">
-        <section className="modal-reporte-contenedor cuenta-tarjeta" aria-labelledby="titulo-veedor">
-          <div className="modal-reporte-fondo-animado" aria-hidden="true">
-            <div className="orbe-rep-1" />
-            <div className="orbe-rep-2" />
-          </div>
-
-          <div className="modal-reporte-cabecera" style={{ marginBottom: '1.25rem' }}>
+        <section className="modal-reporte-contenedor cuenta-tarjeta cuenta-tarjeta-ingreso" aria-labelledby="titulo-veedor">
+          <div className="modal-reporte-cabecera cuenta-cabecera-ingreso">
             <div className="modal-reporte-icono-titulo">
-              <div
-                className="modal-reporte-badge-icono"
-                style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#d8b4fe' }}
-                aria-hidden="true"
-              >
+              <div className="modal-reporte-badge-icono" aria-hidden="true">
                 <ShieldCheck size={26} />
               </div>
               <div className="modal-reporte-titulos">
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                    color: '#c084fc',
-                    fontSize: '0.72rem',
-                    fontWeight: 750,
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase',
-                    marginBottom: '0.2rem',
-                  }}
-                >
+                <div className="cuenta-acceso-restringido">
                   <LockKeyhole size={12} /> Acceso restringido
                 </div>
-                <h1 id="titulo-veedor" style={{ fontSize: '1.45rem', margin: 0, color: '#ffffff' }}>
-                  Ingreso del Veedor
+                <h1 id="titulo-veedor">
+                  Ingreso del veedor
                 </h1>
-                <p>Centro de moderación oficial y control operativo.</p>
+                <p>Moderación de reportes y seguimiento operativo.</p>
               </div>
             </div>
           </div>

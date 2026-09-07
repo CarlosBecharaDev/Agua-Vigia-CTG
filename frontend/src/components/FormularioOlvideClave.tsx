@@ -56,7 +56,7 @@ export function FormularioOlvideClave({ onVolverAlIngreso }: Props) {
     <form onSubmit={enviar} className="form-reporte-moderno">
       <div className="form-reporte-bloque">
         <label htmlFor="olvide-correo" className="form-reporte-label">
-          <Mail size={15} color="#d8b4fe" />
+          <Mail size={15} aria-hidden="true" />
           Correo de tu cuenta
         </label>
         <input
@@ -67,8 +67,7 @@ export function FormularioOlvideClave({ onVolverAlIngreso }: Props) {
           placeholder="tu@correo.org"
           value={correo}
           onChange={(event) => setCorreo(event.target.value)}
-          className="form-suscripcion-input"
-          style={{ width: '100%' }}
+          className="form-suscripcion-input cuenta-input"
         />
       </div>
 
@@ -79,10 +78,9 @@ export function FormularioOlvideClave({ onVolverAlIngreso }: Props) {
       )}
 
       <button
-        className="form-suscripcion-boton-enviar"
+        className="form-suscripcion-boton-enviar cuenta-boton-principal"
         type="submit"
         disabled={enviando || !correo}
-        style={{ marginTop: '0.5rem' }}
       >
         {enviando ? (
           <>

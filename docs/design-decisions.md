@@ -2173,9 +2173,71 @@ Restaurar las llamadas `response.sendError(...)` en `SecurityConfig.java` y actu
 
 ---
 
+## ADR-045 — La portada es un instrumento cívico centrado en el mapa, no una pantalla promocional
+
+- **Fecha:** 2026-09-05
+- **Estado:** Aceptada
+- **Decide:** D4 (José Daniel Zambrano), a solicitud del titular del producto
+
+### Contexto
+
+La ruta principal abre con una animación bloqueante y, en teléfonos, antepone una portada
+promocional completa al mapa. En escritorio usa halos morados, olas animadas y controles con
+apariencia de demostración tecnológica. El resultado contradice la jerarquía que el propio
+`DESIGN.md` fija: una persona debe responder «¿tengo agua?» en menos de cinco segundos, sin
+registrarse y sin desplazarse.
+
+La auditoría encontró además que el panel convierte una falla de `/api/sectores` en cuatro conteos
+visibles en cero (`BUG-071`). El problema no es solo estético: una composición que parece un tablero
+operativo aumenta la autoridad de cifras que en ese momento no existen.
+
+### Alternativas consideradas
+
+| Opción | A favor | En contra |
+|---|---|---|
+| Retocar colores y conservar la portada promocional | Menor cambio de código | El mapa sigue fuera del primer viewport móvil y la animación sigue retrasando la respuesta |
+| Mantener la escena oscura como identidad diferenciadora | Impacto visual inmediato | Compite con los cuatro colores semánticos y se parece más a una plantilla futurista que a un servicio público local |
+| Priorizar el mapa y mover el relato del proyecto debajo | Responde primero la necesidad ciudadana; deja espacio para explicar el proyecto sin bloquearlo | La portada pierde espectacularidad y exige una jerarquía tipográfica más disciplinada |
+
+### Decisión
+
+La primera vista de `/` se convierte en una herramienta mapa-primero. Se retiran `SplashScreen` y
+la portada promocional exclusiva de móvil; la barra superior, el estado de conexión, el mapa y la
+búsqueda de barrio forman la primera unidad visible. El relato académico y la suscripción se
+conservan debajo del mapa.
+
+La interfaz reutiliza la paleta oficial de `DESIGN.md` y reserva verde, rojo, ámbar y azul para los
+estados del servicio. Se eliminan halos morados, neón, emojis decorativos y efectos que no explican
+datos. La interacción mantiene rutas, formularios, consultas y permisos existentes; el rediseño no
+cambia el contrato de la API ni el modelo de autenticación.
+
+Cuando una fuente falla, la vista muestra el fallo y una acción de reintento. No se publican
+conteos derivados del arreglo vacío inicial. Si fallan las teselas externas, la geometría local, la
+lista textual y el resto de controles deben seguir disponibles.
+
+### Consecuencias
+
+- **Gana:** el mapa ocupa el primer viewport también en 360×800 y la pregunta principal deja de
+  competir con contenido promocional.
+- **Gana:** las superficies y controles se sienten propios de un observatorio ciudadano de
+  Cartagena, no de una maqueta generada alrededor de efectos visuales.
+- **Gana:** un fallo de integración es visible como fallo; la ausencia de respuesta no se transforma
+  en una cifra operativa.
+- **Pierde:** `GradientWaves`, `SplashScreen` y el menú elástico dejan de justificar su costo visual
+  en la portada, aunque sus archivos puedan conservarse temporalmente hasta limpiar dependencias.
+- **Condiciona:** futuros cambios en la portada deben probar 360×800 y 1440×900 y mantener el mapa
+  dentro del primer viewport.
+
+### Cómo se revierte
+
+Reponer `SplashScreen` en `App.tsx`, la rama `portada-movil` de `PaginaMapa.tsx` y los componentes
+decorativos archivados por este cambio. No requiere migración de datos ni cambios de API, pero
+reabre `BUG-071` si también se elimina el estado explícito de indisponibilidad.
+
+---
+
 <!--
-Siguiente número disponible: ADR-045
+Siguiente número disponible: ADR-046
 Para agregar: usa la skill `registrar-decision`.
 Recuerda: append-only. Las entradas viejas solo cambian de estado, no de contenido.
 -->
-

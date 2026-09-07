@@ -1,624 +1,810 @@
-/* ── Apple-Grade Pro Estadísticas — Panel de Analítica y Cumplimiento ── */
-
 .estadisticas-seccion {
   position: relative;
-  background: linear-gradient(180deg, #070a18 0%, #050814 50%, #03050c 100%);
-  padding: 4.5rem 0 4.75rem;
-  color: #f8fafc;
-  overflow: hidden;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-/* ── Fondo Animado Morado/Índigo Fluido ── */
-.estadisticas-fondo-animado {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 0;
-}
-
-.orbe-est-1 {
-  position: absolute;
-  top: -10%;
-  left: 15%;
-  width: 550px;
-  height: 550px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.22) 0%, rgba(147, 51, 234, 0.06) 60%, transparent 80%);
-  filter: blur(75px);
-  animation: flotar-est-1 14s infinite ease-in-out;
-}
-
-.orbe-est-2 {
-  position: absolute;
-  bottom: -15%;
-  right: 10%;
-  width: 600px;
-  height: 600px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, rgba(99, 102, 241, 0.06) 60%, transparent 80%);
-  filter: blur(80px);
-  animation: flotar-est-2 16s infinite ease-in-out;
-}
-
-.orbe-est-3 {
-  position: absolute;
-  top: 40%;
-  right: 35%;
-  width: 450px;
-  height: 450px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(192, 132, 252, 0.14) 0%, transparent 70%);
-  filter: blur(65px);
-  animation: flotar-est-1 20s infinite ease-in-out reverse;
-}
-
-@keyframes flotar-est-1 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(40px, -30px) scale(1.1); }
-}
-
-@keyframes flotar-est-2 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-35px, 25px) scale(0.95); }
+  padding: clamp(3.5rem, 6vw, 6rem) 1.25rem;
+  color: var(--color-tinta);
+  background: var(--color-superficie-2);
+  border-top: 1px solid var(--color-linea);
 }
 
 .estadisticas-envoltorio {
-  position: relative;
-  z-index: 1;
-  width: min(100% - 2.5rem, 1200px);
+  width: min(100%, 1280px);
   margin: 0 auto;
 }
 
-/* ── Cabecera Apple Pro ── */
+/* Cabecera Observatorio */
 .estadisticas-cab {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  flex-wrap: wrap;
   gap: 1.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 2.25rem;
+  flex-wrap: wrap;
 }
 
 .estadisticas-eyebrow-pro {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 0.85rem;
-  border-radius: 9999px;
-  background: rgba(59, 130, 246, 0.12);
-  border: 1px solid rgba(96, 165, 250, 0.3);
-  color: #93c5fd;
-  font-size: 0.72rem;
-  font-weight: 750;
-  letter-spacing: 0.08em;
+  margin-bottom: 0.45rem;
+  color: #a43c12;
+  font: 800 0.72rem/1.2 var(--font-util);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  margin-bottom: 0.85rem;
-}
-
-.estadisticas-eyebrow-pro .pulse-dot-blue {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #3b82f6;
-  box-shadow: 0 0 8px #60a5fa;
-  animation: pulse-glow-blue 2s infinite ease-in-out;
-}
-
-@keyframes pulse-glow-blue {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.8); }
 }
 
 .estadisticas-titulo-pro {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-  font-size: clamp(2rem, 3.8vw, 2.75rem);
+  margin: 0;
+  color: var(--color-tinta);
+  font-size: clamp(2rem, 3.5vw, 2.75rem);
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.15;
-  margin: 0 0 0.6rem;
-  background: linear-gradient(180deg, #ffffff 30%, rgba(255, 255, 255, 0.75) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
 }
 
 .estadisticas-subtitulo-pro {
-  color: rgba(226, 232, 240, 0.75);
-  font-size: 1rem;
-  line-height: 1.6;
-  max-width: 50ch;
-  margin: 0;
-  font-weight: 400;
+  margin: 0.5rem 0 0;
+  color: var(--color-tinta-2);
+  font-size: 0.95rem;
+  max-width: 680px;
+  line-height: 1.5;
 }
 
 .estadisticas-acciones-cab {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-.estadisticas-badge-status {
+.estadisticas-periodo-pills {
   display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.45rem 0.95rem;
-  border-radius: 9999px;
-  background: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(14px);
-  color: rgba(226, 232, 240, 0.85);
-  font-size: 0.75rem;
-  font-weight: 600;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-linea);
+  border-radius: 8px;
+  padding: 0.2rem;
 }
 
+.periodo-btn {
+  border: 0;
+  background: transparent;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-tinta-2);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.periodo-btn.is-active {
+  background: var(--color-elevado);
+  color: var(--color-tinta);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.estadisticas-badge-status,
 .estadisticas-btn-exportar {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.45rem 1.05rem;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #f1f5f9;
-  font-size: 0.78rem;
-  font-weight: 650;
+  min-height: 36px;
+  padding: 0 0.85rem;
+  color: var(--color-tinta);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-linea);
+  border-radius: 8px;
+  font-size: 0.76rem;
+  font-weight: 700;
   text-decoration: none;
-  backdrop-filter: blur(12px);
-  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
 
-@media (hover: hover) and (pointer: fine) { .estadisticas-btn-exportar:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(96, 165, 250, 0.4);
-  transform: translateY(-1px);
-} }
+.estadisticas-btn-exportar:hover {
+  background: var(--color-elevado);
+  border-color: var(--color-linea-fuerte);
+}
 
-/* ── Tarjetas Bento Glass para KPIs ── */
+.estadisticas-error {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1.15rem 1.25rem;
+  color: #a43c12;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-linea);
+  border-left: 4px solid #a43c12;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+
+.estadisticas-error strong {
+  color: var(--color-tinta);
+}
+
+.estadisticas-error p {
+  margin: 0.2rem 0 0;
+  font-size: 0.82rem;
+  color: var(--color-tinta-2);
+}
+
+.estadisticas-error button {
+  padding: 0.45rem 0.9rem;
+  border-radius: 6px;
+  background: #a43c12;
+  color: #fff;
+  border: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* 4 KPIs Superiores Bento Glass */
 .estadisticas-kpis-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.25rem;
   margin-bottom: 2rem;
 }
 
+@media (max-width: 1024px) {
+  .estadisticas-kpis-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 580px) {
+  .estadisticas-kpis-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .estadisticas-kpi-card {
-  position: relative;
-  background: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  padding: 1.5rem;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4);
   display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  transition:
-    transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 280ms cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 280ms cubic-bezier(0.16, 1, 0.3, 1);
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.35rem;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-linea);
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.estadisticas-seccion.is-visible .estadisticas-kpi-card {
-  animation: estadistica-entrada 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+.estadisticas-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
 }
 
-.estadisticas-seccion.is-visible .estadisticas-kpi-card:nth-child(2) { animation-delay: 70ms; }
-.estadisticas-seccion.is-visible .estadisticas-kpi-card:nth-child(3) { animation-delay: 140ms; }
-.estadisticas-seccion.is-visible .estadisticas-kpi-card:nth-child(4) { animation-delay: 210ms; }
-
-@keyframes estadistica-entrada {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+.estadisticas-kpi-card.is-alerta {
+  border-color: rgba(164, 60, 18, 0.3);
 }
-
-@media (hover: hover) and (pointer: fine) { .estadisticas-kpi-card:hover {
-  transform: translateY(-4px);
-  border-color: rgba(96, 165, 250, 0.35);
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 25px -5px rgba(59, 130, 246, 0.25);
-} }
 
 .estadisticas-kpi-icono {
-  width: 52px;
-  height: 52px;
-  border-radius: 18px;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
+  background: rgba(0, 104, 116, 0.1);
+  color: #006874;
   flex-shrink: 0;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.is-alerta .estadisticas-kpi-icono {
+  background: rgba(164, 60, 18, 0.12);
+  color: #a43c12;
 }
 
 .estadisticas-kpi-cuerpo {
   display: flex;
   flex-direction: column;
-  min-width: 0;
 }
 
 .estadisticas-kpi-titulo {
-  font-size: 0.72rem;
-  font-weight: 750;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: rgba(203, 213, 225, 0.7);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--color-tinta-2);
   margin-bottom: 0.25rem;
 }
 
 .estadisticas-kpi-valor {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-  font-size: 1.95rem;
-  font-weight: 800;
-  line-height: 1.1;
-  color: #f8fafc;
+  font-size: 1.75rem;
+  font-weight: 850;
   letter-spacing: -0.02em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--color-tinta);
+  line-height: 1.1;
+  margin-bottom: 0.25rem;
 }
 
 .estadisticas-kpi-sub {
   font-size: 0.72rem;
-  color: rgba(148, 163, 184, 0.8);
-  margin-top: 0.25rem;
+  color: var(--color-tinta-3);
+  font-weight: 600;
 }
 
-/* ── Panel Bento Gráficos y Cumplimiento ── */
+/* Módulo Maestro Forense */
 .estadisticas-card-bloque {
-  position: relative;
-  background: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  padding: 1.85rem;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-linea);
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
   margin-bottom: 2rem;
-  transition: border-color 200ms ease;
 }
 
-@media (hover: hover) and (pointer: fine) { .estadisticas-card-bloque:hover {
-  border-color: rgba(255, 255, 255, 0.16);
-} }
-
-.estadisticas-graficos-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.5rem;
-}
-
-.estadisticas-chart {
-  position: relative;
-  width: 100%;
-  height: 280px;
-  min-width: 0;
-}
-
-/* Las barras ya nacen con sus datos finales. Esta capa CSS solo anima su entrada al llegar
-   al viewport, por lo que nunca deja el grafico vacio si el navegador pausa animaciones. */
-.estadisticas-seccion.is-visible .estadisticas-chart:not(.estadisticas-chart--sectores) .recharts-bar-rectangle path {
-  transform-box: fill-box;
-  transform-origin: center bottom;
-  animation: estadistica-barra-vertical 760ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.estadisticas-seccion.is-visible .estadisticas-chart--sectores .recharts-bar-rectangle path {
-  transform-box: fill-box;
-  transform-origin: left center;
-  animation: estadistica-barra-horizontal 760ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes estadistica-barra-vertical {
-  from { opacity: 0.45; transform: scaleY(0.08); }
-  to { opacity: 1; transform: scaleY(1); }
-}
-
-@keyframes estadistica-barra-horizontal {
-  from { opacity: 0.45; transform: scaleX(0.08); }
-  to { opacity: 1; transform: scaleX(1); }
+.estadisticas-modulo-maestro {
+  background: linear-gradient(180deg, var(--color-superficie) 0%, var(--color-superficie-2) 100%);
+  border: 1px solid var(--color-linea);
 }
 
 .estadisticas-card-cab {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 1.5rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
 
-.estadisticas-card-cab h3 {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+.estadisticas-card-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-tinta);
+}
+
+.estadisticas-card-titulo h3 {
+  margin: 0;
   font-size: 1.25rem;
-  font-weight: 750;
-  letter-spacing: -0.02em;
-  color: #f1f5f9;
-  margin: 0 0 0.3rem 0;
+  font-weight: 800;
 }
 
 .estadisticas-card-cab p {
-  color: rgba(203, 213, 225, 0.75);
-  font-size: 0.85rem;
-  line-height: 1.5;
-  margin: 0;
+  margin: 0.3rem 0 0;
+  font-size: 0.82rem;
+  color: var(--color-tinta-2);
 }
 
-/* ── Grid Bento de Cumplimiento ── */
+/* 3 Métricas del Índice */
 .cumplimiento-metricas-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.25rem;
-  padding-top: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .cumplimiento-metricas-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .cumplimiento-item {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 18px;
-  padding: 1.2rem;
   display: flex;
   flex-direction: column;
+  padding: 1.2rem;
+  background: var(--color-elevado);
+  border: 1px solid var(--color-linea);
+  border-radius: 10px;
 }
 
 .cumplimiento-item-tag {
-  font-size: 0.7rem;
-  font-weight: 750;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--color-tinta-2);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: rgba(148, 163, 184, 0.8);
+  letter-spacing: 0.05em;
   margin-bottom: 0.35rem;
 }
 
 .cumplimiento-item-val {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-}
-
-.cumplimiento-desviacion-ok {
-  color: #4ade80;
-  text-shadow: 0 0 16px rgba(74, 222, 128, 0.3);
+  font-size: 1.85rem;
+  font-weight: 850;
+  letter-spacing: -0.03em;
+  color: var(--color-tinta);
+  line-height: 1.1;
+  margin-bottom: 0.35rem;
 }
 
 .cumplimiento-desviacion-alerta {
-  color: #f87171;
-  text-shadow: 0 0 16px rgba(248, 113, 113, 0.3);
+  color: #a43c12;
 }
 
-/* ── Selectores Interactivos Píldora Apple ── */
+.cumplimiento-desviacion-ok {
+  color: #006874;
+}
+
+.cumplimiento-item-nota {
+  font-size: 0.72rem;
+  color: var(--color-tinta-3);
+  font-weight: 600;
+}
+
+/* Visualizador de Demora */
+.cumplimiento-visualizador-demora {
+  padding: 1.25rem;
+  background: var(--color-elevado);
+  border: 1px solid var(--color-linea);
+  border-radius: 10px;
+  margin-bottom: 1.25rem;
+}
+
+.visualizador-cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+  font-size: 0.8rem;
+}
+
+.visualizador-etiqueta {
+  font-weight: 700;
+  color: var(--color-tinta-2);
+}
+
+.visualizador-cifra {
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+
+.visualizador-barra-marco {
+  height: 12px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 9999px;
+  display: flex;
+  overflow: hidden;
+  margin-bottom: 0.6rem;
+}
+
+.visualizador-progreso-base {
+  background: #006874;
+  height: 100%;
+}
+
+.visualizador-progreso-exceso {
+  background: #a43c12;
+  height: 100%;
+}
+
+.visualizador-leyenda {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--color-tinta-2);
+}
+
+/* Alerta de Calidad */
+.estadisticas-alerta-calidad {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1rem 1.15rem;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 10px;
+}
+
+.alerta-calidad-icono {
+  color: #b45309;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.alerta-calidad-texto strong {
+  display: block;
+  font-size: 0.84rem;
+  color: #92400e;
+  margin-bottom: 0.15rem;
+}
+
+.alerta-calidad-texto p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--color-tinta-2);
+  line-height: 1.4;
+}
+
+/* Gráficos Dobles */
+.estadisticas-graficos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+@media (max-width: 900px) {
+  .estadisticas-graficos-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .estadisticas-pill-switch {
   display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 9999px;
-  backdrop-filter: blur(12px);
+  background: var(--color-superficie-2);
+  border: 1px solid var(--color-linea);
+  border-radius: 8px;
+  padding: 0.2rem;
 }
 
 .estadisticas-pill-btn {
-  padding: 0.3rem 0.75rem;
-  border-radius: 9999px;
+  border: 0;
   background: transparent;
-  border: none;
-  color: rgba(203, 213, 225, 0.75);
-  font-size: 0.72rem;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.74rem;
   font-weight: 700;
+  color: var(--color-tinta-2);
+  border-radius: 6px;
   cursor: pointer;
-  transition:
-    color 160ms cubic-bezier(0.16, 1, 0.3, 1),
-    background 160ms cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.15s;
 }
-
-@media (hover: hover) and (pointer: fine) { .estadisticas-pill-btn:hover {
-  color: #ffffff;
-} }
 
 .estadisticas-pill-btn.is-active {
-  background: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background: var(--color-elevado);
+  color: var(--color-tinta);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
-/* ── Tooltips Apple Glass ── */
-.custom-tooltip-glass {
-  background: rgba(15, 23, 42, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
-  padding: 0.85rem 1rem;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6), 0 0 15px rgba(56, 189, 248, 0.2);
-  backdrop-filter: blur(20px);
-  color: #f8fafc;
-  min-width: 160px;
+.estadisticas-chart {
+  height: 240px;
+  width: 100%;
+  margin: 1rem 0 0.75rem;
 }
 
-.custom-tooltip-title {
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: #e2e8f0;
-  margin-bottom: 0.35rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.custom-tooltip-val {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-  font-size: 1.35rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  display: flex;
-  align-items: baseline;
-  gap: 0.35rem;
-}
-
-.custom-tooltip-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.68rem;
-  font-weight: 700;
-  padding: 0.15rem 0.5rem;
-  border-radius: 9999px;
-  margin-top: 0.4rem;
-}
-
-/* ── Shimmer Skeleton Loader para Gráficos ── */
 .chart-skeleton-box {
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
-  gap: 0.75rem;
+  justify-content: space-around;
   height: 100%;
-  padding: 1.5rem 1rem 0.5rem;
+  padding-bottom: 20px;
 }
 
 .chart-skeleton-bar {
-  flex: 1;
-  border-radius: 8px 8px 0 0;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.12) 0%,
-    rgba(255, 255, 255, 0.03) 100%
-  );
-  animation: chart-shimmer 1.8s infinite ease-in-out;
+  width: 28px;
+  background: var(--color-superficie-2);
+  border-radius: 6px 6px 0 0;
+  animation: bar-shimmer 1.5s infinite ease-in-out;
 }
 
-.chart-skeleton-horizontal {
+@keyframes bar-shimmer {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+.custom-tooltip-glass {
+  background: var(--color-fondo);
+  border: 1px solid var(--color-linea);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+}
+
+.custom-tooltip-title {
+  font-size: 0.76rem;
+  font-weight: 750;
+  color: var(--color-tinta);
+}
+
+.custom-tooltip-val {
+  font-size: 0.74rem;
+  color: #006874;
+  font-weight: 700;
+}
+
+.estadisticas-chart-nota {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.74rem;
+  color: var(--color-tinta-3);
+  margin-top: 0.5rem;
+}
+
+/* Ranking de Sectores */
+.ranking-barrios-lista {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-  padding: 1rem 0;
-  gap: 0.75rem;
+  gap: 0.85rem;
+  margin: 1rem 0;
 }
 
-.chart-skeleton-hbar {
-  height: 22px;
-  border-radius: 0 8px 8px 0;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.12) 0%,
-    rgba(255, 255, 255, 0.03) 100%
-  );
-  animation: chart-shimmer 1.8s infinite ease-in-out;
+.ranking-barrio-fila {
+  padding: 0.75rem 0.85rem;
+  border-radius: 8px;
+  background: var(--color-superficie-2);
+  cursor: pointer;
+  transition: all 0.15s;
 }
 
-@keyframes chart-shimmer {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.9; }
+.ranking-barrio-fila:hover,
+.ranking-barrio-fila.is-seleccionado {
+  background: var(--color-elevado);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
 
-.chart-highlight-pill {
+.ranking-barrio-cab {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 0.85rem;
-  padding: 0.45rem 0.85rem;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 0.4rem;
+}
+
+.ranking-barrio-pos {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.ranking-num {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--color-tinta-3);
+}
+
+.ranking-nombre {
+  font-size: 0.82rem;
+  font-weight: 750;
+  color: var(--color-tinta);
+}
+
+.ranking-valor {
+  font-size: 0.78rem;
+  font-weight: 750;
+  color: var(--color-tinta-2);
+}
+
+.ranking-barra-pista {
+  height: 6px;
+  background: var(--color-linea);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.ranking-barra-relleno {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.8s ease-out;
+}
+
+/* Dossier de Evidencias Ciudadanas Fotográficas */
+.estadisticas-dossier-seccion {
+  margin-bottom: 2.5rem;
+}
+
+.dossier-cab {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.35rem;
+  flex-wrap: wrap;
+}
+
+.dossier-titulo {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--color-tinta);
+}
+
+.dossier-subtitulo {
+  margin: 0.3rem 0 0;
+  font-size: 0.82rem;
+  color: var(--color-tinta-2);
+}
+
+.dossier-total-badge {
+  padding: 0.35rem 0.75rem;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-linea);
+  border-radius: 8px;
   font-size: 0.75rem;
-  color: rgba(226, 232, 240, 0.85);
+  font-weight: 750;
+  color: #006874;
 }
 
-/* ── Reglas Responsivas para Móvil en Estadísticas ── */
-@media (max-width: 768px) {
-  .estadisticas-seccion {
-    padding: 3.25rem 0 3.5rem;
-  }
+.dossier-grid-evidencias {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
 
-  .estadisticas-envoltorio {
-    width: min(100% - 1.25rem, 1200px);
-  }
-
-  .estadisticas-cab {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .estadisticas-acciones-cab {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .estadisticas-kpis-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .estadisticas-graficos-grid {
+@media (max-width: 900px) {
+  .dossier-grid-evidencias {
     grid-template-columns: 1fr;
-    gap: 1rem;
   }
+}
 
-  .estadisticas-kpi-card {
-    padding: 1rem 0.85rem;
-    border-radius: 18px;
-    gap: 0.75rem;
-  }
+.dossier-card {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-linea);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+}
 
-  .estadisticas-kpi-icono {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-  }
+.dossier-foto-marco {
+  position: relative;
+  height: 160px;
+  background: #1e293b;
+}
 
-  .estadisticas-kpi-titulo {
-    font-size: 0.65rem;
-  }
+.dossier-foto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
-  .estadisticas-kpi-valor {
-    font-size: 1.45rem;
-  }
+.dossier-foto-tag {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
 
-  .estadisticas-kpi-sub {
-    font-size: 0.65rem;
-  }
+.dossier-cuerpo {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
 
-  .estadisticas-card-bloque {
-    padding: 1.25rem 1rem;
-    border-radius: 20px;
-    margin-bottom: 1rem;
-  }
+.dossier-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+  font-size: 0.72rem;
+}
 
-  .estadisticas-card-cab {
-    flex-direction: column;
-    margin-bottom: 1rem;
-  }
+.dossier-sector {
+  font-weight: 750;
+  color: #a43c12;
+}
 
-  .estadisticas-card-cab .estadisticas-pill-switch,
-  .estadisticas-card-cab .estadisticas-btn-exportar {
-    align-self: flex-start;
-  }
+.dossier-fecha {
+  color: var(--color-tinta-3);
+  font-weight: 600;
+}
 
-  .estadisticas-chart {
-    height: 240px;
-  }
+.dossier-card-titulo {
+  margin: 0 0 0.4rem;
+  font-size: 0.96rem;
+  font-weight: 750;
+  color: var(--color-tinta);
+  line-height: 1.35;
+}
 
-  .cumplimiento-metricas-grid {
+.dossier-card-detalle {
+  margin: 0 0 1rem;
+  font-size: 0.78rem;
+  color: var(--color-tinta-2);
+  line-height: 1.45;
+  flex: 1;
+}
+
+.dossier-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-linea);
+  font-size: 0.72rem;
+}
+
+.dossier-veedor {
+  color: var(--color-tinta-3);
+  font-weight: 600;
+}
+
+.dossier-verificado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 750;
+  color: #006874;
+}
+
+/* Hallazgos Legales */
+.estadisticas-hallazgos-bloque {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-linea);
+  border-radius: 14px;
+  padding: 1.75rem;
+}
+
+.hallazgos-cab {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.hallazgos-eyebrow {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #a43c12;
+  margin-bottom: 0.25rem;
+}
+
+.hallazgos-titulo {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--color-tinta);
+}
+
+.hallazgos-btn-descarga {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1.15rem;
+  border-radius: 8px;
+  background: #a43c12;
+  color: #fff;
+  border: 0;
+  font-size: 0.78rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.hallazgos-btn-descarga:hover {
+  background: #8c320e;
+  transform: translateY(-1px);
+}
+
+.hallazgos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+@media (max-width: 900px) {
+  .hallazgos-grid {
     grid-template-columns: 1fr;
-    gap: 0.75rem;
   }
 }
 
-@media (max-width: 480px) {
-  .estadisticas-kpis-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  .estadisticas-chart--sectores {
-    height: 260px;
-  }
+.hallazgo-card {
+  padding: 1.25rem;
+  background: var(--color-superficie-2);
+  border: 1px solid var(--color-linea);
+  border-radius: 10px;
+  position: relative;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .estadisticas-seccion.is-visible .estadisticas-kpi-card,
-  .estadisticas-seccion.is-visible .estadisticas-chart .recharts-bar-rectangle path {
-    animation: none;
-  }
+.hallazgo-numero {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: rgba(164, 60, 18, 0.25);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.hallazgo-card h4 {
+  margin: 0 0 0.4rem;
+  font-size: 0.92rem;
+  font-weight: 750;
+  color: var(--color-tinta);
+}
+
+.hallazgo-card p {
+  margin: 0;
+  font-size: 0.77rem;
+  color: var(--color-tinta-2);
+  line-height: 1.45;
 }

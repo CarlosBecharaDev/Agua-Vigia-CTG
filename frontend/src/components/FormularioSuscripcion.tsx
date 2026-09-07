@@ -72,8 +72,7 @@ export const FormularioSuscripcion: FC<Props> = ({ sectores, onFinalizado }) => 
           <button
             type="button"
             onClick={onFinalizado}
-            className="form-suscripcion-boton-enviar"
-            style={{ maxWidth: '200px', marginTop: '0.5rem' }}
+            className="form-suscripcion-boton-enviar suscripcion-exito-boton"
           >
             Entendido
           </button>
@@ -116,7 +115,7 @@ export const FormularioSuscripcion: FC<Props> = ({ sectores, onFinalizado }) => 
             <span className="form-suscripcion-chip-paso">2</span>
             Barrios a monitorear
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <div className="form-suscripcion-resumen">
             <span className="form-suscripcion-contador-badge">
               {sectorIds.length} {sectorIds.length === 1 ? 'barrio' : 'barrios'}
             </span>
@@ -192,7 +191,7 @@ export const FormularioSuscripcion: FC<Props> = ({ sectores, onFinalizado }) => 
             )
           })}
           {opciones.length > 0 && opcionesVisibles.length === 0 && (
-            <p style={{ gridColumn: '1 / -1', color: 'rgba(226, 232, 240, 0.6)', fontSize: '0.82rem', padding: '0.5rem', textAlign: 'center' }}>
+            <p className="form-suscripcion-sin-resultados">
               No se encontró ningún barrio con ese nombre.
             </p>
           )}
@@ -223,9 +222,14 @@ export const FormularioSuscripcion: FC<Props> = ({ sectores, onFinalizado }) => 
         )}
       </button>
 
-      <p style={{ fontSize: '0.76rem', color: 'rgba(216, 180, 254, 0.75)', margin: '0.25rem 0 0', textAlign: 'center' }}>
-        📧 En entorno local los correos se visualizan en la bandeja de pruebas: <strong style={{ color: '#e9d5ff' }}>http://127.0.0.1:8025</strong>
-      </p>
+      {import.meta.env.DEV && (
+        <p className="form-suscripcion-nota-local">
+          En desarrollo, revisa el correo en la{' '}
+          <a href="http://127.0.0.1:8025" target="_blank" rel="noreferrer">
+            bandeja local de MailHog
+          </a>.
+        </p>
+      )}
     </form>
   )
 }

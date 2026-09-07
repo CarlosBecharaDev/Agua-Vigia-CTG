@@ -25,10 +25,10 @@ export function CampoClave({ id, etiqueta, icono: Icono, valor, onCambio }: Prop
   return (
     <div className="form-reporte-bloque">
       <label htmlFor={id} className="form-reporte-label">
-        <Icono size={15} color="#d8b4fe" />
+        <Icono size={15} aria-hidden="true" />
         {etiqueta}
       </label>
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+      <div className="campo-clave-con-accion">
         <input
           id={id}
           type={visible ? 'text' : 'password'}
@@ -39,27 +39,14 @@ export function CampoClave({ id, etiqueta, icono: Icono, valor, onCambio }: Prop
           placeholder={`Al menos ${LONGITUD_MINIMA_CLAVE} caracteres`}
           value={valor}
           onChange={(event) => onCambio(event.target.value)}
-          className="form-suscripcion-input"
-          style={{ paddingRight: '2.75rem', width: '100%' }}
+          className="form-suscripcion-input campo-clave-input"
           aria-describedby={`${id}-pista`}
         />
         <button
           type="button"
           aria-label={visible ? 'Ocultar clave' : 'Mostrar clave'}
           onClick={() => setVisible((actual) => !actual)}
-          style={{
-            position: 'absolute',
-            right: '0.75rem',
-            background: 'transparent',
-            border: 'none',
-            color: 'rgba(203, 213, 225, 0.7)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minWidth: 44,
-            minHeight: 44,
-          }}
+          className="campo-clave-boton"
         >
           {visible ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
@@ -67,7 +54,7 @@ export function CampoClave({ id, etiqueta, icono: Icono, valor, onCambio }: Prop
       {/* RNF016: el cumplimiento no se comunica solo por color — el texto lo dice. */}
       <p id={`${id}-pista`} className="cuenta-pista">
         {suficiente
-          ? `✓ Cumple el mínimo de ${LONGITUD_MINIMA_CLAVE} caracteres.`
+          ? `Cumple el mínimo de ${LONGITUD_MINIMA_CLAVE} caracteres.`
           : `Mínimo ${LONGITUD_MINIMA_CLAVE} caracteres. Una frase larga es más segura y más fácil de recordar que un jeroglífico corto.`}
       </p>
     </div>

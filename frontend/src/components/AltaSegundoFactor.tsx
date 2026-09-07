@@ -62,24 +62,15 @@ export function AltaSegundoFactor({ obligatorio = false, onListo, onCancelar }: 
   }
 
   return (
-    <main id="contenido-principal" tabIndex={-1} className="pagina-estado cuenta-pagina">
+    <section className="pagina-estado cuenta-pagina" aria-labelledby="titulo-2fa">
       <section className="modal-reporte-contenedor cuenta-tarjeta" aria-labelledby="titulo-2fa">
-        <div className="modal-reporte-fondo-animado" aria-hidden="true">
-          <div className="orbe-rep-1" />
-          <div className="orbe-rep-2" />
-        </div>
-
-        <div className="modal-reporte-cabecera" style={{ marginBottom: '1rem' }}>
+        <div className="modal-reporte-cabecera cuenta-cabecera">
           <div className="modal-reporte-icono-titulo">
-            <div
-              className="modal-reporte-badge-icono"
-              style={{ background: 'rgba(168, 85, 247, 0.2)', color: '#d8b4fe' }}
-              aria-hidden="true"
-            >
+            <div className="modal-reporte-badge-icono cuenta-cabecera-icono" aria-hidden="true">
               <ShieldCheck size={26} />
             </div>
             <div className="modal-reporte-titulos">
-              <h1 id="titulo-2fa" style={{ fontSize: '1.35rem', margin: 0, color: '#ffffff' }}>
+              <h1 id="titulo-2fa" className="cuenta-titulo">
                 Activa tu segundo factor
               </h1>
               <p>
@@ -92,7 +83,7 @@ export function AltaSegundoFactor({ obligatorio = false, onListo, onCancelar }: 
         </div>
 
         {cargando && (
-          <p className="cuenta-pista" style={{ textAlign: 'center' }}>
+          <p className="cuenta-pista cuenta-texto-centrado">
             <span className="spinner" /> Generando tu código…
           </p>
         )}
@@ -102,7 +93,7 @@ export function AltaSegundoFactor({ obligatorio = false, onListo, onCancelar }: 
             <div className="cuentas-qr">
               <img src={qr} alt="Código QR para configurar la aplicación de autenticación" width={220} height={220} />
             </div>
-            <p className="cuenta-pista" style={{ textAlign: 'center' }}>
+            <p className="cuenta-pista cuenta-texto-centrado">
               Escanéalo con Google Authenticator, Aegis, 1Password o la app que uses. Si la cámara no
               coopera, escribe este código a mano:
             </p>
@@ -110,10 +101,10 @@ export function AltaSegundoFactor({ obligatorio = false, onListo, onCancelar }: 
           </>
         )}
 
-        <form onSubmit={confirmar} className="form-reporte-moderno" style={{ marginTop: '1rem' }}>
+        <form onSubmit={confirmar} className="form-reporte-moderno cuenta-form-separado">
           <div className="form-reporte-bloque">
             <label htmlFor="codigo-alta-2fa" className="form-reporte-label">
-              <Smartphone size={15} color="#d8b4fe" />
+              <Smartphone size={15} aria-hidden="true" />
               Escribe el código que muestra la app
             </label>
             <input
@@ -126,8 +117,7 @@ export function AltaSegundoFactor({ obligatorio = false, onListo, onCancelar }: 
               placeholder="000000"
               value={codigo}
               onChange={(event) => setCodigo(event.target.value)}
-              className="form-suscripcion-input"
-              style={{ width: '100%', letterSpacing: '0.35em', fontSize: '1.15rem' }}
+              className="form-suscripcion-input cuenta-input cuenta-codigo"
             />
           </div>
 
@@ -154,8 +144,7 @@ export function AltaSegundoFactor({ obligatorio = false, onListo, onCancelar }: 
           {onCancelar && (
             <button
               type="button"
-              className="cuentas-btn"
-              style={{ width: '100%', marginTop: '0.6rem' }}
+              className="cuentas-btn cuenta-btn-ancho"
               onClick={onCancelar}
             >
               {obligatorio ? 'Cerrar sesión y salir' : 'Ahora no'}
@@ -163,6 +152,6 @@ export function AltaSegundoFactor({ obligatorio = false, onListo, onCancelar }: 
           )}
         </form>
       </section>
-    </main>
+    </section>
   )
 }

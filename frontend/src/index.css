@@ -1,54 +1,45 @@
 @import "tailwindcss";
 
-/* ─── Modo claro (por defecto) ─── */
+/* Sistema hidrográfico: hielo, océano y azul de instrumentación. */
 :root {
-  /* ── Nebulosa de la zona inferior (.zona-nebulosa) ──
-     Cuatro halos radiales que van del violeta al turquesa del proyecto. En claro las
-     alfas son muy bajas: sobre el fondo claro un halo saturado tiñe el texto y rompe el
-     contraste AA que exige el checklist de DESIGN.md §10.
-     El resto de la paleta la define el bloque de abajo (viene de origin/main). */
-  --nebulosa-1: rgba(67, 56, 160, 0.1);
-  --nebulosa-2: rgba(38, 54, 120, 0.08);
-  --nebulosa-3: rgba(30, 120, 150, 0.09);
-  --nebulosa-4: rgba(84, 198, 202, 0.12);
   color-scheme: light;
-  --color-fondo: #f2f7f6;
-  --color-fondo-profundo: #e9f1f0;
-  --color-superficie: #fbfdfc;
-  --color-superficie-2: #f5f9f8;
-  --color-superficie-3: #edf4f3;
+  --nebulosa-1: rgba(0, 87, 184, 0.08);
+  --nebulosa-2: rgba(0, 119, 182, 0.06);
+  --nebulosa-3: rgba(42, 157, 214, 0.07);
+  --nebulosa-4: rgba(113, 216, 255, 0.08);
+  --color-fondo: #eaf4fb;
+  --color-fondo-profundo: #dcecf7;
+  --color-superficie: #f7fbfe;
+  --color-superficie-2: #edf6fc;
+  --color-superficie-3: #dfedf6;
   --color-elevado: #ffffff;
-  --color-linea: #d8e5e3;
-  --color-linea-fuerte: #bfd2cf;
-  --color-tinta: #102f39;
-  --color-tinta-2: #526a70;
-  --color-tinta-3: #789095;
-  --color-marino: #082f3c;
-  /* El pie es azul oscuro en ambos temas: `--color-marino` se invierte a menta claro en oscuro
-     (ver el bloque de tema oscuro) y arrastraba el pie a blanco. Se elige un azul profundo, no el
-     teal de `--color-marino`, para que el pie cierre la página en vez de competir con ella. */
-  --color-pie: #04121c;
-  /* Dos peldaños por encima del pie: suficiente para que las capas se distingan al moverse,
-     sin que ninguna se lea como una franja de otro color. */
-  --color-pie-ola-fondo: #0d2537;
-  --color-pie-ola-media: #08192697;
-  --color-acento: #087f8c;
-  --color-acento-vivo: #0796a5;
-  --color-acento-suave: #dcefee;
-  --color-coral: #dc5a4e;
-  --color-coral-hover: #c64c42;
+  --color-linea: #c7dce9;
+  --color-linea-fuerte: #95bad0;
+  --color-tinta: #071f30;
+  --color-tinta-2: #365c72;
+  --color-tinta-3: #4f7184;
+  --color-marino: #041e31;
+  --color-pie: #02131f;
+  --color-pie-ola-fondo: #06263b;
+  --color-pie-ola-media: #041d2f;
+  --color-acento: #005fa8;
+  --color-acento-vivo: #007fc4;
+  --color-acento-suave: #d7edfa;
+  --color-sobre-acento: #ffffff;
+  --color-coral: #ff5c38;
+  --color-coral-hover: #ff7043;
   --color-estado-con: #1c7f55;
   --color-estado-sin: #ae3428;
   --color-estado-baja: #94640c;
   --color-estado-prog: #2a628f;
   --font-display:
-    -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro",
+    "Geist", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI",
     "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-cuerpo:
-    -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro",
+    "Geist", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
     "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-util:
-    ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Monaco, Consolas,
+    "JetBrains Mono", ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Monaco, Consolas,
     monospace;
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -66,11 +57,12 @@
   --radio-lg: 20px;
   --radio-pill: 999px;
   --sombra-suave:
-    0 1px 2px rgba(6, 44, 54, 0.04), 0 8px 24px rgba(6, 44, 54, 0.06);
+    0 1px 2px rgba(3, 31, 49, 0.05), 0 10px 28px rgba(3, 31, 49, 0.08);
   --sombra-elevada:
-    0 2px 4px rgba(6, 44, 54, 0.06), 0 18px 45px rgba(6, 44, 54, 0.12);
-  --sombra-coral: 0 8px 22px rgba(174, 52, 40, 0.22);
+    0 2px 4px rgba(3, 31, 49, 0.08), 0 24px 60px rgba(3, 31, 49, 0.16);
+  --sombra-coral: 0 8px 24px -2px rgba(255, 92, 56, 0.35);
   --ease: cubic-bezier(0.2, 0.75, 0.25, 1);
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
   --motion-fast: 140ms;
   --motion-ui: 220ms;
   --motion-page: 340ms;
@@ -84,93 +76,69 @@
   --hueco-nav-inferior: calc(
     var(--alto-nav-inferior) + 1.3rem + env(safe-area-inset-bottom, 0px)
   );
-  --foco-outline: 3px solid rgba(8, 127, 140, 0.72);
+  --foco-outline: 3px solid rgba(0, 95, 168, 0.78);
   --foco-offset: 3px;
 }
 
-/* ─── Modo oscuro — media query del SO ─── */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --color-acento: #54c6ca;
-    --color-acento-vivo: #78d9db;
-    --color-acento-suave: #153f44;
-
-    --color-tinta: #edf8f7;
-    --color-tinta-2: #a7bdbd;
-    --color-tinta-3: #71898c;
-    --color-marino: #061b22;
-
-    --color-linea: #234a4f;
-    --color-superficie: #102f36;
-    --color-fondo: #071f26;
-
-    --nebulosa-1: rgba(67, 56, 160, 0.8);
-    --nebulosa-2: rgba(38, 54, 120, 0.65);
-    --nebulosa-3: rgba(30, 120, 150, 0.5);
-    --nebulosa-4: rgba(84, 198, 202, 0.3);
-
-    --sombra-suave:
-      0 4px 20px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.15);
-    --sombra-elevada:
-      0 12px 40px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
-
-    color-scheme: dark;
-  }
-}
-
-/* ─── Modo oscuro — interruptor manual ─── */
+/* Modo oscuro manual. */
 :root[data-theme="dark"] {
-  --nebulosa-1: rgba(67, 56, 160, 0.8);
-  --nebulosa-2: rgba(38, 54, 120, 0.65);
-  --nebulosa-3: rgba(30, 120, 150, 0.5);
-  --nebulosa-4: rgba(84, 198, 202, 0.3);
   color-scheme: dark;
-  --color-fondo: #061c23;
-  --color-fondo-profundo: #04161c;
-  --color-superficie: #0c2830;
-  --color-superficie-2: #102f37;
-  --color-superficie-3: #163941;
-  --color-elevado: #183b43;
-  --color-linea: #24454b;
-  --color-linea-fuerte: #356068;
-  --color-tinta: #eef8f7;
-  --color-tinta-2: #aac0c0;
-  --color-tinta-3: #789296;
-  --color-marino: #e7f7f6;
-  --color-acento: #57c7cb;
-  --color-acento-vivo: #78d9db;
-  --color-acento-suave: #153f44;
-  --color-coral: #ef7468;
-  --color-coral-hover: #ff887d;
+  --nebulosa-1: rgba(0, 95, 168, 0.16);
+  --nebulosa-2: rgba(0, 127, 196, 0.12);
+  --nebulosa-3: rgba(50, 197, 255, 0.1);
+  --nebulosa-4: rgba(113, 216, 255, 0.08);
+  --color-fondo: #020f1a;
+  --color-fondo-profundo: #010a12;
+  --color-superficie: #071d2b;
+  --color-superficie-2: #0b2637;
+  --color-superficie-3: #103247;
+  --color-elevado: #0d2b3d;
+  --color-linea: #1e4b64;
+  --color-linea-fuerte: #33708e;
+  --color-tinta: #edf9ff;
+  --color-tinta-2: #b1cfdd;
+  --color-tinta-3: #89aebe;
+  --color-marino: #edf9ff;
+  --color-acento: #32b9f2;
+  --color-acento-vivo: #71d8ff;
+  --color-acento-suave: #0b3c55;
+  --color-sobre-acento: #001722;
+  --color-coral: #ff6e4a;
+  --color-coral-hover: #ff8566;
   --color-estado-con: #4fbf89;
   --color-estado-sin: #e2695b;
   --color-estado-baja: #d9a63c;
   --color-estado-prog: #6ba8da;
   --sombra-suave: 0 1px 2px rgba(0, 0, 0, 0.2), 0 10px 28px rgba(0, 0, 0, 0.18);
   --sombra-elevada:
-    0 2px 4px rgba(0, 0, 0, 0.22), 0 20px 50px rgba(0, 0, 0, 0.3);
+    0 2px 4px rgba(0, 0, 0, 0.24), 0 24px 60px rgba(0, 0, 0, 0.38);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --color-fondo: #061c23;
-    --color-fondo-profundo: #04161c;
-    --color-superficie: #0c2830;
-    --color-superficie-2: #102f37;
-    --color-superficie-3: #163941;
-    --color-elevado: #183b43;
-    --color-linea: #24454b;
-    --color-linea-fuerte: #356068;
-    --color-tinta: #eef8f7;
-    --color-tinta-2: #aac0c0;
-    --color-tinta-3: #789296;
-    --color-marino: #e7f7f6;
-    --color-acento: #57c7cb;
-    --color-acento-vivo: #78d9db;
-    --color-acento-suave: #153f44;
-    --color-coral: #ef7468;
-    --color-coral-hover: #ff887d;
+    --nebulosa-1: rgba(0, 95, 168, 0.16);
+    --nebulosa-2: rgba(0, 127, 196, 0.12);
+    --nebulosa-3: rgba(50, 197, 255, 0.1);
+    --nebulosa-4: rgba(113, 216, 255, 0.08);
+    --color-fondo: #020f1a;
+    --color-fondo-profundo: #010a12;
+    --color-superficie: #071d2b;
+    --color-superficie-2: #0b2637;
+    --color-superficie-3: #103247;
+    --color-elevado: #0d2b3d;
+    --color-linea: #1e4b64;
+    --color-linea-fuerte: #33708e;
+    --color-tinta: #edf9ff;
+    --color-tinta-2: #b1cfdd;
+    --color-tinta-3: #89aebe;
+    --color-marino: #edf9ff;
+    --color-acento: #32b9f2;
+    --color-acento-vivo: #71d8ff;
+    --color-acento-suave: #0b3c55;
+    --color-sobre-acento: #001722;
+    --color-coral: #ff718f;
+    --color-coral-hover: #ff91a8;
     --color-estado-con: #4fbf89;
     --color-estado-sin: #e2695b;
     --color-estado-baja: #d9a63c;
@@ -178,7 +146,7 @@
     --sombra-suave:
       0 1px 2px rgba(0, 0, 0, 0.2), 0 10px 28px rgba(0, 0, 0, 0.18);
     --sombra-elevada:
-      0 2px 4px rgba(0, 0, 0, 0.22), 0 20px 50px rgba(0, 0, 0, 0.3);
+      0 2px 4px rgba(0, 0, 0, 0.24), 0 24px 60px rgba(0, 0, 0, 0.38);
   }
 }
 
@@ -2973,24 +2941,6 @@ p {
 
 /* ─── Modo claro forzado por interruptor ─── */
 :root[data-theme="light"] {
-  --color-acento: #087f8c;
-  --color-acento-vivo: #0a9cab;
-  --color-acento-suave: #d9f1f0;
-
-  --color-tinta: #12333d;
-  --color-tinta-2: #5d7379;
-  --color-tinta-3: #8da0a4;
-  --color-marino: #061b22;
-
-  --color-linea: #dce8e8;
-  --color-superficie: #ffffff;
-  --color-fondo: #f3f8f7;
-
-  --nebulosa-1: rgba(67, 56, 160, 0.1);
-  --nebulosa-2: rgba(38, 54, 120, 0.08);
-  --nebulosa-3: rgba(30, 120, 150, 0.09);
-  --nebulosa-4: rgba(84, 198, 202, 0.12);
-
   color-scheme: light;
 }
 
@@ -3668,7 +3618,7 @@ select {
   flex-direction: column;
   padding: 1.1rem 0.9rem;
   color: #eaf7f7;
-  background: #0b2a32;
+  background: #041e31;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 8px 0 30px rgba(5, 25, 31, 0.08);
 }
@@ -3698,10 +3648,10 @@ select {
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  color: #0d5d68;
-  background: #7ce0df;
+  color: #063954;
+  background: #71d8ff;
   border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(84, 198, 202, 0.2);
+  box-shadow: 0 8px 20px rgba(50, 185, 242, 0.22);
 }
 
 .brand-copy,
@@ -3760,8 +3710,8 @@ select {
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  color: #79d8d9;
-  background: rgba(84, 198, 202, 0.11);
+  color: #71d8ff;
+  background: rgba(50, 185, 242, 0.11);
   border-radius: 9px;
 }
 
@@ -3821,8 +3771,8 @@ select {
 
 .sidebar-link.is-active {
   color: #f6ffff;
-  background: rgba(84, 198, 202, 0.13);
-  border-color: rgba(120, 217, 219, 0.15);
+  background: rgba(50, 185, 242, 0.13);
+  border-color: rgba(113, 216, 255, 0.18);
 }
 
 .sidebar-link.is-active::before {
@@ -3830,7 +3780,7 @@ select {
   inset: 12px auto 12px -0.72rem;
   width: 3px;
   content: "";
-  background: #78d9db;
+  background: #71d8ff;
   border-radius: 0 4px 4px 0;
 }
 
@@ -3845,8 +3795,8 @@ select {
 }
 
 .sidebar-link.is-active .sidebar-link-icon {
-  color: #7ee0e0;
-  background: rgba(84, 198, 202, 0.1);
+  color: #8de2ff;
+  background: rgba(50, 185, 242, 0.1);
 }
 
 .sidebar-link-copy strong {
@@ -3884,8 +3834,8 @@ select {
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  color: #79d8d9;
-  background: rgba(84, 198, 202, 0.1);
+  color: #71d8ff;
+  background: rgba(50, 185, 242, 0.1);
   border-radius: 50%;
 }
 
@@ -4163,140 +4113,7 @@ select {
   gap: 0.75rem;
 }
 
-.tarjeta-estado-mapa {
-  --color-neon: var(--color-acento);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 148px;
-  padding: 0.85rem 0.75rem 0.75rem;
-  text-align: center;
-  background: rgba(15, 23, 42, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 18px;
-  backdrop-filter: blur(20px);
-  box-shadow:
-    0 10px 25px -10px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  transition:
-    transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 220ms cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1);
-  overflow: hidden;
-}
-
-.tarjeta-estado-mapa::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--color-neon);
-  opacity: 0.6;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .tarjeta-estado-mapa:hover {
-    transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow:
-      0 14px 30px -10px rgba(0, 0, 0, 0.6),
-      0 0 20px -8px var(--color-neon);
-  }
-}
-
-.tarjeta-estado-mapa.is-activa {
-  border-color: var(--color-neon);
-  box-shadow:
-    0 0 0 1px var(--color-neon),
-    0 12px 30px -8px var(--color-neon);
-}
-
-.tarjeta-estado-mapa-cab {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  width: 100%;
-  margin-bottom: 0.4rem;
-}
-
-.tarjeta-estado-mapa-punto {
-  width: 7px;
-  height: 7px;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  background: var(--color-neon);
-  box-shadow: 0 0 8px var(--color-neon);
-}
-
-.tarjeta-estado-mapa-etiqueta {
-  overflow: hidden;
-  color: rgba(241, 245, 249, 0.85);
-  font-size: 0.68rem;
-  font-weight: 750;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tarjeta-estado-mapa-num {
-  font-family:
-    -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto,
-    sans-serif;
-  font-size: 1.85rem;
-  font-weight: 800;
-  line-height: 1;
-  color: #ffffff;
-  letter-spacing: -0.03em;
-  margin-top: 0.1rem;
-}
-
-.tarjeta-estado-mapa-sub {
-  margin: 0.15rem 0 0.65rem;
-  color: rgba(203, 213, 225, 0.6);
-  font-size: 0.7rem;
-  font-weight: 550;
-}
-
-.tarjeta-estado-mapa-btn {
-  width: 100%;
-  margin-top: auto;
-  min-height: 36px;
-  padding: 0.4rem 0.65rem;
-  color: #f8fafc;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 9999px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  cursor: pointer;
-  backdrop-filter: blur(10px);
-  transition:
-    background 180ms ease,
-    color 180ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    transform 180ms ease;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .tarjeta-estado-mapa-btn:hover:not(:disabled) {
-    background: var(--color-neon);
-    color: #040914;
-    border-color: var(--color-neon);
-    box-shadow: 0 0 12px var(--color-neon);
-    transform: translateY(-1px);
-  }
-}
-
-.tarjeta-estado-mapa-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
+/* Tarjetas estado mapa — estilizadas en PaginaMapa.css */
 
 @media (prefers-reduced-motion: reduce) {
   .tarjeta-estado-mapa {
@@ -5026,7 +4843,7 @@ select {
   }
 
   .topbar-subscribe span,
-  .theme-toggle > span {
+  .theme-toggle > span:last-child {
     display: none;
   }
 
@@ -5094,9 +4911,9 @@ select {
   --color-tinta: #edf8f7;
   --color-tinta-2: #a7bdbd;
   --color-tinta-3: #71898c;
-  --color-acento: #54c6ca;
-  --color-acento-vivo: #78d9db;
-  --color-acento-suave: #153f44;
+  --color-acento: #32b9f2;
+  --color-acento-vivo: #71d8ff;
+  --color-acento-suave: #0b3c55;
   --color-linea: rgba(255, 255, 255, 0.12);
   --color-superficie: rgba(255, 255, 255, 0.06);
   --color-fondo: rgba(255, 255, 255, 0.04);
@@ -5857,36 +5674,28 @@ select {
    parte del gesto visual del hero. */
 .panel-mapa-unificado {
   position: absolute;
-  top: 7rem;
-  right: 1.25rem;
-  bottom: 2.25rem;
-  left: max(380px, 32vw);
-  max-width: 1040px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
   display: flex;
-  --ancho-hoja-sectores: 300px;
-  border-radius: 28px;
+  --ancho-hoja-sectores: 384px;
+  border-radius: 0;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 24px 60px -20px rgba(2, 15, 26, 0.6);
+  border: none;
+  box-shadow: none;
+}
 
-  /* Isla oscura: aquí adentro los tokens de tema se fijan a su variante oscura, pase lo
-     que pase afuera. Este recuadro vive sobre el hero (negro en ambos temas) y sus teselas
-     de mapa también son oscuras siempre, así que con el tema claro el texto salía en tinta
-     #12333d sobre vidrio oscuro — ilegible. Redefinirlos acá lo arregla de una vez para
-     todos los descendientes (título, buscador, ficha de sector, tarjetas de estado) sin
-     tener que pintar cada regla a mano. */
+:root[data-theme="dark"] .panel-mapa-unificado {
   --color-tinta: #edf8f7;
   --color-tinta-2: #a7bdbd;
   --color-tinta-3: #71898c;
-  --color-acento: #54c6ca;
-  --color-acento-vivo: #78d9db;
-  --color-acento-suave: #153f44;
+  --color-acento: #32b9f2;
+  --color-acento-vivo: #71d8ff;
+  --color-acento-suave: #0b3c55;
   --color-linea: rgba(255, 255, 255, 0.12);
   --color-superficie: rgba(255, 255, 255, 0.06);
   --color-fondo: rgba(255, 255, 255, 0.04);
-  --glass-r: 28;
-  --glass-g: 28;
-  --glass-b: 30;
   --color-estado-con: #4fbf89;
   --color-estado-sin: #e2695b;
   --color-estado-baja: #d9a63c;
@@ -5990,8 +5799,8 @@ select {
 }
 
 .mapa-aviso-gesto--libre {
-  border-color: rgba(120, 217, 219, 0.45);
-  color: #78d9db;
+  border-color: rgba(113, 216, 255, 0.45);
+  color: #71d8ff;
 }
 
 @keyframes mapa-aviso-entrar {
@@ -6082,12 +5891,8 @@ select {
 
 /* ── Panel del proyecto — Tarjeta Bento Apple Pro a la izquierda del mapa ── */
 .panel-proyecto {
-  position: absolute;
-  top: 7rem;
-  bottom: 2.25rem;
-  left: 0;
-  width: max(380px, 32vw);
-  z-index: 900;
+  position: relative;
+  width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -6133,9 +5938,9 @@ select {
   gap: 0.45rem;
   padding: 0.28rem 0.75rem;
   border-radius: 9999px;
-  background: rgba(84, 198, 202, 0.12);
-  border: 1px solid rgba(84, 198, 202, 0.3);
-  color: #78d9db;
+  background: rgba(50, 185, 242, 0.12);
+  border: 1px solid rgba(50, 185, 242, 0.3);
+  color: #71d8ff;
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -6146,8 +5951,8 @@ select {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #54c6ca;
-  box-shadow: 0 0 8px #78d9db;
+  background: #32b9f2;
+  box-shadow: 0 0 8px #71d8ff;
 }
 
 .panel-proyecto-titulo {
@@ -6161,7 +5966,7 @@ select {
 }
 
 .panel-proyecto-titulo-acento {
-  background: linear-gradient(135deg, #78d9db 0%, #38bdf8 100%);
+  background: linear-gradient(135deg, #71d8ff 0%, #278fd0 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -6210,14 +6015,14 @@ select {
   width: 100%;
   padding: 0 1.25rem;
   color: #04201e;
-  background: linear-gradient(135deg, #54c6ca 0%, #38bdf8 100%);
+  background: linear-gradient(135deg, #32b9f2 0%, #278fd0 100%);
   border: none;
   border-radius: var(--radio-pill);
   font-size: 0.92rem;
   font-weight: 750;
   letter-spacing: -0.01em;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(84, 198, 202, 0.35);
+  box-shadow: 0 8px 24px rgba(50, 185, 242, 0.35);
   transition:
     transform 180ms ease,
     box-shadow 180ms ease;
@@ -6226,7 +6031,7 @@ select {
 @media (hover: hover) and (pointer: fine) {
   .panel-proyecto-boton:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(84, 198, 202, 0.5);
+    box-shadow: 0 12px 28px rgba(50, 185, 242, 0.5);
   }
 }
 
@@ -6234,13 +6039,7 @@ select {
   transform: scale(0.97);
 }
 
-@media (max-width: 1024px) {
-  .panel-mapa-unificado {
-    left: 1rem;
-    right: 1rem;
-    max-width: none;
-  }
-}
+
 
 /* ── Portada de teléfono y tableta ──
    Por debajo de 1024px el panel del proyecto no cabe flotando junto al mapa, así que pasa a
@@ -6472,7 +6271,7 @@ select {
 }
 
 .carrusel-sector.carrusel-sector--centrado {
-  justify-content: center;
+  justify-content: safe center;
 }
 
 /* ── Ficha del sector seleccionado — vive en .hoja-sectores-cuerpo, entre el buscador y las
@@ -6576,14 +6375,14 @@ select {
     font-weight: 750;
     letter-spacing: -0.01em;
     margin: 0 0 0.15rem;
-    color: #ffffff;
+    color: var(--color-tinta);
   }
 
   .mapa-subtitulo {
     font-size: 0.72rem;
     line-height: 1.35;
     margin: 0 0 0.3rem;
-    color: rgba(226, 232, 240, 0.75);
+    color: var(--color-tinta-2);
   }
 
   .hoja-sectores-pista {

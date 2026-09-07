@@ -6,10 +6,21 @@ producción, Nginx lo hace bajo el mismo origen (ver `nginx.conf`).
 
 ## Arrancar contra un backend local
 
-1. Levantar el backend (`cd backend && ./mvnw spring-boot:run`, o `docker-compose up`).
-2. Copiar `.env.example` a `.env.local` si necesitas cambiar el puerto del backend
-   (`VITE_BACKEND_PROXY_TARGET`, por defecto `http://localhost:8080`).
-3. `npm run dev` — las llamadas a `/api/*` se redirigen automáticamente al backend.
+1. Levantar el backend por uno de estos caminos:
+   - Maven: `cd backend && ./mvnw spring-boot:run` — escucha en `http://localhost:8080`.
+   - Docker Compose: `docker compose up -d` — publica el backend en `http://localhost:8081`.
+2. Para Maven no hace falta crear ningún archivo: 8080 es el destino predeterminado. Para Docker,
+   crear `frontend/.env.local` con una sola línea:
+
+   ```dotenv
+   VITE_BACKEND_PROXY_TARGET=http://localhost:8081
+   ```
+
+3. Ejecutar `npm run dev`. El arranque imprime el destino efectivo como
+   `[Vite] Proxy /api → http://localhost:…`; las llamadas a `/api/*` se redirigen allí.
+
+`.env.local` es solo configuración de la máquina y está ignorado por Git. La variable configura el
+servidor de desarrollo mediante `loadEnv`; no se expone al código que Vite entrega al navegador.
 
 Todo lo anterior es suficiente para el mapa y el resto de pantallas públicas. Para el panel
 del veedor (`PaginaVeedor` — login, moderación, cortes oficiales) el backend necesita

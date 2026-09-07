@@ -11,7 +11,7 @@ import type { ErrorInfo, ReactNode } from 'react'
 import { Encabezado } from './components/Encabezado'
 import { useTheme } from './hooks/useTheme'
 import { ModalSuscripcion } from './components/ModalSuscripcion'
-import { SplashScreen } from './components/SplashScreen'
+import { useDatosEnVivo } from './hooks/useDatosEnVivo'
 
 // Cada vista carga solo cuando se visita, especialmente útil en conexiones móviles.
 const PaginaMapa = lazy(() => import('./pages/PaginaMapa'))
@@ -67,6 +67,20 @@ class RouteErrorBoundary extends Component<RouteErrorBoundaryProps, RouteErrorBo
   }
 }
 
+function ModalSuscripcionConDatos({ onCerrar }: { onCerrar: () => void }) {
+  const { sectores, estado, error, recargar } = useDatosEnVivo()
+  return (
+    <ModalSuscripcion
+      abierto
+      onCerrar={onCerrar}
+      sectores={sectores}
+      estadoDatos={estado}
+      errorDatos={error}
+      onRecargarDatos={recargar}
+    />
+  )
+}
+
 /**
  * ContenidoApp — vive dentro de BrowserRouter (useLocation lo exige) y decide el shell.
  *
@@ -111,7 +125,9 @@ function ContenidoApp() {
                 <Route path="*" element={<PaginaNoEncontrada />} />
               </Routes>
             </div>
-            <ModalSuscripcion abierto={suscripcionAbierta} onCerrar={() => setSuscripcionAbierta(false)} />
+            {suscripcionAbierta && (
+              <ModalSuscripcionConDatos onCerrar={() => setSuscripcionAbierta(false)} />
+            )}
           </>
         )}
       </Suspense>
@@ -122,7 +138,6 @@ function ContenidoApp() {
 function App() {
   return (
     <BrowserRouter>
-      <SplashScreen />
       <a
         href="#contenido-principal"
         id="saltar-al-contenido"

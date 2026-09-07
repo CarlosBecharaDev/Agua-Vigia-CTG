@@ -1,299 +1,779 @@
-/* ── Apple-Grade Pro Bitácora — Terminal de Monitoreo Ciudadano ── */
-
 .bitacora-seccion {
   position: relative;
-  background: linear-gradient(180deg, #050814 0%, #0a0f24 50%, #070a18 100%);
-  /* Arriba respira más que abajo a propósito: separa la bitácora del mapa, que termina en un
-     borde duro, mientras que abajo el degradado de la sección ya hace de transición. */
-  padding: 5.5rem 0 3.25rem;
-  color: #f8fafc;
+  padding: clamp(3.5rem, 6vw, 6rem) 0;
+  color: var(--color-tinta);
+  background: var(--color-fondo);
+  border-top: 1px solid var(--color-linea);
   overflow: hidden;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-/* ── Resplandor de transición sutil desde el Hero ── */
-.bitacora-seccion::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 800px;
-  height: 350px;
-  background: radial-gradient(ellipse at center, rgba(147, 51, 234, 0.18) 0%, rgba(59, 130, 246, 0.08) 50%, transparent 75%);
-  filter: blur(60px);
-  pointer-events: none;
-  z-index: 0;
 }
 
 .bitacora-envoltorio {
-  position: relative;
-  z-index: 1;
-  width: min(100% - 2.5rem, 1200px);
+  width: min(calc(100% - 2.5rem), 1280px);
   margin: 0 auto;
 }
 
-/* ── Cabecera Apple Pro ── */
-.bitacora-cab {
+/* 1. Barra de Telemetría Distrital */
+.bitacora-telemetria-bar {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 1.25rem;
-  margin-bottom: 1.4rem;
+  gap: 0.6rem;
+  padding: 0.55rem 1rem;
+  margin-bottom: 2rem;
+  background: var(--color-superficie-2);
+  border: 1px solid var(--color-linea);
+  border-radius: 9999px;
+  font-size: 0.76rem;
+  color: var(--color-tinta-2);
+  width: fit-content;
+  max-width: 100%;
 }
 
-.bitacora-eyebrow-pro {
+.bitacora-telemetria-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 0.85rem;
-  border-radius: 9999px;
-  background: rgba(168, 85, 247, 0.12);
-  border: 1px solid rgba(192, 132, 252, 0.3);
-  color: #d8b4fe;
-  font-size: 0.72rem;
-  font-weight: 750;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 0.85rem;
+  gap: 0.4rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--color-acento);
 }
 
-.bitacora-eyebrow-pro .pulse-dot {
+.bitacora-pulse-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #a855f7;
-  box-shadow: 0 0 8px #c084fc;
-  animation: pulse-glow 2s infinite ease-in-out;
+  background: #006874;
+  animation: bitacora-dot-pulse 2s infinite ease-in-out;
 }
 
-@keyframes pulse-glow {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.8); }
+@keyframes bitacora-dot-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(0, 104, 116, 0.6);
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 0.7;
+    box-shadow: 0 0 0 6px rgba(0, 104, 116, 0);
+  }
+}
+
+.bitacora-telemetria-sep {
+  color: var(--color-linea);
+}
+
+.bitacora-telemetria-texto strong {
+  color: var(--color-tinta);
+}
+
+.bitacora-telemetria-tag {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.68rem;
+  color: #a43c12;
+  background: rgba(164, 60, 18, 0.1);
+  border: 1px solid rgba(164, 60, 18, 0.2);
+}
+
+/* Cabecera Principal */
+.bitacora-cab {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.bitacora-eyebrow-pro {
+  margin-bottom: 0.4rem;
+  color: var(--color-acento);
+  font: 800 0.72rem/1.2 var(--font-util);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .bitacora-titulo-pro {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  margin: 0;
+  color: var(--color-tinta);
+  font-size: clamp(2rem, 3.5vw, 2.75rem);
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1.15;
-  margin: 0 0 0.45rem;
-  color: #f8fafc;
 }
 
 .bitacora-subtitulo-pro {
-  color: rgba(226, 232, 240, 0.75);
-  font-size: 0.95rem;
+  margin: 0.5rem 0 0;
+  color: var(--color-tinta-2);
+  font-size: 0.98rem;
+  max-width: 680px;
   line-height: 1.5;
-  max-width: 56ch;
-  margin: 0;
-  font-weight: 400;
 }
 
-/* ── Filtros Segmentados Estilo Apple ── */
+.bitacora-acciones-top {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.bitacora-btn-accion {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  height: 38px;
+  padding: 0 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 8px;
+  color: var(--color-tinta);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-linea);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bitacora-btn-accion:hover {
+  background: var(--color-superficie-2);
+  border-color: var(--color-linea-fuerte);
+  transform: translateY(-1px);
+}
+
+.bitacora-btn-accion--destacado {
+  color: #fff;
+  background: #a43c12;
+  border-color: #a43c12;
+}
+
+.bitacora-btn-accion--destacado:hover {
+  background: #8b320e;
+  border-color: #8b320e;
+  color: #fff;
+}
+
+/* Barra de Filtros Integrada Stitch */
+.bitacora-barra-filtros-stitch {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-bottom: 2rem;
+}
+
 .bitacora-filtros-pro {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem;
-  background: rgba(15, 23, 42, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 9999px;
-  backdrop-filter: blur(14px);
+  gap: 0.35rem;
   width: fit-content;
-  flex-wrap: wrap;
-  margin-bottom: 0.9rem;
+  max-width: 100%;
+  padding: 0.3rem;
+  overflow-x: auto;
+  background: var(--color-superficie-2);
+  border: 1px solid var(--color-linea);
+  border-radius: 10px;
 }
 
 .bitacora-filtro-btn {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 0 0.9rem;
+  color: var(--color-tinta-2);
+  background: transparent;
+  border: 0;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bitacora-filtro-btn:hover {
+  color: var(--color-tinta);
+}
+
+.bitacora-filtro-btn.is-active {
+  color: var(--color-acento);
+  background: var(--color-elevado);
+  box-shadow: 0 1px 4px rgba(6, 44, 54, 0.08);
+}
+
+.bitacora-filtros-secundarios {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.bitacora-select-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.bitacora-select-icono {
+  position: absolute;
+  left: 0.8rem;
+  color: var(--color-tinta-3);
+  pointer-events: none;
+}
+
+.bitacora-select {
+  height: 36px;
+  padding-left: 2.2rem;
+  padding-right: 1.8rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-tinta);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-linea);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.bitacora-select:focus {
+  outline: none;
+  border-color: var(--color-acento);
+}
+
+.bitacora-rangos-pills {
+  display: inline-flex;
+  background: var(--color-superficie-2);
+  border: 1px solid var(--color-linea);
+  border-radius: 8px;
+  padding: 0.2rem;
+}
+
+.bitacora-rango-btn {
+  border: 0;
+  background: transparent;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-tinta-2);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.bitacora-rango-btn.is-active {
+  background: var(--color-elevado);
+  color: var(--color-tinta);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.bitacora-busqueda-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex: 1 1 220px;
+  max-width: 340px;
+}
+
+.bitacora-busqueda-icono {
+  position: absolute;
+  left: 0.8rem;
+  color: var(--color-tinta-3);
+}
+
+.bitacora-busqueda-input {
+  width: 100%;
+  height: 36px;
+  padding-left: 2.2rem;
+  padding-right: 0.8rem;
+  font-size: 0.8rem;
+  color: var(--color-tinta);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-linea);
+  border-radius: 8px;
+}
+
+.bitacora-busqueda-input:focus {
+  outline: none;
+  border-color: var(--color-acento);
+}
+
+/* 3 Tarjetas Destacadas en Vivo */
+.bitacora-destacados-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
+}
+
+@media (max-width: 900px) {
+  .bitacora-destacados-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bitacora-card-live {
+  padding: 1.35rem;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-linea);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.bitacora-card-live::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+}
+
+.bitacora-card-live--restablecido::before {
+  background: #006874;
+}
+
+.bitacora-card-live--sinservicio::before {
+  background: #a43c12;
+}
+
+.bitacora-card-live--programado::before {
+  background: #3b82f6;
+}
+
+.bitacora-card-live-cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.bitacora-tag-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+}
+
+.tag-restablecido {
+  color: #006874;
+  background: rgba(0, 104, 116, 0.1);
+}
+
+.tag-sinservicio {
+  color: #a43c12;
+  background: rgba(164, 60, 18, 0.12);
+}
+
+.tag-programado {
+  color: #1d4ed8;
+  background: rgba(59, 130, 246, 0.12);
+}
+
+.bitacora-card-live-hora {
+  font-size: 0.72rem;
+  color: var(--color-tinta-3);
+  font-weight: 600;
+}
+
+.bitacora-card-live-titulo {
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+  font-weight: 750;
+  color: var(--color-tinta);
+}
+
+.bitacora-card-live-desc {
+  margin: 0 0 1.1rem;
+  font-size: 0.8rem;
+  color: var(--color-tinta-2);
+  line-height: 1.45;
+}
+
+.bitacora-card-live-metricas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--color-linea);
+}
+
+.card-metrica-rotulo {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--color-tinta-3);
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+
+.card-metrica-valor {
+  font-size: 0.86rem;
+}
+
+.text-teal {
+  color: #006874;
+}
+
+.text-coral {
+  color: #a43c12;
+}
+
+.text-azul {
+  color: #2563eb;
+}
+
+/* Bento Grid Principal: 8 Cols (Tabla / Boletines) + 4 Cols (Lateral) */
+.bitacora-bento-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .bitacora-bento-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.bitacora-col-principal {
+  min-width: 0;
+  max-width: 100%;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-linea);
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+}
+
+.bitacora-col-lateral {
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.bitacora-seccion-forense-cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-linea);
+}
+
+.bitacora-seccion-subtitulo {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-tinta);
+}
+
+.bitacora-seccion-desc {
+  margin: 0.3rem 0 0;
+  font-size: 0.82rem;
+  color: var(--color-tinta-2);
+}
+
+.bitacora-conmutador-vistas {
+  display: inline-flex;
+  background: var(--color-superficie-2);
+  border: 1px solid var(--color-linea);
+  border-radius: 8px;
+  padding: 0.2rem;
+}
+
+.conmutador-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.45rem 1.05rem;
-  border-radius: 9999px;
-  border: 1px solid transparent;
+  border: 0;
   background: transparent;
-  color: rgba(226, 232, 240, 0.75);
-  font-size: 0.84rem;
-  font-weight: 650;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--color-tinta-2);
+  border-radius: 6px;
   cursor: pointer;
-  transition: color 180ms ease, background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  transition: all 0.15s;
 }
 
-@media (hover: hover) and (pointer: fine) { .bitacora-filtro-btn:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.06);
-} }
-
-.bitacora-filtro-btn.is-active {
-  background: rgba(255, 255, 255, 0.14);
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+.conmutador-btn.is-active {
+  background: var(--color-elevado);
+  color: var(--color-tinta);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
-/* ── Carrusel / Bento Feed ── */
+/* Tabla Forense */
+.bitacora-tabla-contenedor {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.bitacora-tabla-forense {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.bitacora-tabla-forense th {
+  text-align: left;
+  padding: 0.75rem 0.8rem;
+  font-size: 0.7rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-tinta-3);
+  border-bottom: 1px solid var(--color-linea);
+}
+
+.bitacora-fila-forense td {
+  padding: 0.95rem 0.8rem;
+  border-bottom: 1px solid var(--color-linea);
+  vertical-align: middle;
+}
+
+.bitacora-fila-forense:hover {
+  background: var(--color-superficie-2);
+}
+
+.forense-radicado {
+  font-weight: 800;
+  color: var(--color-tinta);
+}
+
+.forense-hora {
+  font-size: 0.72rem;
+  color: var(--color-tinta-3);
+}
+
+.forense-sector {
+  font-weight: 700;
+  color: var(--color-tinta);
+}
+
+.forense-localidad {
+  font-size: 0.72rem;
+  color: var(--color-tinta-2);
+}
+
+.forense-naturaleza {
+  color: var(--color-tinta-2);
+}
+
+.forense-impacto {
+  font-weight: 600;
+  color: var(--color-tinta);
+}
+
+.forense-badge-discrepancia {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.badge-retraso {
+  color: #a43c12;
+  background: rgba(164, 60, 18, 0.12);
+}
+
+.badge-verificado {
+  color: #006874;
+  background: rgba(0, 104, 116, 0.12);
+}
+
+.badge-turbidez {
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.14);
+}
+
+.forense-btn-expediente {
+  border: 0;
+  background: transparent;
+  color: #006874;
+  font-weight: 750;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  transition: all 0.15s;
+}
+
+.forense-btn-expediente:hover {
+  background: rgba(0, 104, 116, 0.08);
+  transform: translateX(2px);
+}
+
+/* Bloque Secundario de Boletines (para mantener compatibilidad y tests) */
+.bitacora-bloque-carrusel {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-linea);
+}
+
+.bitacora-carrusel-cab {
+  margin-bottom: 1rem;
+}
+
+.bitacora-carrusel-subtitulo {
+  margin: 0 0 0.2rem;
+  font-size: 1.05rem;
+  font-weight: 750;
+  color: var(--color-tinta);
+}
+
+.bitacora-carrusel-nota {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--color-tinta-3);
+}
+
+/* Carrusel y Tarjetas de Boletín (probados en SeccionBitacora.test.tsx) */
+.bitacora-carrusel-marco {
+  position: relative;
+}
+
 .bitacora-carrusel-pro {
   display: flex;
-  gap: 1.25rem;
-  padding: 0.5rem 0.25rem 1rem;
+  gap: 0.9rem;
+  padding: 0.25rem 0.15rem 0.8rem;
   overflow-x: auto;
-  scrollbar-width: none;
-  cursor: grab;
-  touch-action: pan-y;
-  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
   scroll-snap-type: x mandatory;
-  scroll-padding-inline: 0.25rem;
-  overscroll-behavior-inline: contain;
-}
-
-.bitacora-carrusel-pro::-webkit-scrollbar {
-  display: none;
+  scroll-padding-inline: 0.15rem;
+  cursor: grab;
 }
 
 .bitacora-carrusel-pro.is-arrastrando {
   cursor: grabbing;
-  scroll-snap-type: none;
+  user-select: none;
 }
 
-.bitacora-carrusel-pro:focus-visible {
-  outline: 2px solid #c084fc;
-  outline-offset: 4px;
-}
-
-.bitacora-carrusel-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  color: rgba(203, 213, 225, 0.6);
-  font-size: 0.74rem;
-}
-
-.bitacora-carrusel-meta span:first-child {
-  color: rgba(226, 232, 240, 0.85);
-  font-weight: 700;
-}
-
-/* ── Tarjeta Bento Apple Pro ── */
 .bitacora-tarjeta-pro {
-  --color-glow: rgba(168, 85, 247, 0.6);
-  position: relative;
-  flex: 0 0 auto;
-  width: calc((100% - 2.5rem) / 3);
-  min-width: 290px;
-  min-height: 180px;
+  flex: 0 0 clamp(260px, 30vw, 320px);
+  scroll-snap-align: start;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
   padding: 1.15rem;
-  backdrop-filter: blur(18px);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px -5px rgba(15, 23, 42, 0.4);
-  transition:
-    transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 280ms cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 280ms cubic-bezier(0.16, 1, 0.3, 1);
-  user-select: none;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
+  background: var(--color-superficie-2);
+  border: 1px solid var(--color-linea);
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
 }
-
-.bitacora-seccion.is-visible .bitacora-tarjeta-pro {
-  animation: bitacora-tarjeta-entrada 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.bitacora-seccion.is-visible .bitacora-tarjeta-pro:nth-child(2) { animation-delay: 80ms; }
-.bitacora-seccion.is-visible .bitacora-tarjeta-pro:nth-child(3) { animation-delay: 160ms; }
-
-@keyframes bitacora-tarjeta-entrada {
-  from { opacity: 0.45; transform: translateY(14px) scale(0.985); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@media (hover: hover) and (pointer: fine) { .bitacora-tarjeta-pro:hover {
-  transform: translateY(-4px);
-  border-color: rgba(192, 132, 252, 0.4);
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), 0 0 30px -5px var(--color-glow);
-} }
 
 .bitacora-tarjeta-cabecera {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .bitacora-badge-estado {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.3rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.74rem;
+  gap: 0.35rem;
+  font-size: 0.72rem;
   font-weight: 750;
-  letter-spacing: 0.02em;
-}
-
-.badge-sin-servicio {
-  background: rgba(239, 68, 68, 0.16);
-  color: #fca5a5;
-  border: 1px solid rgba(239, 68, 68, 0.35);
-}
-
-.badge-presion-baja {
-  background: rgba(245, 158, 11, 0.16);
-  color: #fde047;
-  border: 1px solid rgba(245, 158, 11, 0.35);
-}
-
-.badge-corte-programado {
-  background: rgba(59, 130, 246, 0.16);
-  color: #93c5fd;
-  border: 1px solid rgba(59, 130, 246, 0.35);
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
 }
 
 .badge-informativo {
-  background: rgba(107, 122, 133, 0.16);
-  color: #cbd5e1;
-  border: 1px solid rgba(107, 122, 133, 0.35);
+  color: #6b7a85;
+  background: rgba(107, 122, 133, 0.12);
+}
+
+.badge-sin-servicio {
+  color: #a43c12;
+  background: rgba(164, 60, 18, 0.12);
+}
+
+.badge-presion-baja {
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.14);
+}
+
+.badge-corte-programado {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.12);
 }
 
 .badge-con-servicio {
-  background: rgba(34, 197, 94, 0.16);
-  color: #86efac;
-  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #006874;
+  background: rgba(0, 104, 116, 0.12);
 }
 
 .bitacora-tiempo-pro {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.74rem;
-  color: rgba(203, 213, 225, 0.6);
-  font-weight: 500;
+  font-size: 0.72rem;
+  color: var(--color-tinta-3);
+  font-weight: 600;
 }
 
 .bitacora-tarjeta-cuerpo h3 {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-  font-size: 0.96rem;
-  font-weight: 550;
-  line-height: 1.55;
-  color: #f1f5f9;
   margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-tinta);
+}
+
+.bitacora-portada-marco {
+  position: relative;
+  height: 120px;
+  margin: -1.15rem -1.15rem 0.9rem;
+  overflow: hidden;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  background: var(--color-superficie);
+}
+
+.bitacora-portada {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bitacora-numero-boletin {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  padding: 0.15rem 0.45rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  border-radius: 4px;
 }
 
 .bitacora-tarjeta-pie-pro {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  margin-top: 1.25rem;
-  padding-top: 0.85rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-linea);
+}
+
+.bitacora-leer-documento {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #006874;
+  text-decoration: none;
 }
 
 .bitacora-tag-tipo {
@@ -302,324 +782,413 @@
   gap: 0.35rem;
   font-size: 0.72rem;
   font-weight: 600;
-  color: rgba(216, 180, 254, 0.8);
 }
 
 .bitacora-dot-indicador {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: currentColor;
 }
 
-/* ── Reglas Responsivas para Móvil en Bitácora ── */
-@media (max-width: 768px) {
-  .bitacora-seccion {
-    padding: 3.25rem 0 3.5rem;
-  }
-
-  .bitacora-envoltorio {
-    width: min(100% - 1.25rem, 1200px);
-  }
-
-  .bitacora-cab {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-
-  /* Los cinco filtros se ven completos, en dos o tres renglones. Antes era una tira con
-     scroll horizontal: los últimos quedaban fuera de cuadro y nada avisaba de que existían,
-     así que en teléfono el filtro de «Restablecidos» era invisible. */
-  .bitacora-filtros-pro {
-    width: 100%;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.3rem;
-    border-radius: 16px;
-    padding: 0.3rem;
-  }
-
-  .bitacora-filtro-btn {
-    flex: 0 1 auto;
-    white-space: nowrap;
-    padding: 0.34rem 0.68rem;
-    font-size: 0.72rem;
-    /* DESIGN.md §7 pide 44px de objetivo táctil; acá el alto lo da el propio renglón, que con
-       este relleno queda en 30px. Se compensa con el área de toque, no con el dibujo. */
-    min-height: 32px;
-  }
-
-  .bitacora-tarjeta-pro {
-    width: 100%;
-    min-width: 100%;
-    min-height: 195px;
-    padding: 1.15rem;
-    border-radius: 20px;
-  }
-
-  .bitacora-carrusel-meta span:last-child {
-    display: none;
-  }
+.bitacora-radio {
+  color: var(--color-tinta-3);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .bitacora-seccion.is-visible .bitacora-tarjeta-pro {
-    animation: none;
-  }
+.bitacora-flechas {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
 }
 
-/* Portada del boletín que respalda el evento. `aspect-ratio` fijo para que las tarjetas de una
-   misma fila no bailen mientras las imágenes llegan a distinto ritmo. */
-.bitacora-portada {
-  width: 100%;
-  aspect-ratio: 16 / 7;
-  object-fit: cover;
-  border-radius: 12px;
-  margin-bottom: 0.7rem;
-  background: var(--color-superficie-3);
-}
-
-/* Marco de la portada: contiene la imagen y el número del boletín superpuesto. */
-.bitacora-portada-marco {
-  position: relative;
-  margin-bottom: 0.85rem;
-}
-
-.bitacora-numero-boletin {
-  position: absolute;
-  top: 0.55rem;
-  right: 0.55rem;
-  padding: 0.15rem 0.5rem;
-  border-radius: 999px;
-  /* Fondo propio y no solo sombra de texto: la portada puede ser clara u oscura y el número
-     tiene que leerse igual sobre cualquiera de las dos. */
-  background: rgba(8, 12, 20, 0.72);
-  color: #f1f5f9;
-  font: 650 0.68rem/1.4 var(--font-util);
-  letter-spacing: 0.04em;
-  backdrop-filter: blur(4px);
-}
-
-.bitacora-leer-documento {
+.bitacora-flecha {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.42rem 0.8rem;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   border: 1px solid var(--color-linea);
-  border-radius: var(--radio-base);
-  color: var(--color-acento);
-  font: 650 0.74rem var(--font-util);
-  text-decoration: none;
-  transition: background-color 160ms ease-out, border-color 160ms ease-out;
+  background: var(--color-superficie);
+  color: var(--color-tinta);
+  cursor: pointer;
 }
 
-/* Sin gate el hover se queda pegado al tocar en un móvil (ver el resto de la hoja). */
-@media (hover: hover) and (pointer: fine) {
-  .bitacora-leer-documento:hover {
-    border-color: var(--color-acento);
-    background: var(--color-acento-suave);
-  }
+.bitacora-flecha:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
-.bitacora-leer-documento:active {
-  transform: scale(0.97);
+/* Columna Lateral (4 Cols): Gauge, Foto Terreno y Protocolo Legal */
+.bitacora-col-lateral {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
-/* Las tarjetas crecieron al llevar portada: se igualan a la más alta para que la fila no quede
-   escalonada, y el carrusel gana aire abajo para que el borde y su resplandor no se recorten. */
-.bitacora-carrusel-pro {
-  align-items: stretch;
-  padding-bottom: 1.25rem;
+.bitacora-panel-lateral-card {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-linea);
+  border-radius: 14px;
+  padding: 1.35rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
-/* La fecha absoluta ("8 de julio de 2026") es más larga que "hace 2 h" y se partía en dos líneas
-   junto a la insignia de estado. */
-.bitacora-tiempo-pro {
-  white-space: nowrap;
-}
-
-/* El estado vacío ocupa lo mismo que la fila de tarjetas (medido: 422px con la meta incluida).
-   Sin esto, filtrar por "Sin servicio" cuando no hay ninguno colapsaba el carrusel y toda la
-   página de abajo saltaba hacia arriba — el usuario perdía el sitio donde estaba mirando. */
-.bitacora-envoltorio .bitacora-vacio {
+.panel-lateral-cab {
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-height: 423px;
+  gap: 0.55rem;
+  margin-bottom: 1rem;
+}
+
+.panel-lateral-titulo {
   margin: 0;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--color-tinta);
+}
+
+/* Gauge Circular */
+.bitacora-gauge-bloque {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
 }
 
-/* En móvil la tarjeta es más baja, así que reservar 422px dejaría un hueco enorme. */
-@media (max-width: 640px) {
-  .bitacora-envoltorio .bitacora-vacio {
-    min-height: 340px;
-  }
+.bitacora-gauge-svg-wrap {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0.5rem auto 1rem;
 }
 
-/* ── Estado vacío ──────────────────────────────────────────────────────────────
-   Entra con una animación CSS y no con JS: es movimiento predeterminado, y CSS
-   corre fuera del hilo principal, así que no pierde cuadros mientras la página
-   sigue cargando el mapa y las portadas.
-   Propósito: evitar el salto brusco al cambiar de filtro — el carrusel desaparece
-   y algo tiene que ocupar su lugar de forma legible. Curva y duración salen de los
-   tokens del proyecto (--ease, --motion-ui = 220ms), no de un sistema paralelo. */
-.bitacora-envoltorio .bitacora-vacio {
+.bitacora-gauge-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.gauge-pista {
+  fill: none;
+  stroke: var(--color-linea);
+  stroke-width: 8;
+}
+
+.gauge-progreso {
+  fill: none;
+  stroke: #a43c12;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s ease;
+}
+
+.gauge-centro-texto {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  min-height: 423px;
+}
+
+.gauge-valor {
+  font-size: 1.45rem;
+  font-weight: 850;
+  color: #a43c12;
+  line-height: 1;
+}
+
+.gauge-etiqueta {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--color-tinta-3);
+  text-transform: uppercase;
+  margin-top: 0.2rem;
+}
+
+.bitacora-gauge-explicacion {
+  margin: 0 0 1rem;
+  font-size: 0.78rem;
+  color: var(--color-tinta-2);
+  line-height: 1.45;
+}
+
+.bitacora-gauge-desglose {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  border-top: 1px solid var(--color-linea);
+  padding-top: 0.85rem;
+  text-align: left;
+}
+
+.gauge-desglose-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--color-tinta-2);
+}
+
+/* Foto Terreno */
+.bitacora-foto-terreno-marco {
+  position: relative;
+  height: 140px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 0.85rem;
+}
+
+.bitacora-foto-terreno {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.foto-terreno-tag {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.terreno-info-cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.terreno-veedor-id {
+  font-size: 0.72rem;
+  font-weight: 750;
+  color: #006874;
+}
+
+.terreno-tiempo {
+  font-size: 0.7rem;
+  color: var(--color-tinta-3);
+}
+
+.terreno-nota {
   margin: 0;
-  padding: 0 1.5rem;
+  font-size: 0.76rem;
+  color: var(--color-tinta-2);
+  line-height: 1.4;
+}
+
+/* Protocolo Legal */
+.bitacora-card-legal {
+  border-left: 3px solid #a43c12;
+}
+
+.bitacora-legal-texto {
+  margin: 0;
+  font-size: 0.77rem;
+  color: var(--color-tinta-2);
+  line-height: 1.5;
+}
+
+.bitacora-legal-texto strong {
+  color: var(--color-tinta);
+}
+
+/* Estado Vacío y Error */
+.bitacora-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-}
-
-.bitacora-vacio-icono,
-.bitacora-vacio-titulo,
-.bitacora-vacio-texto {
-  /* Nunca desde scale(0): nada en el mundo real aparece de la nada. */
-  animation: bitacora-vacio-entrada var(--motion-ui) var(--ease) both;
-}
-
-/* Escalonado corto (60ms): encadena los tres sin que el bloque se sienta lento. */
-.bitacora-vacio-titulo { animation-delay: 60ms; }
-.bitacora-vacio-texto { animation-delay: 120ms; }
-
-@keyframes bitacora-vacio-entrada {
-  from { opacity: 0; transform: translateY(10px) scale(0.97); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  padding: 3rem 1.5rem;
+  background: var(--color-superficie-2);
+  border: 1px dashed var(--color-linea-fuerte);
+  border-radius: 12px;
+  margin: 1.5rem 0;
 }
 
 .bitacora-vacio-icono {
-  color: #a855f7;
-  opacity: 0.85;
+  color: var(--color-tinta-3);
+  margin-bottom: 0.8rem;
 }
 
 .bitacora-vacio-titulo {
-  margin: 0;
-  color: #f1f5f9;
-  font-size: 1.05rem;
-  font-weight: 700;
+  margin: 0 0 0.3rem;
+  font-size: 1rem;
+  font-weight: 750;
+  color: var(--color-tinta);
 }
 
 .bitacora-vacio-texto {
   margin: 0;
-  max-width: 46ch;
-  color: rgba(203, 213, 225, 0.72);
-  font-size: 0.88rem;
-  line-height: 1.55;
+  font-size: 0.82rem;
+  color: var(--color-tinta-2);
+  max-width: 420px;
 }
 
-/* Movimiento reducido: se conserva la aparición, que ayuda a entender el cambio,
-   y se quita el desplazamiento, que es lo que provoca malestar. */
-@media (prefers-reduced-motion: reduce) {
-  .bitacora-vacio-icono,
-  .bitacora-vacio-titulo,
-  .bitacora-vacio-texto {
-    animation: bitacora-vacio-aparecer var(--motion-ui) var(--ease) both;
-  }
-  @keyframes bitacora-vacio-aparecer {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-}
-
-@media (max-width: 640px) {
-  .bitacora-envoltorio .bitacora-vacio {
-    min-height: 340px;
-  }
-}
-
-/* ── Flechas del carrusel ──────────────────────────────────────────────────────
-   El marco es el ancla de posicionamiento; no puede ser el propio carrusel porque
-   ese se desplaza, y las flechas viajarían con el contenido. */
-.bitacora-carrusel-marco {
-  position: relative;
-}
-
-.bitacora-flecha {
-  position: absolute;
-  top: 50%;
-  z-index: 3;
-  /* -50% del propio alto: centra sin depender del tamaño del botón. */
-  transform: translateY(-50%);
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(15, 23, 42, 0.88);
-  color: #f1f5f9;
+.bitacora-vacio--error button {
+  margin-top: 1rem;
+  padding: 0.45rem 1rem;
+  border-radius: 6px;
+  background: var(--color-tinta);
+  color: var(--color-fondo);
+  border: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
   cursor: pointer;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.7);
-  transition: background-color var(--motion-fast) var(--ease),
-              border-color var(--motion-fast) var(--ease);
 }
 
-/* Pegadas al borde del contenedor: fuera de las tarjetas, no encima de ellas. */
-.bitacora-flecha-izq { left: -21px; }
-.bitacora-flecha-der { right: -21px; }
+/* Modal Forense */
+.bitacora-modal-fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
 
-@media (hover: hover) and (pointer: fine) {
-  .bitacora-flecha:hover {
-    background: rgba(30, 41, 59, 0.95);
-    border-color: rgba(192, 132, 252, 0.45);
+.bitacora-modal-expediente {
+  background: var(--color-fondo);
+  border: 1px solid var(--color-linea);
+  border-radius: 14px;
+  width: min(100%, 540px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  animation: modal-aparece 0.2s ease-out;
+}
+
+@keyframes modal-aparece {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 
-/* Retroalimentación de pulsación: confirma que la interfaz escuchó el clic. */
-.bitacora-flecha:active {
-  transform: translateY(-50%) scale(0.94);
+.bitacora-modal-cab {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--color-linea);
 }
 
-.bitacora-flecha:focus-visible {
-  outline: 2px solid #c084fc;
-  outline-offset: 3px;
+.modal-eyebrow {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #a43c12;
+  margin-bottom: 0.2rem;
 }
 
-/* En escritorio el envoltorio no existe como caja: los botones siguen siendo hijos absolutos
-   de `.bitacora-carrusel-marco` y se pegan a sus costados. */
-.bitacora-flechas { display: contents; }
+.modal-titulo {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--color-tinta);
+}
 
-/* En teléfono las flechas siguen a los costados, pero por DENTRO de la tarjeta: ahí ocupa el
-   ancho completo del marco y los -21px de escritorio las dejarían medio fuera de la pantalla.
-   No van debajo del carrusel porque la tarjeta mide unos 800px de alto en un teléfono: un
-   paginador al final cae fuera de cuadro y, al llegar a él, queda justo bajo la píldora de
-   pestañas del pie, que es fija y lo tapa. */
-@media (max-width: 640px) {
-  .bitacora-flecha {
-    width: 40px;
-    height: 40px;
-    /* Sombra más marcada: acá el fondo es la tarjeta —y a menudo la foto del boletín—, no el
-       fondo liso de la sección. */
-    box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.85);
-  }
+.modal-cerrar-btn {
+  border: 0;
+  background: transparent;
+  color: var(--color-tinta-3);
+  cursor: pointer;
+  padding: 0.2rem;
+}
 
-  .bitacora-flecha-izq { left: 8px; }
-  .bitacora-flecha-der { right: 8px; }
+.bitacora-modal-cuerpo {
+  padding: 1.5rem;
+}
 
-  /* A la altura de la portada del boletín, no al centro de la tarjeta. La tarjeta mide unos
-     870px de alto acá, así que su centro cae sobre la insignia de estado y la fecha, y la
-     flecha derecha se comía el año. La portada es `16 / 7` sobre el ancho interior de la
-     tarjeta: entre 360 y 430px de pantalla eso da entre 137 y 170px de alto, y sumado al
-     relleno de 1.15rem su centro queda siempre cerca de estos 95px. En una tarjeta sin
-     portada cae a la altura del título, que es donde menos estorba. */
-  .bitacora-flecha {
-    top: 95px;
-  }
+.modal-campo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
 
-  /* En un extremo la flecha se apaga en vez de desaparecer. En escritorio sí desaparece: allí
-     hay hover para descubrir el control, y en táctil no — un par de flechas siempre presentes
-     es lo que dice que el carrusel se puede recorrer sin adivinar el gesto. */
-  .bitacora-flecha:disabled {
-    opacity: 0.3;
-    cursor: default;
-    box-shadow: none;
-  }
+.modal-campo-rotulo {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--color-tinta-3);
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+
+.modal-campo-valor {
+  font-size: 0.88rem;
+  color: var(--color-tinta);
+}
+
+.modal-bloque-dictamen {
+  background: var(--color-superficie-2);
+  border: 1px solid var(--color-linea);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.modal-bloque-dictamen h4 {
+  margin: 0 0 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 750;
+  color: var(--color-tinta);
+}
+
+.modal-bloque-dictamen p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--color-tinta-2);
+  line-height: 1.45;
+}
+
+.modal-acciones-pie {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.modal-btn-descargar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background: #006874;
+  color: #fff;
+  border: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.modal-btn-cerrar {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background: var(--color-superficie);
+  color: var(--color-tinta);
+  border: 1px solid var(--color-linea);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
 }

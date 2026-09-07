@@ -103,7 +103,7 @@ export default function PaginaFijarClave({ modo }: Props) {
 
             <div className="form-reporte-bloque">
               <label htmlFor="fijar-clave-repetida" className="form-reporte-label">
-                <KeyRound size={15} color="#d8b4fe" />
+                <KeyRound size={15} aria-hidden="true" />
                 Escríbela otra vez
               </label>
               <input
@@ -113,8 +113,7 @@ export default function PaginaFijarClave({ modo }: Props) {
                 autoComplete="new-password"
                 value={repetida}
                 onChange={(event) => setRepetida(event.target.value)}
-                className="form-suscripcion-input"
-                style={{ width: '100%' }}
+                className="form-suscripcion-input cuenta-input"
               />
               {repetida.length > 0 && !coinciden && (
                 <p className="cuenta-pista">Las dos claves todavía no coinciden.</p>
@@ -128,10 +127,9 @@ export default function PaginaFijarClave({ modo }: Props) {
             )}
 
             <button
-              className="form-suscripcion-boton-enviar"
+              className="form-suscripcion-boton-enviar cuenta-boton-principal"
               type="submit"
               disabled={enviando || clave.length < LONGITUD_MINIMA_CLAVE || !coinciden}
-              style={{ marginTop: '0.5rem' }}
             >
               {enviando ? (
                 <>
@@ -144,7 +142,7 @@ export default function PaginaFijarClave({ modo }: Props) {
               )}
             </button>
 
-            <p className="cuenta-pista" style={{ textAlign: 'center' }}>
+            <p className="cuenta-pista cuenta-texto-centrado">
               Este enlace sirve una sola vez.
             </p>
           </form>

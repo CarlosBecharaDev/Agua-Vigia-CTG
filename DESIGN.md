@@ -26,14 +26,14 @@ Todo el producto gira alrededor de cuatro estados. Son la única jerarquía crom
 
 | Estado | Claro | Oscuro | Uso | Nunca |
 |---|---|---|---|---|
-| **Con servicio** | `#1c7f55` | `#4fbf89` | Sector operando normal | No usar verde para "éxito" genérico de la interfaz |
+| **Con servicio** | `#1c7f55` | `#4fbf89` | Sector operando normal | No usar verde para “éxito” genérico de la interfaz |
 | **Sin servicio** | `#ae3428` | `#e2695b` | Corte confirmado | No usar rojo para errores de formulario |
 | **Presión baja** | `#94640c` | `#d9a63c` | Servicio degradado | No usar ámbar para advertencias de la interfaz |
-| **Corte programado** | `#2a628f` | `#6ba8da` | Anunciado, aún no iniciado | No usar este gris para texto secundario genérico |
+| **Corte programado** | `#2a628f` | `#6ba8da` | Anunciado, aún no iniciado | No usar este azul para texto secundario genérico |
 
-Los cuatro son más oscuros en el tema claro que la paleta viva de la que salieron (`#34c759`,
-`#ff453a`, `#ff9f0a`, `#98989d`): esa versión daba entre 2.0:1 y 3.3:1 sobre superficie clara y no
-pasaba el AA que exige §7. Medido y decidido en `ADR-042`.
+Los cuatro tonos en tema claro conservan contraste AA (>= 4.5:1) medidos sobre la superficie clara;
+el tema oscuro usa sus parejas luminosas (`ADR-042`). Cada estado se distingue por tono semántico
+intuitivo, etiqueta y forma.
 
 **Una sola fuente por token.** Estos valores viven en `--color-estado-*` de `frontend/src/index.css`
 y en `COLOR_POR_ESTADO` de `frontend/src/types/tipos-dominio.ts` — el CSS pinta la leyenda y el TS
@@ -41,8 +41,8 @@ pinta los polígonos del mapa. **Si divergen, el mismo estado sale de un color e
 en la leyenda, y el color deja de significar algo.** Cambiarlos es cambiar los dos a la vez.
 
 **Regla estricta:** estos cuatro colores están reservados para el estado del servicio. La interfaz
-usa el acento turquesa para todo lo demás. Si un botón de "guardar" es verde, el mapa pierde su
-lenguaje.
+usa acento turquesa/azul cívico para acciones y navegación. Un botón no toma rojo, ámbar o verde de
+estado solo para decorar.
 
 **El color nunca va solo.** Cada estado se acompaña de forma o texto — un punto con etiqueta, un
 patrón, un icono. En Cartagena hay gente con daltonismo y hay pantallas quemadas por el sol; el color
@@ -53,22 +53,23 @@ solo es un refuerzo, no el mensaje.
 ## 3. Paleta base
 
 ```
-Acento turquesa   #087f8c  (claro)   #54c6ca  (oscuro)
-Acento vivo       #0796a5            #78d9db
-Acento suave      #dcefee            #153f44
-Tinta             #102f39            #eef8f7
-Tinta secundaria  #526a70            #aac0c0
-Tinta terciaria   #789095            #789296
-Línea             #d8e5e3            #24454b
-Superficie        #fbfdfc            #0c2830
-Fondo             #f2f7f6            #061c23
+Acento radar      #005fa8  (claro)   #32b9f2  (oscuro)
+Acento vivo       #007fc4            #71d8ff
+Acento suave      #d7edfa            #0b3c55
+Tinta             #071f30            #edf9ff
+Tinta secundaria  #365c72            #b1cfdd
+Tinta terciaria   #4f7184            #89aebe
+Línea             #c7dce9            #1e4b64
+Superficie        #f7fbfe            #071d2b
+Fondo             #eaf4fb            #020f1a
 ```
 
 Fuente única: `:root` de `frontend/src/index.css`. Esta tabla es su copia legible — si difieren,
 manda el CSS y esta tabla es el defecto.
 
-Los neutros tienen un sesgo azulado sutil, no son grises puros. Es una decisión: el gris neutro se lee
-como plantilla sin criterio; un neutro con temperatura se lee como elegido.
+Los neutros tienen un sesgo azul oceánico y la portada usa una cabina oscura en ambos temas. Es una
+decisión funcional: mapa satelital, geometría y telemetría necesitan el mismo campo de contraste,
+mientras las secciones de lectura conservan superficies claras u oscuras según la preferencia.
 
 **Ambos temas son obligatorios.** Se definen como custom properties en `:root`, se redefinen bajo
 `@media (prefers-color-scheme: dark)` y de nuevo bajo `:root[data-theme="dark"]` /

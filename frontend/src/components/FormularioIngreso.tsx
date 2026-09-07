@@ -76,7 +76,7 @@ export function FormularioIngreso({
     <form onSubmit={ingresar} className="form-reporte-moderno">
       <div className="form-reporte-bloque">
         <label htmlFor="correo-veedor" className="form-reporte-label">
-          <Mail size={15} color="#d8b4fe" />
+          <Mail size={15} aria-hidden="true" />
           Correo
         </label>
         <input
@@ -88,16 +88,15 @@ export function FormularioIngreso({
           value={correo}
           onChange={(event) => setCorreo(event.target.value)}
           className="form-suscripcion-input"
-          style={{ width: '100%' }}
         />
       </div>
 
       <div className="form-reporte-bloque">
         <label htmlFor="clave-veedor" className="form-reporte-label">
-          <KeyRound size={15} color="#d8b4fe" />
+          <KeyRound size={15} aria-hidden="true" />
           Clave
         </label>
-        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+        <div className="campo-clave-con-accion">
           <input
             id="clave-veedor"
             type={mostrarClave ? 'text' : 'password'}
@@ -106,27 +105,13 @@ export function FormularioIngreso({
             placeholder="Tu clave de acceso…"
             value={clave}
             onChange={(event) => setClave(event.target.value)}
-            className="form-suscripcion-input"
-            style={{ paddingRight: '2.75rem', width: '100%' }}
+            className="form-suscripcion-input campo-clave-input"
           />
           <button
             type="button"
             aria-label={mostrarClave ? 'Ocultar clave' : 'Mostrar clave'}
             onClick={() => setMostrarClave((actual) => !actual)}
-            style={{
-              position: 'absolute',
-              right: '0.75rem',
-              background: 'transparent',
-              border: 'none',
-              color: 'rgba(203, 213, 225, 0.7)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              padding: '0.25rem',
-              minWidth: 44,
-              minHeight: 44,
-              justifyContent: 'center',
-            }}
+            className="campo-clave-boton"
           >
             {mostrarClave ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
@@ -136,7 +121,7 @@ export function FormularioIngreso({
       {pidiendoCodigo && (
         <div className="form-reporte-bloque">
           <label htmlFor="codigo-totp" className="form-reporte-label">
-            <Smartphone size={15} color="#d8b4fe" />
+            <Smartphone size={15} aria-hidden="true" />
             Código de tu app de autenticación
           </label>
           <input
@@ -151,10 +136,9 @@ export function FormularioIngreso({
             placeholder="000000"
             value={codigo}
             onChange={(event) => setCodigo(event.target.value)}
-            className="form-suscripcion-input"
-            style={{ width: '100%', letterSpacing: '0.35em', fontSize: '1.15rem' }}
+            className="form-suscripcion-input campo-codigo-totp"
           />
-          <p style={{ color: 'rgba(203, 213, 225, 0.55)', fontSize: '0.72rem', margin: '0.4rem 0 0' }}>
+          <p className="cuenta-pista">
             Tu clave es correcta. Falta el código de 6 dígitos que cambia cada 30 segundos.
           </p>
         </div>
@@ -170,7 +154,6 @@ export function FormularioIngreso({
         className="form-suscripcion-boton-enviar"
         type="submit"
         disabled={enviando || !correo || !clave || (pidiendoCodigo && !codigo)}
-        style={{ marginTop: '0.5rem' }}
       >
         {enviando ? (
           <>
@@ -204,14 +187,7 @@ export function FormularioIngreso({
         )}
       </div>
 
-      <p
-        style={{
-          color: 'rgba(203, 213, 225, 0.55)',
-          fontSize: '0.72rem',
-          textAlign: 'center',
-          margin: '0.75rem 0 0',
-        }}
-      >
+      <p className="cuenta-nota-sesion">
         La sesión dura un máximo de 8 horas y se cierra en el servidor, no solo en este navegador.
       </p>
     </form>

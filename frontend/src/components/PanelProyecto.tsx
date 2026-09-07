@@ -1,5 +1,5 @@
 import type { FC } from 'react'
-import { BellRing, Sparkles } from 'lucide-react'
+import { Activity, BellRing, Database, Droplets } from 'lucide-react'
 import logoAguaVigia from '../assets/logo-aguavigia-animado.webp'
 
 interface Props {
@@ -18,38 +18,37 @@ export const PanelProyecto: FC<Props> = ({ onSuscribirse }) => (
           decoding="async"
           fetchPriority="low"
         />
-        <div className="panel-proyecto-eyebrow">
-          <span className="pulse-dot-cyan" />
-          <span>VEEDURÍA CIUDADANA EN VIVO</span>
-        </div>
+        <p className="panel-proyecto-eyebrow">Proyecto de aula con vocación pública</p>
       </div>
 
       <div className="panel-proyecto-cuerpo">
-        <h1 className="panel-proyecto-titulo">
-          AGUA <span className="panel-proyecto-titulo-acento">VIGÍA</span>
-        </h1>
-        <p className="panel-proyecto-slogan">Cartagena, vigilada por su gente</p>
+        <p className="panel-proyecto-kicker">Veeduría y Transparencia</p>
+        <h2 className="panel-proyecto-titulo">Una lectura de ciudad construida desde cada barrio.</h2>
         <p className="panel-proyecto-copy">
-          Monitoreo ciudadano independiente: contrastamos los boletines oficiales con lo que reportan tus vecinos en tiempo real.
+          AguaVigía contrasta comunicados oficiales de Acuacar, reportes comunitarios y tiempos reales de restablecimiento. El mapa refleja el suministro en vivo; la bitácora conserva la evidencia.
         </p>
-
-        <div className="panel-proyecto-suscripcion">
-          <div className="panel-proyecto-beneficio">
-            <Sparkles size={14} color="#54c6ca" />
-            <span>Alertas tempranas de cortes y bajas presiones</span>
-          </div>
-          <button
-            type="button"
-            onClick={onSuscribirse}
-            className="panel-proyecto-boton hover-glowing"
-            aria-label="Suscríbete para recibir avisos de tu barrio"
-          >
-            <BellRing size={16} aria-hidden="true" />
-            <span>Suscríbete a tu barrio</span>
-          </button>
+        <div className="panel-proyecto-metodo" aria-label="Fuentes del observatorio">
+          <span><Droplets size={16} aria-hidden="true" /> Estado por sector</span>
+          <span><Database size={16} aria-hidden="true" /> Evidencia trazable</span>
+          <span><Activity size={16} aria-hidden="true" /> Monitoreo continuo</span>
         </div>
+      </div>
+
+      <div className="panel-proyecto-suscripcion">
+        <BellRing size={22} aria-hidden="true" />
+        <div>
+          <strong>Tu barrio, sin tener que volver a buscar.</strong>
+          <p>Recibe un aviso cuando cambie el servicio.</p>
+        </div>
+        <button
+          type="button"
+          onClick={onSuscribirse}
+          className="panel-proyecto-boton"
+          aria-label="Suscríbete para recibir avisos de tu barrio"
+        >
+          Activar avisos
+        </button>
       </div>
     </div>
   </div>
 )
-

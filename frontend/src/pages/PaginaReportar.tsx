@@ -17,7 +17,7 @@ const OPCIONES: Array<{ tipo: TipoReporte; etiqueta: string; descripcion: string
 ]
 
 export default function PaginaReportar() {
-  const { sectores, cargando } = useDatosEnVivo()
+  const { estado, sectores, cargando, error: errorSectores, recargar } = useDatosEnVivo()
   const [searchParams] = useSearchParams()
   const sectorPreseleccionado = searchParams.get('sector') ?? ''
   const [sectorId, setSectorId] = useState(sectorPreseleccionado)
@@ -30,25 +30,18 @@ export default function PaginaReportar() {
 
   return (
     <PageWrapper>
-      <main id="contenido-principal" tabIndex={-1} className="pagina-estado" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '3rem 1rem 6rem' }}>
+      <main id="contenido-principal" tabIndex={-1} className="pagina-estado pagina-reportar">
         <section
-          className="modal-reporte-contenedor"
-          style={{ width: 'min(100%, 540px)', maxHeight: 'none' }}
+          className="modal-reporte-contenedor pagina-reportar-tarjeta"
           aria-labelledby="titulo-reportar"
         >
-          {/* Fondo animado morado */}
-          <div className="modal-reporte-fondo-animado" aria-hidden="true">
-            <div className="orbe-rep-1" />
-            <div className="orbe-rep-2" />
-          </div>
-
           <div className="modal-reporte-cabecera">
             <div className="modal-reporte-icono-titulo">
               <div className="modal-reporte-badge-icono" aria-hidden="true">
                 <Megaphone size={24} />
               </div>
               <div className="modal-reporte-titulos">
-                <h1 id="titulo-reportar" style={{ fontSize: '1.45rem', margin: 0 }}>Reporta el estado de tu barrio</h1>
+                <h1 id="titulo-reportar">Reporta el estado de tu barrio</h1>
                 <p>Participación ciudadana anónima en dos pasos.</p>
               </div>
             </div>
@@ -60,14 +53,13 @@ export default function PaginaReportar() {
                 <CheckCircle2 size={36} />
               </div>
               <div className="suscripcion-exito-titulos">
-                <h3>¡Reporte Recibido!</h3>
+                <h3>Reporte recibido</h3>
                 <p>Gracias por ayudar a mantener informada a toda Cartagena.</p>
               </div>
               {mutacion.data?.id && <EnlaceConfirmarReporte reporteId={mutacion.data.id} />}
               <button
-                className="form-suscripcion-boton-enviar"
+                className="form-suscripcion-boton-enviar boton-reporte-secundario"
                 type="button"
-                style={{ maxWidth: '240px', marginTop: '0.75rem' }}
                 onClick={() => { mutacion.reset(); setSectorId('') }}
               >
                 Enviar otro reporte
@@ -84,7 +76,7 @@ export default function PaginaReportar() {
                   id="sector-reporte"
                   value={sectorId}
                   onChange={(event) => setSectorId(event.target.value)}
-                  disabled={cargando}
+                  disabled={cargando || estado === 'error'}
                   className="form-reporte-select"
                 >
                   <option value="">{cargando ? 'Cargando barrios…' : 'Elige un barrio de Cartagena…'}</option>
@@ -92,10 +84,16 @@ export default function PaginaReportar() {
                     <option key={sector.id} value={sector.id}>{sector.nombre}</option>
                   ))}
                 </select>
+                {estado === 'error' && (
+                  <div className="form-suscripcion-error-badge" role="alert">
+                    <span>{errorSectores || 'No pudimos cargar los barrios.'}</span>
+                    <button type="button" onClick={recargar}>Reintentar</button>
+                  </div>
+                )}
               </div>
 
-              <fieldset disabled={!sectorId || mutacion.isPending} className="form-reporte-bloque" style={{ border: '1px solid rgba(255, 255, 255, 0.09)' }}>
-                <legend className="form-reporte-label" style={{ padding: '0 0.5rem' }}>
+              <fieldset disabled={!sectorId || mutacion.isPending} className="form-reporte-bloque">
+                <legend className="form-reporte-label form-reporte-leyenda">
                   <span className="form-suscripcion-chip-paso">2</span>
                   ¿Qué está pasando ahora?
                 </legend>
@@ -120,7 +118,7 @@ export default function PaginaReportar() {
               </fieldset>
 
               {mutacion.isPending && (
-                <p style={{ color: '#d8b4fe', fontSize: '0.85rem', textAlign: 'center', margin: '0.2rem 0' }} role="status">
+                <p className="form-reporte-progreso" role="status">
                   <span className="spinner" /> Enviando reporte a la red…
                 </p>
               )}
@@ -131,7 +129,7 @@ export default function PaginaReportar() {
                 </div>
               )}
 
-              <p style={{ color: 'rgba(203, 213, 225, 0.6)', fontSize: '0.74rem', textAlign: 'center', margin: '0.2rem 0 0' }}>
+              <p className="form-reporte-privacidad">
                 Usamos una huella anónima del dispositivo para limitar reportes repetidos sin pedir datos personales.
               </p>
             </div>
