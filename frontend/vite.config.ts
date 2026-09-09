@@ -1,9 +1,18 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  // Vite no copia los archivos `.env*` a process.env mientras evalúa este archivo. Cargarlos
+  // explícitamente hace que `.env.local` sí pueda apuntar el proxy al backend activo en Docker.
+  const env = loadEnv(mode, process.cwd(), '')
+  const backendProxyTarget =
+    env.VITE_BACKEND_PROXY_TARGET ||
+    env.VITE_BACKEND_ORIGIN ||
+    'http://localhost:8080'
+
+  return {
   plugins: [
     tailwindcss(),
     react(),
@@ -54,6 +63,23 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         // Caché en runtime para tiles de mapa y APIs externas
         runtimeCaching: [
+          {
+            // La red tiene prioridad para no presentar un boletín viejo como actual. La copia
+            // breve solo evita vaciar la bitácora durante una caída temporal del operador.
+            urlPattern: /\/acuacar-api\/posts(?:\?|$)/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'boletines-oficiales-acuacar',
+              networkTimeoutSeconds: 10,
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 60 * 10,
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
           {
             // Logo animado de la marca. Estaba fuera de globPatterns y de runtimeCaching, así
             // que el service worker no lo tenía y la petición caía a red; contra el dev server
@@ -114,10 +140,7 @@ export default defineConfig({
         // Se aceptan los dos nombres porque cada uno quedó documentado en un sitio distinto:
         // VITE_BACKEND_PROXY_TARGET en frontend/INTEGRACION-BACKEND.md y VITE_BACKEND_ORIGIN
         // en docs/gestion/registro-de-bugs.md (BUG-052).
-        target:
-          process.env.VITE_BACKEND_PROXY_TARGET ||
-          process.env.VITE_BACKEND_ORIGIN ||
-          'http://localhost:8080',
+        target: backendProxyTarget,
         changeOrigin: true,
         secure: false,
         configure: (proxy, options) => {
@@ -171,5 +194,6 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/setupTests.ts',
     exclude: ['node_modules', 'tests/e2e/**'],
+  }
   }
 })

@@ -1,7 +1,49 @@
-import { describe, expect, it } from 'vitest'
-import { determinarEstadoBoletin, extraerBarriosDeTexto, extraerMencionesDeTexto } from './acuacar'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { determinarEstadoBoletin, extraerBarriosDeTexto, extraerMencionesDeTexto, obtenerBoletinesRecientes } from './acuacar'
+
+afterEach(() => vi.unstubAllGlobals())
 
 describe('normalización de boletines de Acuacar', () => {
+  it('consulta publicaciones vigentes en orden descendente desde el proxy oficial', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => [{
+        id: 7958,
+        date: '2026-09-07T09:12:16',
+        title: { rendered: '#2864 Servicio restablecido en Manga' },
+        content: { rendered: '<p>Servicio restablecido en Manga.</p>' },
+        link: 'https://www.acuacar.com/2864-servicio-restablecido/',
+        _embedded: { 'wp:featuredmedia': [{
+          source_url: 'https://www.acuacar.com/portada-original.jpg',
+          alt_text: 'Cuadrilla',
+          media_details: { sizes: {
+            medium: { source_url: 'https://www.acuacar.com/portada-300.jpg', width: 300 },
+            large: { source_url: 'https://www.acuacar.com/portada-1024.jpg', width: 1024 },
+          } },
+        }] },
+      }],
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const boletines = await obtenerBoletinesRecientes(20, ['MANGA'])
+    const [url, opciones] = fetchMock.mock.calls[0] as [string, RequestInit]
+    const peticion = new URL(url, 'http://aguavigia.local')
+
+    expect(peticion.pathname).toBe('/acuacar-api/posts')
+    expect(peticion.searchParams.get('status')).toBe('publish')
+    expect(peticion.searchParams.get('orderby')).toBe('date')
+    expect(peticion.searchParams.get('order')).toBe('desc')
+    expect(peticion.searchParams.get('per_page')).toBe('20')
+    expect(opciones).toMatchObject({ cache: 'no-store', headers: { Accept: 'application/json' } })
+    expect(boletines[0]).toMatchObject({
+      id: 7958,
+      numero: '#2864',
+      barriosAfectados: ['MANGA'],
+      imagenUrl: 'https://www.acuacar.com/portada-original.jpg',
+      imagenSrcSet: 'https://www.acuacar.com/portada-300.jpg 300w, https://www.acuacar.com/portada-1024.jpg 1024w',
+    })
+  })
+
   it('no confunde CHILE dentro de NUEVO CHILE', () => {
     expect(extraerBarriosDeTexto('Mantenimiento en Nuevo Chile')).toEqual(['NUEVO CHILE'])
     expect(extraerBarriosDeTexto('Corte en Chile')).toEqual(['CHILE'])

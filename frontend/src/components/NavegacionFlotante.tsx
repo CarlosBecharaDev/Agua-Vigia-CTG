@@ -8,14 +8,15 @@
  * enlaces de sección se mudan a NavegacionInferior: el riel de GooeyNav necesita ancho para
  * las cuatro etiquetas y por debajo de 768px no lo hay.
  */
-import { useCallback } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import type { FC } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Search, Megaphone } from 'lucide-react'
+import { Search, Megaphone, X } from 'lucide-react'
 import { SelectorTema } from './SelectorTema'
 import { GooeyNav } from './GooeyNav/GooeyNav'
 import { NavegacionInferior } from './NavegacionInferior/NavegacionInferior'
 import { ENLACES } from '../config/navegacion'
+import logoAguaVigia from '../assets/logo-aguavigia-animado.webp'
 import { useConsultaMedios } from '../hooks/useConsultaMedios'
 import { desplazarAlMapa } from '../utils/desplazarAlMapa'
 import type { useTheme } from '../hooks/useTheme'
@@ -30,6 +31,8 @@ interface Props {
   busquedaBitacora: string
   onCambiarBusquedaBitacora: (valor: string) => void
   onReportar: () => void
+  porcentajeOperativo: number | null
+  conexionViva: boolean
 }
 
 const DESTINO_POR_SECCION: Record<SeccionPrincipal, string> = {
@@ -51,9 +54,24 @@ export const NavegacionFlotante: FC<Props> = ({
   busquedaBitacora,
   onCambiarBusquedaBitacora,
   onReportar,
+  porcentajeOperativo,
+  conexionViva,
 }) => {
   const navigate = useNavigate()
   const esMovil = useConsultaMedios(CORTE_MOVIL)
+  const buscadorRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const enfocarBuscador = (evento: globalThis.KeyboardEvent) => {
+      const objetivo = evento.target as HTMLElement | null
+      const estaEscribiendo = objetivo?.matches('input, textarea, select, [contenteditable="true"]')
+      if (evento.key !== '/' || estaEscribiendo || esMovil) return
+      evento.preventDefault()
+      buscadorRef.current?.focus()
+    }
+    window.addEventListener('keydown', enfocarBuscador)
+    return () => window.removeEventListener('keydown', enfocarBuscador)
+  }, [esMovil])
 
   // NavLink solo compara pathname: "/", "/#estadisticas" y "/#bitacora" resuelven todos a
   // pathname "/", así que su isActive automático los marcaría activos a los tres a la vez.
@@ -92,25 +110,56 @@ export const NavegacionFlotante: FC<Props> = ({
   <>
   <header className="navbar-superior" role="banner">
     <Link to="/" id="logo-aguavigia" className="navbar-marca" aria-label="AguaVigía CTG — inicio">
-      <span className="navbar-marca-copy">AguaVigía</span>
+      <span className="navbar-marca-logo-wrap" aria-hidden="true">
+        <img className="navbar-marca-logo" src={logoAguaVigia} alt="" />
+        <span className="navbar-marca-senal" />
+      </span>
+      <span className="navbar-marca-textos">
+        <span className="navbar-marca-titulo">
+          <span className="navbar-marca-copy">AguaVigía</span>
+          <span className="navbar-marca-ctg">CTG</span>
+        </span>
+        <span className="navbar-marca-subtitulo">Veeduría Hidrológica • Cartagena</span>
+      </span>
     </Link>
 
     <div className="navbar-buscador-bitacora">
       <Search size={15} aria-hidden="true" />
       <input
+        ref={buscadorRef}
         type="search"
-        placeholder="Buscar en la bitácora..."
+        placeholder="Buscar boletines..."
         aria-label="Buscar en la bitácora"
         value={busquedaBitacora}
         onChange={(e) => onCambiarBusquedaBitacora(e.target.value)}
         onFocus={() => document.getElementById('bitacora')?.scrollIntoView({ behavior: 'smooth' })}
       />
+      {busquedaBitacora ? (
+        <button
+          type="button"
+          className="navbar-buscador-limpiar"
+          aria-label="Limpiar búsqueda"
+          onClick={() => {
+            onCambiarBusquedaBitacora('')
+            buscadorRef.current?.focus()
+          }}
+        >
+          <X size={13} aria-hidden="true" />
+        </button>
+      ) : (
+        <kbd className="navbar-buscador-atajo" aria-hidden="true">/</kbd>
+      )}
     </div>
 
     {!esMovil && (
       <div className="navbar-enlaces">
         <GooeyNav
-          items={ENLACES.map(({ a, etiqueta }) => ({ href: a, label: etiqueta }))}
+          items={ENLACES.map(({ a, etiqueta, Icono }, indice) => ({
+            href: a,
+            label: etiqueta,
+            Icono,
+            indicador: indice === 0 && conexionViva ? 'en-vivo' : indice === 1 ? 'aviso' : undefined,
+          }))}
           activeIndex={indiceActivo}
           onSelect={irA}
         />
@@ -118,10 +167,14 @@ export const NavegacionFlotante: FC<Props> = ({
     )}
 
     <div className="navbar-acciones">
+      <span className={`navbar-telemetria${conexionViva ? ' is-live' : ''}`} role="status">
+        <span className="navbar-telemetria-pulso" aria-hidden="true" />
+        Red Distrital: {porcentajeOperativo === null ? 'calculando' : `${porcentajeOperativo}% operativa`}
+      </span>
       <SelectorTema temaActivo={temaActivo} onAlternar={onAlternarTema} />
       <button type="button" onClick={onReportar} className="navbar-reportar hover-glowing">
         <Megaphone size={15} aria-hidden="true" />
-        <span>Reportar ahora</span>
+        <span>Reportar afectación</span>
       </button>
     </div>
   </header>

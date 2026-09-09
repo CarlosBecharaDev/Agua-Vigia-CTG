@@ -26,6 +26,10 @@ Referencias cruzadas: `ADR-NNN` · `BUG-NNN` · `RF0NN` · `archivo:línea`.
 
 ## Sprint 2
 
+### 2026-09-08 · D4 (José) · `main`
+**Qué:** Refactor costero aplicado sin alterar Leaflet/GeoJSON/endpoints; feed público limitado a Acuacar, mapa rotulado y estable ante clics rápidos, y veeduría Stitch con olas dobles animadas. Build, lint, 107 pruebas unitarias y 12 E2E en verde.
+**Sigue:** Revisar los cambios en la rama de trabajo y abrir un PR para revisión del equipo.
+
 ### 2026-08-09 · D4 (José) · `fix/integrar-formulario-reportes`
 **Qué:** RF008 conectado a `POST /api/reportes`: formulario real en dos pasos, huella anónima SHA-256, ubicación opcional, errores RFC 7807 y contrato OpenAPI regenerado; 26 pruebas, lint, build y `npm audit` en verde.
 **Sigue:** Revisar y fusionar el PR a `develop`; después registrar la entrega en `registro-de-implementaciones.md`.

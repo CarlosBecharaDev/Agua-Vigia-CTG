@@ -13,8 +13,9 @@
  */
 import type { FC } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { Droplet, Mail, Code2, Heart } from 'lucide-react'
+import { Mail, Code2, Heart } from 'lucide-react'
 import { ENLACES } from '../config/navegacion'
+import logoAguaVigia from '../assets/logo-aguavigia-animado.webp'
 
 const OLA_FONDO = 'M0,28 Q40,16 80,28 T160,28 T240,28 T320,28 T400,28 T480,28 L480,60 L0,60 Z'
 const OLA_MEDIA = 'M0,24 Q35,10 70,24 T140,24 T210,24 T280,24 T350,24 T420,24 L420,60 L0,60 Z'
@@ -43,8 +44,8 @@ export const PieDePagina: FC = () => (
     <footer className="pie-pagina" role="contentinfo">
       <div className="pie-contenido">
         <Link to="/" className="pie-marca" aria-label="AguaVigía CTG — inicio">
-          <span className="pie-marca-mark" aria-hidden="true"><Droplet size={20} strokeWidth={2.4} /></span>
-          <span className="pie-marca-copy"><strong>AguaVigía</strong><small>Cartagena de Indias</small></span>
+          <img className="pie-marca-logo" src={logoAguaVigia} alt="" aria-hidden="true" />
+          <span className="pie-marca-copy"><strong>AguaVigía CTG</strong><small>Veeduría Hidrológica • Cartagena</small></span>
         </Link>
 
         <nav className="pie-enlaces" aria-label="Enlaces del sitio">
@@ -76,7 +77,7 @@ export const PieDePagina: FC = () => (
       </div>
 
       <p className="pie-creditos">
-        Hecho con <Heart size={12} fill="currentColor" aria-hidden="true" /> por el equipo AguaVigía — Proyecto de aula, Tecnológico Comfenalco
+        Datos abiertos para el control ciudadano <Heart size={12} fill="currentColor" aria-hidden="true" /> Proyecto de aula, Tecnológico Comfenalco
       </p>
     </footer>
   </>

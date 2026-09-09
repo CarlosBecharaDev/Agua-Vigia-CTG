@@ -17,11 +17,14 @@
  */
 import { useRef, useEffect } from 'react'
 import type { FC, MouseEvent, KeyboardEvent } from 'react'
+import type { LucideIcon } from 'lucide-react'
 import './GooeyNav.css'
 
 export interface GooeyNavItem {
   label: string
   href: string
+  Icono?: LucideIcon
+  indicador?: 'en-vivo' | 'aviso'
 }
 
 // Id fijo, no useId(): esta barra es única en la app y los ids que genera React llevan
@@ -233,7 +236,9 @@ export const GooeyNav: FC<Props> = ({
                 onClick={(e) => alHacerClick(e, index, item.href)}
                 onKeyDown={(e) => alPresionarTecla(e, index, item.href)}
               >
-                {item.label}
+                {item.Icono && <item.Icono className="gooey-nav-icono" size={14} strokeWidth={2.2} aria-hidden="true" />}
+                <span>{item.label}</span>
+                {item.indicador && <span className={`gooey-nav-indicador gooey-nav-indicador--${item.indicador}`} aria-hidden="true" />}
               </a>
             </li>
           ))}

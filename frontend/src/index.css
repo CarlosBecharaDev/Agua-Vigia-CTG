@@ -4122,32 +4122,44 @@ select {
   color: var(--color-acento);
 }
 
-/* Toggle "Por estado" / "Por sector": mismo GooeyNav del navbar, pero acá las dos píldoras
-   se reparten el ancho completo del panel en vez de encogerse a su texto — ese es el único
-   ajuste, el efecto líquido y el sombreado blanco de la píldora activa son los de siempre. */
+/* Toggle estable "Por estado" / "Por sector". En este panel estrecho no se reutiliza GooeyNav:
+   sus capas duplicadas de texto y filtro podían desalinearse durante un resize del mapa. */
 .filtro-panel-tabs {
   margin-top: 0.9rem;
 }
 
-.filtro-panel-tabs .gooey-nav-container nav ul {
-  width: 100%;
-  gap: 0.4rem;
+.filtro-panel-tabs-lista {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: rgba(2, 12, 20, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
 }
 
-.filtro-panel-tabs .gooey-nav-container nav ul li {
-  flex: 1 1 0;
-  text-align: center;
+.filtro-panel-tab {
+  min-height: 36px;
+  padding: 0.4rem 0.65rem;
+  color: var(--color-tinta-2);
+  background: transparent;
+  border: 0;
+  border-radius: 9px;
+  font: 700 0.78rem/1 var(--font-cuerpo);
+  cursor: pointer;
+  transition: color var(--motion-fast) var(--ease),
+              background var(--motion-fast) var(--ease),
+              transform var(--motion-fast) var(--ease);
 }
 
-.filtro-panel-tabs .gooey-nav-container nav ul li a {
-  justify-content: center;
-  width: 100%;
-  padding: 0.55em 0.4em;
-  font-size: 0.82rem;
+.filtro-panel-tab.is-active {
+  color: #071724;
+  background: #f2ffff;
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.24);
 }
 
-.filtro-panel-tabs .gooey-nav-container .effect.text {
-  font-size: 0.82rem;
+.filtro-panel-tab:active {
+  transform: scale(0.98);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -4217,10 +4229,32 @@ select {
 .tarjeta-estado-mapa-cab {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 0.45rem;
   width: 100%;
   margin-bottom: 0.4rem;
+}
+
+.tarjeta-estado-mapa-icono {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--color-neon);
+  background: color-mix(in srgb, var(--color-neon) 13%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-neon) 32%, transparent);
+  border-radius: 9px;
+}
+
+.tarjeta-estado-mapa-lectura {
+  display: flex;
+  width: 100%;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  text-align: left;
 }
 
 .tarjeta-estado-mapa-punto {
@@ -4233,6 +4267,9 @@ select {
 }
 
 .tarjeta-estado-mapa-etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   overflow: hidden;
   color: rgba(241, 245, 249, 0.85);
   font-size: 0.68rem;
@@ -5965,6 +6002,61 @@ select {
   touch-action: pan-y;
 }
 
+/* Evita costuras oscuras de un píxel durante zooms fraccionarios. No se fuerza `transform` aquí:
+   Leaflet calcula uno distinto por tesela y sustituirlo puede producir justo las líneas verticales
+   que se quieren eliminar. El contorno transparente conserva el antialiasing en Chromium. */
+#contenedor-mapa .leaflet-tile.mapa-capa-base {
+  image-rendering: auto;
+  backface-visibility: hidden;
+  outline: 1px solid transparent;
+  will-change: transform, opacity;
+}
+
+/* Etiquetas reales del GeoJSON. En la vista distrital solo aparecen los barrios de mayor área;
+   al acercarse se habilitan todos. Hover y selección siempre ganan, aunque el barrio sea pequeño. */
+#contenedor-mapa .leaflet-tooltip.mapa-etiqueta-barrio {
+  visibility: hidden;
+  z-index: 650;
+  padding: 0.18rem 0.36rem;
+  opacity: 0 !important;
+  color: #f8fafc;
+  background: rgba(3, 18, 28, 0.78);
+  border: 1px solid rgba(201, 242, 238, 0.34);
+  border-radius: 6px;
+  box-shadow: 0 3px 10px rgba(2, 16, 29, 0.34);
+  font-family: var(--font-cuerpo);
+  font-size: 0.58rem;
+  font-weight: 750;
+  letter-spacing: 0.025em;
+  line-height: 1.15;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity 140ms ease;
+}
+
+#contenedor-mapa .leaflet-tooltip.mapa-etiqueta-barrio::before {
+  display: none;
+}
+
+#contenedor-mapa.mapa-etiquetas-principales .mapa-etiqueta-barrio--principal,
+#contenedor-mapa.mapa-etiquetas-todas .mapa-etiqueta-barrio,
+#contenedor-mapa .mapa-etiqueta-barrio--hover,
+#contenedor-mapa .mapa-etiqueta-barrio--seleccionada {
+  visibility: visible;
+  opacity: 1 !important;
+}
+
+#contenedor-mapa .mapa-etiqueta-barrio--seleccionada {
+  z-index: 690;
+  color: #071724;
+  background: #dffdf9;
+  border-color: #5eead4;
+  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.2), 0 7px 18px rgba(2, 16, 29, 0.42);
+  font-size: 0.68rem;
+}
+
 /* Aviso del gesto. Arriba y centrado: abajo están la atribución, los botones de zoom y la
    etiqueta de frescura. */
 .mapa-aviso-gesto {
@@ -6594,8 +6686,7 @@ select {
     margin-top: 0.25rem;
   }
 
-  .filtro-panel-tabs .gooey-nav-container nav ul li a,
-  .filtro-panel-tabs .gooey-nav-container .effect.text {
+  .filtro-panel-tab {
     min-height: 32px;
     padding: 0.25em 0.75em;
     font-size: 0.74rem;

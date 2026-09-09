@@ -47,6 +47,11 @@ function normalizarNombre(nombre: string): string {
   return nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
 }
 
+function volverAVistaGeneral(mapa: L.Map, duration = 1.2): void {
+  mapa.stop()
+  mapa.flyTo(CENTRO, ZOOM_INICIAL, { duration })
+}
+
 /**
  * `L.Map.flyToBounds` no valida su argumento: si `bounds` viene con alg\u00fan NaN, Leaflet lanza
  * "Invalid LatLng object: (NaN, NaN)" desde dentro de la animaci\u00f3n, fuera de cualquier
@@ -78,9 +83,14 @@ function calcularEstiloFeature(
   return {
     fillColor: color,
     fillOpacity: !sector ? 0.15 : atenuado ? 0.08 : esDestacado ? 0.8 : esActivo ? 0.85 : 0.55,
-    color: esDestacado ? color : '#ffffff',
-    weight: esDestacado ? 3 : esActivo ? 2 : 1,
-    opacity: atenuado ? 0.18 : esActivo || esDestacado ? 1 : 0.7,
+    // El límite aguamarina vuelve a separar visualmente cada barrio. Es deliberadamente claro:
+    // no se confunde con las costuras negras verticales de las teselas, que se corrigen en la
+    // capa base sin sacrificar la lectura del GeoJSON.
+    color: esDestacado ? color : esActivo ? '#ffffff' : '#c9f2ee',
+    weight: esDestacado ? 2.5 : esActivo ? 1.9 : 1.05,
+    opacity: atenuado ? 0.22 : esActivo || esDestacado ? 0.98 : 0.72,
+    lineCap: 'round',
+    lineJoin: 'round',
     className: esDestacado ? `barrio-destacado barrio-destacado-${estadoEfectivo}` : esActivo ? 'barrio-seleccionado' : '',
   }
 }
@@ -133,7 +143,8 @@ export const MapaCartagena: FC<Props> = ({
     estadoDestacadoRef.current = estadoDestacado
   }, [estadoDestacado])
 
-  // Actualizar estilos dinámicamente cuando el usuario selecciona un barrio o destaca un estado
+  // Actualizar estilos y la etiqueta seleccionada sin mover la cámara. Mantener esta operación
+  // separada del vuelo evita que una actualización SSE vuelva a animar un barrio ya seleccionado.
   useEffect(() => {
     if (!capaRef.current) return
 
@@ -143,26 +154,49 @@ export const MapaCartagena: FC<Props> = ({
       return calcularEstiloFeature(sector, sectorActivo, estadoDestacado)
     })
 
-    // Centrar automáticamente el mapa en el polígono del barrio seleccionado. Se compara por
-    // NOMBRE normalizado, no por sector.id: muchos barrios del GeoJSON no tienen sector en la
-    // BD (ver el "sectorClick" sintético que arma onEachFeature) y por id nunca calzarían — el
-    // mapa se quedaba sin hacer zoom en esos barrios.
-    if (sectorActivo) {
-      const nombreActivoNorm = normalizarNombre(sectorActivo.nombre)
-      capaRef.current.eachLayer((layer: any) => {
+    const nombreActivo = sectorActivo ? normalizarNombre(sectorActivo.nombre) : null
+    capaRef.current.eachLayer((layer: any) => {
+      const nombre = layer.feature?.properties?.NOMBRE ?? ''
+      const etiqueta = layer.getTooltip?.()?.getElement?.()
+      etiqueta?.classList.toggle(
+        'mapa-etiqueta-barrio--seleccionada',
+        nombreActivo !== null && normalizarNombre(nombre) === nombreActivo,
+      )
+    })
+  }, [sectorActivo, estadoDestacado, sectores])
+
+  // Un único vuelo por selección. Algunos nombres tienen más de un polígono; antes se ejecutaba
+  // flyToBounds dentro de eachLayer y varios vuelos quedaban compitiendo cuando se hacía clic rápido.
+  const enfocarSector = useCallback((sector: Sector) => {
+    const mapa = mapaRef.current
+    const capa = capaRef.current
+    if (!mapa || !capa) return
+
+    const nombreActivoNorm = normalizarNombre(sector.nombre)
+    const limites = L.latLngBounds([])
+    capa.eachLayer((layer: any) => {
         const nombre = layer.feature?.properties?.NOMBRE ?? ''
-        if (normalizarNombre(nombre) !== nombreActivoNorm || !mapaRef.current) return
-        volarABounds(mapaRef.current, layer.getBounds(), { padding: [20, 20], duration: 1.5 })
-      })
+        if (normalizarNombre(nombre) !== nombreActivoNorm || typeof layer.getBounds !== 'function') return
+        const bounds = layer.getBounds()
+        if (bounds?.isValid()) limites.extend(bounds)
+    })
+    if (limites.isValid()) {
+      volarABounds(mapa, limites, { padding: [28, 28], duration: 0.85, maxZoom: 15 })
+    }
+  }, [])
+
+  useEffect(() => {
+    if (sectorActivo) {
+      enfocarSector(sectorActivo)
     } else if (sectorActivoAnteriorRef.current) {
       // Se acaba de CERRAR la ficha de un sector (había uno activo, ahora no) — vuelve a la
       // vista por defecto, igual que el botón "centrar mapa". Sin este `else if` disparado
       // solo en la transición, cualquier otro cambio de sectores/estadoDestacado con el mapa
       // ya en la vista general lo volvería a sobrevolar hasta ahí sin que nadie lo pidiera.
-      mapaRef.current?.flyTo(CENTRO, ZOOM_INICIAL, { duration: 1.2 })
+      if (mapaRef.current) volverAVistaGeneral(mapaRef.current)
     }
     sectorActivoAnteriorRef.current = sectorActivo
-  }, [sectorActivo, estadoDestacado, sectores])
+  }, [sectorActivo, enfocarSector])
 
   // Dibuja (o limpia) el foco de "Ver en el mapa": atenúa el resto vía calcularEstiloFeature
   // (efecto de arriba) y acá arma el encuadre + la línea + los "pings" con el nombre de cada
@@ -183,7 +217,7 @@ export const MapaCartagena: FC<Props> = ({
     if (!mapa) return
 
     if (!estado || !capa) {
-      mapa.flyTo(CENTRO, ZOOM_INICIAL, { duration: 1.2 })
+      if (!sectorActivoRef.current) volverAVistaGeneral(mapa)
       return
     }
 
@@ -207,7 +241,7 @@ export const MapaCartagena: FC<Props> = ({
     })
 
     if (barriosEncontrados === 0 || !limites.isValid()) {
-      mapa.flyTo(CENTRO, ZOOM_INICIAL, { duration: 1.2 })
+      if (!sectorActivoRef.current) volverAVistaGeneral(mapa)
       return
     }
 
@@ -231,10 +265,19 @@ export const MapaCartagena: FC<Props> = ({
       maxBoundsViscosity: 1.0,
       zoomControl: false,
       attributionControl: false,
-      preferCanvas: true, // Renderizar capas vectoriales en Canvas HTML5 para 60fps fluidos en móviles
+      // SVG conserva bordes nítidos durante el zoom y evita las costuras de antialiasing que
+      // aparecían de forma intermitente entre polígonos adyacentes en el canvas.
+      renderer: L.svg({ padding: 0.5 }),
     })
 
-    mapa.on('zoomend', () => setZoom(mapa.getZoom()))
+    const actualizarNivelEtiquetas = () => {
+      const zoomActual = mapa.getZoom()
+      setZoom(zoomActual)
+      contenedorRef.current?.classList.toggle('mapa-etiquetas-todas', zoomActual >= 14)
+      contenedorRef.current?.classList.toggle('mapa-etiquetas-principales', zoomActual < 14)
+    }
+    mapa.on('zoomend', actualizarNivelEtiquetas)
+    actualizarNivelEtiquetas()
 
     L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(mapa)
 
@@ -243,14 +286,14 @@ export const MapaCartagena: FC<Props> = ({
     const mediaOscura = window.matchMedia('(prefers-color-scheme: dark)')
     const usarMapaOscuro = () => document.documentElement.dataset.theme === 'dark'
       || (!document.documentElement.dataset.theme && mediaOscura.matches)
+    const capasBase = new Set<L.TileLayer>()
     const actualizarCapaBase = () => {
-      capaBaseRef.current?.remove()
       const oscuro = usarMapaOscuro()
       // Esri y no CARTO en el tema oscuro: `basemaps.cartocdn.com` pasó a exigir clave y hoy
       // devuelve teselas con la marca de agua "API KEY REQUIRED" estampada sobre el mapa
       // (verificado el 2026-08-30: la tesela responde 200 con la marca, no un 401). El canvas
       // gris oscuro de Esri no pide clave y su atribución exige nombrar también a HERE y Garmin.
-      capaBaseRef.current = L.tileLayer(
+      const capaNueva = L.tileLayer(
         oscuro
           ? 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}'
           : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -259,8 +302,29 @@ export const MapaCartagena: FC<Props> = ({
             ? '© <a href="https://www.esri.com">Esri</a>, HERE, Garmin, © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             : '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
           maxZoom: 19,
+          keepBuffer: 4,
+          updateWhenIdle: true,
+          // Mantener teselas nuevas durante el zoom evita estirar una cuadrícula antigua, una de
+          // las causas de líneas negras verticales en niveles fraccionarios de Leaflet.
+          updateWhenZooming: true,
+          className: 'mapa-capa-base',
         },
-      ).addTo(mapa)
+      )
+      capasBase.add(capaNueva)
+      capaBaseRef.current = capaNueva
+      capaNueva.once('load', () => {
+        if (capaBaseRef.current !== capaNueva) {
+          capaNueva.remove()
+          capasBase.delete(capaNueva)
+          return
+        }
+        capasBase.forEach((capa) => {
+          if (capa === capaNueva) return
+          capa.remove()
+          capasBase.delete(capa)
+        })
+      })
+      capaNueva.addTo(mapa)
     }
     actualizarCapaBase()
 
@@ -272,6 +336,7 @@ export const MapaCartagena: FC<Props> = ({
     return () => {
       observarTema.disconnect()
       mediaOscura.removeEventListener('change', actualizarCapaBase)
+      capasBase.forEach((capa) => capa.remove())
       mapa.remove()
       mapaRef.current = null
       capaBaseRef.current = null
@@ -453,12 +518,29 @@ export const MapaCartagena: FC<Props> = ({
             const nombre = feature?.properties?.NOMBRE ?? 'Sector desconocido'
             const sector = indiceSectores.current.get(normalizarNombre(nombre))
 
-            // Sin tooltip de hover a propósito: con el mapa animando (flyToBounds de
-            // dibujarDestacado) el cursor queda "sobrevolando" muchos polígonos que se
-            // mueven debajo sin un mouseout real entre ellos, y Leaflet se quedaba con
-            // varios tooltips pegados a la vez ("spam"). El detalle ahora es solo por click
-            // — el sector seleccionado se muestra en PanelDetalleSector, en el panel lateral.
+            // Los nombres salen del GeoJSON oficial del proyecto. A escala distrital se muestran
+            // solo los polígonos grandes para evitar solapamientos; desde zoom 14 aparecen todos.
+            const area = Number(feature?.properties?.Shape__Area)
+            const contenidoEtiqueta = document.createElement('span')
+            contenidoEtiqueta.textContent = nombre
+            const etiquetaSeleccionada = sectorActivoRef.current
+              ? normalizarNombre(sectorActivoRef.current.nombre) === normalizarNombre(nombre)
+              : false
+            layer.bindTooltip(contenidoEtiqueta, {
+              permanent: true,
+              direction: 'center',
+              opacity: 1,
+              className: [
+                'mapa-etiqueta-barrio',
+                Number.isFinite(area) && area >= 700_000 ? 'mapa-etiqueta-barrio--principal' : '',
+                etiquetaSeleccionada ? 'mapa-etiqueta-barrio--seleccionada' : '',
+              ].filter(Boolean).join(' '),
+            })
+
             layer.on('click', () => {
+              // Cancela inmediatamente cualquier cámara anterior, incluso antes de que React
+              // procese el nuevo sector. Así una ráfaga de clics nunca acumula vuelos pendientes.
+              mapa.stop()
               // Un barrio del GeoJSON que el backend no conoce se muestra SIN DATO, no con agua.
               // Antes se fabricaba aquí como CON_SERVICIO y con `actualizadoEn: new Date()`, así
               // que el panel afirmaba «servicio normal, actualizado en este momento» sobre un
@@ -477,20 +559,23 @@ export const MapaCartagena: FC<Props> = ({
             layer.on('mouseover', (e) => {
               const l = e.target as L.Path
               l.setStyle({ weight: 2, fillOpacity: 0.75 })
+              layer.getTooltip()?.getElement()?.classList.add('mapa-etiqueta-barrio--hover')
             })
             layer.on('mouseout', (e) => {
               capa.resetStyle(e.target)
+              layer.getTooltip()?.getElement()?.classList.remove('mapa-etiqueta-barrio--hover')
             })
           },
         }).addTo(mapa)
 
         capaRef.current = capa
         dibujarDestacado()
+        if (sectorActivoRef.current) enfocarSector(sectorActivoRef.current)
       })
       .catch(console.error)
 
     return () => { montado = false; }
-  }, [onSectorSeleccionado, dibujarDestacado])
+  }, [onSectorSeleccionado, dibujarDestacado, enfocarSector])
 
   return (
     <div style={{ position: 'relative', height: '100%', width: '100%' }}>
@@ -544,7 +629,9 @@ export const MapaCartagena: FC<Props> = ({
           className="panel-glass mapa-boton-centrar"
           aria-label="Centrar mapa en la vista por defecto"
           title="Centrar mapa"
-          onClick={() => mapaRef.current?.flyTo(CENTRO, ZOOM_INICIAL, { duration: 1 })}
+          onClick={() => {
+            if (mapaRef.current) volverAVistaGeneral(mapaRef.current, 1)
+          }}
         >
           <Locate size={18} aria-hidden="true" />
         </button>

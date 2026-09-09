@@ -57,6 +57,34 @@
   min-height: 44px;
   display: flex;
   align-items: center;
+  gap: 0.42rem;
+}
+
+.gooey-nav-icono {
+  flex: 0 0 auto;
+  transition: transform 180ms ease, color 180ms ease;
+}
+
+.gooey-nav-indicador {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+}
+
+.gooey-nav-indicador--en-vivo {
+  background: var(--color-estado-con);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-estado-con) 18%, transparent);
+}
+
+.gooey-nav-indicador--aviso {
+  background: #ff5733;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .gooey-nav-container nav ul li:hover .gooey-nav-icono {
+    transform: translateY(-1px) rotate(-4deg) scale(1.08);
+  }
 }
 
 .gooey-nav-container nav ul li:focus-within:has(:focus-visible) {

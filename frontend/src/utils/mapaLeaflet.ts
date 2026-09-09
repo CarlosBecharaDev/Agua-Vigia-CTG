@@ -10,5 +10,8 @@ export function volarABounds(
     console.warn('Se descartó un flyToBounds con límites inválidos', bounds)
     return
   }
+  // Leaflet no cancela de forma fiable un flyToBounds anterior al recibir otro durante la
+  // animación. Detenerlo primero evita que dos selecciones rápidas compitan por el centro y zoom.
+  mapa.stop()
   mapa.flyToBounds(bounds, opciones)
 }

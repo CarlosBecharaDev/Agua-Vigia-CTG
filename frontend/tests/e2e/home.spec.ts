@@ -33,7 +33,7 @@ test('la navegación mantiene contraste mientras aparece la píldora activa', as
 
   const estadoInicial = await page
     .getByRole('banner')
-    .getByRole('link', { name: 'Bitácora' })
+    .getByRole('link', { name: 'Bitácora & Boletines' })
     .evaluate((enlace) => new Promise<{ texto: string; filtroActivo: boolean; color: string }>((resolve) => {
       enlace.addEventListener('click', () => queueMicrotask(() => {
         const contenedor = enlace.closest('.gooey-nav-container')
@@ -48,26 +48,67 @@ test('la navegación mantiene contraste mientras aparece la píldora activa', as
       enlace.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
     }))
 
-  expect(estadoInicial.texto).toBe('Bitácora')
+  expect(estadoInicial.texto).toBe('Bitácora & Boletines')
   expect(estadoInicial.filtroActivo).toBe(true)
   expect(estadoInicial.color).toBe('rgb(255, 255, 255)')
 })
 
-test('el logo principal conserva su tamaño original y no tiene recuadro', async ({ page }) => {
+test('el logo oficial aparece en la barra institucional sin recuadro', async ({ page }) => {
   await page.goto('/')
 
-  const logo = page.locator('.panel-proyecto-logo')
+  const logo = page.locator('.navbar-marca-logo')
   await expect(logo).toBeVisible()
   await expect(page.locator('.panel-proyecto-logo-box')).toHaveCount(0)
-  // 195px desde e465a23, que agrandó el logo al centrar el panel de bienvenida. El test se quedó
-  // en los 150px anteriores y dejó el CI en rojo sin que nadie lo mirara. Lo que la prueba vigila
-  // no es la cifra en sí, sino que el logo conserve su tamaño de diseño y no vuelva el recuadro.
-  await expect(logo).toHaveCSS('width', '195px')
+  await expect(logo).toHaveCSS('width', '46px')
 })
 
 // ── Teléfono ──────────────────────────────────────────────────────────────────
 // El corte (768px) es el mismo que usan las reglas móviles de `.navbar-superior` en
 // index.css y el que consulta NavegacionFlotante para decidir qué navegación monta.
+test('la barra superior muestra iconos y permite buscar boletines con el atajo', async ({ page }) => {
+  await page.goto('/')
+
+  const barra = page.getByRole('banner')
+  await expect(barra.locator('.gooey-nav-icono')).toHaveCount(4)
+
+  const buscador = barra.getByRole('searchbox', { name: 'Buscar en la bitácora' })
+  await expect(buscador).toBeVisible()
+  await page.keyboard.press('/')
+  await expect(buscador).toBeFocused()
+  await buscador.fill('Manga')
+  await expect(buscador).toHaveValue('Manga')
+  await expect(barra.getByRole('button', { name: 'Limpiar búsqueda' })).toBeVisible()
+})
+
+test('el panel barrial usa el tema claro y no presenta ceros cuando la API no entregó sectores', async ({ page }) => {
+  await page.goto('/')
+
+  const panel = page.getByRole('complementary', { name: 'Resumen y lista de sectores' })
+  await expect(panel).toHaveCSS('background-color', 'rgba(249, 253, 253, 0.95)')
+  await expect(panel.locator('.tarjeta-estado-mapa-num')).toHaveText(['—', '—', '—', '—'])
+  await expect(panel.getByText('Esperando datos validados')).toHaveCount(4)
+})
+
+test('el mapa rotula barrios y conserva una sola selección ante clics rápidos', async ({ page }) => {
+  const errores: Error[] = []
+  page.on('pageerror', (error) => errores.push(error))
+  await page.goto('/')
+
+  await expect.poll(() => page.locator('.mapa-etiqueta-barrio--principal:visible').count()).toBeGreaterThan(0)
+  const barrios = page.locator('.leaflet-overlay-pane path.leaflet-interactive')
+  await expect.poll(() => barrios.count()).toBeGreaterThan(3)
+
+  // Disparo síncrono para reproducir la ráfaga que antes acumulaba varios flyToBounds.
+  await barrios.evaluateAll((elementos) => {
+    elementos.slice(0, 3).forEach((elemento) => {
+      elemento.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+    })
+  })
+
+  await expect.poll(() => page.locator('.mapa-etiqueta-barrio--seleccionada').count()).toBe(1)
+  expect(errores).toEqual([])
+})
+
 test.describe('en teléfono', () => {
   test.use({ viewport: { width: 390, height: 844 } })
 
@@ -79,7 +120,7 @@ test.describe('en teléfono', () => {
     await expect(page.locator('.navbar-enlaces')).toHaveCount(0)
 
     await expect(pie.getByRole('button', { name: 'Mapa en vivo' })).toHaveAttribute('aria-current', 'page')
-    for (const etiqueta of ['Mapa en vivo', 'Bitácora', 'Estadísticas', 'Panel veedor']) {
+    for (const etiqueta of ['Mapa en vivo', 'Bitácora & Boletines', 'Evidencias', 'Veeduría']) {
       await expect(pie.getByRole('button', { name: etiqueta })).toBeVisible()
     }
   })
@@ -111,14 +152,17 @@ test.describe('en teléfono', () => {
   })
 
   test('las flechas de la bitácora recorren el carrusel', async ({ page }) => {
-    // Tres boletines para que el carrusel tenga a dónde avanzar: a ancho de teléfono cabe uno.
-    await page.route('**/api/bitacora?**', (route) =>
+    // Tres publicaciones oficiales para que el carrusel tenga a dónde avanzar: a ancho de
+    // teléfono cabe una. Esta vista no mezcla eventos internos con el feed público de Acuacar.
+    await page.unroute('**/posts?**')
+    await page.route('**/posts?**', (route) =>
       route.fulfill({
         json: [1, 2, 3].map((n) => ({
-          id: `evt-${n}`,
-          tipo: 'CORTE_ANUNCIADO',
-          timestamp: `2026-08-0${n}T12:00:00Z`,
-          descripcion: `Boletín de prueba ${n}`,
+          id: n,
+          date: `2026-08-0${n}T12:00:00`,
+          link: `https://www.acuacar.com/boletin-oficial-${n}/`,
+          title: { rendered: `Boletín oficial ${n}` },
+          content: { rendered: `<p>Comunicado oficial de Acuacar ${n}</p>` },
         })),
       })
     )

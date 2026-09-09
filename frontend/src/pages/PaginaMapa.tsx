@@ -17,7 +17,7 @@
 import { useState, useCallback, useEffect, lazy, Suspense } from 'react'
 import type { FC } from 'react'
 import { useLocation } from 'react-router-dom'
-import { ChevronDown, MapPin, Menu } from 'lucide-react'
+import { ChevronDown, MapPin, Menu, Radio, SatelliteDish } from 'lucide-react'
 import { MapaCartagena } from '../components/MapaCartagena'
 import { BuscadorBarrios } from '../components/BuscadorBarrios'
 import { CarruselSector } from '../components/CarruselSector/CarruselSector'
@@ -25,16 +25,17 @@ import { ModalReporte } from '../components/ModalReporte'
 import { ModalSuscripcion } from '../components/ModalSuscripcion'
 import { LlamadoVeedor } from '../components/LlamadoVeedor'
 import { NavegacionFlotante } from '../components/NavegacionFlotante'
-import { GooeyNav } from '../components/GooeyNav/GooeyNav'
 import { PanelProyecto } from '../components/PanelProyecto'
 import { GradientWaves } from '../components/GradientWaves/GradientWaves'
 import { PieDePagina } from '../components/PieDePagina'
 import { TarjetasEstadoMapa } from '../components/TarjetasEstadoMapa'
+import { EtiquetaFrescura } from '../components/EtiquetaFrescura'
 import type { EstadoServicio, Sector } from '../types/tipos-dominio'
 import { useDatosEnVivo } from '../hooks/useDatosEnVivo'
 import { useConsultaMedios } from '../hooks/useConsultaMedios'
 import { desplazarAlMapa } from '../utils/desplazarAlMapa'
 import type { useTheme } from '../hooks/useTheme'
+import '../AguaVigiaDesktop.css'
 
 // Cargados aparte del bundle de esta página, no antes de que haga falta: los tres arrastran
 // `recharts` (SeccionEstadisticas y PanelDetalleSector, por su mini-gráfica de cumplimiento) o
@@ -56,7 +57,17 @@ interface Props {
 }
 
 const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
-  const { sectores, cargando, error, ultimaActualizacion, conexionViva, boletines } = useDatosEnVivo();
+  const {
+    sectores,
+    cargando,
+    error,
+    estado: estadoDatos,
+    ultimaActualizacion,
+    conexionViva,
+    boletines,
+    estadoAcuacar,
+    recargarAcuacar,
+  } = useDatosEnVivo();
 
   const [sectorActivo, setSectorActivo] = useState<Sector | null>(null)
   const [modalAbierto, setModalAbierto] = useState(false)
@@ -78,6 +89,10 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
     { estado: 'CORTE_PROGRAMADO' as const, n: sectores.filter(s => s.estado === 'CORTE_PROGRAMADO').length },
     { estado: 'CON_SERVICIO' as const, n: sectores.filter(s => s.estado === 'CON_SERVICIO').length },
   ]
+  const sectoresConEstado = sectores.filter((sector) => sector.estado !== null)
+  const porcentajeOperativo = sectoresConEstado.length === 0
+    ? null
+    : Math.round((sectoresConEstado.filter((sector) => sector.estado !== 'SIN_SERVICIO').length / sectoresConEstado.length) * 100)
 
   const alSeleccionarSector = useCallback((sector: Sector | null) => {
     setDireccionCarrusel(sector ? 1 : -1)
@@ -161,7 +176,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
   }, [])
 
   return (
-    <main id="contenido-principal" tabIndex={-1} role="main" aria-label="Mapa en vivo del servicio de agua en Cartagena" className="pagina-principal">
+    <main id="contenido-principal" tabIndex={-1} role="main" aria-label="Mapa en vivo del servicio de agua en Cartagena" className={`pagina-principal tema-${temaActivo}`}>
       <NavegacionFlotante
         temaActivo={temaActivo}
         onAlternarTema={onAlternarTema}
@@ -172,6 +187,8 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
           setSectorReporte('')
           setModalAbierto(true)
         }}
+        porcentajeOperativo={porcentajeOperativo}
+        conexionViva={conexionViva}
       />
 
       {/* Portada de teléfono y tableta. En escritorio este mismo panel flota a la izquierda,
@@ -196,8 +213,34 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
           burbujea hacia arriba. Mapa y panel comparten un solo marco: un borde, una sombra,
           unas esquinas — no dos piezas flotando por separado. */}
       <section id="mapa" className="mapa-vista-completa" aria-label="Mapa en vivo">
-      <GradientWaves>
+      <GradientWaves
+        className="gradient-waves-costera"
+        horizonColor="#071724"
+        waveColor="#0284c7"
+        crestColor="#78d9db"
+        opacity={0.34}
+      >
         {!hayPortada && <PanelProyecto onSuscribirse={() => setSuscripcionAbierta(true)} />}
+
+        {!hayPortada && (
+          <div className="mapa-modulo-cabecera">
+            <div>
+              <span className="mapa-modulo-badge">
+                <SatelliteDish size={13} aria-hidden="true" />
+                Observatorio ciudadano • Cartagena de Indias
+              </span>
+              <h1>Cartagena, barrio por barrio</h1>
+              <p>Boletines oficiales de Acuacar y reportes comunitarios validados en un mismo mapa.</p>
+            </div>
+            <div className="mapa-modulo-sincronizacion">
+              <span className={`mapa-modulo-en-vivo${conexionViva ? ' is-live' : ''}`}>
+                <Radio size={13} aria-hidden="true" />
+                {conexionViva ? 'Actualización en vivo' : 'Reconectando'}
+              </span>
+              <EtiquetaFrescura timestampIso={ultimaActualizacion} conexionViva={conexionViva} />
+            </div>
+          </div>
+        )}
 
         <div className={`panel-mapa-unificado${panelColapsado ? ' panel-mapa-unificado--colapsado' : ''}`}>
           <div className="mapa-lienzo-completo">
@@ -238,9 +281,14 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
             inert={panelColapsado || undefined}
           >
             <div className="hoja-sectores-cab mapa-resumen">
-              <h2 className="mapa-titulo">¿Cómo está el agua en tu barrio?</h2>
+              <span className="mapa-panel-eyebrow">OBSERVATORIO BARRIAL</span>
+              <h2 className="mapa-titulo">Lectura del servicio</h2>
               <p className="mapa-subtitulo">
-                Sé un <strong>AguaVigía</strong>: reporta y ayuda a que esto se resuelva más rápido.
+                {estadoDatos === 'success'
+                  ? 'Estado verificado por barrio con los datos actuales de AguaVigía.'
+                  : estadoDatos === 'loading'
+                    ? 'Consultando el estado validado de los barrios…'
+                    : 'Esperando conexión con el servicio de datos de AguaVigía.'}
               </p>
 
               {/* Puramente decorativo — ya no es el estado "vacío" de PanelDetalleSector (ese
@@ -251,23 +299,27 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
                 Selecciona un sector para ver su información
               </p>
 
-              {/* Mismo componente y efecto líquido del navbar (GooeyNav): la píldora activa
-                  se sombrea de blanco, igual que "Mapa en vivo" arriba. Los href son
-                  anclas ficticias — GooeyNav siempre hace preventDefault, así que acá
-                  solo sirven de key/aria, el cambio real de vista lo hace onSelect. */}
               <div className="filtro-panel-tabs">
-                <GooeyNav
-                  items={[
-                    { href: '#por-estado', label: 'Por estado' },
-                    { href: '#por-sector', label: 'Por sector' },
-                  ]}
-                  activeIndex={filtroPanel === 'estado' ? 0 : 1}
-                  onSelect={(indice) => {
-                    const siguiente = indice === 0 ? 'estado' : 'sector'
-                    setDireccionCarrusel(siguiente === 'sector' ? 1 : -1)
-                    setFiltroPanel(siguiente)
-                  }}
-                />
+                <div className="filtro-panel-tabs-lista" role="tablist" aria-label="Modo de consulta del mapa">
+                  {(['estado', 'sector'] as const).map((modo) => {
+                    const activo = filtroPanel === modo
+                    return (
+                      <button
+                        key={modo}
+                        type="button"
+                        role="tab"
+                        aria-selected={activo}
+                        className={`filtro-panel-tab${activo ? ' is-active' : ''}`}
+                        onClick={() => {
+                          setDireccionCarrusel(modo === 'sector' ? 1 : -1)
+                          setFiltroPanel(modo)
+                        }}
+                      >
+                        {modo === 'estado' ? 'Por estado' : 'Por sector'}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
             </div>
 
@@ -301,6 +353,8 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
                     resumen={conteos}
                     estadoDestacado={estadoDestacado}
                     onAlternar={alAlternarEstadoDestacado}
+                    temaActivo={temaActivo}
+                    datosDisponibles={estadoDatos === 'success'}
                   />
                 ) : (
                   <BuscadorBarrios
@@ -320,7 +374,12 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
       </section>
 
       <Suspense fallback={<div className="seccion-cargando" role="status">Cargando bitácora…</div>}>
-        <SeccionBitacora busqueda={busquedaBitacora} />
+        <SeccionBitacora
+          busqueda={busquedaBitacora}
+          boletines={boletines}
+          estadoAcuacar={estadoAcuacar}
+          onRecargarAcuacar={recargarAcuacar}
+        />
       </Suspense>
 
       <Suspense fallback={<div className="seccion-cargando" role="status">Cargando estadísticas…</div>}>
@@ -330,6 +389,7 @@ const PaginaMapa: FC<Props> = ({ temaActivo, onAlternarTema }) => {
       <LlamadoVeedor
         onSuscribirse={() => setSuscripcionAbierta(true)}
         onAbrirPanel={() => setLoginVeedorAbierto(true)}
+        onReportar={() => setModalAbierto(true)}
       />
 
       <Suspense fallback={<div className="seccion-cargando" role="status">Cargando veeduría…</div>}>

@@ -18,14 +18,11 @@ import { normalizarErrorApi } from '../api/client'
 import './SeccionEstadisticas.css'
 
 const COLORES_BARRAS_PREMIUM = [
-  '#ef4444', // Rojo intenso
-  '#f97316', // Naranja
-  '#f59e0b', // Ámbar
-  '#eab308', // Amarillo
-  '#10b981', // Esmeralda
-  '#3b82f6', // Azul
-  '#8b5cf6', // Púrpura
-  '#ec4899', // Rosa
+  '#0d9488',
+  '#159e98',
+  '#22a8a1',
+  '#35b1aa',
+  '#52bbb5',
 ]
 
 /** Lo que se muestra cuando todavía no hay con qué calcular una métrica. Nunca un número: un
@@ -156,9 +153,9 @@ const SeccionEstadisticasBase: FC = () => {
           <div>
             <div className="estadisticas-eyebrow-pro">
               <span className="pulse-dot-blue" />
-              <span>MÉTRICAS & CUMPLIMIENTO OFICIAL</span>
+              <span>AUDITORÍA CIUDADANA DEL AGUA</span>
             </div>
-            <h2 className="estadisticas-titulo-pro">Panel de Analítica y Rendimiento</h2>
+            <h2 className="estadisticas-titulo-pro">Evidencia sobre el servicio</h2>
             <p className="estadisticas-subtitulo-pro">
               Transparencia, duración prometida vs. real e impacto acumulado en las redes de Cartagena.
             </p>
@@ -173,7 +170,7 @@ const SeccionEstadisticasBase: FC = () => {
               download
               className="estadisticas-btn-exportar"
             >
-              <Download size={13} /> Exportar Métricas
+              <Download size={13} /> Exportar CSV
             </a>
           </div>
         </div>
@@ -189,28 +186,28 @@ const SeccionEstadisticasBase: FC = () => {
               valor: cumplimiento ? `${cumplimiento.porcentajeCumplimiento.toFixed(0)}%` : SIN_DATOS,
               sub: 'Tiempo prometido vs. real',
               Icono: Scale,
-              gradiente: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              gradiente: 'linear-gradient(135deg, #087f8c 0%, #0d9488 100%)',
             },
             {
               titulo: 'Duración Promedio',
               valor: datos?.duracionPromedioHoras ? `${datos.duracionPromedioHoras} h` : SIN_DATOS,
               sub: 'Por corte cerrado',
               Icono: Clock,
-              gradiente: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
+              gradiente: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
             },
             {
               titulo: 'Total de Incidencias',
               valor: cargando ? '…' : totalCortesAnimado.toLocaleString(),
               sub: 'En sectores con novedades',
               Icono: CalendarDays,
-              gradiente: 'linear-gradient(135deg, #2563eb 0%, #38bdf8 100%)',
+              gradiente: 'linear-gradient(135deg, #00a3c4 0%, #087f8c 100%)',
             },
             {
               titulo: 'Sector Más Afectado',
               valor: sectorTop,
               sub: 'Mayor cantidad de cortes',
               Icono: AlertTriangle,
-              gradiente: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+              gradiente: 'linear-gradient(135deg, #0b1a26 0%, #164e63 100%)',
             },
           ].map((kpi, i) => {
             const Icono = kpi.Icono
@@ -237,7 +234,7 @@ const SeccionEstadisticasBase: FC = () => {
           <div className="estadisticas-card-cab">
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
-                <Scale size={20} color="#a855f7" aria-hidden="true" />
+                <Scale size={20} color="#087f8c" aria-hidden="true" />
                 <h3>Índice de Cumplimiento Oficial</h3>
               </div>
               <p>
@@ -334,18 +331,18 @@ const SeccionEstadisticasBase: FC = () => {
                   >
                     <defs>
                       <linearGradient id="gradienteDias" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#38bdf8" stopOpacity={0.95} />
-                        <stop offset="100%" stopColor="#2563eb" stopOpacity={0.4} />
+                        <stop offset="0%" stopColor="#00a3c4" stopOpacity={0.95} />
+                        <stop offset="100%" stopColor="#0d9488" stopOpacity={0.55} />
                       </linearGradient>
                       <linearGradient id="gradienteDiasActivo" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#c084fc" stopOpacity={1} />
-                        <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.7} />
+                        <stop offset="0%" stopColor="#071724" stopOpacity={1} />
+                        <stop offset="100%" stopColor="#0284c7" stopOpacity={0.8} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.08)" vertical={false} />
-                    <XAxis dataKey="dia" stroke="#94a3b8" axisLine={false} tickLine={false} dy={8} fontSize={12} fontWeight={600} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#d8e5e3" vertical={false} />
+                    <XAxis dataKey="dia" stroke="#526a70" axisLine={false} tickLine={false} dy={8} fontSize={12} fontWeight={600} />
                     <YAxis
-                      stroke="#94a3b8"
+                      stroke="#526a70"
                       axisLine={false}
                       tickLine={false}
                       dx={-8}
@@ -470,7 +467,7 @@ const SeccionEstadisticasBase: FC = () => {
                       <YAxis
                         dataKey="nombre"
                         type="category"
-                        stroke="#cbd5e1"
+                        stroke="#526a70"
                         width={130}
                         axisLine={false}
                         tickLine={false}
@@ -528,7 +525,7 @@ const SeccionEstadisticasBase: FC = () => {
                       </Bar>
                     </BarChart>
                   ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '0.88rem' }}>
+                    <div className="estadisticas-chart-vacio">
                       {datosBarrios.length === 0 ? 'Sin interrupciones cerradas registradas.' : ''}
                     </div>
                   )}

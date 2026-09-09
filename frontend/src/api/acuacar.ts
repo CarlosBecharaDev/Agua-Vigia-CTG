@@ -24,6 +24,8 @@ export interface BoletinAcuacar {
   barriosAfectados: string[];
   url?: string;
   imagenUrl: string | null;
+  /** Variantes oficiales publicadas por WordPress para que el navegador elija según el ancho y DPR. */
+  imagenSrcSet?: string;
   imagenAlt: string;
 }
 
@@ -193,15 +195,28 @@ export async function obtenerBoletinesRecientes(
   barriosConocidos: string[] = BARRIOS_CONOCIDOS,
 ): Promise<BoletinAcuacar[]> {
   try {
-    const baseUrl = import.meta.env.VITE_ACUACAR_API_URL || '/acuacar-api';
+    const baseUrl = (import.meta.env.VITE_ACUACAR_API_URL || '/acuacar-api').replace(/\/+$/, '');
+    const cantidadSegura = Math.min(100, Math.max(1, Math.trunc(cantidad)));
     // `_embed=wp:featuredmedia` trae la imagen destacada de cada boletín sin peticiones
     // adicionales — verificado contra la API real: los últimos 20 boletines la traen todos.
-    const url = `${baseUrl}/posts?per_page=${cantidad}&_fields=id,date,title,content,link,_links,_embedded&_embed=wp:featuredmedia`;
+    const parametros = new URLSearchParams({
+      per_page: String(cantidadSegura),
+      status: 'publish',
+      orderby: 'date',
+      order: 'desc',
+      _fields: 'id,date,title,content,link,_links,_embedded',
+      _embed: 'wp:featuredmedia',
+    });
+    const url = `${baseUrl}/posts?${parametros.toString()}`;
 
-    const res = await fetch(url);
+    const res = await fetch(url, {
+      headers: { Accept: 'application/json' },
+      cache: 'no-store',
+    });
     if (!res.ok) throw new Error(`Acuacar API respondió ${res.status}`);
 
     const posts = await res.json();
+    if (!Array.isArray(posts)) throw new Error('Acuacar API devolvió un formato inesperado');
 
     return posts.map((post: any) => {
       const titulo = limpiarHTML(post.title?.rendered || '');
@@ -209,6 +224,13 @@ export async function obtenerBoletinesRecientes(
       const contenidoTexto = limpiarHTML(contenidoHTML);
       const numeroMatch = titulo.match(/#(\d+)/);
       const media = post._embedded?.['wp:featuredmedia']?.[0];
+      const variantesImagen = Object.values(media?.media_details?.sizes ?? {})
+        .filter((tamano: any) => tamano?.source_url && Number.isFinite(tamano?.width))
+        .sort((a: any, b: any) => a.width - b.width)
+        .filter((tamano: any, indice: number, todos: any[]) =>
+          indice === 0 || tamano.width !== todos[indice - 1].width)
+        .map((tamano: any) => `${tamano.source_url} ${tamano.width}w`)
+        .join(', ');
       const menciones = extraerMencionesDeTexto(contenidoTexto, barriosConocidos);
 
       return {
@@ -221,13 +243,16 @@ export async function obtenerBoletinesRecientes(
         menciones,
         barriosAfectados: menciones.map((mencion) => mencion.barrio),
         url: post.link || `https://www.acuacar.com/?p=${post.id}`,
-        imagenUrl: media?.media_details?.sizes?.medium?.source_url ?? media?.source_url ?? null,
+        // `medium` mide solo 300px y se veía borroso en tarjetas de 400px/retina. `source_url`
+        // conserva el original; srcset permite descargar una variante menor cuando sí alcanza.
+        imagenUrl: media?.source_url ?? media?.media_details?.sizes?.large?.source_url ?? null,
+        imagenSrcSet: variantesImagen || undefined,
         imagenAlt: media?.alt_text || titulo,
       };
     });
   } catch (error) {
     console.warn('No se pudieron cargar boletines de Acuacar:', error);
-    return [];
+    throw error;
   }
 }
 

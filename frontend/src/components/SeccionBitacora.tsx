@@ -1,43 +1,34 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, FC, PointerEvent as ReactPointerEvent } from 'react'
-import { listarBitacora } from '../api/services'
-import type { EventoBitacora, TipoEventoBitacora } from '../api/services'
-import { normalizarErrorApi } from '../api/client'
 import { COLOR_POR_ESTADO } from '../types/tipos-dominio'
 import type { EstadoServicio } from '../types/tipos-dominio'
+import { determinarEstadoBoletin } from '../api/acuacar'
+import type { BoletinAcuacar } from '../api/acuacar'
 import { useConsultaMedios } from '../hooks/useConsultaMedios'
-import { CheckCircle2, AlertTriangle, Info, Radio, ExternalLink, Search, CalendarCheck, Inbox, ChevronLeft, ChevronRight } from 'lucide-react'
+import { CheckCircle2, AlertTriangle, Info, Radio, ExternalLink, Search, CalendarCheck, Inbox, ChevronLeft, ChevronRight, LoaderCircle, RefreshCw, Wifi, WifiOff } from 'lucide-react'
+import type { EstadoRecurso } from '../hooks/useDatosEnVivo'
 import './SeccionBitacora.css'
-
-/** Respaldo para los eventos que no traen `estado` propio. La ingesta sí lo trae, y por eso no
- *  figura aquí: su estado depende del boletín, no de su tipo. */
-const ESTADO_POR_TIPO: Partial<Record<TipoEventoBitacora, EstadoServicio>> = {
-  CORTE_ANUNCIADO: 'CORTE_PROGRAMADO',
-  CORTE_CONFIRMADO_POR_CIUDADANOS: 'SIN_SERVICIO',
-  CORTE_RESTABLECIDO: 'CON_SERVICIO',
-}
 
 const FILTROS: { valor: 'TODOS' | EstadoServicio; etiqueta: string; icono?: string }[] = [
   { valor: 'TODOS', etiqueta: 'Todos los eventos' },
-  { valor: 'SIN_SERVICIO', etiqueta: '🔴 Sin servicio' },
-  { valor: 'PRESION_BAJA', etiqueta: '🟡 Baja presión' },
-  { valor: 'CORTE_PROGRAMADO', etiqueta: '🔵 Programados' },
-  { valor: 'CON_SERVICIO', etiqueta: '🟢 Restablecidos' },
+  { valor: 'SIN_SERVICIO', etiqueta: 'Sin servicio' },
+  { valor: 'PRESION_BAJA', etiqueta: 'Baja presión' },
+  { valor: 'CORTE_PROGRAMADO', etiqueta: 'Programados' },
+  { valor: 'CON_SERVICIO', etiqueta: 'Restablecidos' },
 ]
 
 interface ItemBitacora {
   id: string
   titulo: string
   fecha: string
-  /** `null` = el backend mandó un tipo que no habla del servicio (un premio, la calidad del
-   *  agua, un programa ambiental). Antes esos caían por defecto en CORTE_PROGRAMADO y la
-   *  bitácora los anunciaba como si fueran un corte; ahora se listan como lo que son. */
+  /** `null` = el título oficial es informativo y no afirma un estado del servicio. */
   estado: EstadoServicio | null
-  tipo: TipoEventoBitacora | string
   /** Boletín que respalda el evento; de aquí sale el enlace "Leer documento". */
   urlOriginal: string | null
-  /** Portada del boletín. La trae el propio evento: el backend la captura al ingerir. */
+  /** Portada y variantes responsivas publicadas por el propio WordPress de Acuacar. */
   imagenUrl: string | null
+  imagenSrcSet?: string
+  numeroBoletin: string | null
 }
 
 const INFORMATIVO = { claro: '#6B7A85', etiqueta: 'Informativo', icono: Info } as const
@@ -47,16 +38,6 @@ const ICONO_POR_ESTADO: Record<EstadoServicio, typeof AlertTriangle> = {
   CORTE_PROGRAMADO: Info,
   CON_SERVICIO: CheckCircle2,
   PRESION_BAJA: AlertTriangle,
-}
-
-/**
- * El número del boletín sale de su propia URL (`/2854-aguas-de-cartagena-…`), no de la API de
- * Acuacar: así la tarjeta lo muestra sin depender de que el navegador se la
- * pide. Lo mismo vale para el enlace "Leer documento", que solo necesita la URL.
- */
-const numeroDeBoletin = (url: string): string | null => {
-  const coincidencia = url.match(/acuacar\.com\/(?:boletin-)?(\d{3,5})-/)
-  return coincidencia ? `#${coincidencia[1]}` : null
 }
 
 /**
@@ -74,6 +55,14 @@ const comoPortadaServida = (url: string): string =>
   url.startsWith(PREFIJO_MEDIOS_ACUACAR)
     ? `/acuacar-media/${url.slice(PREFIJO_MEDIOS_ACUACAR.length)}`
     : url
+
+const comoSrcSetServido = (srcSet?: string): string | undefined => srcSet
+  ?.split(',')
+  .map((variante) => {
+    const [url, descriptor] = variante.trim().split(/\s+/)
+    return `${comoPortadaServida(url)} ${descriptor}`
+  })
+  .join(', ')
 
 /**
  * Qué decir cuando un filtro no devuelve nada. No es un error ni un hueco: en una plataforma que
@@ -94,32 +83,32 @@ function mensajeVacio(filtro: 'TODOS' | EstadoServicio, busqueda: string) {
     case 'SIN_SERVICIO':
       return {
         Icono: CheckCircle2,
-        titulo: 'Ningún barrio sin servicio',
-        detalle: 'Acuacar no ha anunciado cortes activos y ningún vecino ha reportado falta de agua.',
+        titulo: 'Acuacar no publicó cortes en este lote',
+        detalle: 'No se completa este filtro con reportes internos ni con datos de demostración.',
       }
     case 'PRESION_BAJA':
       return {
         Icono: CheckCircle2,
-        titulo: 'Sin reportes de baja presión',
-        detalle: 'Nadie ha reportado presión insuficiente en las últimas horas.',
+        titulo: 'Sin boletines de baja presión',
+        detalle: 'La fuente oficial consultada no contiene publicaciones clasificadas con este estado.',
       }
     case 'CORTE_PROGRAMADO':
       return {
         Icono: CalendarCheck,
         titulo: 'No hay cortes programados',
-        detalle: 'Acuacar no ha anunciado mantenimientos con fecha y hora por ahora.',
+        detalle: 'Acuacar no ha publicado mantenimientos en los boletines consultados.',
       }
     case 'CON_SERVICIO':
       return {
         Icono: Info,
         titulo: 'Aún no hay restablecimientos',
-        detalle: 'Aquí aparecerán los barrios a los que Acuacar confirme el regreso del servicio.',
+        detalle: 'Aquí aparecerán únicamente restablecimientos publicados por Acuacar.',
       }
     default:
       return {
         Icono: Inbox,
-        titulo: 'La bitácora está vacía',
-        detalle: 'En cuanto Acuacar publique un boletín o alguien reporte una falla, aparecerá aquí.',
+        titulo: 'Acuacar no devolvió publicaciones',
+        detalle: 'La vista permanece vacía antes que mostrar boletines de otra fuente.',
       }
   }
 }
@@ -131,11 +120,16 @@ function mensajeVacio(filtro: 'TODOS' | EstadoServicio, busqueda: string) {
  */
 const formatearFecha = (isoString: string) => {
   const fecha = new Date(isoString)
-  const diffMin = Math.floor((Date.now() - fecha.getTime()) / 60000)
-  if (diffMin < 60) return `hace ${Math.max(1, diffMin)} min`
-  const diffHoras = Math.floor(diffMin / 60)
-  if (diffHoras < 24) return `hace ${diffHoras} h`
-  return new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'long', year: 'numeric' }).format(fecha)
+  const local = new Intl.DateTimeFormat('es-CO', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'America/Bogota',
+  }).format(fecha)
+  return `${local.replace(',', ' •')} COT`
 }
 
 function calcularBrilloBorde(el: HTMLElement, clientX: number, clientY: number) {
@@ -157,46 +151,33 @@ function calcularBrilloBorde(el: HTMLElement, clientX: number, clientY: number) 
 
 interface Props {
   busqueda?: string
+  boletines?: BoletinAcuacar[]
+  estadoAcuacar?: EstadoRecurso
+  onRecargarAcuacar?: () => void
 }
 
-function aItemBitacora(evento: EventoBitacora): ItemBitacora {
+function aItemAcuacar(boletin: BoletinAcuacar): ItemBitacora {
   return {
-    id: evento.id,
-    titulo: evento.descripcion,
-    fecha: evento.timestamp,
-    // El estado que el propio evento afirma manda sobre el que se deduce de su tipo: la ingesta
-    // publica tanto cortes como restablecimientos, así que su tipo no basta para saber cuál es.
-    estado: evento.estado ?? ESTADO_POR_TIPO[evento.tipo as TipoEventoBitacora] ?? null,
-    tipo: evento.tipo,
-    urlOriginal: evento.urlOriginal ?? null,
-    imagenUrl: evento.imagenUrl ?? null,
+    id: `acuacar-${boletin.id}`,
+    titulo: boletin.titulo,
+    fecha: boletin.fecha,
+    estado: determinarEstadoBoletin(boletin.titulo),
+    urlOriginal: boletin.url ?? null,
+    imagenUrl: boletin.imagenUrl,
+    imagenSrcSet: boletin.imagenSrcSet,
+    numeroBoletin: `Boletín N° ${boletin.numero.replace(/^#/, '')}`,
   }
 }
 
-const SeccionBitacoraBase: FC<Props> = ({ busqueda = '' }) => {
-  const [items, setItems] = useState<ItemBitacora[]>([])
-  const [cargando, setCargando] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+const SeccionBitacoraBase: FC<Props> = ({
+  busqueda = '',
+  boletines = [],
+  estadoAcuacar = 'empty',
+  onRecargarAcuacar,
+}) => {
   const [filtro, setFiltro] = useState<'TODOS' | EstadoServicio>('TODOS')
   const [entradaActiva, setEntradaActiva] = useState(false)
   const seccionRef = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    let montado = true
-    listarBitacora(40)
-      .then((eventos) => {
-        if (!montado) return
-        setItems(eventos.map(aItemBitacora))
-        setError(null)
-      })
-      .catch((causa) => {
-        if (montado) setError(normalizarErrorApi(causa).detalle)
-      })
-      .finally(() => {
-        if (montado) setCargando(false)
-      })
-    return () => { montado = false }
-  }, [])
 
   useEffect(() => {
     const seccion = seccionRef.current
@@ -212,19 +193,35 @@ const SeccionBitacoraBase: FC<Props> = ({ busqueda = '' }) => {
     return () => observer.disconnect()
   }, [])
 
+  // La vista pública contiene exclusivamente publicaciones devueltas por Acuacar. La bitácora
+  // interna sigue disponible para auditoría en su endpoint, pero no rellena huecos ni aparece como
+  // si fuera un boletín oficial cuando WordPress no responde.
+  const itemsDisponibles = useMemo(() => boletines
+    .map(aItemAcuacar)
+    .sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha)), [boletines])
+
   const itemsFiltrados = useMemo(() => {
-    const porEstado = filtro === 'TODOS' ? items : items.filter((i) => i.estado === filtro)
+    const porEstado = filtro === 'TODOS' ? itemsDisponibles : itemsDisponibles.filter((i) => i.estado === filtro)
     const termino = busqueda.trim().toLowerCase()
     return termino ? porEstado.filter((i) => i.titulo.toLowerCase().includes(termino)) : porEstado
-  }, [items, filtro, busqueda])
+  }, [itemsDisponibles, filtro, busqueda])
 
   const carruselRef = useRef<HTMLDivElement>(null)
+  const primerItemId = itemsFiltrados[0]?.id ?? null
   const arrastreRef = useRef<{ activo: boolean; inicioX: number; inicioScroll: number; movio: boolean }>({
     activo: false, inicioX: 0, inicioScroll: 0, movio: false,
   })
   const [arrastrando, setArrastrando] = useState(false)
   const [puedeIzquierda, setPuedeIzquierda] = useState(false)
   const [puedeDerecha, setPuedeDerecha] = useState(false)
+
+  // Un refetch puede insertar una publicación oficial nueva al principio. Volver al inicio en el
+  // mismo ciclo de layout garantiza que lo primero visible sea lo más reciente.
+  useLayoutEffect(() => {
+    const el = carruselRef.current
+    if (!el) return
+    el.scrollLeft = 0
+  }, [primerItemId, filtro, busqueda])
 
   // Por debajo de 640px las flechas dejan de flotar sobre los costados de la tarjeta (no hay
   // margen fuera de ella) y bajan a un paginador debajo del carrusel. Ahí sí se dibujan
@@ -303,13 +300,37 @@ const SeccionBitacoraBase: FC<Props> = ({ busqueda = '' }) => {
           <div>
             <div className="bitacora-eyebrow-pro">
               <span className="pulse-dot" />
-              <span>ÚLTIMOS BOLETINES</span>
+              <span>TRAZABILIDAD PÚBLICA</span>
             </div>
-            <h2 className="bitacora-titulo-pro">Bitácora de Suministro y Redes</h2>
+            <h2 className="bitacora-titulo-pro">Bitácora &amp; Boletines Oficiales</h2>
             <p className="bitacora-subtitulo-pro">
-              Registro público, inmutable y en tiempo real de cortes anunciados, confirmaciones de presión
-              y restablecimientos comunitarios en Cartagena.
+              Publicaciones oficiales obtenidas directamente del portal de Acuacar.
             </p>
+          </div>
+          <div
+            className={`bitacora-fuente-acuacar is-${estadoAcuacar}`}
+            role="status"
+            aria-live="polite"
+          >
+            {estadoAcuacar === 'loading' ? (
+              <><LoaderCircle className="bitacora-fuente-giro" size={15} aria-hidden="true" /> Conectando con Acuacar…</>
+            ) : estadoAcuacar === 'success' ? (
+              <>
+                <Wifi size={15} aria-hidden="true" /> Acuacar conectado · {boletines.length}{' '}
+                {boletines.length === 1 ? 'boletín' : 'boletines'}
+              </>
+            ) : estadoAcuacar === 'unavailable' || estadoAcuacar === 'error' ? (
+              <>
+                <WifiOff size={15} aria-hidden="true" /> Fuente temporalmente no disponible
+                {onRecargarAcuacar && (
+                  <button type="button" onClick={onRecargarAcuacar} aria-label="Reintentar conexión con Acuacar">
+                    <RefreshCw size={14} aria-hidden="true" />
+                  </button>
+                )}
+              </>
+            ) : (
+              <><Radio size={15} aria-hidden="true" /> Fuente oficial sin publicaciones</>
+            )}
           </div>
         </div>
 
@@ -328,11 +349,13 @@ const SeccionBitacoraBase: FC<Props> = ({ busqueda = '' }) => {
           ))}
         </div>
 
-        {error && items.length === 0 && !cargando ? (
-          <p className="bitacora-vacio" role="alert">{error}</p>
-        ) : itemsFiltrados.length === 0 && !cargando ? (
+        {itemsFiltrados.length === 0 ? (
           (() => {
-            const vacio = mensajeVacio(filtro, busqueda)
+            const vacio = estadoAcuacar === 'loading'
+              ? { Icono: LoaderCircle, titulo: 'Consultando Acuacar', detalle: 'Esperando las publicaciones oficiales más recientes.' }
+              : estadoAcuacar === 'unavailable' || estadoAcuacar === 'error'
+                ? { Icono: WifiOff, titulo: 'Acuacar no está disponible', detalle: 'No mostramos datos alternativos mientras la fuente oficial no responda.' }
+                : mensajeVacio(filtro, busqueda)
             const IconoVacio = vacio.Icono
             return (
               // `key` fuerza el remontaje al cambiar de filtro: sin él React reutiliza el nodo, la
@@ -376,15 +399,6 @@ const SeccionBitacoraBase: FC<Props> = ({ busqueda = '' }) => {
                   ? 'badge-corte-programado'
                   : 'badge-con-servicio'
 
-              const tagFuente =
-                item.tipo === 'CORTE_CONFIRMADO_POR_CIUDADANOS'
-                  ? 'Masa crítica ciudadana'
-                  : item.tipo === 'CORTE_ANUNCIADO'
-                  ? 'Aviso preventivo oficial'
-                  : item.tipo === 'CORTE_RESTABLECIDO'
-                  ? 'Servicio normalizado'
-                  : 'Boletín informativo'
-
               return (
                 <div
                   key={item.id}
@@ -399,6 +413,8 @@ const SeccionBitacoraBase: FC<Props> = ({ busqueda = '' }) => {
                         <img
                           className="bitacora-portada"
                           src={comoPortadaServida(item.imagenUrl)}
+                          srcSet={comoSrcSetServido(item.imagenSrcSet)}
+                          sizes="(max-width: 640px) calc(100vw - 3rem), (max-width: 1280px) 44vw, 400px"
                           alt=""
                           aria-hidden="true"
                           loading="lazy"
@@ -409,9 +425,9 @@ const SeccionBitacoraBase: FC<Props> = ({ busqueda = '' }) => {
                             if (marco) marco.style.display = 'none'
                           }}
                         />
-                        {item.urlOriginal && numeroDeBoletin(item.urlOriginal) && (
+                        {item.numeroBoletin && (
                           <span className="bitacora-numero-boletin">
-                            {numeroDeBoletin(item.urlOriginal)}
+                            {item.numeroBoletin}
                           </span>
                         )}
                       </div>
@@ -442,12 +458,12 @@ const SeccionBitacoraBase: FC<Props> = ({ busqueda = '' }) => {
                         rel="noopener noreferrer"
                       >
                         <ExternalLink size={13} aria-hidden="true" />
-                        Leer documento
+                        Ver boletín ↗
                       </a>
                     ) : (
                       <span className="bitacora-tag-tipo" style={{ color }}>
                         <span className="bitacora-dot-indicador" />
-                        {tagFuente}
+                        Boletín oficial de Acuacar
                       </span>
                     )}
                     <Radio size={13} style={{ opacity: 0.5, color: '#94a3b8' }} aria-hidden="true" />

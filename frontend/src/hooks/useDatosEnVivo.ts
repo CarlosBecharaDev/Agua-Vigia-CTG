@@ -26,14 +26,15 @@ export interface DatosEnVivo {
   conexionViva: boolean
   /** Boletines oficiales de Acuacar más recientes — solo contexto, ver nota arriba. */
   boletines: BoletinAcuacar[]
+  estadoAcuacar: EstadoRecurso
+  recargarAcuacar: () => void
   recargar: () => void
 }
 
 export function useDatosEnVivo(): DatosEnVivo {
   const [sectores, setSectores] = useState<Sector[]>([])
   const [ultimaActualizacion, setUltimaActualizacion] = useState<string | null>(null)
-  const [conexionViva, setConexionViva] = useState(true)
-  const [boletines, setBoletines] = useState<BoletinAcuacar[]>([])
+  const [conexionViva, setConexionViva] = useState(false)
 
   // F5 — el poll de React Query (cada 5 min) y el SSE pueden entregar en cualquier orden; sin
   // comparar `generadoEn`, una respuesta de poll más vieja que ya venía en vuelo podía pisar un
@@ -84,14 +85,16 @@ export function useDatosEnVivo(): DatosEnVivo {
     }
   }, [aplicarSiEsMasReciente])
 
-  // Best-effort: si Acuacar no responde, la ficha del sector simplemente no muestra citas.
-  useEffect(() => {
-    let montado = true
-    obtenerBoletinesRecientes(20)
-      .then((bols) => { if (montado) setBoletines(bols) })
-      .catch(() => {})
-    return () => { montado = false }
-  }, [])
+  // El feed oficial se revalida cada diez minutos, al mismo ritmo que el colector del backend.
+  // React Query conserva el último lote correcto si una revalidación falla y reintenta antes de
+  // declarar la fuente temporalmente no disponible; nunca sustituye los estados validados.
+  const consultaAcuacar = useQuery<BoletinAcuacar[]>({
+    queryKey: ['boletines-oficiales-acuacar'],
+    queryFn: () => obtenerBoletinesRecientes(20),
+    staleTime: 5 * 60_000,
+    refetchInterval: 10 * 60_000,
+    retry: 2,
+  })
 
   const error = consulta.error ? normalizarErrorApi(consulta.error).detalle : null
   const estaDesactualizado = Boolean(consulta.isError && consulta.data)
@@ -104,6 +107,13 @@ export function useDatosEnVivo(): DatosEnVivo {
         : sectores.length === 0
           ? 'empty'
           : 'success'
+  const estadoAcuacar: EstadoRecurso = consultaAcuacar.isPending
+    ? 'loading'
+    : consultaAcuacar.isError
+      ? 'unavailable'
+      : (consultaAcuacar.data?.length ?? 0) === 0
+        ? 'empty'
+        : 'success'
 
   return {
     estado,
@@ -112,7 +122,9 @@ export function useDatosEnVivo(): DatosEnVivo {
     sectores,
     ultimaActualizacion,
     conexionViva,
-    boletines,
+    boletines: consultaAcuacar.data ?? [],
+    estadoAcuacar,
+    recargarAcuacar: () => { void consultaAcuacar.refetch() },
     recargar: () => { void consulta.refetch() },
   }
 }

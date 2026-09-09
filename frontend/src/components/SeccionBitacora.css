@@ -92,6 +92,53 @@
   font-weight: 400;
 }
 
+.bitacora-fuente-acuacar {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.8rem;
+  color: rgba(226, 232, 240, 0.78);
+  background: rgba(15, 23, 42, 0.64);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.bitacora-fuente-acuacar.is-success {
+  color: #8ee9c0;
+  border-color: rgba(79, 191, 137, 0.35);
+}
+
+.bitacora-fuente-acuacar.is-unavailable,
+.bitacora-fuente-acuacar.is-error {
+  color: #f7c970;
+  border-color: rgba(217, 166, 60, 0.32);
+}
+
+.bitacora-fuente-acuacar button {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  place-items: center;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.08);
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.bitacora-fuente-giro {
+  animation: bitacora-fuente-giro 900ms linear infinite;
+}
+
+@keyframes bitacora-fuente-giro {
+  to { transform: rotate(1turn); }
+}
+
 /* ── Filtros Segmentados Estilo Apple ── */
 .bitacora-filtros-pro {
   display: flex;
@@ -147,6 +194,9 @@
   scroll-snap-type: x mandatory;
   scroll-padding-inline: 0.25rem;
   overscroll-behavior-inline: contain;
+  /* Evita que el navegador mantenga una tarjeta antigua a la vista cuando el feed oficial,
+     que llega después del backend, inserta boletines más recientes al comienzo. */
+  overflow-anchor: none;
 }
 
 .bitacora-carrusel-pro::-webkit-scrollbar {

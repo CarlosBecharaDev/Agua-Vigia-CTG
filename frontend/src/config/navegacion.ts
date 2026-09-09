@@ -16,7 +16,7 @@ export interface EnlaceNav {
 
 export const ENLACES: EnlaceNav[] = [
   { a: '/', etiqueta: 'Mapa en vivo', resumen: 'Estado por barrio', Icono: Map },
-  { a: '/#bitacora', etiqueta: 'Bitácora', resumen: 'Historial público', Icono: Clock3 },
-  { a: '/#estadisticas', etiqueta: 'Estadísticas', resumen: 'Tendencias y métricas', Icono: BarChart3 },
-  { a: '/#veedor', etiqueta: 'Panel veedor', resumen: 'Validación ciudadana', Icono: ShieldCheck },
+  { a: '/#bitacora', etiqueta: 'Bitácora & Boletines', resumen: 'Historial público', Icono: Clock3 },
+  { a: '/#estadisticas', etiqueta: 'Evidencias', resumen: 'Métricas de cumplimiento', Icono: BarChart3 },
+  { a: '/#veedor', etiqueta: 'Veeduría', resumen: 'Panel veedor', Icono: ShieldCheck },
 ]
